@@ -5,17 +5,10 @@
   
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
-    <artifactId>galley</artifactId>
+    <artifactId>galley-caches</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
-
-  <artifactId>galley-core</artifactId>
-  <name>Galley :: Core API</name>
   
-  <dependencies>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-  </dependencies>
+  <artifactId>galley-cache-per-repo</artifactId>
+  <name>Galley :: Caches :: Per-Repository Cache</name>
 </project>

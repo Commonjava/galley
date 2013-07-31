@@ -8,19 +8,12 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
   
-  <artifactId>galley-transports</artifactId>
+  <artifactId>galley-caches</artifactId>
   <packaging>pom</packaging>
   
-  <name>Galley :: Transports :: Parent</name>
+  <name>Galley :: Caches :: Parent</name>
   
   <modules>
-    <module>httpclient</module>
-    <module>filearc</module>
+    <module>per-repo</module>
   </modules>
-  <dependencies>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-core</artifactId>
-    </dependency>
-  </dependencies>
 </project>
