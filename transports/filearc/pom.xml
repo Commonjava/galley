@@ -9,6 +9,6 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
   
-  <artifactId>galley-transport-httpclient</artifactId>
-  <name>Galley :: Transports :: HttpClient Transport</name>
+  <artifactId>galley-transport-filearc</artifactId>
+  <name>Galley :: Transports :: File and Archive Transport</name>
 </project>

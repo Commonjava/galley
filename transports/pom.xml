@@ -15,5 +15,6 @@
   
   <modules>
     <module>httpclient</module>
+    <module>filearc</module>
   </modules>
 </project>
