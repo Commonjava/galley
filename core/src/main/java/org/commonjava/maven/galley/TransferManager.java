@@ -34,45 +34,50 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.xml.ws.Response;
-
 import org.commonjava.maven.galley.cache.CacheProvider;
-import org.commonjava.maven.galley.htcli.Downloader;
+import org.commonjava.maven.galley.event.FileErrorEvent;
+import org.commonjava.maven.galley.event.FileEventManager;
+import org.commonjava.maven.galley.event.FileNotFoundEvent;
+import org.commonjava.maven.galley.io.TransferDecorator;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.tansport.TansportManager;
+import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.PublishJob;
+import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.tansport.TransportManager;
+import org.commonjava.maven.galley.util.ArtifactPathInfo;
+import org.commonjava.maven.galley.util.UrlUtils;
 import org.commonjava.util.logging.Logger;
 
 public class TransferManager
 {
 
-    private static final String ROOT_PATH = "/";
-
     private final Logger logger = new Logger( getClass() );
 
-    private CacheProvider storage;
+    private final CacheProvider cacheProvider;
 
-    private TansportManager transportManager;
+    private final TransportManager transportManager;
 
-    private final Map<String, Future<Transfer>> pending = new ConcurrentHashMap<String, Future<Transfer>>();
+    private final FileEventManager fileEventManager;
+
+    private final TransferDecorator transferDecorator;
+
+    private final Map<String, Future<?>> pending = new ConcurrentHashMap<String, Future<?>>();
 
     //    @ExecutorConfig( priority = 10, threads = 2, named = "file-manager" )
-    private ExecutorService executor; // = Executors.newFixedThreadPool( 8 );
+    private final ExecutorService executor; // = Executors.newFixedThreadPool( 8 );
 
-    public TransferManager()
+    public TransferManager( final TransportManager transportManager, final CacheProvider cacheProvider,
+                            final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
+                            final ExecutorService executor )
     {
+        this.transportManager = transportManager;
+        this.cacheProvider = cacheProvider;
+        this.fileEventManager = fileEventManager;
+        this.transferDecorator = transferDecorator;
+        this.executor = executor;
     }
-
-    //    public TransferManager( final AproxConfiguration config, final StorageProvider storage, final AproxHttp http/*,
-    //                                                                                                                   final NotFoundCache nfc*/)
-    //    {
-    //        this.config = config;
-    //        this.storage = storage;
-    //        this.http = http;
-    //        //        this.nfc = nfc;
-    //        this.fileEventManager = new FileEventManager();
-    //        executor = Executors.newFixedThreadPool( 10 );
-    //    }
 
     public Transfer retrieveFirst( final List<? extends Location> stores, final String path )
         throws TransferException
@@ -93,7 +98,7 @@ public class TransferManager
             }
         }
 
-        //        fileEventManager.fire( new FileNotFoundEvent( stores, path ) );
+        fileEventManager.fire( new FileNotFoundEvent( stores, path ) );
         return null;
     }
 
@@ -112,19 +117,13 @@ public class TransferManager
             }
         }
 
-        //        if ( results.isEmpty() )
-        //        {
-        //            fileEventManager.fire( new FileNotFoundEvent( stores, path ) );
-        //        }
+        if ( results.isEmpty() )
+        {
+            fileEventManager.fire( new FileNotFoundEvent( stores, path ) );
+        }
 
         return results;
     }
-
-    /*
-     * (non-Javadoc)
-     * @see org.commonjava.aprox.core.rest.util.FileManager#download(org.commonjava.aprox.core.model.Location,
-     * java.lang.String)
-     */
 
     public Transfer retrieve( final Location store, final String path )
         throws TransferException
@@ -138,22 +137,17 @@ public class TransferManager
         Transfer target = null;
         try
         {
-            if ( store instanceof Repository )
-            {
-                final Repository repo = (Repository) store;
-                target = getStorageReference( store, path );
+            // TODO: Handle things like local archives that really don't need to be cached...
+            target = getCacheReference( store, path );
 
-                download( repo, target, suppressFailures );
-            }
-            else
-            {
-                target = getStorageReference( store, path );
-            }
+            final Transfer retrieved = download( store, target, suppressFailures );
 
-            if ( target.exists() )
+            if ( retrieved != null && retrieved.exists() && !target.equals( retrieved ) )
             {
+                cacheProvider.createAlias( target.getLocation(), target.getPath(), retrieved.getLocation(),
+                                           retrieved.getPath() );
                 //                logger.info( "Using stored copy from artifact store: %s for: %s", store.getName(), path );
-                final Transfer item = getStorageReference( store.getKey(), path );
+                final Transfer item = getCacheReference( store, path );
 
                 return item;
             }
@@ -167,17 +161,20 @@ public class TransferManager
             fileEventManager.fire( new FileErrorEvent( target, e ) );
             throw e;
         }
+        catch ( final IOException e )
+        {
+            final TransferException error =
+                new TransferException( "Failed to download: %s from: %s. Reason: %s", e, path, store, e.getMessage() );
+
+            fileEventManager.fire( new FileErrorEvent( target, error ) );
+            throw error;
+        }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.commonjava.aprox.core.rest.util.FileManager#download(org.commonjava.aprox.core.model.Repository,
-     * java.lang.String, java.io.File, boolean)
-     */
-    private boolean download( final Repository repository, final Transfer target, final boolean suppressFailures )
+    private Transfer download( final Location repository, final Transfer target, final boolean suppressFailures )
         throws TransferException
     {
-        final String url = buildDownloadUrl( repository, target.getPath(), suppressFailures );
+        final String url = buildUrl( repository, target.getPath(), suppressFailures );
 
         //        if ( nfc.hasEntry( url ) )
         //        {
@@ -188,115 +185,106 @@ public class TransferManager
         int timeoutSeconds = repository.getTimeoutSeconds();
         if ( timeoutSeconds < 1 )
         {
-            timeoutSeconds = Repository.DEFAULT_TIMEOUT_SECONDS;
+            timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
         }
 
-        if ( !joinDownload( url, target, timeoutSeconds, suppressFailures ) )
+        Transfer result = joinDownload( url, target, timeoutSeconds, suppressFailures );
+        if ( result == null )
         {
-            startDownload( url, repository, target, timeoutSeconds, suppressFailures );
-        }
-
-        return target.exists();
-    }
-
-    private boolean startDownload( final String url, final Repository repository, final Transfer target,
-                                   final int timeoutSeconds, final boolean suppressFailures )
-        throws TransferException
-    {
-        final Downloader dl = new Downloader( /**nfc,**/
-        url, repository, target, http );
-
-        final Future<Transfer> future = executor.submit( dl );
-        pending.put( url, future );
-
-        boolean result = true;
-        try
-        {
-            final Transfer downloaded = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-            if ( !suppressFailures && dl.getError() != null )
-            {
-                throw dl.getError();
-            }
-
-            result = downloaded != null && downloaded.exists();
-        }
-        catch ( final InterruptedException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( Response.status( Status.NO_CONTENT )
-                                                     .build(), "Interrupted download: %s from: %s. Reason: %s", e, url,
-                                             repository, e.getMessage() );
-            }
-            result = false;
-        }
-        catch ( final ExecutionException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( Response.serverError()
-                                                     .build(), "Failed to download: %s from: %s. Reason: %s", e, url,
-                                             repository, e.getMessage() );
-            }
-            result = false;
-        }
-        catch ( final TimeoutException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( Response.status( Status.NO_CONTENT )
-                                                     .build(), "Timed-out download: %s from: %s. Reason: %s", e, url,
-                                             repository, e.getMessage() );
-            }
-            result = false;
-        }
-        finally
-        {
-            //            logger.info( "Marking download complete: %s", url );
-            pending.remove( url );
+            result = startDownload( url, repository, target, timeoutSeconds, suppressFailures );
         }
 
         return result;
     }
 
-    private String buildDownloadUrl( final Repository repository, final String path, final boolean suppressFailures )
+    private Transfer startDownload( final String url, final Location repository, final Transfer target,
+                                    final int timeoutSeconds, final boolean suppressFailures )
         throws TransferException
     {
-        final String remoteBase = repository.getUrl();
+        if ( target.exists() )
+        {
+            return target;
+        }
+
+        final String key = getJoinKey( url, false );
+        final Transport transport = transportManager.getTransport( repository );
+        final DownloadJob job = transport.createDownloadJob( url, repository, target, timeoutSeconds );
+
+        final Future<Transfer> future = executor.submit( job );
+        pending.put( key, future );
+        try
+        {
+            final Transfer downloaded = future.get( timeoutSeconds, TimeUnit.SECONDS );
+
+            if ( !suppressFailures && job.getError() != null )
+            {
+                throw job.getError();
+            }
+
+            return downloaded;
+        }
+        catch ( final InterruptedException e )
+        {
+            if ( !suppressFailures )
+            {
+                throw new TransferException( "Interrupted download: %s from: %s. Reason: %s", e, url, repository,
+                                             e.getMessage() );
+            }
+        }
+        catch ( final ExecutionException e )
+        {
+            if ( !suppressFailures )
+            {
+                throw new TransferException( "Failed to download: %s from: %s. Reason: %s", e, url, repository,
+                                             e.getMessage() );
+            }
+        }
+        catch ( final TimeoutException e )
+        {
+            if ( !suppressFailures )
+            {
+                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, url, repository,
+                                             e.getMessage() );
+            }
+        }
+        finally
+        {
+            //            logger.info( "Marking download complete: %s", url );
+            pending.remove( key );
+        }
+
+        return null;
+    }
+
+    private String buildUrl( final Location repository, final String path, final boolean suppressFailures )
+        throws TransferException
+    {
+        final String remoteBase = repository.getUri();
         String url = null;
         try
         {
-            url = buildUrl( remoteBase, path );
+            url = UrlUtils.buildUrl( remoteBase, path );
         }
         catch ( final MalformedURLException e )
         {
-            logger.error( "Invalid URL for path: %s in remote URL: %s. Reason: %s", e, path, remoteBase, e.getMessage() );
-
-            if ( !suppressFailures )
-            {
-                throw new TransferException( Response.status( Status.BAD_REQUEST )
-                                                     .build() );
-            }
-            else
-            {
-                url = null;
-            }
+            throw new TransferException( "Invalid URL for path: %s in remote URL: %s. Reason: %s", e, path, remoteBase,
+                                         e.getMessage() );
         }
 
         return url;
     }
 
-    private boolean joinDownload( final String url, final Transfer target, final int timeoutSeconds,
-                                  final boolean suppressFailures )
+    private Transfer joinDownload( final String url, final Transfer target, final int timeoutSeconds,
+                                   final boolean suppressFailures )
         throws TransferException
     {
-        boolean result = target.exists();
-
         // if the target file already exists, skip joining.
-        if ( !result )
+        if ( !target.exists() )
         {
-            final Future<Transfer> future = pending.get( url );
+            final String key = getJoinKey( url, false );
+
+            @SuppressWarnings( "unchecked" )
+            final Future<Transfer> future = (Future<Transfer>) pending.get( key );
             if ( future != null )
             {
                 Transfer f = null;
@@ -304,88 +292,52 @@ public class TransferManager
                 {
                     f = future.get( timeoutSeconds, TimeUnit.SECONDS );
 
-                    // if the download landed in a different repository, copy it to the current one for
-                    // completeness...
-
-                    // NOTE: It'd be nice to alias instead of copying, but
-                    // that would require a common centralized store
-                    // to prevent removal of a repository from hosing
-                    // the links.
-                    if ( f != null && f.exists() && !f.equals( target ) )
-                    {
-                        target.copyFrom( f );
-                    }
-
-                    result = target != null && target.exists();
+                    return f;
                 }
                 catch ( final InterruptedException e )
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( Response.status( Status.NO_CONTENT )
-                                                             .build() );
+                        throw new TransferException( "Download interrupted: %s", e, url );
                     }
                 }
                 catch ( final ExecutionException e )
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( Response.serverError()
-                                                             .build() );
+                        throw new TransferException( "Download failed: %s", e, url );
                     }
                 }
                 catch ( final TimeoutException e )
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( Response.status( Status.NO_CONTENT )
-                                                             .build() );
-                    }
-                }
-                catch ( final IOException e )
-                {
-                    logger.error( "Failed to copy downloaded file to repository target. Error:  %s\nDownloaded location: %s\nRepository target: %s",
-                                  e, e.getMessage(), f, target );
-
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( Response.serverError()
-                                                             .build() );
+                        throw new TransferException( "Timeout on: %s", e, url );
                     }
                 }
             }
         }
 
-        return result;
+        return null;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.commonjava.aprox.core.rest.util.FileManager#upload(org.commonjava.aprox.core.model.DeployPoint,
-     * java.lang.String, java.io.InputStream)
-     */
-
-    public Transfer store( final DeployPoint deploy, final String path, final InputStream stream )
+    public Transfer store( final Location deploy, final String path, final InputStream stream )
         throws TransferException
     {
         final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( path );
         if ( pathInfo != null && pathInfo.isSnapshot() )
         {
-            if ( !deploy.isAllowSnapshots() )
+            if ( !deploy.allowsSnapshots() )
             {
-                logger.error( "Cannot store snapshot in non-snapshot deploy point: %s", deploy.getName() );
-                throw new TransferException( Response.status( Status.BAD_REQUEST )
-                                                     .build() );
+                throw new TransferException( "Cannot store snapshot in non-snapshot deploy point: %s", deploy.getUri() );
             }
         }
-        else if ( !deploy.isAllowReleases() )
+        else if ( !deploy.allowsReleases() )
         {
-            logger.error( "Cannot store release in snapshot-only deploy point: %s", deploy.getName() );
-            throw new TransferException( Response.status( Status.BAD_REQUEST )
-                                                 .build() );
+            throw new TransferException( "Cannot store release in snapshot-only deploy point: %s", deploy.getUri() );
         }
 
-        final Transfer target = getStorageReference( deploy, path );
+        final Transfer target = getCacheReference( deploy, path );
 
         // TODO: Need some protection for released files!
         // if ( target.exists() )
@@ -397,16 +349,13 @@ public class TransferManager
         OutputStream out = null;
         try
         {
-            out = target.openOutputStream( false );
+            out = target.openOutputStream( TransferOperation.UPLOAD );
             copy( stream, out );
         }
         catch ( final IOException e )
         {
-            logger.error( "Failed to store: %s in deploy store: %s. Reason: %s", e, path, deploy.getName(),
-                          e.getMessage() );
-
-            throw new TransferException( Response.serverError()
-                                                 .build() );
+            throw new TransferException( "Failed to store: %s in: %s. Reason: %s", e, path, deploy.getUri(),
+                                         e.getMessage() );
         }
         finally
         {
@@ -416,60 +365,48 @@ public class TransferManager
         return target;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.commonjava.aprox.core.rest.util.FileManager#upload(java.util.List, java.lang.String,
-     * java.io.InputStream)
-     */
-
     public Transfer store( final List<? extends Location> stores, final String path, final InputStream stream )
         throws TransferException
     {
         final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( path );
 
-        DeployPoint selected = null;
+        Location selected = null;
         for ( final Location store : stores )
         {
-            if ( store instanceof DeployPoint )
+            //                logger.info( "Found deploy point: %s", store.getName() );
+            if ( pathInfo == null )
             {
-                //                logger.info( "Found deploy point: %s", store.getName() );
-                final DeployPoint dp = (DeployPoint) store;
-                if ( pathInfo == null )
+                // probably not an artifact, most likely metadata instead...
+                //                    logger.info( "Selecting it for non-artifact storage: %s", path );
+                selected = store;
+                break;
+            }
+            else if ( pathInfo.isSnapshot() )
+            {
+                if ( store.allowsSnapshots() )
                 {
-                    // probably not an artifact, most likely metadata instead...
-                    //                    logger.info( "Selecting it for non-artifact storage: %s", path );
-                    selected = dp;
+                    //                        logger.info( "Selecting it for snapshot storage: %s", pathInfo );
+                    selected = store;
                     break;
                 }
-                else if ( pathInfo.isSnapshot() )
-                {
-                    if ( dp.isAllowSnapshots() )
-                    {
-                        //                        logger.info( "Selecting it for snapshot storage: %s", pathInfo );
-                        selected = dp;
-                        break;
-                    }
-                }
-                else if ( dp.isAllowReleases() )
-                {
-                    //                    logger.info( "Selecting it for release storage: %s", pathInfo );
-                    selected = dp;
-                    break;
-                }
+            }
+            else if ( store.allowsReleases() )
+            {
+                //                    logger.info( "Selecting it for release storage: %s", pathInfo );
+                selected = store;
+                break;
             }
         }
 
         if ( selected == null )
         {
             logger.warn( "Cannot deploy. No valid deploy points in group." );
-            throw new TransferException( Response.status( Status.BAD_REQUEST )
-                                                 .entity( "No deployment locations available." )
-                                                 .build() );
+            throw new TransferException( "No deployment locations available for: %s in: %s", path, stores );
         }
 
         store( selected, path, stream );
 
-        return getStorageReference( selected.getKey(), path );
+        return getCacheReference( selected, path );
     }
 
     public ArtifactPathInfo parsePathInfo( final String path )
@@ -502,19 +439,14 @@ public class TransferManager
         return new ArtifactPathInfo( groupId.toString(), artifactId, version, file, path );
     }
 
-    public Transfer getStoreRootDirectory( final StoreKey key )
+    public Transfer getStoreRootDirectory( final Location key )
     {
-        return new Transfer( key, storage, fileEventManager, Transfer.ROOT );
+        return new Transfer( key, cacheProvider, fileEventManager, transferDecorator, Transfer.ROOT );
     }
 
-    public Transfer getStorageReference( final Location store, final String... path )
+    public Transfer getCacheReference( final Location store, final String... path )
     {
-        return new Transfer( store.getKey(), storage, fileEventManager, path );
-    }
-
-    public Transfer getStorageReference( final StoreKey key, final String... path )
-    {
-        return new Transfer( key, storage, fileEventManager, path );
+        return new Transfer( store, cacheProvider, fileEventManager, transferDecorator, path );
     }
 
     public boolean deleteAll( final List<? extends Location> stores, final String path )
@@ -532,7 +464,7 @@ public class TransferManager
     public boolean delete( final Location store, final String path )
         throws TransferException
     {
-        final Transfer item = getStorageReference( store, path == null ? ROOT_PATH : path );
+        final Transfer item = getCacheReference( store, path == null ? Transfer.ROOT : path );
         return doDelete( item );
     }
 
@@ -574,4 +506,112 @@ public class TransferManager
         return true;
     }
 
+    public boolean publish( final Location location, final String path, final InputStream stream, final long length )
+        throws TransferException
+    {
+        return publish( location, path, stream, length, null );
+    }
+
+    public boolean publish( final Location location, final String path, final InputStream stream, final long length,
+                            final String contentType )
+        throws TransferException
+    {
+        final String url = buildUrl( location, path, false );
+
+        int timeoutSeconds = location.getTimeoutSeconds();
+        if ( timeoutSeconds < 1 )
+        {
+            timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
+        }
+
+        joinPublish( url, path, timeoutSeconds );
+        return doPublish( url, location, path, timeoutSeconds, stream, length, contentType );
+    }
+
+    private boolean doPublish( final String url, final Location repository, final String path,
+                               final int timeoutSeconds, final InputStream stream, final long length,
+                               final String contentType )
+        throws TransferException
+    {
+        final String key = getJoinKey( url, true );
+
+        final Transport transport = transportManager.getTransport( repository );
+        final PublishJob job =
+            transport.createPublishJob( url, repository, path, stream, length, contentType, timeoutSeconds );
+
+        final Future<Boolean> future = executor.submit( job );
+        pending.put( key, future );
+        try
+        {
+            final Boolean published = future.get( timeoutSeconds, TimeUnit.SECONDS );
+
+            if ( job.getError() != null )
+            {
+                throw job.getError();
+            }
+
+            return published;
+        }
+        catch ( final InterruptedException e )
+        {
+            throw new TransferException( "Interrupted publish: %s from: %s. Reason: %s", e, url, repository,
+                                         e.getMessage() );
+        }
+        catch ( final ExecutionException e )
+        {
+            throw new TransferException( "Failed to publish: %s from: %s. Reason: %s", e, url, repository,
+                                         e.getMessage() );
+        }
+        catch ( final TimeoutException e )
+        {
+            throw new TransferException( "Timed-out publish: %s from: %s. Reason: %s", e, url, repository,
+                                         e.getMessage() );
+        }
+        finally
+        {
+            //            logger.info( "Marking download complete: %s", url );
+            pending.remove( key );
+        }
+    }
+
+    /**
+     * @return true if (a) previous upload in progress succeeded, or (b) there was no previous upload.
+     */
+    private boolean joinPublish( final String url, final String path, final int timeoutSeconds )
+        throws TransferException
+    {
+        final String key = getJoinKey( url, true );
+
+        @SuppressWarnings( "unchecked" )
+        final Future<Boolean> future = (Future<Boolean>) pending.get( key );
+        if ( future != null )
+        {
+            Boolean f = null;
+            try
+            {
+                f = future.get( timeoutSeconds, TimeUnit.SECONDS );
+
+                return f;
+            }
+            catch ( final InterruptedException e )
+            {
+                throw new TransferException( "Publish interrupted: %s", e, url );
+            }
+            catch ( final ExecutionException e )
+            {
+                throw new TransferException( "Publish failed: %s", e, url );
+            }
+            catch ( final TimeoutException e )
+            {
+                throw new TransferException( "Timeout on: %s", e, url );
+            }
+        }
+
+        return true;
+    }
+
+    private String getJoinKey( final String url, final boolean upload )
+    {
+        return ( upload ? "UP" : "DOWN" ) + "::" + url;
+    }
 }

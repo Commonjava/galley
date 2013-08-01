@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.htcli;
+package org.commonjava.maven.galley.htcli.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
@@ -6,41 +6,47 @@ import static org.apache.commons.io.IOUtils.copy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.Callable;
 
-import javax.xml.ws.Response;
-
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.htcli.Http;
+import org.commonjava.maven.galley.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.util.logging.Logger;
 
-final class Downloader
-    implements Callable<Transfer>
+public final class HttpDownload
+    implements DownloadJob
 {
 
     private final Logger logger = new Logger( getClass() );
 
     private final String url;
 
-    private final Location repository;
+    private final HttpLocation location;
 
     private final Transfer target;
 
-    private final AproxHttp http;
+    private final Http http;
 
     private TransferException error;
 
     //        private final NotFoundCache nfc;
 
-    public Downloader( /**final NotFoundCache nfc,**/
-    final String url, final Repository repository, final Transfer target, final AproxHttp client )
+    public HttpDownload( /**final NotFoundCache nfc,**/
+    final String url, final HttpLocation location, final Transfer target, final Http http )
     {
         //            this.nfc = nfc;
         this.url = url;
-        this.repository = repository;
+        this.location = location;
         this.target = target;
-        this.http = client;
+        this.http = http;
     }
 
     @Override
@@ -49,12 +55,12 @@ final class Downloader
         //            logger.info( "Trying: %s", url );
         final HttpGet request = new HttpGet( url );
 
-        http.bindRepositoryCredentialsTo( repository, request );
+        http.bindCredentialsTo( location, request );
 
         try
         {
             final InputStream in = executeGet( request, url );
-            writeTarget( target, in, url, repository );
+            writeTarget( target, in, url, location );
         }
         catch ( final TransferException e )
         {
@@ -77,12 +83,13 @@ final class Downloader
         return target;
     }
 
+    @Override
     public TransferException getError()
     {
         return error;
     }
 
-    private void writeTarget( final Transfer target, final InputStream in, final String url, final Repository repository )
+    private void writeTarget( final Transfer target, final InputStream in, final String url, final Location repository )
         throws TransferException
     {
         OutputStream out = null;
@@ -90,17 +97,14 @@ final class Downloader
         {
             try
             {
-                out = target.openOutputStream();
+                out = target.openOutputStream( TransferOperation.DOWNLOAD );
 
                 copy( in, out );
             }
             catch ( final IOException e )
             {
-                logger.error( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", e, target, url,
-                              e.getMessage() );
-
-                throw new TransferException( Response.serverError()
-                                                     .build() );
+                throw new TransferException( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s",
+                                             e, target, url, e.getMessage() );
             }
             finally
             {
@@ -130,8 +134,7 @@ final class Downloader
                 }
                 else
                 {
-                    throw new TransferException( Response.serverError()
-                                                         .build() );
+                    throw new TransferException( "HTTP request failed: %s", line );
                 }
             }
             else
@@ -142,15 +145,11 @@ final class Downloader
         }
         catch ( final ClientProtocolException e )
         {
-            logger.warn( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
-            throw new TransferException( Response.serverError()
-                                                 .build() );
+            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
         }
         catch ( final IOException e )
         {
-            logger.warn( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
-            throw new TransferException( Response.serverError()
-                                                 .build() );
+            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
         }
 
         return result;
@@ -158,7 +157,7 @@ final class Downloader
 
     private void cleanup( final HttpGet request )
     {
-        http.clearRepositoryCredentials();
+        http.clearBoundCredentials( location );
         request.abort();
         http.closeConnection();
     }

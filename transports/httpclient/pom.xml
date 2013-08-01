@@ -11,4 +11,10 @@
   
   <artifactId>galley-transport-httpclient</artifactId>
   <name>Galley :: Transports :: HttpClient Transport</name>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+    </dependency>
+  </dependencies>
 </project>
