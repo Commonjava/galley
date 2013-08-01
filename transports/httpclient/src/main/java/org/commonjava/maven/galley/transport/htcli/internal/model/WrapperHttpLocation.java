@@ -1,12 +1,12 @@
-package org.commonjava.maven.galley.htcli.internal.model;
+package org.commonjava.maven.galley.transport.htcli.internal.model;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.commonjava.maven.galley.htcli.conf.GlobalHttpConfiguration;
-import org.commonjava.maven.galley.htcli.conf.ProxyConfig;
-import org.commonjava.maven.galley.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.maven.galley.transport.htcli.conf.ProxyConfig;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 public class WrapperHttpLocation
     implements HttpLocation

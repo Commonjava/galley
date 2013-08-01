@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.htcli.internal;
+package org.commonjava.maven.galley.transport.htcli.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,9 +11,9 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.htcli.Http;
-import org.commonjava.maven.galley.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
+import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.util.ContentTypeUtils;
 import org.commonjava.util.logging.Logger;
 

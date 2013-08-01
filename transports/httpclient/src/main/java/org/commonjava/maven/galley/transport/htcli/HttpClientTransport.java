@@ -1,19 +1,19 @@
-package org.commonjava.maven.galley.htcli;
+package org.commonjava.maven.galley.transport.htcli;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.htcli.conf.GlobalHttpConfiguration;
-import org.commonjava.maven.galley.htcli.internal.HttpDownload;
-import org.commonjava.maven.galley.htcli.internal.HttpPublish;
-import org.commonjava.maven.galley.htcli.internal.model.WrapperHttpLocation;
-import org.commonjava.maven.galley.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.maven.galley.transport.htcli.internal.HttpDownload;
+import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
+import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 public class HttpClientTransport
     implements Transport

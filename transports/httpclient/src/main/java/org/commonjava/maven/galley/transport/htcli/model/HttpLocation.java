@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.htcli.model;
+package org.commonjava.maven.galley.transport.htcli.model;
 
 import org.commonjava.maven.galley.model.Location;
 

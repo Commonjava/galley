@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.commonjava.maven.galley.htcli.internal;
+package org.commonjava.maven.galley.transport.htcli.internal;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,7 +25,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.commonjava.maven.galley.auth.PasswordManager;
-import org.commonjava.maven.galley.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 public class TLLocationCredentialsProvider
     implements CredentialsProvider

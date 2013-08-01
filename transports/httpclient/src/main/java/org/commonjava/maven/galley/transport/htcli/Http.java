@@ -1,8 +1,8 @@
-package org.commonjava.maven.galley.htcli;
+package org.commonjava.maven.galley.transport.htcli;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.client.HttpClient;
-import org.commonjava.maven.galley.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 public interface Http
 {

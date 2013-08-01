@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.htcli.internal;
+package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
@@ -13,12 +13,12 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.htcli.Http;
-import org.commonjava.maven.galley.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;
 
 public final class HttpDownload

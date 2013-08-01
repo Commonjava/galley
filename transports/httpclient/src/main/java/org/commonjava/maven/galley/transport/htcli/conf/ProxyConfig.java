@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.htcli.conf;
+package org.commonjava.maven.galley.transport.htcli.conf;
 
 public interface ProxyConfig
 {

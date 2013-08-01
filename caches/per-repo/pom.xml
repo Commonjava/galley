@@ -11,4 +11,10 @@
   
   <artifactId>galley-cache-per-repo</artifactId>
   <name>Galley :: Caches :: Per-Repository Cache</name>
+  <dependencies>
+    <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-core</artifactId>
+    </dependency>
+  </dependencies>
 </project>

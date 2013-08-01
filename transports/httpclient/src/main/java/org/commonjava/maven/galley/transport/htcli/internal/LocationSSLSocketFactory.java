@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.htcli.internal;
+package org.commonjava.maven.galley.transport.htcli.internal;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -15,8 +15,8 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.params.HttpParams;
 import org.commonjava.maven.galley.auth.PasswordManager;
-import org.commonjava.maven.galley.htcli.Http;
-import org.commonjava.maven.galley.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;
 
 public class LocationSSLSocketFactory

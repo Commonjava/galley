@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.internal.cache;
+package org.commonjava.maven.galley.cache.perloc;
 
 import java.io.File;
 import java.io.FileInputStream;

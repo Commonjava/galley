@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.htcli.internal;
+package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.apache.commons.io.IOUtils.closeQuietly;
