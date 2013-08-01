@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.tansport;
+package org.commonjava.maven.galley.transport;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
