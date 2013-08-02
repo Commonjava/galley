@@ -146,10 +146,11 @@ public class TransferManager
             {
                 cacheProvider.createAlias( target.getLocation(), target.getPath(), retrieved.getLocation(),
                                            retrieved.getPath() );
-                //                logger.info( "Using stored copy from artifact store: %s for: %s", store.getName(), path );
-                final Transfer item = getCacheReference( store, path );
+            }
 
-                return item;
+            if ( target.exists() )
+            {
+                return target;
             }
             else
             {
@@ -279,7 +280,11 @@ public class TransferManager
         throws TransferException
     {
         // if the target file already exists, skip joining.
-        if ( !target.exists() )
+        if ( target.exists() )
+        {
+            return target;
+        }
+        else
         {
             final String key = getJoinKey( url, false );
 

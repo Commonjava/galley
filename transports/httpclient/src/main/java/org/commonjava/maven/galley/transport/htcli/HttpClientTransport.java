@@ -2,6 +2,7 @@ package org.commonjava.maven.galley.transport.htcli;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
@@ -76,6 +77,21 @@ public class HttpClientTransport
         throws TransferException
     {
         return createPublishJob( url, repository, path, stream, length, null, timeoutSeconds );
+    }
+
+    @Override
+    public boolean handles( final Location location )
+    {
+        try
+        {
+            return location.getUri()
+                           .startsWith( "http" ) && new URL( location.getUri() ) != null; // hack, but just verify that the URL parses.
+        }
+        catch ( final MalformedURLException e )
+        {
+        }
+
+        return false;
     }
 
 }

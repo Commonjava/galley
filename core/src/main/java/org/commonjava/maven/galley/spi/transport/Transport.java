@@ -20,4 +20,6 @@ public interface Transport
                                  String contentType, int timeoutSeconds )
         throws TransferException;
 
+    boolean handles( Location location );
+
 }
