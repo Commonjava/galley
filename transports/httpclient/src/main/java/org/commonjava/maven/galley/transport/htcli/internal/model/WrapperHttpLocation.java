@@ -2,6 +2,7 @@ package org.commonjava.maven.galley.transport.htcli.internal.model;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
@@ -53,14 +54,12 @@ public class WrapperHttpLocation
     @Override
     public String getKeyCertPem()
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public String getServerCertPem()
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -102,6 +101,54 @@ public class WrapperHttpLocation
     {
         final ProxyConfig proxy = globalConfig.getProxyConfig( url );
         return proxy == null ? 8080 : proxy.getPort();
+    }
+
+    @Override
+    public boolean equals( final Object other )
+    {
+        return delegate.equals( other );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return delegate.hashCode();
+    }
+
+    @Override
+    public Map<String, Object> getAttributes()
+    {
+        return delegate.getAttributes();
+    }
+
+    @Override
+    public <T> T getAttribute( final String key, final Class<T> type )
+    {
+        return delegate.getAttribute( key, type );
+    }
+
+    @Override
+    public Object removeAttribute( final String key )
+    {
+        return delegate.removeAttribute( key );
+    }
+
+    @Override
+    public Object setAttribute( final String key, final Object value )
+    {
+        return delegate.setAttribute( key, value );
+    }
+
+    @Override
+    public boolean allowsPublishing()
+    {
+        return delegate.allowsPublishing();
+    }
+
+    @Override
+    public boolean allowsStoring()
+    {
+        return delegate.allowsStoring();
     }
 
 }

@@ -11,6 +11,7 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.util.logging.Logger;
 
 /**
  * Stubbed out {@link Transport} implementation that allows pre-registering
@@ -22,31 +23,31 @@ import org.commonjava.maven.galley.spi.transport.Transport;
 public class TestTransport
     implements Transport
 {
+    private final Logger logger = new Logger( getClass() );
 
-    private final Map<Transfer, DownloadJob> downloads = new HashMap<>();
+    private final Map<TestEndpoint, TestDownloadJob> downloads = new HashMap<>();
 
-    private final Map<String, PublishJob> publishes = new HashMap<>();
+    private final Map<String, TestPublishJob> publishes = new HashMap<>();
 
     /**
-     * Use this to pre-register a {@link DownloadJob} you plan on accessing during
+     * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during
      * your unit test.
-     * 
-     * @return any {@link DownloadJob} previously registered to that location and path. 
      */
-    public DownloadJob registerDownload( final Transfer txfr, final DownloadJob job )
+    public void registerDownload( final Location loc, final String path, final TestDownloadJob job )
     {
-        return downloads.put( txfr, job );
+        final TestEndpoint end = new TestEndpoint( loc, path );
+        logger.info( "Registering download: %s with job: %s", end, job );
+        downloads.put( end, job );
     }
 
     /**
-     * Use this to pre-register a {@link PublishJob} you plan on accessing during
+     * Use this to pre-register the result for a {@link PublishJob} you plan on accessing during
      * your unit test.
-     * 
-     * @return any {@link PublishJob} previously registered to that location and path. 
      */
-    public PublishJob registerPublish( final String url, final PublishJob job )
+    public void registerPublish( final String url, final TestPublishJob job )
     {
-        return publishes.put( url, job );
+        logger.info( "Registering publish: %s with job: %s", url, job );
+        publishes.put( url, job );
     }
 
     // Transport implementation...
@@ -56,7 +57,15 @@ public class TestTransport
                                           final int timeoutSeconds )
         throws TransferException
     {
-        return downloads.get( target );
+        final TestEndpoint end = new TestEndpoint( target.getLocation(), target.getPath() );
+        final TestDownloadJob job = downloads.get( end );
+        logger.info( "Download for: %s is: %s", end, job );
+        if ( job != null )
+        {
+            job.setTransfer( target );
+        }
+
+        return job;
     }
 
     @Override
@@ -64,7 +73,7 @@ public class TestTransport
                                         final InputStream stream, final long length, final int timeoutSeconds )
         throws TransferException
     {
-        return publishes.get( url );
+        return createPublishJob( url, repository, path, stream, length, null, timeoutSeconds );
     }
 
     @Override
@@ -73,7 +82,13 @@ public class TestTransport
                                         final int timeoutSeconds )
         throws TransferException
     {
-        return publishes.get( url );
+        final TestPublishJob job = publishes.get( url );
+        if ( job != null )
+        {
+            job.setContent( stream, length, contentType );
+        }
+
+        return job;
     }
 
     @Override

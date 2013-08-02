@@ -20,11 +20,13 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.testutil.TestCacheProvider;
+import org.commonjava.maven.galley.testutil.TestDownload;
 import org.commonjava.maven.galley.testutil.TestTransport;
 import org.commonjava.maven.galley.transport.SimpleTransportManager;
 import org.commonjava.maven.galley.transport.TransportManager;
 import org.commonjava.util.logging.Log4jUtil;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -57,6 +59,7 @@ public class TransferManagerTest
 
     private TestTransport transport;
 
+    @BeforeClass
     public static void setupLogging()
     {
         Log4jUtil.configure( Level.DEBUG );
@@ -76,16 +79,20 @@ public class TransferManagerTest
     }
 
     /**
-     * Test that cached content will be used...if not, this test will fail with an empty download job, as none is registered with the test transport.
+     * Test that cached content will be used...if not, this test will fail, as 
+     * the wrong content is registered with the test transport.
      */
     @Test
-    public void retrieve_useCachedCopy()
+    public void retrieve_preferCachedCopy()
         throws Exception
     {
         final String testContent = "This is a test " + System.currentTimeMillis();
 
         final Location loc = new SimpleLocation( "file:///test-repo" );
         final String path = "/path/to/test.txt";
+
+        // put in some wrong content that will cause problems if the cache isn't used.
+        transport.registerDownload( loc, path, new TestDownload( "This is WRONG".getBytes() ) );
 
         // seed the cache with the file we're trying to retrieve.
         OutputStream os = null;
@@ -102,6 +109,42 @@ public class TransferManagerTest
         // now, use the manager to retrieve() the path...the cached content should come through here.
         final Transfer transfer = mgr.retrieve( loc, path );
 
+        assertTransferContent( transfer, testContent );
+    }
+
+    /**
+     * Test that remote content will be downloaded then cached.
+     */
+    @Test
+    public void retrieve_cacheIfMissing()
+        throws Exception
+    {
+        final String testContent = "This is a test " + System.currentTimeMillis();
+
+        final Location loc = new SimpleLocation( "file:///test-repo" );
+        final String path = "/path/to/test.txt";
+
+        // put in the content that we want to "download"
+        transport.registerDownload( loc, path, new TestDownload( testContent.getBytes() ) );
+
+        // now, use the manager to retrieve() the path...the remote content should come through here.
+        Transfer transfer = mgr.retrieve( loc, path );
+
+        assertTransferContent( transfer, testContent );
+
+        // now, the right content should be cached.
+        // So, we'll put in some wrong content that will cause problems if the cache isn't used.
+        transport.registerDownload( loc, path, new TestDownload( "This is WRONG".getBytes() ) );
+
+        // now, use the manager to retrieve() the path again...the cached content should come through here.
+        transfer = mgr.retrieve( loc, path );
+
+        assertTransferContent( transfer, testContent );
+    }
+
+    private void assertTransferContent( final Transfer transfer, final String testContent )
+        throws Exception
+    {
         // if this is null, it's a sign that the manager tried to retrieve the content remotely and ignored the cache.
         assertThat( transfer, notNullValue() );
 

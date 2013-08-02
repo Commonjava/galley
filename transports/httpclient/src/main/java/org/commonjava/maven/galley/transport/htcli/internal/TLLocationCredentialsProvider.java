@@ -24,6 +24,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.commonjava.maven.galley.auth.PasswordIdentifier;
 import org.commonjava.maven.galley.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
@@ -65,8 +66,9 @@ public class TLLocationCredentialsProvider
                     creds.put( as,
                                new UsernamePasswordCredentials(
                                                                 location.getUser(),
-                                                                passwordManager.getPassword( location,
-                                                                                             HttpLocation.USER_PASSWORD ) ) );
+                                                                passwordManager.getPassword( new PasswordIdentifier(
+                                                                                                                     location,
+                                                                                                                     PasswordIdentifier.USER_PASSWORD ) ) ) );
                 }
 
                 if ( location.getProxyHost() != null && location.getProxyUser() != null )
@@ -74,8 +76,9 @@ public class TLLocationCredentialsProvider
                     creds.put( new AuthScope( location.getProxyHost(), location.getProxyPort() ),
                                new UsernamePasswordCredentials(
                                                                 location.getProxyUser(),
-                                                                passwordManager.getPassword( location,
-                                                                                             HttpLocation.PROXY_PASSWORD ) ) );
+                                                                passwordManager.getPassword( new PasswordIdentifier(
+                                                                                                                     location,
+                                                                                                                     PasswordIdentifier.PROXY_PASSWORD ) ) ) );
                 }
             }
 

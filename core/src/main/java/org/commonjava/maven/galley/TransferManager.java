@@ -134,10 +134,15 @@ public class TransferManager
     private Transfer retrieve( final Location store, final String path, final boolean suppressFailures )
         throws TransferException
     {
+        // TODO: Handle the case where storage isn't allowed? 
+        // NOTE: This would expand the notion out from simply: 
+        //    "don't allow storing new stuff"
+        // to:
+        //    "don't ever cache this stuff"
         Transfer target = null;
         try
         {
-            // TODO: Handle things like local archives that really don't need to be cached...
+            // TODO: (see above re:storing) Handle things like local archives that really don't need to be cached...
             target = getCacheReference( store, path );
 
             final Transfer retrieved = download( store, target, suppressFailures );
@@ -329,6 +334,11 @@ public class TransferManager
     public Transfer store( final Location deploy, final String path, final InputStream stream )
         throws TransferException
     {
+        if ( !deploy.allowsStoring() )
+        {
+            throw new TransferException( "Storing not allowed in: %s", deploy );
+        }
+
         final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( path );
         if ( pathInfo != null && pathInfo.isSnapshot() )
         {
@@ -343,13 +353,6 @@ public class TransferManager
         }
 
         final Transfer target = getCacheReference( deploy, path );
-
-        // TODO: Need some protection for released files!
-        // if ( target.exists() )
-        // {
-        // throw new WebApplicationException(
-        // Response.status( Status.BAD_REQUEST ).entity( "Deployment path already exists." ).build() );
-        // }
 
         OutputStream out = null;
         try
@@ -378,6 +381,11 @@ public class TransferManager
         Location selected = null;
         for ( final Location store : stores )
         {
+            if ( !store.allowsStoring() )
+            {
+                continue;
+            }
+
             //                logger.info( "Found deploy point: %s", store.getName() );
             if ( pathInfo == null )
             {
@@ -521,6 +529,11 @@ public class TransferManager
                             final String contentType )
         throws TransferException
     {
+        if ( !location.allowsPublishing() )
+        {
+            throw new TransferException( "Publishing not allowed in: %s", location );
+        }
+
         final String url = buildUrl( location, path, false );
 
         int timeoutSeconds = location.getTimeoutSeconds();

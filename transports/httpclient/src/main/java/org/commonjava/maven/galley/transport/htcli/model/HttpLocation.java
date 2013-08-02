@@ -6,12 +6,6 @@ public interface HttpLocation
     extends Location
 {
 
-    String USER_PASSWORD = "userPassword";
-
-    String KEY_PASSWORD = "keyPassword";
-
-    String PROXY_PASSWORD = "proxyPassword";
-
     String getKeyCertPem();
 
     String getServerCertPem();
