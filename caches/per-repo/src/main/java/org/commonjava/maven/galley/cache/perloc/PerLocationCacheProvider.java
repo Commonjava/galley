@@ -4,12 +4,12 @@ import java.io.File;
 import java.nio.file.Paths;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.commonjava.maven.galley.cache.AbstractFileCacheProvider;
+import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.cache.CacheProvider;
 import org.commonjava.maven.galley.model.Location;
 
 public class PerLocationCacheProvider
-    extends AbstractFileCacheProvider
+    extends FileCacheProvider
     implements CacheProvider
 {
 

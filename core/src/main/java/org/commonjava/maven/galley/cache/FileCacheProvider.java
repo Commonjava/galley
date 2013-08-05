@@ -10,17 +10,29 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
+import org.commonjava.maven.galley.io.PathGenerator;
 import org.commonjava.maven.galley.model.Location;
 
-public abstract class AbstractFileCacheProvider
+public class FileCacheProvider
     implements CacheProvider
 {
 
     private final boolean aliasLinking;
 
-    protected AbstractFileCacheProvider( final boolean aliasLinking )
+    private final File cacheBasedir;
+
+    private final PathGenerator pathGenerator;
+
+    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final boolean aliasLinking )
     {
+        this.cacheBasedir = cacheBasedir;
+        this.pathGenerator = pathGenerator;
         this.aliasLinking = aliasLinking;
+    }
+
+    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator )
+    {
+        this( cacheBasedir, pathGenerator, true );
     }
 
     protected final boolean useAliasLinking()
@@ -123,5 +135,12 @@ public abstract class AbstractFileCacheProvider
                 copy( toKey, toPath, fromKey, fromPath );
             }
         }
+    }
+
+    @Override
+    public String getFilePath( final Location loc, final String path )
+    {
+        return Paths.get( cacheBasedir.getPath(), pathGenerator.getFilePath( loc, path ) )
+                    .toString();
     }
 }

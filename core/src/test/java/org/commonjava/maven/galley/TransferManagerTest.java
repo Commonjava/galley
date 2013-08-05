@@ -12,14 +12,16 @@ import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Level;
+import org.commonjava.maven.galley.cache.CacheProvider;
+import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.FileEventManager;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
+import org.commonjava.maven.galley.io.HashPerRepoPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.TransferDecorator;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.testutil.TestCacheProvider;
 import org.commonjava.maven.galley.testutil.TestDownload;
 import org.commonjava.maven.galley.testutil.TestTransport;
 import org.commonjava.maven.galley.transport.SimpleTransportManager;
@@ -49,7 +51,7 @@ public class TransferManagerTest
 
     private TransportManager transportMgr;
 
-    private TestCacheProvider cacheProvider;
+    private CacheProvider cacheProvider;
 
     private FileEventManager fileEvents;
 
@@ -70,7 +72,7 @@ public class TransferManagerTest
     {
         transport = new TestTransport();
         transportMgr = new SimpleTransportManager( transport );
-        cacheProvider = new TestCacheProvider( temp );
+        cacheProvider = new FileCacheProvider( temp.newFolder( "cache" ), new HashPerRepoPathGenerator() );
         fileEvents = new NoOpFileEventManager();
         decorator = new NoOpTransferDecorator();
         executor = Executors.newSingleThreadExecutor();
