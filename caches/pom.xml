@@ -14,6 +14,5 @@
   <name>Galley :: Caches :: Parent</name>
   
   <modules>
-    <module>per-repo</module>
   </modules>
 </project>
