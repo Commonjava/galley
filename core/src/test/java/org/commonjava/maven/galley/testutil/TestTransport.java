@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.TransferManagerImpl;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -16,7 +16,7 @@ import org.commonjava.util.logging.Logger;
 /**
  * Stubbed out {@link Transport} implementation that allows pre-registering
  * {@link DownloadJob} and {@link PublishJob} instances before attempting to 
- * access them from a higher component (such as {@link TransferManager}).
+ * access them from a higher component (such as {@link TransferManagerImpl}).
  * 
  * @author jdcasey
  */

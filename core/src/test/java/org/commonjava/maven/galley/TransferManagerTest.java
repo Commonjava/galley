@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
- * Unit tests for the {@link TransferManager} itself. As far as possible, uses 
+ * Unit tests for the {@link TransferManagerImpl} itself. As far as possible, uses 
  * stubbed-out infrastructure components to isolate the behavior or this manager 
  * component ONLY, and avoid testing other component implementations in this 
  * class.
@@ -75,7 +75,7 @@ public class TransferManagerTest
         decorator = new NoOpTransferDecorator();
         executor = Executors.newSingleThreadExecutor();
 
-        mgr = new TransferManager( transportMgr, cacheProvider, fileEvents, decorator, executor );
+        mgr = new TransferManagerImpl( transportMgr, cacheProvider, fileEvents, decorator, executor );
     }
 
     /**

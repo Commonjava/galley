@@ -50,7 +50,7 @@ import org.commonjava.maven.galley.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.util.UrlUtils;
 import org.commonjava.util.logging.Logger;
 
-public class TransferManager
+public class TransferManagerImpl implements TransferManager
 {
 
     private final Logger logger = new Logger( getClass() );
@@ -68,7 +68,7 @@ public class TransferManager
     //    @ExecutorConfig( priority = 10, threads = 2, named = "file-manager" )
     private final ExecutorService executor; // = Executors.newFixedThreadPool( 8 );
 
-    public TransferManager( final TransportManager transportManager, final CacheProvider cacheProvider,
+    public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider,
                             final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
                             final ExecutorService executor )
     {
@@ -79,6 +79,10 @@ public class TransferManager
         this.executor = executor;
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#retrieveFirst(java.util.List, java.lang.String)
+     */
+    @Override
     public Transfer retrieveFirst( final List<? extends Location> stores, final String path )
         throws TransferException
     {
@@ -102,6 +106,10 @@ public class TransferManager
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#retrieveAll(java.util.List, java.lang.String)
+     */
+    @Override
     public Set<Transfer> retrieveAll( final List<? extends Location> stores, final String path )
         throws TransferException
     {
@@ -125,6 +133,10 @@ public class TransferManager
         return results;
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#retrieve(org.commonjava.maven.galley.model.Location, java.lang.String)
+     */
+    @Override
     public Transfer retrieve( final Location store, final String path )
         throws TransferException
     {
@@ -331,6 +343,10 @@ public class TransferManager
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#store(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream)
+     */
+    @Override
     public Transfer store( final Location deploy, final String path, final InputStream stream )
         throws TransferException
     {
@@ -373,6 +389,10 @@ public class TransferManager
         return target;
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#store(java.util.List, java.lang.String, java.io.InputStream)
+     */
+    @Override
     public Transfer store( final List<? extends Location> stores, final String path, final InputStream stream )
         throws TransferException
     {
@@ -422,6 +442,10 @@ public class TransferManager
         return getCacheReference( selected, path );
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#parsePathInfo(java.lang.String)
+     */
+    @Override
     public ArtifactPathInfo parsePathInfo( final String path )
     {
         if ( isEmpty( path ) || path.endsWith( "/" ) )
@@ -452,16 +476,28 @@ public class TransferManager
         return new ArtifactPathInfo( groupId.toString(), artifactId, version, file, path );
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#getStoreRootDirectory(org.commonjava.maven.galley.model.Location)
+     */
+    @Override
     public Transfer getStoreRootDirectory( final Location key )
     {
         return new Transfer( key, cacheProvider, fileEventManager, transferDecorator, Transfer.ROOT );
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#getCacheReference(org.commonjava.maven.galley.model.Location, java.lang.String)
+     */
+    @Override
     public Transfer getCacheReference( final Location store, final String... path )
     {
         return new Transfer( store, cacheProvider, fileEventManager, transferDecorator, path );
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#deleteAll(java.util.List, java.lang.String)
+     */
+    @Override
     public boolean deleteAll( final List<? extends Location> stores, final String path )
         throws TransferException
     {
@@ -474,6 +510,10 @@ public class TransferManager
         return result;
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#delete(org.commonjava.maven.galley.model.Location, java.lang.String)
+     */
+    @Override
     public boolean delete( final Location store, final String path )
         throws TransferException
     {
@@ -519,12 +559,20 @@ public class TransferManager
         return true;
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
+     */
+    @Override
     public boolean publish( final Location location, final String path, final InputStream stream, final long length )
         throws TransferException
     {
         return publish( location, path, stream, length, null );
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long, java.lang.String)
+     */
+    @Override
     public boolean publish( final Location location, final String path, final InputStream stream, final long length,
                             final String contentType )
         throws TransferException

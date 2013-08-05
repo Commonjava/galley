@@ -20,7 +20,7 @@
   <dependencies>
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-core</artifactId>
+      <artifactId>galley-api</artifactId>
     </dependency>
   </dependencies>
 </project>
