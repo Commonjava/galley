@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.io;
+package org.commonjava.maven.galley.spi.io;
 
 import org.commonjava.maven.galley.model.Location;
 

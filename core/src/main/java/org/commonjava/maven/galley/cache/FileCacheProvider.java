@@ -10,8 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
-import org.commonjava.maven.galley.io.PathGenerator;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 
 public class FileCacheProvider
     implements CacheProvider

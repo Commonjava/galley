@@ -24,6 +24,11 @@ public class HttpClientTransport
 
     private final GlobalHttpConfiguration globalConfig;
 
+    public HttpClientTransport( final Http http )
+    {
+        this( http, null );
+    }
+
     public HttpClientTransport( final Http http, final GlobalHttpConfiguration globalConfig )
     {
         this.http = http;

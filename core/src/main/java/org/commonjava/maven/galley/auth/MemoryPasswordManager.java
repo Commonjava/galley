@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.spi.auth.PasswordManager;
 
 public class MemoryPasswordManager
     implements PasswordManager

@@ -7,13 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.commonjava.maven.galley.cache.CacheProvider;
 import org.commonjava.maven.galley.event.FileAccessEvent;
 import org.commonjava.maven.galley.event.FileDeletionEvent;
 import org.commonjava.maven.galley.event.FileErrorEvent;
-import org.commonjava.maven.galley.event.FileEventManager;
 import org.commonjava.maven.galley.event.FileStorageEvent;
-import org.commonjava.maven.galley.io.TransferDecorator;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 public final class Transfer
 {

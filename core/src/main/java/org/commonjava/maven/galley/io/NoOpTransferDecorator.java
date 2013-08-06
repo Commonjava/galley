@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 public class NoOpTransferDecorator
     implements TransferDecorator

@@ -13,7 +13,9 @@ public interface Http
 
     HttpClient getClient();
 
-    void clearBoundCredentials( final HttpLocation location );
+    void clearBoundCredentials( HttpLocation location );
+
+    void clearAllBoundCredentials();
 
     void closeConnection();
 

@@ -85,21 +85,21 @@ public class WrapperHttpLocation
     @Override
     public String getProxyHost()
     {
-        final ProxyConfig proxy = globalConfig.getProxyConfig( url );
+        final ProxyConfig proxy = globalConfig == null ? null : globalConfig.getProxyConfig( url );
         return proxy == null ? null : proxy.getHost();
     }
 
     @Override
     public String getProxyUser()
     {
-        final ProxyConfig proxy = globalConfig.getProxyConfig( url );
+        final ProxyConfig proxy = globalConfig == null ? null : globalConfig.getProxyConfig( url );
         return proxy == null ? null : proxy.getUser();
     }
 
     @Override
     public int getProxyPort()
     {
-        final ProxyConfig proxy = globalConfig.getProxyConfig( url );
+        final ProxyConfig proxy = globalConfig == null ? null : globalConfig.getProxyConfig( url );
         return proxy == null ? 8080 : proxy.getPort();
     }
 

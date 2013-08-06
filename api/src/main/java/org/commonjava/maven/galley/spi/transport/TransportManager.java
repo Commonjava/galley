@@ -1,8 +1,7 @@
-package org.commonjava.maven.galley.transport;
+package org.commonjava.maven.galley.spi.transport;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.spi.transport.Transport;
 
 public interface TransportManager
 {

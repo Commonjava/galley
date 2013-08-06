@@ -14,7 +14,7 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.commonjava.maven.galley.auth.PasswordManager;
+import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;
@@ -120,6 +120,12 @@ public class HttpImpl
 
     @Override
     public void clearBoundCredentials( final HttpLocation location )
+    {
+        credProvider.clear();
+    }
+
+    @Override
+    public void clearAllBoundCredentials()
     {
         credProvider.clear();
     }

@@ -15,7 +15,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.params.HttpParams;
 import org.commonjava.maven.galley.auth.PasswordIdentifier;
-import org.commonjava.maven.galley.auth.PasswordManager;
+import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;

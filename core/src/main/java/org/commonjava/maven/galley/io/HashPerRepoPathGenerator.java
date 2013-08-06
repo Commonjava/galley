@@ -4,6 +4,7 @@ import java.nio.file.Paths;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 
 public class HashPerRepoPathGenerator
     implements PathGenerator

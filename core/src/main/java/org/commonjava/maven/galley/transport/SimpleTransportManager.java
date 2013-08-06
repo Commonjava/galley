@@ -7,6 +7,7 @@ import java.util.List;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.spi.transport.TransportManager;
 
 public class SimpleTransportManager
     implements TransportManager

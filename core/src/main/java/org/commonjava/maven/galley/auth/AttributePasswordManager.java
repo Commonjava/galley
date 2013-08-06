@@ -1,6 +1,7 @@
 package org.commonjava.maven.galley.auth;
 
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.spi.auth.PasswordManager;
 
 public class AttributePasswordManager
     implements PasswordManager
@@ -8,17 +9,33 @@ public class AttributePasswordManager
 
     private static final String PASSWORD_PREFIX = "password_";
 
-    public void setPasswordFor( final String password, final Location loc, final String type )
-    {
-        loc.setAttribute( PASSWORD_PREFIX + type, password );
-    }
-
     @Override
     public String getPassword( final PasswordIdentifier id )
     {
         final Location loc = id.getLocation();
         final String type = id.getPasswordType();
         return loc.getAttribute( PASSWORD_PREFIX + type, String.class );
+    }
+
+    public static void bind( final Location loc, final String type, final String password )
+    {
+        if ( password == null )
+        {
+            return;
+        }
+
+        loc.setAttribute( PASSWORD_PREFIX + type, password );
+    }
+
+    public static void bind( final PasswordIdentifier pwid, final String password )
+    {
+        if ( password == null )
+        {
+            return;
+        }
+
+        pwid.getLocation()
+            .setAttribute( PASSWORD_PREFIX + pwid.getPasswordType(), password );
     }
 
 }

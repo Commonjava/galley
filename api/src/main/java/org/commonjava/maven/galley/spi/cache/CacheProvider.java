@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.cache;
+package org.commonjava.maven.galley.spi.cache;
 
 import java.io.File;
 import java.io.IOException;

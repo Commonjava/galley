@@ -34,23 +34,24 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.commonjava.maven.galley.cache.CacheProvider;
 import org.commonjava.maven.galley.event.FileErrorEvent;
-import org.commonjava.maven.galley.event.FileEventManager;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
-import org.commonjava.maven.galley.io.TransferDecorator;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
-import org.commonjava.maven.galley.transport.TransportManager;
+import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.util.UrlUtils;
 import org.commonjava.util.logging.Logger;
 
-public class TransferManagerImpl implements TransferManager
+public class TransferManagerImpl
+    implements TransferManager
 {
 
     private final Logger logger = new Logger( getClass() );
@@ -69,8 +70,8 @@ public class TransferManagerImpl implements TransferManager
     private final ExecutorService executor; // = Executors.newFixedThreadPool( 8 );
 
     public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider,
-                            final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
-                            final ExecutorService executor )
+                                final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
+                                final ExecutorService executor )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;

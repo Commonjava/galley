@@ -25,7 +25,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.commonjava.maven.galley.auth.PasswordIdentifier;
-import org.commonjava.maven.galley.auth.PasswordManager;
+import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 public class TLLocationCredentialsProvider
