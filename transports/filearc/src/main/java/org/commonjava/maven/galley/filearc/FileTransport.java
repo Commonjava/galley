@@ -19,12 +19,19 @@ public class FileTransport
 
     private final PathGenerator generator;
 
-    private final File srcDir;
+    private final File pubDir;
 
-    public FileTransport( final File srcDir, final PathGenerator generator )
+    public FileTransport( final File pubDir, final PathGenerator generator )
     {
-        this.srcDir = srcDir;
+        this.pubDir = pubDir;
         this.generator = generator;
+
+    }
+
+    public FileTransport()
+    {
+        this.pubDir = null;
+        this.generator = null;
 
     }
 
@@ -33,7 +40,7 @@ public class FileTransport
                                           final int timeoutSeconds )
         throws TransferException
     {
-        final File src = new File( srcDir, generator.getFilePath( repository, url ) );
+        final File src = new File( url );
         return new FileDownload( target, src );
     }
 
@@ -51,7 +58,12 @@ public class FileTransport
                                         final int timeoutSeconds )
         throws TransferException
     {
-        final File dest = new File( srcDir, generator.getFilePath( repository, url ) );
+        if ( pubDir == null )
+        {
+            throw new TransferException( "This transport is read-only!" );
+        }
+
+        final File dest = new File( pubDir, generator.getFilePath( repository, url ) );
         final File dir = dest.getParentFile();
         if ( dir != null && !dir.exists() && !dir.mkdirs() )
         {
