@@ -9,20 +9,35 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 
+@ApplicationScoped
+@Named( "file" )
 public class FileCacheProvider
     implements CacheProvider
 {
 
-    private final boolean aliasLinking;
+    @Inject
+    @Named( "galley-cache-aliasLinking" )
+    private boolean aliasLinking;
 
-    private final File cacheBasedir;
+    @Inject
+    @Named( "galley-cache-basedir" )
+    private File cacheBasedir;
 
-    private final PathGenerator pathGenerator;
+    @Inject
+    private PathGenerator pathGenerator;
+
+    protected FileCacheProvider()
+    {
+    }
 
     public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final boolean aliasLinking )
     {

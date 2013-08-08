@@ -4,20 +4,48 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 
-public class SimpleTransportManager
+@ApplicationScoped
+@Named( "default" )
+public class TransportManagerImpl
     implements TransportManager
 {
 
-    private final List<Transport> transports;
+    @Inject
+    private Instance<Transport> injected;
 
-    public SimpleTransportManager( final Transport... transports )
+    private List<Transport> transports;
+
+    protected TransportManagerImpl()
+    {
+    }
+
+    public TransportManagerImpl( final Transport... transports )
     {
         this.transports = new ArrayList<>( Arrays.asList( transports ) );
+    }
+
+    protected void setup()
+    {
+        final List<Transport> transports = new ArrayList<>();
+        if ( injected != null )
+        {
+            for ( final Transport transport : injected )
+            {
+                transports.add( transport );
+            }
+        }
+
+        this.transports = transports;
     }
 
     @Override

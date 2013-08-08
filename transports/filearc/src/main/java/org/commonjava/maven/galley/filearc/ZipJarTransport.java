@@ -2,6 +2,9 @@ package org.commonjava.maven.galley.filearc;
 
 import java.io.InputStream;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.filearc.internal.ZipDownload;
 import org.commonjava.maven.galley.filearc.internal.ZipPublish;
@@ -11,6 +14,8 @@ import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 
+@ApplicationScoped
+@Named( "zip-jar" )
 public class ZipJarTransport
     implements Transport
 {

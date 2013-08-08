@@ -4,6 +4,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -16,13 +20,21 @@ import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
 import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
+@ApplicationScoped
+@Named( "httpclient" )
 public class HttpClientTransport
     implements Transport
 {
 
-    private final Http http;
+    @Inject
+    private Http http;
 
-    private final GlobalHttpConfiguration globalConfig;
+    @Inject
+    private GlobalHttpConfiguration globalConfig;
+
+    protected HttpClientTransport()
+    {
+    }
 
     public HttpClientTransport( final Http http )
     {

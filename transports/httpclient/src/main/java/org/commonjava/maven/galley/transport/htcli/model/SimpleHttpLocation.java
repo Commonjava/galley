@@ -1,9 +1,8 @@
-package org.commonjava.maven.galley.transport.htcli.internal.model;
+package org.commonjava.maven.galley.transport.htcli.model;
 
 import java.net.MalformedURLException;
 
 import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.UrlInfo;
 
 public class SimpleHttpLocation

@@ -3,6 +3,10 @@ package org.commonjava.maven.galley.filearc;
 import java.io.File;
 import java.io.InputStream;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.filearc.internal.FileDownload;
 import org.commonjava.maven.galley.filearc.internal.FilePublish;
@@ -13,25 +17,27 @@ import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 
+@ApplicationScoped
+@Named( "file" )
 public class FileTransport
     implements Transport
 {
 
-    private final PathGenerator generator;
+    @Inject
+    private PathGenerator generator;
 
-    private final File pubDir;
+    @Inject
+    @Named( "galley-file-publishDir" )
+    private File pubDir;
+
+    public FileTransport()
+    {
+    }
 
     public FileTransport( final File pubDir, final PathGenerator generator )
     {
         this.pubDir = pubDir;
         this.generator = generator;
-
-    }
-
-    public FileTransport()
-    {
-        this.pubDir = null;
-        this.generator = null;
 
     }
 

@@ -1,10 +1,13 @@
-package org.commonjava.maven.galley.transport.htcli.internal;
+package org.commonjava.maven.galley.transport.htcli;
 
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.concurrent.TimeUnit;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -15,10 +18,13 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
-import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.internal.LocationSSLSocketFactory;
+import org.commonjava.maven.galley.transport.htcli.internal.TLLocationCredentialsProvider;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;
 
+@ApplicationScoped
+@Named( "default" )
 public class HttpImpl
     implements Http
 {

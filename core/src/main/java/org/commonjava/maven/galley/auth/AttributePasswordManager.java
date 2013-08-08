@@ -1,8 +1,13 @@
 package org.commonjava.maven.galley.auth;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 
+@ApplicationScoped
+@Named( "attribute" )
 public class AttributePasswordManager
     implements PasswordManager
 {

@@ -34,6 +34,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
 import org.commonjava.maven.galley.model.Location;
@@ -50,24 +54,34 @@ import org.commonjava.maven.galley.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.util.UrlUtils;
 import org.commonjava.util.logging.Logger;
 
+@ApplicationScoped
 public class TransferManagerImpl
     implements TransferManager
 {
 
     private final Logger logger = new Logger( getClass() );
 
-    private final CacheProvider cacheProvider;
+    @Inject
+    private CacheProvider cacheProvider;
 
-    private final TransportManager transportManager;
+    @Inject
+    private TransportManager transportManager;
 
-    private final FileEventManager fileEventManager;
+    @Inject
+    private FileEventManager fileEventManager;
 
-    private final TransferDecorator transferDecorator;
+    @Inject
+    private TransferDecorator transferDecorator;
 
     private final Map<String, Future<?>> pending = new ConcurrentHashMap<String, Future<?>>();
 
-    //    @ExecutorConfig( priority = 10, threads = 2, named = "file-manager" )
-    private final ExecutorService executor; // = Executors.newFixedThreadPool( 8 );
+    @Inject
+    @Named( "galley-transfers" )
+    private ExecutorService executor;
+
+    protected TransferManagerImpl()
+    {
+    }
 
     public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider,
                                 final FileEventManager fileEventManager, final TransferDecorator transferDecorator,

@@ -2,11 +2,16 @@ package org.commonjava.maven.galley.io;
 
 import java.nio.file.Paths;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 
-public class HashPerRepoPathGenerator
+@ApplicationScoped
+@Named( "hashed-location" )
+public class HashedLocationPathGenerator
     implements PathGenerator
 {
 
