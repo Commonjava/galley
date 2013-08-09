@@ -36,8 +36,6 @@
     <dependency>
       <groupId>org.commonjava.util</groupId>
       <artifactId>cdi-tools</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
