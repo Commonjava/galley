@@ -97,6 +97,12 @@
         <version>0.1.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.jboss.weld.se</groupId>
+        <artifactId>weld-se-core</artifactId>
+        <version>1.1.8.Final</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   

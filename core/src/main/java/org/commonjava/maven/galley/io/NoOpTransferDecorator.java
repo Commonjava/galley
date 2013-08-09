@@ -4,14 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
-@ApplicationScoped
-@Named( "no-op" )
+@Named( "no-op-galley-decorator" )
 public class NoOpTransferDecorator
     implements TransferDecorator
 {

@@ -4,18 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 
-@ApplicationScoped
-@Named( "default" )
 public class TransportManagerImpl
     implements TransportManager
 {

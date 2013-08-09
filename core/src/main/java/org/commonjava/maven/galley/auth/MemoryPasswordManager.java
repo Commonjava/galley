@@ -3,14 +3,12 @@ package org.commonjava.maven.galley.auth;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 
-@ApplicationScoped
-@Named( "memory" )
+@Named( "memory-galley-passwd" )
 public class MemoryPasswordManager
     implements PasswordManager
 {

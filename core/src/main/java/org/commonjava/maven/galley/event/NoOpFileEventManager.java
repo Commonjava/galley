@@ -1,12 +1,10 @@
 package org.commonjava.maven.galley.event;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 
-@ApplicationScoped
-@Named( "no-op" )
+@Named( "no-op-galley-events" )
 public class NoOpFileEventManager
     implements FileEventManager
 {

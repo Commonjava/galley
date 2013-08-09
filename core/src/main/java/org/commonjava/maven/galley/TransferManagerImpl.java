@@ -34,7 +34,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -54,7 +53,6 @@ import org.commonjava.maven.galley.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.util.UrlUtils;
 import org.commonjava.util.logging.Logger;
 
-@ApplicationScoped
 public class TransferManagerImpl
     implements TransferManager
 {

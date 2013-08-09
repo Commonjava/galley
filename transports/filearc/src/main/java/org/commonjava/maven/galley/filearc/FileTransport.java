@@ -18,17 +18,13 @@ import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 
 @ApplicationScoped
-@Named( "file" )
+@Named( "file-galley-transport" )
 public class FileTransport
     implements Transport
 {
 
     @Inject
-    private PathGenerator generator;
-
-    @Inject
-    @Named( "galley-file-publishDir" )
-    private File pubDir;
+    private FileTransportConfig config;
 
     public FileTransport()
     {
@@ -36,9 +32,12 @@ public class FileTransport
 
     public FileTransport( final File pubDir, final PathGenerator generator )
     {
-        this.pubDir = pubDir;
-        this.generator = generator;
+        this.config = new FileTransportConfig( pubDir, generator );
+    }
 
+    public FileTransport( final FileTransportConfig config )
+    {
+        this.config = config;
     }
 
     @Override
@@ -64,12 +63,14 @@ public class FileTransport
                                         final int timeoutSeconds )
         throws TransferException
     {
+        final File pubDir = config.getPubDir();
         if ( pubDir == null )
         {
             throw new TransferException( "This transport is read-only!" );
         }
 
-        final File dest = new File( pubDir, generator.getFilePath( repository, url ) );
+        final File dest = new File( pubDir, config.getGenerator()
+                                                  .getFilePath( repository, url ) );
         final File dir = dest.getParentFile();
         if ( dir != null && !dir.exists() && !dir.mkdirs() )
         {

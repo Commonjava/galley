@@ -4,8 +4,13 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.enterprise.inject.Default;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManagerImpl;
+import org.commonjava.maven.galley.live.testutil.TestData;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -20,6 +25,10 @@ import org.commonjava.util.logging.Logger;
  * 
  * @author jdcasey
  */
+//@ApplicationScoped
+@TestData
+@Default
+@Named( "test-galley-transport" )
 public class TestTransport
     implements Transport
 {
@@ -29,6 +38,12 @@ public class TestTransport
 
     private final Map<String, TestPublishJob> publishes = new HashMap<>();
 
+    @Inject
+    public TestTransport()
+    {
+        logger.info( "\n\n\n\nConstructor\n\n\n\n" );
+    }
+
     /**
      * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during
      * your unit test.
@@ -36,6 +51,7 @@ public class TestTransport
     public void registerDownload( final Location loc, final String path, final TestDownloadJob job )
     {
         final TestEndpoint end = new TestEndpoint( loc, path );
+        new Logger( getClass() ).info( "Got transport: %s", this );
         logger.info( "Registering download: %s with job: %s", end, job );
         downloads.put( end, job );
     }

@@ -15,7 +15,7 @@ import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 
 @ApplicationScoped
-@Named( "zip-jar" )
+@Named( "zip-jar-galley-transport" )
 public class ZipJarTransport
     implements Transport
 {

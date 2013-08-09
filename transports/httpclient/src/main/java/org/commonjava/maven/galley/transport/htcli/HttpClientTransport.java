@@ -21,7 +21,7 @@ import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLoc
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 @ApplicationScoped
-@Named( "httpclient" )
+@Named( "httpclient-galley-transport" )
 public class HttpClientTransport
     implements Transport
 {

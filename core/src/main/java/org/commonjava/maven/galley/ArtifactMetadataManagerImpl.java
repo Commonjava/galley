@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
@@ -12,7 +11,6 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 
-@ApplicationScoped
 public class ArtifactMetadataManagerImpl
     implements ArtifactMetadataManager
 {

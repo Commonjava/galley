@@ -6,8 +6,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import javax.inject.Inject;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -24,7 +25,6 @@ import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
-@Named( "default" )
 public class HttpImpl
     implements Http
 {
@@ -32,11 +32,21 @@ public class HttpImpl
 
     private LocationSSLSocketFactory socketFactory;
 
-    private final TLLocationCredentialsProvider credProvider;
+    private TLLocationCredentialsProvider credProvider;
 
-    private final DefaultHttpClient client;
+    private DefaultHttpClient client;
+
+    @Inject
+    private final PasswordManager passwords;
 
     public HttpImpl( final PasswordManager passwords )
+    {
+        this.passwords = passwords;
+        setup();
+    }
+
+    @PostConstruct
+    protected void setup()
     {
         final PoolingClientConnectionManager ccm = new PoolingClientConnectionManager();
 

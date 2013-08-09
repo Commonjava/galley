@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -17,23 +17,15 @@ import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.util.logging.Logger;
 
-@ApplicationScoped
-@Named( "file" )
+@Named( "file-galley-cache" )
 public class FileCacheProvider
     implements CacheProvider
 {
 
     @Inject
-    @Named( "galley-cache-aliasLinking" )
-    private boolean aliasLinking;
-
-    @Inject
-    @Named( "galley-cache-basedir" )
-    private File cacheBasedir;
-
-    @Inject
-    private PathGenerator pathGenerator;
+    private FileCacheProviderConfig config;
 
     protected FileCacheProvider()
     {
@@ -41,9 +33,13 @@ public class FileCacheProvider
 
     public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final boolean aliasLinking )
     {
-        this.cacheBasedir = cacheBasedir;
-        this.pathGenerator = pathGenerator;
-        this.aliasLinking = aliasLinking;
+        this.config = new FileCacheProviderConfig( cacheBasedir ).withAliasLinking( aliasLinking )
+                                                                 .withPathGenerator( pathGenerator );
+    }
+
+    public FileCacheProvider( final FileCacheProviderConfig config )
+    {
+        this.config = config;
     }
 
     public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator )
@@ -51,9 +47,10 @@ public class FileCacheProvider
         this( cacheBasedir, pathGenerator, true );
     }
 
-    protected final boolean useAliasLinking()
+    @PostConstruct
+    public void setup()
     {
-        return aliasLinking;
+        new Logger( getClass() ).info( "\n\n\n\nUsing config: %s\n\n\n\n", config );
     }
 
     @Override
@@ -139,7 +136,7 @@ public class FileCacheProvider
         if ( fromKey != null && toKey != null && !fromKey.equals( toKey ) && fromPath != null && toPath != null
             && !fromPath.equals( toPath ) )
         {
-            if ( aliasLinking )
+            if ( config.isAliasLinking() )
             {
                 final File from = getDetachedFile( fromKey, fromPath );
                 final File to = getDetachedFile( toKey, toPath );
@@ -156,7 +153,10 @@ public class FileCacheProvider
     @Override
     public String getFilePath( final Location loc, final String path )
     {
-        return Paths.get( cacheBasedir.getPath(), pathGenerator.getFilePath( loc, path ) )
+        new Logger( getClass() ).info( "Using configuration: %s", config );
+        return Paths.get( config.getCacheBasedir()
+                                .getPath(), config.getPathGenerator()
+                                                  .getFilePath( loc, path ) )
                     .toString();
     }
 }
