@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManagerImpl;
@@ -25,10 +26,10 @@ import org.commonjava.util.logging.Logger;
  * 
  * @author jdcasey
  */
-//@ApplicationScoped
 @TestData
 @Default
 @Named( "test-galley-transport" )
+@Singleton
 public class TestTransport
     implements Transport
 {
@@ -38,10 +39,8 @@ public class TestTransport
 
     private final Map<String, TestPublishJob> publishes = new HashMap<>();
 
-    @Inject
     public TestTransport()
     {
-        logger.info( "\n\n\n\nConstructor\n\n\n\n" );
     }
 
     /**
@@ -76,11 +75,12 @@ public class TestTransport
         final TestEndpoint end = new TestEndpoint( target.getLocation(), target.getPath() );
         final TestDownloadJob job = downloads.get( end );
         logger.info( "Download for: %s is: %s", end, job );
-        if ( job != null )
+        if ( job == null )
         {
-            job.setTransfer( target );
+            throw new TransferException( "No download registered for the endpoint: %s", end );
         }
 
+        job.setTransfer( target );
         return job;
     }
 
@@ -99,11 +99,12 @@ public class TestTransport
         throws TransferException
     {
         final TestPublishJob job = publishes.get( url );
-        if ( job != null )
+        if ( job == null )
         {
-            job.setContent( stream, length, contentType );
+            throw new TransferException( "No publish job registered for: %s", url );
         }
 
+        job.setContent( stream, length, contentType );
         return job;
     }
 

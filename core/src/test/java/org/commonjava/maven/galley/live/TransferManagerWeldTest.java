@@ -2,6 +2,7 @@ package org.commonjava.maven.galley.live;
 
 import org.commonjava.maven.galley.AbstractTransferManagerTest;
 import org.commonjava.maven.galley.TransferManagerImpl;
+import org.commonjava.maven.galley.live.testutil.TransferManagerExtension;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.testutil.TestTransport;
 import org.commonjava.util.logging.Logger;
@@ -9,6 +10,8 @@ import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Unit tests for the {@link TransferManagerImpl} itself. As far as possible, uses 
@@ -32,10 +35,14 @@ public class TransferManagerWeldTest
 
     private TestTransport transport;
 
+    @Rule
+    public TemporaryFolder temp = new TemporaryFolder();
+
     @Before
     public void setup()
     {
         weld = new Weld();
+        weld.addExtension( new TransferManagerExtension( temp ) );
         weldContainer = weld.initialize();
 
         transport = weldContainer.instance()

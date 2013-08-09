@@ -10,7 +10,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Produces;
 import javax.inject.Named;
 
 import org.apache.commons.io.FileUtils;
@@ -75,7 +74,7 @@ public class TestProvider
         }
     }
 
-    @Produces
+    //    @Produces
     @TestData
     @Named( "galley-transfers" )
     public ExecutorService getTransferExecutor()
@@ -83,7 +82,7 @@ public class TestProvider
         return exec;
     }
 
-    @Produces
+    //    @Produces
     @TestData
     @Default
     public FileCacheProviderConfig getCacheConfig()

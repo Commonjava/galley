@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
@@ -30,6 +31,7 @@ public class TransportManagerImpl
         this.transports = new ArrayList<>( Arrays.asList( transports ) );
     }
 
+    @PostConstruct
     protected void setup()
     {
         final List<Transport> transports = new ArrayList<>();

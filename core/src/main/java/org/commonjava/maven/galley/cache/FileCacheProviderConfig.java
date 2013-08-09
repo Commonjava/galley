@@ -6,10 +6,8 @@ import javax.inject.Named;
 
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.util.logging.Logger;
 
-//@Default
-@Named( "dont-inject" )
+@Named
 public class FileCacheProviderConfig
 {
     private Boolean aliasLinking;
@@ -18,14 +16,8 @@ public class FileCacheProviderConfig
 
     private PathGenerator pathGenerator;
 
-    protected FileCacheProviderConfig()
-    {
-        this( null );
-    }
-
     public FileCacheProviderConfig( final File cacheBasedir )
     {
-        new Logger( getClass() ).info( "\n\n\n\nConstructed %s with: %s\n\n\n\n", this, cacheBasedir );
         this.cacheBasedir = cacheBasedir;
     }
 
