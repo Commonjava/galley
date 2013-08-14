@@ -36,6 +36,12 @@
     <dependency>
       <groupId>org.commonjava.util</groupId>
       <artifactId>cdi-tools</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.cdi.util</groupId>
+      <artifactId>weft</artifactId>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 </project>

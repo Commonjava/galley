@@ -35,8 +35,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 
+import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
 import org.commonjava.maven.galley.model.Location;
@@ -74,7 +74,7 @@ public class TransferManagerImpl
     private final Map<String, Future<?>> pending = new ConcurrentHashMap<String, Future<?>>();
 
     @Inject
-    @Named( "galley-transfers" )
+    @ExecutorConfig( threads = 4, daemon = true, named = "galley-transfers", priority = 8 )
     private ExecutorService executor;
 
     protected TransferManagerImpl()

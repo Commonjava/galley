@@ -1,11 +1,13 @@
 package org.commonjava.maven.galley.auth;
 
+import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 
 @Named( "attribute-galley-passwd" )
+@Alternative
 public class AttributePasswordManager
     implements PasswordManager
 {
