@@ -151,4 +151,10 @@ public class WrapperHttpLocation
         return delegate.allowsStoring();
     }
 
+    @Override
+    public boolean allowsDownloading()
+    {
+        return true;
+    }
+
 }

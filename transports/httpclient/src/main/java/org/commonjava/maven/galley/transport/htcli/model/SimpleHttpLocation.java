@@ -23,7 +23,7 @@ public class SimpleHttpLocation
                                final String proxyUri )
         throws MalformedURLException
     {
-        super( uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, timeoutSeconds );
+        super( uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, timeoutSeconds );
         this.urlInfo = new UrlInfo( uri );
         this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
     }
