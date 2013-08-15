@@ -9,6 +9,8 @@ public class SimpleLocation
 
     private final boolean allowPublishing;
 
+    private final boolean allowDownloading;
+
     private final boolean allowStoring;
 
     private final boolean allowSnapshots;
@@ -22,13 +24,15 @@ public class SimpleLocation
     private final Map<String, Object> attributes = new HashMap<>();
 
     public SimpleLocation( final String uri, final boolean allowSnapshots, final boolean allowReleases,
-                           final boolean allowsStoring, final boolean allowPublishing, final int timeoutSeconds )
+                           final boolean allowsStoring, final boolean allowPublishing, final boolean allowDownloading,
+                           final int timeoutSeconds )
     {
         this.uri = uri;
         this.allowSnapshots = allowSnapshots;
         this.allowReleases = allowReleases;
         this.allowStoring = allowsStoring;
         this.allowPublishing = allowPublishing;
+        this.allowDownloading = allowDownloading;
         this.timeoutSeconds = timeoutSeconds;
     }
 
@@ -38,6 +42,7 @@ public class SimpleLocation
         this.allowReleases = true;
         this.allowSnapshots = false;
         this.allowStoring = true;
+        this.allowDownloading = true;
         this.allowPublishing = false;
         this.timeoutSeconds = -1;
     }
@@ -46,6 +51,12 @@ public class SimpleLocation
     public boolean allowsStoring()
     {
         return allowStoring;
+    }
+
+    @Override
+    public boolean allowsDownloading()
+    {
+        return allowDownloading;
     }
 
     @Override

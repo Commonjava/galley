@@ -7,6 +7,8 @@ public interface Location
 
     int DEFAULT_TIMEOUT_SECONDS = 30;
 
+    boolean allowsDownloading();
+
     boolean allowsPublishing();
 
     boolean allowsStoring();

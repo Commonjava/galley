@@ -205,7 +205,16 @@ public class TransferManagerImpl
     private Transfer download( final Location repository, final Transfer target, final boolean suppressFailures )
         throws TransferException
     {
+        if ( !repository.allowsDownloading() )
+        {
+            return null;
+        }
+
         final String url = buildUrl( repository, target.getPath(), suppressFailures );
+        if ( url == null )
+        {
+            return null;
+        }
 
         //        if ( nfc.hasEntry( url ) )
         //        {
@@ -291,6 +300,11 @@ public class TransferManagerImpl
         throws TransferException
     {
         final String remoteBase = repository.getUri();
+        if ( remoteBase == null )
+        {
+            return null;
+        }
+
         String url = null;
         try
         {
@@ -596,6 +610,10 @@ public class TransferManagerImpl
         }
 
         final String url = buildUrl( location, path, false );
+        if ( url == null )
+        {
+            return false;
+        }
 
         int timeoutSeconds = location.getTimeoutSeconds();
         if ( timeoutSeconds < 1 )
