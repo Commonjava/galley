@@ -10,6 +10,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 
 public class ArtifactMetadataManagerImpl
     implements ArtifactMetadataManager
@@ -18,13 +19,17 @@ public class ArtifactMetadataManagerImpl
     @Inject
     private TransferManager transferManager;
 
+    @Inject
+    private LocationExpander expander;
+
     protected ArtifactMetadataManagerImpl()
     {
     }
 
-    public ArtifactMetadataManagerImpl( final TransferManager transferManager )
+    public ArtifactMetadataManagerImpl( final TransferManager transferManager, final LocationExpander expander )
     {
         this.transferManager = transferManager;
+        this.expander = expander;
     }
 
     /* (non-Javadoc)
@@ -45,7 +50,7 @@ public class ArtifactMetadataManagerImpl
         throws TransferException
     {
         final String path = toPath( ref, filename );
-        return transferManager.delete( location, path );
+        return transferManager.deleteAll( expander.expand( location ), path );
     }
 
     /* (non-Javadoc)
@@ -66,7 +71,7 @@ public class ArtifactMetadataManagerImpl
         throws TransferException
     {
         final String path = toPath( groupId, filename );
-        return transferManager.delete( location, path );
+        return transferManager.deleteAll( expander.expand( location ), path );
     }
 
     /* (non-Javadoc)
@@ -86,7 +91,7 @@ public class ArtifactMetadataManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final String groupId, final String filename )
         throws TransferException
     {
-        return transferManager.deleteAll( locations, toPath( groupId, filename ) );
+        return transferManager.deleteAll( expander.expand( locations ), toPath( groupId, filename ) );
     }
 
     /* (non-Javadoc)
@@ -106,7 +111,7 @@ public class ArtifactMetadataManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final ProjectRef ref, final String filename )
         throws TransferException
     {
-        return transferManager.deleteAll( locations, toPath( ref, filename ) );
+        return transferManager.deleteAll( expander.expand( locations ), toPath( ref, filename ) );
     }
 
     /* (non-Javadoc)
@@ -126,7 +131,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieve( final Location location, final String groupId, final String filename )
         throws TransferException
     {
-        return transferManager.retrieve( location, toPath( groupId, filename ) );
+        return transferManager.retrieveFirst( expander.expand( location ), toPath( groupId, filename ) );
     }
 
     /* (non-Javadoc)
@@ -146,7 +151,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieve( final Location location, final ProjectRef ref, final String filename )
         throws TransferException
     {
-        return transferManager.retrieve( location, toPath( ref, filename ) );
+        return transferManager.retrieveFirst( expander.expand( location ), toPath( ref, filename ) );
     }
 
     /* (non-Javadoc)
@@ -167,7 +172,7 @@ public class ArtifactMetadataManagerImpl
                                       final String filename )
         throws TransferException
     {
-        return transferManager.retrieveAll( locations, toPath( groupId, filename ) );
+        return transferManager.retrieveAll( expander.expand( locations ), toPath( groupId, filename ) );
     }
 
     /* (non-Javadoc)
@@ -188,7 +193,7 @@ public class ArtifactMetadataManagerImpl
                                       final String filename )
         throws TransferException
     {
-        return transferManager.retrieveAll( locations, toPath( ref, filename ) );
+        return transferManager.retrieveAll( expander.expand( locations ), toPath( ref, filename ) );
     }
 
     /* (non-Javadoc)
@@ -208,7 +213,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final String groupId, final String filename )
         throws TransferException
     {
-        return transferManager.retrieveFirst( locations, toPath( groupId, filename ) );
+        return transferManager.retrieveFirst( expander.expand( locations ), toPath( groupId, filename ) );
     }
 
     /* (non-Javadoc)
@@ -228,7 +233,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final ProjectRef ref, final String filename )
         throws TransferException
     {
-        return transferManager.retrieveFirst( locations, toPath( ref, filename ) );
+        return transferManager.retrieveFirst( expander.expand( locations ), toPath( ref, filename ) );
     }
 
     /* (non-Javadoc)
@@ -249,7 +254,7 @@ public class ArtifactMetadataManagerImpl
                            final InputStream stream )
         throws TransferException
     {
-        return transferManager.store( location, toPath( groupId, filename ), stream );
+        return transferManager.store( expander.expand( location ), toPath( groupId, filename ), stream );
     }
 
     /* (non-Javadoc)
@@ -270,7 +275,7 @@ public class ArtifactMetadataManagerImpl
                            final InputStream stream )
         throws TransferException
     {
-        return transferManager.store( location, toPath( ref, filename ), stream );
+        return transferManager.store( expander.expand( location ), toPath( ref, filename ), stream );
     }
 
     /* (non-Javadoc)

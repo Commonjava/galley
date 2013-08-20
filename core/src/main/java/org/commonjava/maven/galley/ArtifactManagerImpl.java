@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 
 public class ArtifactManagerImpl
     implements ArtifactManager
@@ -17,13 +18,17 @@ public class ArtifactManagerImpl
     @Inject
     private TransferManager transferManager;
 
+    @Inject
+    private LocationExpander expander;
+
     protected ArtifactManagerImpl()
     {
     }
 
-    public ArtifactManagerImpl( final TransferManager transferManager )
+    public ArtifactManagerImpl( final TransferManager transferManager, final LocationExpander expander )
     {
         this.transferManager = transferManager;
+        this.expander = expander;
     }
 
     /* (non-Javadoc)
@@ -34,7 +39,7 @@ public class ArtifactManagerImpl
         throws TransferException
     {
         final String path = toPath( ref );
-        return transferManager.delete( location, path );
+        return transferManager.deleteAll( expander.expand( location ), path );
     }
 
     /* (non-Javadoc)
@@ -44,7 +49,7 @@ public class ArtifactManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.deleteAll( locations, toPath( ref ) );
+        return transferManager.deleteAll( expander.expand( locations ), toPath( ref ) );
     }
 
     /* (non-Javadoc)
@@ -54,7 +59,7 @@ public class ArtifactManagerImpl
     public Transfer retrieve( final Location location, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieve( location, toPath( ref ) );
+        return transferManager.retrieveFirst( expander.expand( location ), toPath( ref ) );
     }
 
     /* (non-Javadoc)
@@ -64,7 +69,7 @@ public class ArtifactManagerImpl
     public Set<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveAll( locations, toPath( ref ) );
+        return transferManager.retrieveAll( expander.expand( locations ), toPath( ref ) );
     }
 
     /* (non-Javadoc)
@@ -74,7 +79,7 @@ public class ArtifactManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveFirst( locations, toPath( ref ) );
+        return transferManager.retrieveFirst( expander.expand( locations ), toPath( ref ) );
     }
 
     /* (non-Javadoc)
@@ -84,7 +89,7 @@ public class ArtifactManagerImpl
     public Transfer store( final Location location, final ArtifactRef ref, final InputStream stream )
         throws TransferException
     {
-        return transferManager.store( location, toPath( ref ), stream );
+        return transferManager.store( expander.expand( location ), toPath( ref ), stream );
     }
 
     /* (non-Javadoc)
