@@ -18,12 +18,12 @@ public class SimpleHttpLocation
 
     private final UrlInfo proxyUrlInfo;
 
-    public SimpleHttpLocation( final String uri, final boolean allowSnapshots, final boolean allowReleases,
-                               final boolean allowsStoring, final boolean allowPublishing, final int timeoutSeconds,
-                               final String proxyUri )
+    public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
+                               final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
+                               final int timeoutSeconds, final String proxyUri )
         throws MalformedURLException
     {
-        super( uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, timeoutSeconds );
+        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, timeoutSeconds );
         this.urlInfo = new UrlInfo( uri );
         this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
     }

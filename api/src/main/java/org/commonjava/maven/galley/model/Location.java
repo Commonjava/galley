@@ -19,6 +19,8 @@ public interface Location
 
     String getUri();
 
+    String getName();
+
     int getTimeoutSeconds();
 
     /**

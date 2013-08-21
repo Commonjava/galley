@@ -157,4 +157,10 @@ public class WrapperHttpLocation
         return true;
     }
 
+    @Override
+    public String getName()
+    {
+        return delegate.getName();
+    }
+
 }

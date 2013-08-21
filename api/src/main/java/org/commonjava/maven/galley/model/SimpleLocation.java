@@ -23,10 +23,13 @@ public class SimpleLocation
 
     private final Map<String, Object> attributes = new HashMap<>();
 
-    public SimpleLocation( final String uri, final boolean allowSnapshots, final boolean allowReleases,
-                           final boolean allowsStoring, final boolean allowPublishing, final boolean allowDownloading,
-                           final int timeoutSeconds )
+    private String name;
+
+    public SimpleLocation( final String name, final String uri, final boolean allowSnapshots,
+                           final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
+                           final boolean allowDownloading, final int timeoutSeconds )
     {
+        this.name = name;
         this.uri = uri;
         this.allowSnapshots = allowSnapshots;
         this.allowReleases = allowReleases;
@@ -81,6 +84,12 @@ public class SimpleLocation
     public String getUri()
     {
         return uri;
+    }
+
+    @Override
+    public String getName()
+    {
+        return name;
     }
 
     @Override
