@@ -14,7 +14,7 @@ import java.util.zip.ZipFile;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class ZipListing
@@ -23,14 +23,11 @@ public class ZipListing
 
     private TransferException error;
 
-    private final Location location;
+    private final Resource resource;
 
-    private final String path;
-
-    public ZipListing( final Location location, final String path )
+    public ZipListing( final Resource resource )
     {
-        this.location = location;
-        this.path = path;
+        this.resource = resource;
     }
 
     @Override
@@ -42,13 +39,13 @@ public class ZipListing
     @Override
     public ListingResult call()
     {
-        final File src = getArchiveFile( location.getUri() );
+        final File src = getArchiveFile( resource.getLocationUri() );
         if ( !src.exists() )
         {
             return null;
         }
 
-        final boolean isJar = isJar( location.getUri() );
+        final boolean isJar = isJar( resource.getLocationUri() );
 
         ZipFile zf = null;
         try
@@ -62,6 +59,7 @@ public class ZipListing
                 zf = new ZipFile( src );
             }
 
+            final String path = resource.getPath();
             final int pathLen = path.length();
             final TreeSet<String> filenames = new TreeSet<>();
             for ( final ZipEntry entry : Collections.list( zf.entries() ) )
@@ -83,13 +81,12 @@ public class ZipListing
                 }
             }
 
-            return new ListingResult( location, path, filenames.toArray( new String[filenames.size()] ) );
+            return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
         }
         catch ( final IOException e )
         {
             error =
-                new TransferException( "Failed to get listing for: %s from: %s to: %s. Reason: %s", e, path, src,
-                                       e.getMessage() );
+                new TransferException( "Failed to get listing for: %s to: %s. Reason: %s", e, resource, e.getMessage() );
         }
         finally
         {

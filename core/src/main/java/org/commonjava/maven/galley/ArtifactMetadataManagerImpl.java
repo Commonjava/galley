@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 
@@ -296,7 +297,8 @@ public class ArtifactMetadataManagerImpl
                             final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
-        return transferManager.publish( location, toPath( groupId, filename ), stream, length, contentType );
+        return transferManager.publish( new Resource( location, toPath( groupId, filename ) ), stream, length,
+                                        contentType );
     }
 
     /* (non-Javadoc)
@@ -317,7 +319,7 @@ public class ArtifactMetadataManagerImpl
                             final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
-        return transferManager.publish( location, toPath( ref, filename ), stream, length, contentType );
+        return transferManager.publish( new Resource( location, toPath( ref, filename ) ), stream, length, contentType );
     }
 
     private String toPath( final ProjectRef ref, final String filename )

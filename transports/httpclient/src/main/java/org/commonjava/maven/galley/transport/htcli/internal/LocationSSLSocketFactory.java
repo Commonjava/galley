@@ -14,7 +14,7 @@ import java.security.spec.InvalidKeySpecException;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.params.HttpParams;
-import org.commonjava.maven.galley.auth.PasswordIdentifier;
+import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -83,7 +83,7 @@ public class LocationSSLSocketFactory
 
             final String kcPem = loc.getKeyCertPem();
             final String kcPass =
-                passwordManager.getPassword( new PasswordIdentifier( loc, PasswordIdentifier.KEY_PASSWORD ) );
+                passwordManager.getPassword( new PasswordEntry( loc, PasswordEntry.KEY_PASSWORD ) );
             if ( kcPem != null )
             {
                 if ( kcPass == null || kcPass.length() < 1 )

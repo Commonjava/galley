@@ -2,6 +2,7 @@ package org.commonjava.maven.galley.transport.htcli.internal;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -12,18 +13,15 @@ public class HttpListing
 
     private TransferException error;
 
-    private final HttpLocation location;
-
-    private final String path;
-
     private final int timeoutSeconds;
 
     private final Http http;
 
-    public HttpListing( final HttpLocation location, final String path, final int timeoutSeconds, final Http http )
+    private final Resource resource;
+
+    public HttpListing( final Resource resource, final int timeoutSeconds, final Http http )
     {
-        this.location = location;
-        this.path = path;
+        this.resource = resource;
         this.timeoutSeconds = timeoutSeconds;
         this.http = http;
     }
@@ -38,6 +36,9 @@ public class HttpListing
     @Override
     public ListingResult call()
     {
+        // this is used to bind credentials...
+        final HttpLocation location = (HttpLocation) resource.getLocation();
+
         // return null if something goes wrong, after setting the error.
         // What we should be doing here is trying to retrieve the html directory 
         // listing, then parse out the filenames from that...

@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Level;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -51,14 +52,16 @@ public abstract class AbstractTransferManagerTest
         final Location loc = new SimpleLocation( "file:///test-repo" );
         final String path = "/path/to/test.txt";
 
+        final Resource resource = new Resource( loc, path );
+
         // put in some wrong content that will cause problems if the cache isn't used.
-        getTransport().registerDownload( loc, path, new TestDownload( "This is WRONG".getBytes() ) );
+        getTransport().registerDownload( resource, new TestDownload( "This is WRONG".getBytes() ) );
 
         // seed the cache with the file we're trying to retrieve.
         OutputStream os = null;
         try
         {
-            os = getCacheProvider().openOutputStream( loc, path );
+            os = getCacheProvider().openOutputStream( resource );
             os.write( testContent.getBytes() );
         }
         finally
@@ -67,7 +70,7 @@ public abstract class AbstractTransferManagerTest
         }
 
         // now, use the manager to retrieve() the path...the cached content should come through here.
-        final Transfer transfer = getTransferManagerImpl().retrieve( loc, path );
+        final Transfer transfer = getTransferManagerImpl().retrieve( resource );
 
         assertTransferContent( transfer, testContent );
     }
@@ -84,20 +87,22 @@ public abstract class AbstractTransferManagerTest
         final Location loc = new SimpleLocation( "file:///test-repo" );
         final String path = "/path/to/test.txt";
 
+        final Resource resource = new Resource( loc, path );
+
         // put in the content that we want to "download"
-        getTransport().registerDownload( loc, path, new TestDownload( testContent.getBytes() ) );
+        getTransport().registerDownload( resource, new TestDownload( testContent.getBytes() ) );
 
         // now, use the manager to retrieve() the path...the remote content should come through here.
-        Transfer transfer = getTransferManagerImpl().retrieve( loc, path );
+        Transfer transfer = getTransferManagerImpl().retrieve( resource );
 
         assertTransferContent( transfer, testContent );
 
         // now, the right content should be cached.
         // So, we'll put in some wrong content that will cause problems if the cache isn't used.
-        getTransport().registerDownload( loc, path, new TestDownload( "This is WRONG".getBytes() ) );
+        getTransport().registerDownload( resource, new TestDownload( "This is WRONG".getBytes() ) );
 
         // now, use the manager to retrieve() the path again...the cached content should come through here.
-        transfer = getTransferManagerImpl().retrieve( loc, path );
+        transfer = getTransferManagerImpl().retrieve( resource );
 
         assertTransferContent( transfer, testContent );
     }

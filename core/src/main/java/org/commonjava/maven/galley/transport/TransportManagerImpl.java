@@ -10,6 +10,7 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 
@@ -59,6 +60,13 @@ public class TransportManagerImpl
         }
 
         return null;
+    }
+
+    @Override
+    public Transport getTransport( final Resource resource )
+        throws TransferException
+    {
+        return getTransport( resource.getLocation() );
     }
 
 }

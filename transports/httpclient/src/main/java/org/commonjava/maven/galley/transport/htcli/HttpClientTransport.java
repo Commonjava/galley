@@ -10,6 +10,7 @@ import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
@@ -50,28 +51,27 @@ public class HttpClientTransport
     }
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Location repository, final Transfer target,
+    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target,
                                           final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpDownload( url, getHttpLocation( repository ), target, http );
+        return new HttpDownload( url, getHttpLocation( resource.getLocation() ), target, http );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Location repository, final String path,
-                                        final InputStream stream, final long length, final String contentType,
-                                        final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
+                                        final long length, final String contentType, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpPublish( url, getHttpLocation( repository ), stream, length, contentType, http );
+        return new HttpPublish( url, getHttpLocation( resource.getLocation() ), stream, length, contentType, http );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Location repository, final String path,
-                                        final InputStream stream, final long length, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
+                                        final long length, final int timeoutSeconds )
         throws TransferException
     {
-        return createPublishJob( url, repository, path, stream, length, null, timeoutSeconds );
+        return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
@@ -90,10 +90,11 @@ public class HttpClientTransport
     }
 
     @Override
-    public ListingJob createListingJob( final Location repository, final String path, final int timeoutSeconds )
+    public ListingJob createListingJob( final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpListing( getHttpLocation( repository ), path, timeoutSeconds, http );
+        return new HttpListing( new Resource( getHttpLocation( resource.getLocation() ), resource.getPath() ),
+                                timeoutSeconds, http );
     }
 
     private HttpLocation getHttpLocation( final Location repository )

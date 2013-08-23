@@ -14,6 +14,7 @@ import javax.inject.Named;
 
 import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 
@@ -46,29 +47,29 @@ public class FileCacheProvider
     }
 
     @Override
-    public File getDetachedFile( final Location loc, final String path )
+    public File getDetachedFile( final Resource resource )
     {
-        return new File( getFilePath( loc, path ) );
+        return new File( getFilePath( resource ) );
     }
 
     @Override
-    public boolean isDirectory( final Location loc, final String path )
+    public boolean isDirectory( final Resource resource )
     {
-        return getDetachedFile( loc, path ).isDirectory();
+        return getDetachedFile( resource ).isDirectory();
     }
 
     @Override
-    public InputStream openInputStream( final Location loc, final String path )
+    public InputStream openInputStream( final Resource resource )
         throws IOException
     {
-        return new FileInputStream( getDetachedFile( loc, path ) );
+        return new FileInputStream( getDetachedFile( resource ) );
     }
 
     @Override
-    public OutputStream openOutputStream( final Location loc, final String path )
+    public OutputStream openOutputStream( final Resource resource )
         throws IOException
     {
-        final File file = getDetachedFile( loc, path );
+        final File file = getDetachedFile( resource );
 
         final File dir = file.getParentFile();
         if ( !dir.isDirectory() && !dir.mkdirs() )
@@ -80,74 +81,79 @@ public class FileCacheProvider
     }
 
     @Override
-    public boolean exists( final Location loc, final String path )
+    public boolean exists( final Resource resource )
     {
-        return getDetachedFile( loc, path ).exists();
+        return getDetachedFile( resource ).exists();
     }
 
     @Override
-    public void copy( final Location fromKey, final String fromPath, final Location toKey, final String toPath )
+    public void copy( final Resource from, final Resource to )
         throws IOException
     {
-        FileUtils.copyFile( getDetachedFile( fromKey, fromPath ), getDetachedFile( toKey, toPath ) );
+        FileUtils.copyFile( getDetachedFile( from ), getDetachedFile( to ) );
     }
 
     @Override
-    public boolean delete( final Location loc, final String path )
+    public boolean delete( final Resource resource )
         throws IOException
     {
-        return getDetachedFile( loc, path ).delete();
+        return getDetachedFile( resource ).delete();
     }
 
     @Override
-    public String[] list( final Location loc, final String path )
+    public String[] list( final Resource resource )
     {
-        return getDetachedFile( loc, path ).list();
+        return getDetachedFile( resource ).list();
     }
 
     @Override
-    public void mkdirs( final Location loc, final String path )
+    public void mkdirs( final Resource resource )
         throws IOException
     {
-        getDetachedFile( loc, path ).mkdirs();
+        getDetachedFile( resource ).mkdirs();
     }
 
     @Override
-    public void createFile( final Location loc, final String path )
+    public void createFile( final Resource resource )
         throws IOException
     {
-        getDetachedFile( loc, path ).createNewFile();
+        getDetachedFile( resource ).createNewFile();
     }
 
     @Override
-    public void createAlias( final Location toKey, final String toPath, final Location fromKey, final String fromPath )
+    public void createAlias( final Resource to, final Resource from )
         throws IOException
     {
         // if the download landed in a different repository, copy it to the current one for
         // completeness...
+        final Location fromKey = from.getLocation();
+        final Location toKey = to.getLocation();
+        final String fromPath = from.getPath();
+        final String toPath = to.getPath();
+
         if ( fromKey != null && toKey != null && !fromKey.equals( toKey ) && fromPath != null && toPath != null
             && !fromPath.equals( toPath ) )
         {
             if ( config.isAliasLinking() )
             {
-                final File from = getDetachedFile( fromKey, fromPath );
-                final File to = getDetachedFile( toKey, toPath );
+                final File fromFile = getDetachedFile( from );
+                final File toFile = getDetachedFile( to );
 
-                Files.createLink( Paths.get( from.toURI() ), Paths.get( to.toURI() ) );
+                Files.createLink( Paths.get( fromFile.toURI() ), Paths.get( toFile.toURI() ) );
             }
             else
             {
-                copy( toKey, toPath, fromKey, fromPath );
+                copy( from, to );
             }
         }
     }
 
     @Override
-    public String getFilePath( final Location loc, final String path )
+    public String getFilePath( final Resource resource )
     {
         return Paths.get( config.getCacheBasedir()
                                 .getPath(), config.getPathGenerator()
-                                                  .getFilePath( loc, path ) )
+                                                  .getFilePath( resource ) )
                     .toString();
     }
 }

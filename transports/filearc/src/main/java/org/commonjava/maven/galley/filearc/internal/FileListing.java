@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class FileListing
@@ -15,14 +15,11 @@ public class FileListing
 
     private final File src;
 
-    private final Location location;
+    private final Resource resource;
 
-    private final String path;
-
-    public FileListing( final Location location, final String path, final File src )
+    public FileListing( final Resource resource, final File src )
     {
-        this.location = location;
-        this.path = path;
+        this.resource = resource;
         this.src = src;
     }
 
@@ -37,7 +34,7 @@ public class FileListing
     {
         if ( src.exists() && !src.isDirectory() )
         {
-            return new ListingResult( location, path, src.list() );
+            return new ListingResult( resource, src.list() );
         }
 
         return null;

@@ -12,6 +12,7 @@ import org.commonjava.maven.galley.filearc.internal.FileDownload;
 import org.commonjava.maven.galley.filearc.internal.FileListing;
 import org.commonjava.maven.galley.filearc.internal.FilePublish;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -43,7 +44,7 @@ public class FileTransport
     }
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Location repository, final Transfer target,
+    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target,
                                           final int timeoutSeconds )
         throws TransferException
     {
@@ -52,17 +53,16 @@ public class FileTransport
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Location repository, final String path,
-                                        final InputStream stream, final long length, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
+                                        final long length, final int timeoutSeconds )
         throws TransferException
     {
-        return createPublishJob( url, repository, path, stream, length, null, timeoutSeconds );
+        return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Location repository, final String path,
-                                        final InputStream stream, final long length, final String contentType,
-                                        final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
+                                        final long length, final String contentType, final int timeoutSeconds )
         throws TransferException
     {
         final File pubDir = config.getPubDir();
@@ -72,7 +72,7 @@ public class FileTransport
         }
 
         final File dest = new File( pubDir, config.getGenerator()
-                                                  .getFilePath( repository, url ) );
+                                                  .getFilePath( resource ) );
         final File dir = dest.getParentFile();
         if ( dir != null && !dir.exists() && !dir.mkdirs() )
         {
@@ -90,11 +90,11 @@ public class FileTransport
     }
 
     @Override
-    public ListingJob createListingJob( final Location repository, final String path, final int timeoutSeconds )
+    public ListingJob createListingJob( final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
-        final File src = new File( repository.getUri(), path );
-        return new FileListing( repository, path, src );
+        final File src = new File( resource.getLocationUri(), resource.getPath() );
+        return new FileListing( resource, src );
     }
 
 }

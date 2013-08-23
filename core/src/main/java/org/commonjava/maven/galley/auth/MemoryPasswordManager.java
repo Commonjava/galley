@@ -15,20 +15,20 @@ public class MemoryPasswordManager
     implements PasswordManager
 {
 
-    private final Map<PasswordIdentifier, String> passwords = new HashMap<>();
+    private final Map<PasswordEntry, String> passwords = new HashMap<>();
 
     public void setPasswordFor( final String password, final Location loc, final String type )
     {
-        passwords.put( new PasswordIdentifier( loc, type ), password );
+        passwords.put( new PasswordEntry( loc, type ), password );
     }
 
-    public void setPasswordFor( final String password, final PasswordIdentifier id )
+    public void setPasswordFor( final String password, final PasswordEntry id )
     {
         passwords.put( id, password );
     }
 
     @Override
-    public String getPassword( final PasswordIdentifier id )
+    public String getPassword( final PasswordEntry id )
     {
         return passwords.get( id );
     }

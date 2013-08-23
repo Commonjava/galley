@@ -41,11 +41,13 @@ import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
@@ -63,6 +65,9 @@ public class TransferManagerImpl
 
     @Inject
     private CacheProvider cacheProvider;
+
+    @Inject
+    private NotFoundCache nfc;
 
     @Inject
     private TransportManager transportManager;
@@ -84,22 +89,22 @@ public class TransferManagerImpl
     }
 
     public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider,
-                                final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
-                                final ExecutorService executor )
+                                final NotFoundCache nfc, final FileEventManager fileEventManager,
+                                final TransferDecorator transferDecorator, final ExecutorService executor )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;
+        this.nfc = nfc;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
     }
 
     @Override
-    public ListingResult list( final Location location, final String path )
+    public ListingResult list( final Resource resource )
         throws TransferException
     {
-        // FIXME: Implement this.
-        final Transfer cached = getCacheReference( location, path );
+        final Transfer cached = getCacheReference( resource );
         ListingResult cacheResult = null;
         if ( cached.exists() )
         {
@@ -109,12 +114,12 @@ public class TransferManagerImpl
             }
             else
             {
-                cacheResult = new ListingResult( location, path, cached.list() );
+                cacheResult = new ListingResult( resource, cached.list() );
             }
         }
 
-        final int timeoutSeconds = getTimeoutSeconds( location );
-        final ListingResult remoteResult = getListing( location, path, timeoutSeconds, false );
+        final int timeoutSeconds = getTimeoutSeconds( resource );
+        final ListingResult remoteResult = getListing( resource, timeoutSeconds, false );
 
         ListingResult result;
         if ( cacheResult != null && remoteResult != null )
@@ -130,15 +135,28 @@ public class TransferManagerImpl
             result = remoteResult;
         }
 
+        if ( result == null )
+        {
+            nfc.addMissing( resource );
+        }
+        else
+        {
+            nfc.clearMissing( resource );
+        }
+
         return result;
     }
 
-    private ListingResult getListing( final Location repository, final String path, final int timeoutSeconds,
-                                      final boolean suppressFailures )
+    private ListingResult getListing( final Resource resource, final int timeoutSeconds, final boolean suppressFailures )
         throws TransferException
     {
-        final Transport transport = transportManager.getTransport( repository );
-        final ListingJob job = transport.createListingJob( repository, path, timeoutSeconds );
+        if ( nfc.isMissing( resource ) )
+        {
+            return null;
+        }
+
+        final Transport transport = transportManager.getTransport( resource );
+        final ListingJob job = transport.createListingJob( resource, timeoutSeconds );
 
         try
         {
@@ -155,16 +173,14 @@ public class TransferManagerImpl
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, path, repository,
-                                             e.getMessage() );
+                throw new TransferException( "Timed-out download: %s. Reason: %s", e, resource, e.getMessage() );
             }
         }
         catch ( final Exception e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed listing: %s from: %s. Reason: %s", e, path, repository,
-                                             e.getMessage() );
+                throw new TransferException( "Failed listing: %s. Reason: %s", e, resource, e.getMessage() );
             }
         }
 
@@ -187,7 +203,7 @@ public class TransferManagerImpl
                 continue;
             }
 
-            target = retrieve( store, path, true );
+            target = retrieve( new Resource( store, path ), true );
             if ( target != null )
             {
                 return target;
@@ -210,7 +226,7 @@ public class TransferManagerImpl
         Transfer stream = null;
         for ( final Location store : stores )
         {
-            stream = retrieve( store, path, true );
+            stream = retrieve( new Resource( store, path ), true );
             if ( stream != null )
             {
                 results.add( stream );
@@ -229,13 +245,13 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#retrieve(org.commonjava.maven.galley.model.Location, java.lang.String)
      */
     @Override
-    public Transfer retrieve( final Location store, final String path )
+    public Transfer retrieve( final Resource resource )
         throws TransferException
     {
-        return retrieve( store, path, false );
+        return retrieve( resource, false );
     }
 
-    private Transfer retrieve( final Location store, final String path, final boolean suppressFailures )
+    private Transfer retrieve( final Resource resource, final boolean suppressFailures )
         throws TransferException
     {
         // TODO: Handle the case where storage isn't allowed? 
@@ -247,14 +263,13 @@ public class TransferManagerImpl
         try
         {
             // TODO: (see above re:storing) Handle things like local archives that really don't need to be cached...
-            target = getCacheReference( store, path );
+            target = getCacheReference( resource );
 
-            final Transfer retrieved = download( store, target, suppressFailures );
+            final Transfer retrieved = download( resource, target, suppressFailures );
 
             if ( retrieved != null && retrieved.exists() && !target.equals( retrieved ) )
             {
-                cacheProvider.createAlias( target.getLocation(), target.getPath(), retrieved.getLocation(),
-                                           retrieved.getPath() );
+                cacheProvider.createAlias( retrieved.getResource(), target.getResource() );
             }
 
             if ( target.exists() )
@@ -274,23 +289,28 @@ public class TransferManagerImpl
         catch ( final IOException e )
         {
             final TransferException error =
-                new TransferException( "Failed to download: %s from: %s. Reason: %s", e, path, store, e.getMessage() );
+                new TransferException( "Failed to download: %s. Reason: %s", e, resource, e.getMessage() );
 
             fileEventManager.fire( new FileErrorEvent( target, error ) );
             throw error;
         }
     }
 
-    private Transfer download( final Location repository, final Transfer target, final boolean suppressFailures )
+    private Transfer download( final Resource resource, final Transfer target, final boolean suppressFailures )
         throws TransferException
     {
-        if ( !repository.allowsDownloading() )
+        if ( !resource.allowsDownloading() )
         {
             return null;
         }
 
-        final String url = buildUrl( repository, target.getPath(), suppressFailures );
+        final String url = buildUrl( resource, suppressFailures );
         if ( url == null )
+        {
+            return null;
+        }
+
+        if ( nfc.isMissing( resource ) )
         {
             return null;
         }
@@ -301,19 +321,19 @@ public class TransferManagerImpl
         //            return false;
         //        }
 
-        final int timeoutSeconds = getTimeoutSeconds( repository );
+        final int timeoutSeconds = getTimeoutSeconds( resource );
         Transfer result = joinDownload( url, target, timeoutSeconds, suppressFailures );
         if ( result == null )
         {
-            result = startDownload( url, repository, target, timeoutSeconds, suppressFailures );
+            result = startDownload( url, resource, target, timeoutSeconds, suppressFailures );
         }
 
         return result;
     }
 
-    private int getTimeoutSeconds( final Location repository )
+    private int getTimeoutSeconds( final Resource resource )
     {
-        int timeoutSeconds = repository.getTimeoutSeconds();
+        int timeoutSeconds = resource.getTimeoutSeconds();
         if ( timeoutSeconds < 1 )
         {
             timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
@@ -373,7 +393,7 @@ public class TransferManagerImpl
         return null;
     }
 
-    private Transfer startDownload( final String url, final Location repository, final Transfer target,
+    private Transfer startDownload( final String url, final Resource resource, final Transfer target,
                                     final int timeoutSeconds, final boolean suppressFailures )
         throws TransferException
     {
@@ -383,8 +403,8 @@ public class TransferManagerImpl
         }
 
         final String key = getJoinKey( url, TransferOperation.DOWNLOAD );
-        final Transport transport = transportManager.getTransport( repository );
-        final DownloadJob job = transport.createDownloadJob( url, repository, target, timeoutSeconds );
+        final Transport transport = transportManager.getTransport( resource );
+        final DownloadJob job = transport.createDownloadJob( url, resource, target, timeoutSeconds );
 
         final Future<Transfer> future = executor.submit( job );
         pending.put( key, future );
@@ -394,16 +414,18 @@ public class TransferManagerImpl
 
             if ( !suppressFailures && job.getError() != null )
             {
+                nfc.addMissing( resource );
                 throw job.getError();
             }
 
+            nfc.clearMissing( resource );
             return downloaded;
         }
         catch ( final InterruptedException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Interrupted download: %s from: %s. Reason: %s", e, url, repository,
+                throw new TransferException( "Interrupted download: %s from: %s. Reason: %s", e, url, resource,
                                              e.getMessage() );
             }
         }
@@ -411,7 +433,7 @@ public class TransferManagerImpl
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed to download: %s from: %s. Reason: %s", e, url, repository,
+                throw new TransferException( "Failed to download: %s from: %s. Reason: %s", e, url, resource,
                                              e.getMessage() );
             }
         }
@@ -419,7 +441,7 @@ public class TransferManagerImpl
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, url, repository,
+                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, url, resource,
                                              e.getMessage() );
             }
         }
@@ -432,10 +454,10 @@ public class TransferManagerImpl
         return null;
     }
 
-    private String buildUrl( final Location repository, final String path, final boolean suppressFailures )
+    private String buildUrl( final Resource resource, final boolean suppressFailures )
         throws TransferException
     {
-        final String remoteBase = repository.getUri();
+        final String remoteBase = resource.getLocationUri();
         if ( remoteBase == null )
         {
             return null;
@@ -444,12 +466,11 @@ public class TransferManagerImpl
         String url = null;
         try
         {
-            url = UrlUtils.buildUrl( remoteBase, path );
+            url = UrlUtils.buildUrl( remoteBase, resource.getPath() );
         }
         catch ( final MalformedURLException e )
         {
-            throw new TransferException( "Invalid URL for path: %s in remote URL: %s. Reason: %s", e, path, remoteBase,
-                                         e.getMessage() );
+            throw new TransferException( "Invalid URL for: %s. Reason: %s", e, resource, e.getMessage() );
         }
 
         return url;
@@ -459,39 +480,42 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#store(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream)
      */
     @Override
-    public Transfer store( final Location deploy, final String path, final InputStream stream )
+    public Transfer store( final Resource resource, final InputStream stream )
         throws TransferException
     {
-        if ( !deploy.allowsStoring() )
+        if ( !resource.allowsStoring() )
         {
-            throw new TransferException( "Storing not allowed in: %s", deploy );
+            throw new TransferException( "Storing not allowed in: %s", resource );
         }
 
-        final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( path );
+        final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( resource.getPath() );
         if ( pathInfo != null && pathInfo.isSnapshot() )
         {
-            if ( !deploy.allowsSnapshots() )
+            if ( !resource.allowsSnapshots() )
             {
-                throw new TransferException( "Cannot store snapshot in non-snapshot deploy point: %s", deploy.getUri() );
+                throw new TransferException( "Cannot store snapshot in non-snapshot deploy point: %s",
+                                             resource.getLocationUri() );
             }
         }
-        else if ( !deploy.allowsReleases() )
+        else if ( !resource.allowsReleases() )
         {
-            throw new TransferException( "Cannot store release in snapshot-only deploy point: %s", deploy.getUri() );
+            throw new TransferException( "Cannot store release in snapshot-only deploy point: %s",
+                                         resource.getLocationUri() );
         }
 
-        final Transfer target = getCacheReference( deploy, path );
+        final Transfer target = getCacheReference( resource );
 
         OutputStream out = null;
         try
         {
             out = target.openOutputStream( TransferOperation.UPLOAD );
             copy( stream, out );
+
+            nfc.clearMissing( resource );
         }
         catch ( final IOException e )
         {
-            throw new TransferException( "Failed to store: %s in: %s. Reason: %s", e, path, deploy.getUri(),
-                                         e.getMessage() );
+            throw new TransferException( "Failed to store: %s. Reason: %s", e, resource, e.getMessage() );
         }
         finally
         {
@@ -549,9 +573,10 @@ public class TransferManagerImpl
             throw new TransferException( "No deployment locations available for: %s in: %s", path, stores );
         }
 
-        store( selected, path, stream );
+        final Resource res = new Resource( selected, path );
+        store( res, stream );
 
-        return getCacheReference( selected, path );
+        return getCacheReference( res );
     }
 
     /* (non-Javadoc)
@@ -594,16 +619,16 @@ public class TransferManagerImpl
     @Override
     public Transfer getStoreRootDirectory( final Location key )
     {
-        return new Transfer( key, cacheProvider, fileEventManager, transferDecorator, Transfer.ROOT );
+        return new Transfer( new Resource( key ), cacheProvider, fileEventManager, transferDecorator );
     }
 
     /* (non-Javadoc)
      * @see org.commonjava.maven.galley.TransferManager#getCacheReference(org.commonjava.maven.galley.model.Location, java.lang.String)
      */
     @Override
-    public Transfer getCacheReference( final Location store, final String... path )
+    public Transfer getCacheReference( final Resource resource )
     {
-        return new Transfer( store, cacheProvider, fileEventManager, transferDecorator, path );
+        return new Transfer( resource, cacheProvider, fileEventManager, transferDecorator );
     }
 
     /* (non-Javadoc)
@@ -616,7 +641,7 @@ public class TransferManagerImpl
         boolean result = false;
         for ( final Location store : stores )
         {
-            result = delete( store, path ) || result;
+            result = delete( new Resource( store, path ) ) || result;
         }
 
         return result;
@@ -626,10 +651,10 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#delete(org.commonjava.maven.galley.model.Location, java.lang.String)
      */
     @Override
-    public boolean delete( final Location store, final String path )
+    public boolean delete( final Resource resource )
         throws TransferException
     {
-        final Transfer item = getCacheReference( store, path == null ? Transfer.ROOT : path );
+        final Transfer item = getCacheReference( resource );
         return doDelete( item );
     }
 
@@ -675,51 +700,49 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
      */
     @Override
-    public boolean publish( final Location location, final String path, final InputStream stream, final long length )
+    public boolean publish( final Resource resource, final InputStream stream, final long length )
         throws TransferException
     {
-        return publish( location, path, stream, length, null );
+        return publish( resource, stream, length, null );
     }
 
     /* (non-Javadoc)
      * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
-    public boolean publish( final Location location, final String path, final InputStream stream, final long length,
+    public boolean publish( final Resource resource, final InputStream stream, final long length,
                             final String contentType )
         throws TransferException
     {
-        if ( !location.allowsPublishing() )
+        if ( !resource.allowsPublishing() )
         {
-            throw new TransferException( "Publishing not allowed in: %s", location );
+            throw new TransferException( "Publishing not allowed in: %s", resource );
         }
 
-        final String url = buildUrl( location, path, false );
+        final String url = buildUrl( resource, false );
         if ( url == null )
         {
             return false;
         }
 
-        int timeoutSeconds = location.getTimeoutSeconds();
+        int timeoutSeconds = resource.getTimeoutSeconds();
         if ( timeoutSeconds < 1 )
         {
             timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
         }
 
-        joinPublish( url, path, timeoutSeconds );
-        return doPublish( url, location, path, timeoutSeconds, stream, length, contentType );
+        joinPublish( url, resource, timeoutSeconds );
+        return doPublish( url, resource, timeoutSeconds, stream, length, contentType );
     }
 
-    private boolean doPublish( final String url, final Location repository, final String path,
-                               final int timeoutSeconds, final InputStream stream, final long length,
-                               final String contentType )
+    private boolean doPublish( final String url, final Resource resource, final int timeoutSeconds,
+                               final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
         final String key = getJoinKey( url, TransferOperation.UPLOAD );
 
-        final Transport transport = transportManager.getTransport( repository );
-        final PublishJob job =
-            transport.createPublishJob( url, repository, path, stream, length, contentType, timeoutSeconds );
+        final Transport transport = transportManager.getTransport( resource );
+        final PublishJob job = transport.createPublishJob( url, resource, stream, length, contentType, timeoutSeconds );
 
         final Future<Boolean> future = executor.submit( job );
         pending.put( key, future );
@@ -732,22 +755,21 @@ public class TransferManagerImpl
                 throw job.getError();
             }
 
+            nfc.clearMissing( resource );
             return published;
         }
         catch ( final InterruptedException e )
         {
-            throw new TransferException( "Interrupted publish: %s from: %s. Reason: %s", e, url, repository,
+            throw new TransferException( "Interrupted publish: %s from: %s. Reason: %s", e, url, resource,
                                          e.getMessage() );
         }
         catch ( final ExecutionException e )
         {
-            throw new TransferException( "Failed to publish: %s from: %s. Reason: %s", e, url, repository,
-                                         e.getMessage() );
+            throw new TransferException( "Failed to publish: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
         }
         catch ( final TimeoutException e )
         {
-            throw new TransferException( "Timed-out publish: %s from: %s. Reason: %s", e, url, repository,
-                                         e.getMessage() );
+            throw new TransferException( "Timed-out publish: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
         }
         finally
         {
@@ -759,7 +781,7 @@ public class TransferManagerImpl
     /**
      * @return true if (a) previous upload in progress succeeded, or (b) there was no previous upload.
      */
-    private boolean joinPublish( final String url, final String path, final int timeoutSeconds )
+    private boolean joinPublish( final String url, final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
         final String key = getJoinKey( url, TransferOperation.UPLOAD );

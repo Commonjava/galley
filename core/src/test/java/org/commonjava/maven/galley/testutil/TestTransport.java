@@ -12,6 +12,7 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManagerImpl;
 import org.commonjava.maven.galley.live.testutil.TestData;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
@@ -35,11 +36,11 @@ public class TestTransport
 {
     private final Logger logger = new Logger( getClass() );
 
-    private final Map<TestEndpoint, TestDownloadJob> downloads = new HashMap<>();
+    private final Map<Resource, TestDownloadJob> downloads = new HashMap<>();
 
     private final Map<String, TestPublishJob> publishes = new HashMap<>();
 
-    private final Map<TestEndpoint, TestListingJob> listings = new HashMap<>();
+    private final Map<Resource, TestListingJob> listings = new HashMap<>();
 
     public TestTransport()
     {
@@ -49,12 +50,11 @@ public class TestTransport
      * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during
      * your unit test.
      */
-    public void registerDownload( final Location loc, final String path, final TestDownloadJob job )
+    public void registerDownload( final Resource resource, final TestDownloadJob job )
     {
-        final TestEndpoint end = new TestEndpoint( loc, path );
         new Logger( getClass() ).info( "Got transport: %s", this );
-        logger.info( "Registering download: %s with job: %s", end, job );
-        downloads.put( end, job );
+        logger.info( "Registering download: %s with job: %s", resource, job );
+        downloads.put( resource, job );
     }
 
     /**
@@ -69,22 +69,21 @@ public class TestTransport
 
     public void registerListing( final Location location, final String path, final TestListingJob listing )
     {
-        listings.put( new TestEndpoint( location, path ), listing );
+        listings.put( new Resource( location, path ), listing );
     }
 
     // Transport implementation...
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Location repository, final Transfer target,
+    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target,
                                           final int timeoutSeconds )
         throws TransferException
     {
-        final TestEndpoint end = new TestEndpoint( target.getLocation(), target.getPath() );
-        final TestDownloadJob job = downloads.get( end );
-        logger.info( "Download for: %s is: %s", end, job );
+        final TestDownloadJob job = downloads.get( resource );
+        logger.info( "Download for: %s is: %s", resource, job );
         if ( job == null )
         {
-            throw new TransferException( "No download registered for the endpoint: %s", end );
+            throw new TransferException( "No download registered for the endpoint: %s", resource );
         }
 
         job.setTransfer( target );
@@ -92,17 +91,16 @@ public class TestTransport
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Location repository, final String path,
-                                        final InputStream stream, final long length, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
+                                        final long length, final int timeoutSeconds )
         throws TransferException
     {
-        return createPublishJob( url, repository, path, stream, length, null, timeoutSeconds );
+        return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Location repository, final String path,
-                                        final InputStream stream, final long length, final String contentType,
-                                        final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
+                                        final long length, final String contentType, final int timeoutSeconds )
         throws TransferException
     {
         final TestPublishJob job = publishes.get( url );
@@ -122,13 +120,13 @@ public class TestTransport
     }
 
     @Override
-    public ListingJob createListingJob( final Location repository, final String path, final int timeoutSeconds )
+    public ListingJob createListingJob( final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
-        final TestListingJob job = listings.get( new TestEndpoint( repository, path ) );
+        final TestListingJob job = listings.get( resource );
         if ( job == null )
         {
-            throw new TransferException( "No listing job registered for: %s / %s", repository, path );
+            throw new TransferException( "No listing job registered for: %s", resource );
         }
 
         return job;

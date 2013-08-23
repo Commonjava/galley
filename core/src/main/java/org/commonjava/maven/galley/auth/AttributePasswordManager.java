@@ -15,7 +15,7 @@ public class AttributePasswordManager
     private static final String PASSWORD_PREFIX = "password_";
 
     @Override
-    public String getPassword( final PasswordIdentifier id )
+    public String getPassword( final PasswordEntry id )
     {
         final Location loc = id.getLocation();
         final String type = id.getPasswordType();
@@ -32,7 +32,7 @@ public class AttributePasswordManager
         loc.setAttribute( PASSWORD_PREFIX + type, password );
     }
 
-    public static void bind( final PasswordIdentifier pwid, final String password )
+    public static void bind( final PasswordEntry pwid, final String password )
     {
         if ( password == null )
         {

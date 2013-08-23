@@ -7,6 +7,7 @@ import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -46,17 +47,20 @@ public class TransferManagerTest
 
     private TestTransport transport;
 
+    private MemoryNotFoundCache nfc;
+
     @Before
     public void setup()
     {
         transport = new TestTransport();
         transportMgr = new TransportManagerImpl( transport );
         cacheProvider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
+        nfc = new MemoryNotFoundCache();
         fileEvents = new NoOpFileEventManager();
         decorator = new NoOpTransferDecorator();
         executor = Executors.newSingleThreadExecutor();
 
-        mgr = new TransferManagerImpl( transportMgr, cacheProvider, fileEvents, decorator, executor );
+        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, decorator, executor );
     }
 
     @Override

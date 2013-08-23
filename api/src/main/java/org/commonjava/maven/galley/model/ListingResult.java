@@ -6,27 +6,29 @@ import java.util.TreeSet;
 public class ListingResult
 {
 
-    private final Location location;
-
-    private final String path;
+    private final Resource resource;
 
     private final String[] listing;
 
-    public ListingResult( final Location location, final String path, final String[] listing )
+    public ListingResult( final Resource resource, final String[] listing )
     {
-        this.location = location;
-        this.path = path;
+        this.resource = resource;
         this.listing = listing;
     }
 
     public Location getLocation()
     {
-        return location;
+        return resource.getLocation();
     }
 
     public String getPath()
     {
-        return path;
+        return resource.getPath();
+    }
+
+    public Resource getResource()
+    {
+        return resource;
     }
 
     public String[] getListing()
@@ -52,7 +54,7 @@ public class ListingResult
             merged.addAll( Arrays.asList( remoteResult.getListing() ) );
         }
 
-        return new ListingResult( location, path, merged.toArray( new String[merged.size()] ) );
+        return new ListingResult( resource, merged.toArray( new String[merged.size()] ) );
     }
 
 }

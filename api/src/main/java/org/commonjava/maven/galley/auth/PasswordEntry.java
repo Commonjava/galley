@@ -1,20 +1,24 @@
-package org.commonjava.maven.galley.testutil;
+package org.commonjava.maven.galley.auth;
 
 import org.commonjava.maven.galley.model.Location;
 
-public class TestEndpoint
+public class PasswordEntry
 {
 
-    //    private final Logger logger = new Logger( getClass() );
+    public static final String USER_PASSWORD = "userPassword";
+
+    public static final String KEY_PASSWORD = "keyPassword";
+
+    public static final String PROXY_PASSWORD = "proxyPassword";
 
     private final Location location;
 
-    private final String path;
+    private final String passwordType;
 
-    public TestEndpoint( final Location location, final String path )
+    public PasswordEntry( final Location location, final String passwordType )
     {
         this.location = location;
-        this.path = path.length() > 1 && path.startsWith( "/" ) ? path.substring( 1 ) : path;
+        this.passwordType = passwordType;
     }
 
     public Location getLocation()
@@ -22,9 +26,9 @@ public class TestEndpoint
         return location;
     }
 
-    public String getPath()
+    public String getPasswordType()
     {
-        return path;
+        return passwordType;
     }
 
     @Override
@@ -33,8 +37,7 @@ public class TestEndpoint
         final int prime = 31;
         int result = 1;
         result = prime * result + ( ( location == null ) ? 0 : location.hashCode() );
-        result = prime * result + ( ( path == null ) ? 0 : path.hashCode() );
-        //        logger.info( "Hashcode for: %s is: %s", this, result );
+        result = prime * result + ( ( passwordType == null ) ? 0 : passwordType.hashCode() );
         return result;
     }
 
@@ -53,8 +56,7 @@ public class TestEndpoint
         {
             return false;
         }
-        final TestEndpoint other = (TestEndpoint) obj;
-        //        logger.info( "Comparing vs: %s", other );
+        final PasswordEntry other = (PasswordEntry) obj;
         if ( location == null )
         {
             if ( other.location != null )
@@ -66,24 +68,18 @@ public class TestEndpoint
         {
             return false;
         }
-        if ( path == null )
+        if ( passwordType == null )
         {
-            if ( other.path != null )
+            if ( other.passwordType != null )
             {
                 return false;
             }
         }
-        else if ( !path.equals( other.path ) )
+        else if ( !passwordType.equals( other.passwordType ) )
         {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public String toString()
-    {
-        return String.format( "TestEndpoint [location=%s, path=%s]", location, path );
     }
 
 }

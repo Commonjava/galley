@@ -5,40 +5,40 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 
 public interface CacheProvider
 {
 
-    boolean isDirectory( Location loc, String path );
+    boolean isDirectory( Resource resource );
 
-    InputStream openInputStream( Location loc, String path )
+    InputStream openInputStream( Resource resource )
         throws IOException;
 
-    OutputStream openOutputStream( Location loc, String path )
+    OutputStream openOutputStream( Resource resource )
         throws IOException;
 
-    boolean exists( Location loc, String path );
+    boolean exists( Resource resource );
 
-    void copy( Location fromKey, String fromPath, Location toKey, String toPath )
+    void copy( Resource from, Resource to )
         throws IOException;
 
-    String getFilePath( Location loc, String path );
+    String getFilePath( Resource resource );
 
-    boolean delete( Location loc, String path )
+    boolean delete( Resource resource )
         throws IOException;
 
-    String[] list( Location loc, String path );
+    String[] list( Resource resource );
 
-    File getDetachedFile( Location loc, String path );
+    File getDetachedFile( Resource resource );
 
-    void mkdirs( Location loc, String path )
+    void mkdirs( Resource resource )
         throws IOException;
 
-    void createFile( Location loc, String path )
+    void createFile( Resource resource )
         throws IOException;
 
-    void createAlias( Location toKey, String toPath, Location fromKey, String fromPath )
+    void createAlias( Resource to, Resource from )
         throws IOException;
 
 }

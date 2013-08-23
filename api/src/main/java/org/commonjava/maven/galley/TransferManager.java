@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.util.ArtifactPathInfo;
 
@@ -18,10 +19,10 @@ public interface TransferManager
     Set<Transfer> retrieveAll( List<? extends Location> stores, String path )
         throws TransferException;
 
-    Transfer retrieve( Location store, String path )
+    Transfer retrieve( Resource resource )
         throws TransferException;
 
-    Transfer store( Location deploy, String path, InputStream stream )
+    Transfer store( Resource resource, InputStream stream )
         throws TransferException;
 
     Transfer store( List<? extends Location> stores, String path, InputStream stream )
@@ -31,21 +32,21 @@ public interface TransferManager
 
     Transfer getStoreRootDirectory( Location key );
 
-    Transfer getCacheReference( Location store, String... path );
+    Transfer getCacheReference( Resource resource );
 
     boolean deleteAll( List<? extends Location> stores, String path )
         throws TransferException;
 
-    boolean delete( Location store, String path )
+    boolean delete( Resource resource )
         throws TransferException;
 
-    boolean publish( Location location, String path, InputStream stream, long length )
+    boolean publish( Resource resource, InputStream stream, long length )
         throws TransferException;
 
-    boolean publish( Location location, String path, InputStream stream, long length, String contentType )
+    boolean publish( Resource resource, InputStream stream, long length, String contentType )
         throws TransferException;
 
-    ListingResult list( Location location, String path )
+    ListingResult list( Resource resource )
         throws TransferException;
 
 }

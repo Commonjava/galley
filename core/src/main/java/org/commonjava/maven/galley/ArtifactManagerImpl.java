@@ -12,6 +12,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.util.logging.Logger;
@@ -105,7 +106,7 @@ public class ArtifactManagerImpl
     public boolean publish( final Location location, final ArtifactRef ref, final InputStream stream, final long length )
         throws TransferException
     {
-        return transferManager.publish( location, toPath( ref ), stream, length );
+        return transferManager.publish( new Resource( location, toPath( ref ) ), stream, length );
     }
 
     private String toPath( final ProjectVersionRef src )
@@ -138,7 +139,7 @@ public class ArtifactManagerImpl
     public TypeAndClassifier[] listAvailableArtifacts( final Location location, final ProjectVersionRef ref )
         throws TransferException
     {
-        final ListingResult listingResult = transferManager.list( location, toPath( ref ) );
+        final ListingResult listingResult = transferManager.list( new Resource( location, toPath( ref ) ) );
         if ( listingResult == null || listingResult.isEmpty() )
         {
             return new TypeAndClassifier[0];

@@ -1,7 +1,5 @@
 package org.commonjava.maven.galley.model;
 
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,13 +16,7 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 public final class Transfer
 {
 
-    public static final String ROOT = "/";
-
-    private static final String[] ROOT_ARRY = { ROOT };
-
-    private final Location loc;
-
-    private final String path;
+    private final Resource resource;
 
     private final CacheProvider provider;
 
@@ -35,73 +27,60 @@ public final class Transfer
     public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager,
                      final TransferDecorator decorator, final String... path )
     {
-        this.loc = loc;
+        this.resource = new Resource( loc, path );
         this.fileEventManager = fileEventManager;
         this.decorator = decorator;
-        this.path = normalize( join( path, "/" ) );
         this.provider = provider;
     }
 
-    private String normalize( final String path )
+    public Transfer( final Resource resource, final CacheProvider provider, final FileEventManager fileEventManager,
+                     final TransferDecorator decorator )
     {
-        String result = path;
-        while ( result.startsWith( "/" ) && result.length() > 1 )
-        {
-            result = result.substring( 1 );
-        }
-
-        return result;
+        this.resource = resource;
+        this.fileEventManager = fileEventManager;
+        this.decorator = decorator;
+        this.provider = provider;
     }
 
     public boolean isDirectory()
     {
-        return provider.isDirectory( loc, path );
+        return provider.isDirectory( resource );
     }
 
     public Location getLocation()
     {
-        return loc;
+        return resource.getLocation();
     }
 
     public String getPath()
     {
-        return path;
+        return resource.getPath();
+    }
+
+    public Resource getResource()
+    {
+        return resource;
     }
 
     @Override
     public String toString()
     {
-        return loc + ":" + path;
+        return String.format( "%s:%s", resource.getLocation(), resource.getPath() );
     }
 
     public Transfer getParent()
     {
-        if ( path == ROOT || ROOT.equals( path ) )
+        if ( resource.isRoot() )
         {
             return null;
         }
 
-        return new Transfer( loc, provider, fileEventManager, decorator, parentPath( path ) );
+        return new Transfer( resource.getParent(), provider, fileEventManager, decorator );
     }
 
     public Transfer getChild( final String file )
     {
-        return new Transfer( loc, provider, fileEventManager, decorator, path, file );
-    }
-
-    private String[] parentPath( final String path )
-    {
-        final String[] parts = path.split( "/" );
-        if ( parts.length == 1 )
-        {
-            return ROOT_ARRY;
-        }
-        else
-        {
-            final String[] parentParts = new String[parts.length - 1];
-            System.arraycopy( parts, 0, parentParts, 0, parentParts.length );
-            return parentParts;
-        }
+        return new Transfer( resource.getChild( file ), provider, fileEventManager, decorator );
     }
 
     public void touch()
@@ -120,7 +99,7 @@ public final class Transfer
     {
         try
         {
-            InputStream stream = provider.openInputStream( loc, path );
+            InputStream stream = provider.openInputStream( resource );
             if ( stream == null )
             {
                 return null;
@@ -154,7 +133,7 @@ public final class Transfer
     {
         try
         {
-            OutputStream stream = provider.openOutputStream( loc, path );
+            OutputStream stream = provider.openOutputStream( resource );
             if ( stream == null )
             {
                 return null;
@@ -180,18 +159,18 @@ public final class Transfer
 
     public boolean exists()
     {
-        return provider.exists( loc, path );
+        return provider.exists( resource );
     }
 
     public void copyFrom( final Transfer f )
         throws IOException
     {
-        provider.copy( f.getLocation(), f.getPath(), loc, path );
+        provider.copy( f.getResource(), resource );
     }
 
     public String getFullPath()
     {
-        return provider.getFilePath( loc, path );
+        return provider.getFilePath( resource );
     }
 
     public boolean delete()
@@ -205,7 +184,7 @@ public final class Transfer
     {
         try
         {
-            final boolean deleted = provider.delete( loc, path );
+            final boolean deleted = provider.delete( resource );
             if ( deleted && fireEvents )
             {
                 fileEventManager.fire( new FileDeletionEvent( this ) );
@@ -225,24 +204,24 @@ public final class Transfer
 
     public String[] list()
     {
-        return provider.list( loc, path );
+        return provider.list( resource );
     }
 
     public File getDetachedFile()
     {
-        return provider.getDetachedFile( loc, path );
+        return provider.getDetachedFile( resource );
     }
 
     public void mkdirs()
         throws IOException
     {
-        provider.mkdirs( loc, path );
+        provider.mkdirs( resource );
     }
 
     public void createFile()
         throws IOException
     {
-        provider.createFile( loc, path );
+        provider.createFile( resource );
     }
 
 }
