@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 
@@ -30,6 +32,9 @@ public interface ArtifactManager
         throws TransferException;
 
     boolean publish( Location location, ArtifactRef ref, InputStream stream, long length )
+        throws TransferException;
+
+    TypeAndClassifier[] listAvailableArtifacts( Location location, ProjectVersionRef ref )
         throws TransferException;
 
 }

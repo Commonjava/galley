@@ -7,10 +7,12 @@ import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.filearc.internal.ZipDownload;
+import org.commonjava.maven.galley.filearc.internal.ZipListing;
 import org.commonjava.maven.galley.filearc.internal.ZipPublish;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 
@@ -54,6 +56,13 @@ public class ZipJarTransport
             || ( location.getUri()
                          .startsWith( "jar:" ) && location.getUri()
                                                           .endsWith( ".jar" ) );
+    }
+
+    @Override
+    public ListingJob createListingJob( final Location repository, final String path, final int timeoutSeconds )
+        throws TransferException
+    {
+        return new ZipListing( repository, path );
     }
 
 }

@@ -12,10 +12,12 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpDownload;
+import org.commonjava.maven.galley.transport.htcli.internal.HttpListing;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
 import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -52,19 +54,7 @@ public class HttpClientTransport
                                           final int timeoutSeconds )
         throws TransferException
     {
-        final HttpLocation hl;
-        try
-        {
-            hl =
-                ( repository instanceof HttpLocation ) ? (HttpLocation) repository
-                                : new WrapperHttpLocation( repository, globalConfig );
-        }
-        catch ( final MalformedURLException e )
-        {
-            throw new TransferException( "Failed to parse base-URL for: %s", e, repository.getUri() );
-        }
-
-        return new HttpDownload( url, hl, target, http );
+        return new HttpDownload( url, getHttpLocation( repository ), target, http );
     }
 
     @Override
@@ -73,19 +63,7 @@ public class HttpClientTransport
                                         final int timeoutSeconds )
         throws TransferException
     {
-        final HttpLocation hl;
-        try
-        {
-            hl =
-                ( repository instanceof HttpLocation ) ? (HttpLocation) repository
-                                : new WrapperHttpLocation( repository, globalConfig );
-        }
-        catch ( final MalformedURLException e )
-        {
-            throw new TransferException( "Failed to parse base-URL for: %s", e, repository.getUri() );
-        }
-
-        return new HttpPublish( url, hl, stream, length, contentType, http );
+        return new HttpPublish( url, getHttpLocation( repository ), stream, length, contentType, http );
     }
 
     @Override
@@ -109,6 +87,27 @@ public class HttpClientTransport
         }
 
         return false;
+    }
+
+    @Override
+    public ListingJob createListingJob( final Location repository, final String path, final int timeoutSeconds )
+        throws TransferException
+    {
+        return new HttpListing( getHttpLocation( repository ), path, timeoutSeconds, http );
+    }
+
+    private HttpLocation getHttpLocation( final Location repository )
+        throws TransferException
+    {
+        try
+        {
+            return ( repository instanceof HttpLocation ) ? (HttpLocation) repository
+                            : new WrapperHttpLocation( repository, globalConfig );
+        }
+        catch ( final MalformedURLException e )
+        {
+            throw new TransferException( "Failed to parse base-URL for: %s", e, repository.getUri() );
+        }
     }
 
 }

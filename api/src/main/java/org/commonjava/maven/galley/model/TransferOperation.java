@@ -2,5 +2,5 @@ package org.commonjava.maven.galley.model;
 
 public enum TransferOperation
 {
-    DOWNLOAD, GENERATE, UPLOAD;
+    DOWNLOAD, GENERATE, UPLOAD, LISTING;
 }

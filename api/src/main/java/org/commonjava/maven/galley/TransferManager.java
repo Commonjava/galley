@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.util.ArtifactPathInfo;
@@ -42,6 +43,9 @@ public interface TransferManager
         throws TransferException;
 
     boolean publish( Location location, String path, InputStream stream, long length, String contentType )
+        throws TransferException;
+
+    ListingResult list( Location location, String path )
         throws TransferException;
 
 }

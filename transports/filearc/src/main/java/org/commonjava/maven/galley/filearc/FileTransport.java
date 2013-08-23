@@ -9,11 +9,13 @@ import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.filearc.internal.FileDownload;
+import org.commonjava.maven.galley.filearc.internal.FileListing;
 import org.commonjava.maven.galley.filearc.internal.FilePublish;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 
@@ -85,6 +87,14 @@ public class FileTransport
     {
         return location.getUri()
                        .startsWith( "file:" );
+    }
+
+    @Override
+    public ListingJob createListingJob( final Location repository, final String path, final int timeoutSeconds )
+        throws TransferException
+    {
+        final File src = new File( repository.getUri(), path );
+        return new FileListing( repository, path, src );
     }
 
 }

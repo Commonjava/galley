@@ -12,6 +12,12 @@ public interface Transport
     /**
      * @return NEVER NULL
      */
+    ListingJob createListingJob( Location repository, String path, int timeoutSeconds )
+        throws TransferException;
+
+    /**
+     * @return NEVER NULL
+     */
     DownloadJob createDownloadJob( String url, Location repository, Transfer target, int timeoutSeconds )
         throws TransferException;
 

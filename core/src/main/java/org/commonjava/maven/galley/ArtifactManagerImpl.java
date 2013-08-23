@@ -1,19 +1,25 @@
 package org.commonjava.maven.galley;
 
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.util.logging.Logger;
 
 public class ArtifactManagerImpl
     implements ArtifactManager
 {
+    private final Logger logger = new Logger( getClass() );
 
     @Inject
     private TransferManager transferManager;
@@ -102,10 +108,13 @@ public class ArtifactManagerImpl
         return transferManager.publish( location, toPath( ref ), stream, length );
     }
 
-    private String toPath( final ArtifactRef ref )
+    private String toPath( final ProjectVersionRef src )
     {
         /* @formatter:off */
         // FIXME: Local snapshot handling...which may also need to be managed in the cache provider...
+        if ( src instanceof ArtifactRef )
+        {
+            final ArtifactRef ref = (ArtifactRef) src;
         return String.format( "%s/%s/%s/%s-%s%s.%s", 
                                   ref.getGroupId().replace('.', '/'), 
                                   ref.getArtifactId(), 
@@ -114,7 +123,62 @@ public class ArtifactManagerImpl
                                   ref.getVersionString(), 
                                   ( ref.getClassifier() == null ? "" : "-" + ref.getClassifier() ), 
                                   ref.getType() );
+        }
+        else
+        {
+            return String.format( "%s/%s/%s/", 
+                                  src.getGroupId().replace('.', '/'), 
+                                  src.getArtifactId(), 
+                                  src.getVersionString() );
+        }
         /* @formatter:on */
+    }
+
+    @Override
+    public TypeAndClassifier[] listAvailableArtifacts( final Location location, final ProjectVersionRef ref )
+        throws TransferException
+    {
+        final ListingResult listingResult = transferManager.list( location, toPath( ref ) );
+        if ( listingResult == null || listingResult.isEmpty() )
+        {
+            return new TypeAndClassifier[0];
+        }
+
+        //FIXME: snapshot handling.
+        final String prefix = String.format( "%s-%s", ref.getArtifactId(), ref.getVersionString() );
+        final Set<TypeAndClassifier> artifacts = new HashSet<>();
+        for ( final String fname : listingResult.getListing() )
+        {
+            if ( fname.startsWith( prefix ) )
+            {
+                final String remainder = fname.substring( prefix.length() );
+
+                String classifier = null;
+                String type = null;
+
+                if ( remainder.startsWith( "-" ) )
+                {
+                    // must have a classifier.
+                    final int extPos = remainder.indexOf( '.' );
+                    if ( extPos < 2 )
+                    {
+                        logger.info( "Listing found unparsable filename: '%s' from: %s. Skipping", fname, location );
+                        continue;
+                    }
+
+                    classifier = remainder.substring( 1, extPos );
+                    type = remainder.substring( extPos + 1 );
+                }
+                else if ( remainder.startsWith( "." ) )
+                {
+                    type = remainder.substring( 1 );
+                }
+
+                artifacts.add( new TypeAndClassifier( type, classifier ) );
+            }
+        }
+
+        return artifacts.toArray( new TypeAndClassifier[artifacts.size()] );
     }
 
 }

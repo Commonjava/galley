@@ -39,6 +39,7 @@ import javax.inject.Inject;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
@@ -46,6 +47,7 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -90,6 +92,83 @@ public class TransferManagerImpl
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
+    }
+
+    @Override
+    public ListingResult list( final Location location, final String path )
+        throws TransferException
+    {
+        // FIXME: Implement this.
+        final Transfer cached = getCacheReference( location, path );
+        ListingResult cacheResult = null;
+        if ( cached.exists() )
+        {
+            if ( !cached.isDirectory() )
+            {
+                throw new TransferException( "Cannot list: %s. It does not appear to be a directory." );
+            }
+            else
+            {
+                cacheResult = new ListingResult( location, path, cached.list() );
+            }
+        }
+
+        final int timeoutSeconds = getTimeoutSeconds( location );
+        final ListingResult remoteResult = getListing( location, path, timeoutSeconds, false );
+
+        ListingResult result;
+        if ( cacheResult != null && remoteResult != null )
+        {
+            result = cacheResult.mergeWith( remoteResult );
+        }
+        else if ( cacheResult != null )
+        {
+            result = cacheResult;
+        }
+        else
+        {
+            result = remoteResult;
+        }
+
+        return result;
+    }
+
+    private ListingResult getListing( final Location repository, final String path, final int timeoutSeconds,
+                                      final boolean suppressFailures )
+        throws TransferException
+    {
+        final Transport transport = transportManager.getTransport( repository );
+        final ListingJob job = transport.createListingJob( repository, path, timeoutSeconds );
+
+        try
+        {
+            final ListingResult result = job.call();
+
+            if ( !suppressFailures && job.getError() != null )
+            {
+                throw job.getError();
+            }
+
+            return result;
+        }
+        catch ( final TimeoutException e )
+        {
+            if ( !suppressFailures )
+            {
+                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, path, repository,
+                                             e.getMessage() );
+            }
+        }
+        catch ( final Exception e )
+        {
+            if ( !suppressFailures )
+            {
+                throw new TransferException( "Failed listing: %s from: %s. Reason: %s", e, path, repository,
+                                             e.getMessage() );
+            }
+        }
+
+        return null;
     }
 
     /* (non-Javadoc)
@@ -222,12 +301,7 @@ public class TransferManagerImpl
         //            return false;
         //        }
 
-        int timeoutSeconds = repository.getTimeoutSeconds();
-        if ( timeoutSeconds < 1 )
-        {
-            timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
-        }
-
+        final int timeoutSeconds = getTimeoutSeconds( repository );
         Transfer result = joinDownload( url, target, timeoutSeconds, suppressFailures );
         if ( result == null )
         {
@@ -235,6 +309,68 @@ public class TransferManagerImpl
         }
 
         return result;
+    }
+
+    private int getTimeoutSeconds( final Location repository )
+    {
+        int timeoutSeconds = repository.getTimeoutSeconds();
+        if ( timeoutSeconds < 1 )
+        {
+            timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
+        }
+
+        return timeoutSeconds;
+    }
+
+    private Transfer joinDownload( final String url, final Transfer target, final int timeoutSeconds,
+                                   final boolean suppressFailures )
+        throws TransferException
+    {
+        // if the target file already exists, skip joining.
+        if ( target.exists() )
+        {
+            return target;
+        }
+        else
+        {
+            final String key = getJoinKey( url, TransferOperation.DOWNLOAD );
+
+            @SuppressWarnings( "unchecked" )
+            final Future<Transfer> future = (Future<Transfer>) pending.get( key );
+            if ( future != null )
+            {
+                Transfer f = null;
+                try
+                {
+                    f = future.get( timeoutSeconds, TimeUnit.SECONDS );
+
+                    return f;
+                }
+                catch ( final InterruptedException e )
+                {
+                    if ( !suppressFailures )
+                    {
+                        throw new TransferException( "Download interrupted: %s", e, url );
+                    }
+                }
+                catch ( final ExecutionException e )
+                {
+                    if ( !suppressFailures )
+                    {
+                        throw new TransferException( "Download failed: %s", e, url );
+                    }
+                }
+                catch ( final TimeoutException e )
+                {
+                    if ( !suppressFailures )
+                    {
+                        throw new TransferException( "Timeout on: %s", e, url );
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private Transfer startDownload( final String url, final Location repository, final Transfer target,
@@ -246,7 +382,7 @@ public class TransferManagerImpl
             return target;
         }
 
-        final String key = getJoinKey( url, false );
+        final String key = getJoinKey( url, TransferOperation.DOWNLOAD );
         final Transport transport = transportManager.getTransport( repository );
         final DownloadJob job = transport.createDownloadJob( url, repository, target, timeoutSeconds );
 
@@ -317,57 +453,6 @@ public class TransferManagerImpl
         }
 
         return url;
-    }
-
-    private Transfer joinDownload( final String url, final Transfer target, final int timeoutSeconds,
-                                   final boolean suppressFailures )
-        throws TransferException
-    {
-        // if the target file already exists, skip joining.
-        if ( target.exists() )
-        {
-            return target;
-        }
-        else
-        {
-            final String key = getJoinKey( url, false );
-
-            @SuppressWarnings( "unchecked" )
-            final Future<Transfer> future = (Future<Transfer>) pending.get( key );
-            if ( future != null )
-            {
-                Transfer f = null;
-                try
-                {
-                    f = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-                    return f;
-                }
-                catch ( final InterruptedException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Download interrupted: %s", e, url );
-                    }
-                }
-                catch ( final ExecutionException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Download failed: %s", e, url );
-                    }
-                }
-                catch ( final TimeoutException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Timeout on: %s", e, url );
-                    }
-                }
-            }
-        }
-
-        return null;
     }
 
     /* (non-Javadoc)
@@ -630,7 +715,7 @@ public class TransferManagerImpl
                                final String contentType )
         throws TransferException
     {
-        final String key = getJoinKey( url, true );
+        final String key = getJoinKey( url, TransferOperation.UPLOAD );
 
         final Transport transport = transportManager.getTransport( repository );
         final PublishJob job =
@@ -677,7 +762,7 @@ public class TransferManagerImpl
     private boolean joinPublish( final String url, final String path, final int timeoutSeconds )
         throws TransferException
     {
-        final String key = getJoinKey( url, true );
+        final String key = getJoinKey( url, TransferOperation.UPLOAD );
 
         @SuppressWarnings( "unchecked" )
         final Future<Boolean> future = (Future<Boolean>) pending.get( key );
@@ -707,8 +792,9 @@ public class TransferManagerImpl
         return true;
     }
 
-    private String getJoinKey( final String url, final boolean upload )
+    private String getJoinKey( final String url, final TransferOperation operation )
     {
-        return ( upload ? "UP" : "DOWN" ) + "::" + url;
+        return operation.name() + "::" + url;
     }
+
 }

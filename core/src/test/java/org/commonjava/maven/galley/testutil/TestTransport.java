@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.inject.Default;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -15,6 +14,7 @@ import org.commonjava.maven.galley.live.testutil.TestData;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.util.logging.Logger;
@@ -38,6 +38,8 @@ public class TestTransport
     private final Map<TestEndpoint, TestDownloadJob> downloads = new HashMap<>();
 
     private final Map<String, TestPublishJob> publishes = new HashMap<>();
+
+    private final Map<TestEndpoint, TestListingJob> listings = new HashMap<>();
 
     public TestTransport()
     {
@@ -63,6 +65,11 @@ public class TestTransport
     {
         logger.info( "Registering publish: %s with job: %s", url, job );
         publishes.put( url, job );
+    }
+
+    public void registerListing( final Location location, final String path, final TestListingJob listing )
+    {
+        listings.put( new TestEndpoint( location, path ), listing );
     }
 
     // Transport implementation...
@@ -112,6 +119,19 @@ public class TestTransport
     public boolean handles( final Location location )
     {
         return true;
+    }
+
+    @Override
+    public ListingJob createListingJob( final Location repository, final String path, final int timeoutSeconds )
+        throws TransferException
+    {
+        final TestListingJob job = listings.get( new TestEndpoint( repository, path ) );
+        if ( job == null )
+        {
+            throw new TransferException( "No listing job registered for: %s / %s", repository, path );
+        }
+
+        return job;
     }
 
 }
