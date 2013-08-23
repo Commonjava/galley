@@ -38,7 +38,7 @@ public interface CacheProvider
     void createFile( Resource resource )
         throws IOException;
 
-    void createAlias( Resource to, Resource from )
+    void createAlias( Resource from, Resource to )
         throws IOException;
 
 }

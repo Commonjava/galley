@@ -121,7 +121,7 @@ public class FileCacheProvider
     }
 
     @Override
-    public void createAlias( final Resource to, final Resource from )
+    public void createAlias( final Resource from, final Resource to )
         throws IOException
     {
         // if the download landed in a different repository, copy it to the current one for
