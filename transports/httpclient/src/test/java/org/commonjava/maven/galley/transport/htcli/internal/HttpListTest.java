@@ -1,24 +1,14 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import org.commonjava.maven.galley.TransferManagerImpl;
-import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Resource;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
-import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.maven.galley.transport.TransportManagerImpl;
-import org.commonjava.maven.galley.transport.htcli.HttpClientTransport;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
 import org.junit.Rule;
@@ -26,6 +16,7 @@ import org.junit.Test;
 
 public class HttpListTest
 {
+    /* @formatter:off */
     static final String[] centralbtm = new String [] 
     {
     	"btm-2.1.3-javadoc.jar", 
@@ -75,65 +66,112 @@ public class HttpListTest
     	"switchyard-runtime-1.0.0.Final.pom.md5", 
     	"switchyard-runtime-1.0.0.Final.pom.sha1"
     };
-
+    /* @formatter:on */
 
     @Rule
-    public HttpTestFixture fixture = new HttpTestFixture();
+    public HttpTestFixture fixture = new HttpTestFixture( "list-basic" );
 
     @Test
     public void simpleCentralListing()
         throws Exception
     {
-        final String fname = "btm/index.html";
+        final String fname = "central-btm/index.html";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new Resource( location, fname ) );
 
-        HttpClientTransport hct = new HttpClientTransport (fixture.getHttp());
-        TransportManager transportMgr = new TransportManagerImpl( hct );
-        MemoryNotFoundCache nfc = new MemoryNotFoundCache();
-        FileEventManager fileEvents = new NoOpFileEventManager();
-        TransferDecorator decorator = new NoOpTransferDecorator();
-        ExecutorService executor= Executors.newSingleThreadExecutor();
+        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final ListingResult result = listing.call();
 
-        TransferManagerImpl mgr = new TransferManagerImpl( transportMgr, fixture.getCache(), nfc, fileEvents, decorator, executor );
+        assertThat( listing.getError(), nullValue() );
+        assertTrue( Arrays.equals( centralbtm, result.getListing() ) );
+    }
 
-        assertThat( transfer.exists(), equalTo( false ) );
+    @Test
+    public void simpleCentralListing_Missing()
+        throws Exception
+    {
+        final String fname = "central-missing/index.html";
 
-        String[] listing = mgr.list(new Resource(location,"") ).getListing();
-      
-//        System.out.println ("### " + Arrays.toString(listing));
+        final String url = fixture.formatUrl( fname );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
 
-        assertTrue (Arrays.equals(centralbtm, listing));
-        
-   }
+        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final ListingResult result = listing.call();
+
+        assertThat( result, nullValue() );
+        assertThat( listing.getError(), nullValue() );
+    }
+
+    @Test
+    public void simpleCentralListing_Error()
+        throws Exception
+    {
+        final String fname = "central-error/index.html";
+
+        final String url = fixture.formatUrl( fname );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+
+        fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
+
+        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final ListingResult result = listing.call();
+
+        assertThat( result, nullValue() );
+        assertThat( listing.getError(), notNullValue() );
+        assertTrue( listing.getError()
+                           .getMessage()
+                           .endsWith( "Test Error" ) );
+    }
 
     @Test
     public void simpleNexusListing()
         throws Exception
     {
-        final String fname = "switchyard/index.html";
+        final String fname = "nexus-switchyard/index.html";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new Resource( location, fname ) );
+        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final ListingResult result = listing.call();
 
-        HttpClientTransport hct = new HttpClientTransport (fixture.getHttp());
-        TransportManager transportMgr = new TransportManagerImpl( hct );
-        MemoryNotFoundCache nfc = new MemoryNotFoundCache();
-        FileEventManager fileEvents = new NoOpFileEventManager();
-        TransferDecorator decorator = new NoOpTransferDecorator();
-        ExecutorService executor= Executors.newSingleThreadExecutor();
+        assertThat( listing.getError(), nullValue() );
+        assertTrue( Arrays.equals( nexusswitchyard, result.getListing() ) );
+    }
 
-        TransferManagerImpl mgr = new TransferManagerImpl( transportMgr, fixture.getCache(), nfc, fileEvents, decorator, executor );
+    @Test
+    public void simpleNexusListing_Missing()
+        throws Exception
+    {
+        final String fname = "nexus-missing/index.html";
 
-        assertThat( transfer.exists(), equalTo( false ) );
+        final String url = fixture.formatUrl( fname );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final ListingResult result = listing.call();
 
-        String[] listing = mgr.list(new Resource(location,"") ).getListing();
-       
-        // System.out.println ("### " + Arrays.toString(listing));
+        assertThat( listing.getError(), nullValue() );
+        assertThat( result, nullValue() );
+    }
 
-        assertTrue (Arrays.equals(nexusswitchyard, listing));
+    @Test
+    public void simpleNexusListing_Error()
+        throws Exception
+    {
+        final String fname = "nexus-error/index.html";
+
+        final String url = fixture.formatUrl( fname );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+
+        fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
+
+        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final ListingResult result = listing.call();
+
+        assertThat( result, nullValue() );
+        assertThat( listing.getError(), notNullValue() );
+        assertTrue( listing.getError()
+                           .getMessage()
+                           .endsWith( "Test Error" ) );
     }
 }

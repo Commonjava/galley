@@ -13,7 +13,7 @@ public interface Transport
     /**
      * @return NEVER NULL
      */
-    ListingJob createListingJob( Resource resource, int timeoutSeconds )
+    ListingJob createListingJob( String url, Resource resource, int timeoutSeconds )
         throws TransferException;
 
     /**
@@ -31,8 +31,7 @@ public interface Transport
     /**
      * @return NEVER NULL
      */
-    PublishJob createPublishJob( String url, Resource resource, InputStream stream, long length, String contentType,
-                                 int timeoutSeconds )
+    PublishJob createPublishJob( String url, Resource resource, InputStream stream, long length, String contentType, int timeoutSeconds )
         throws TransferException;
 
     boolean handles( Location location );

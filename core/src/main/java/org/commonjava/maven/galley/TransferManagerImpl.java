@@ -88,9 +88,8 @@ public class TransferManagerImpl
     {
     }
 
-    public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider,
-                                final NotFoundCache nfc, final FileEventManager fileEventManager,
-                                final TransferDecorator transferDecorator, final ExecutorService executor )
+    public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider, final NotFoundCache nfc,
+                                final FileEventManager fileEventManager, final TransferDecorator transferDecorator, final ExecutorService executor )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;
@@ -156,7 +155,8 @@ public class TransferManagerImpl
         }
 
         final Transport transport = transportManager.getTransport( resource );
-        final ListingJob job = transport.createListingJob( resource, timeoutSeconds );
+        final String url = buildUrl( resource, suppressFailures );
+        final ListingJob job = transport.createListingJob( url, resource, timeoutSeconds );
 
         try
         {
@@ -288,8 +288,7 @@ public class TransferManagerImpl
         }
         catch ( final IOException e )
         {
-            final TransferException error =
-                new TransferException( "Failed to download: %s. Reason: %s", e, resource, e.getMessage() );
+            final TransferException error = new TransferException( "Failed to download: %s. Reason: %s", e, resource, e.getMessage() );
 
             fileEventManager.fire( new FileErrorEvent( target, error ) );
             throw error;
@@ -342,8 +341,7 @@ public class TransferManagerImpl
         return timeoutSeconds;
     }
 
-    private Transfer joinDownload( final String url, final Transfer target, final int timeoutSeconds,
-                                   final boolean suppressFailures )
+    private Transfer joinDownload( final String url, final Transfer target, final int timeoutSeconds, final boolean suppressFailures )
         throws TransferException
     {
         // if the target file already exists, skip joining.
@@ -393,8 +391,8 @@ public class TransferManagerImpl
         return null;
     }
 
-    private Transfer startDownload( final String url, final Resource resource, final Transfer target,
-                                    final int timeoutSeconds, final boolean suppressFailures )
+    private Transfer startDownload( final String url, final Resource resource, final Transfer target, final int timeoutSeconds,
+                                    final boolean suppressFailures )
         throws TransferException
     {
         if ( target.exists() )
@@ -425,24 +423,21 @@ public class TransferManagerImpl
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Interrupted download: %s from: %s. Reason: %s", e, url, resource,
-                                             e.getMessage() );
+                throw new TransferException( "Interrupted download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
             }
         }
         catch ( final ExecutionException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed to download: %s from: %s. Reason: %s", e, url, resource,
-                                             e.getMessage() );
+                throw new TransferException( "Failed to download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
             }
         }
         catch ( final TimeoutException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, url, resource,
-                                             e.getMessage() );
+                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
             }
         }
         finally
@@ -493,14 +488,12 @@ public class TransferManagerImpl
         {
             if ( !resource.allowsSnapshots() )
             {
-                throw new TransferException( "Cannot store snapshot in non-snapshot deploy point: %s",
-                                             resource.getLocationUri() );
+                throw new TransferException( "Cannot store snapshot in non-snapshot deploy point: %s", resource.getLocationUri() );
             }
         }
         else if ( !resource.allowsReleases() )
         {
-            throw new TransferException( "Cannot store release in snapshot-only deploy point: %s",
-                                         resource.getLocationUri() );
+            throw new TransferException( "Cannot store release in snapshot-only deploy point: %s", resource.getLocationUri() );
         }
 
         final Transfer target = getCacheReference( resource );
@@ -688,8 +681,7 @@ public class TransferManagerImpl
             }
             catch ( final IOException e )
             {
-                throw new TransferException( "Failed to delete stored location: %s. Reason: %s", e, item,
-                                             e.getMessage() );
+                throw new TransferException( "Failed to delete stored location: %s. Reason: %s", e, item, e.getMessage() );
             }
         }
 
@@ -710,8 +702,7 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
-    public boolean publish( final Resource resource, final InputStream stream, final long length,
-                            final String contentType )
+    public boolean publish( final Resource resource, final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
         if ( !resource.allowsPublishing() )
@@ -735,8 +726,8 @@ public class TransferManagerImpl
         return doPublish( url, resource, timeoutSeconds, stream, length, contentType );
     }
 
-    private boolean doPublish( final String url, final Resource resource, final int timeoutSeconds,
-                               final InputStream stream, final long length, final String contentType )
+    private boolean doPublish( final String url, final Resource resource, final int timeoutSeconds, final InputStream stream, final long length,
+                               final String contentType )
         throws TransferException
     {
         final String key = getJoinKey( url, TransferOperation.UPLOAD );
@@ -760,8 +751,7 @@ public class TransferManagerImpl
         }
         catch ( final InterruptedException e )
         {
-            throw new TransferException( "Interrupted publish: %s from: %s. Reason: %s", e, url, resource,
-                                         e.getMessage() );
+            throw new TransferException( "Interrupted publish: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
         }
         catch ( final ExecutionException e )
         {

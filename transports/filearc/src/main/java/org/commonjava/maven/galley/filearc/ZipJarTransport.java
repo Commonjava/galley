@@ -24,24 +24,23 @@ public class ZipJarTransport
 {
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target,
-                                          final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
         return new ZipDownload( target );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
-                                        final long length, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
+                                        final int timeoutSeconds )
         throws TransferException
     {
         return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
-                                        final long length, final String contentType, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
+                                        final String contentType, final int timeoutSeconds )
         throws TransferException
     {
         return new ZipPublish( url, stream );
@@ -52,14 +51,13 @@ public class ZipJarTransport
     {
         return ( location.getUri()
                          .startsWith( "zip:" ) && location.getUri()
-                                                          .endsWith( ".zip" ) )
-            || ( location.getUri()
-                         .startsWith( "jar:" ) && location.getUri()
-                                                          .endsWith( ".jar" ) );
+                                                          .endsWith( ".zip" ) ) || ( location.getUri()
+                                                                                             .startsWith( "jar:" ) && location.getUri()
+                                                                                                                              .endsWith( ".jar" ) );
     }
 
     @Override
-    public ListingJob createListingJob( final Resource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final String url, final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
         return new ZipListing( resource );

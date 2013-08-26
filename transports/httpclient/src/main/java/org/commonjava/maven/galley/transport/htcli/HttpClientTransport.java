@@ -51,24 +51,23 @@ public class HttpClientTransport
     }
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target,
-                                          final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
         return new HttpDownload( url, getHttpLocation( resource.getLocation() ), target, http );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
-                                        final long length, final String contentType, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
+                                        final String contentType, final int timeoutSeconds )
         throws TransferException
     {
         return new HttpPublish( url, getHttpLocation( resource.getLocation() ), stream, length, contentType, http );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
-                                        final long length, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
+                                        final int timeoutSeconds )
         throws TransferException
     {
         return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
@@ -90,11 +89,10 @@ public class HttpClientTransport
     }
 
     @Override
-    public ListingJob createListingJob( final Resource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final String url, final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpListing( new Resource( getHttpLocation( resource.getLocation() ), resource.getPath() ),
-                                timeoutSeconds, http );
+        return new HttpListing( url, new Resource( getHttpLocation( resource.getLocation() ), resource.getPath() ), timeoutSeconds, http );
     }
 
     private HttpLocation getHttpLocation( final Location repository )
@@ -102,8 +100,7 @@ public class HttpClientTransport
     {
         try
         {
-            return ( repository instanceof HttpLocation ) ? (HttpLocation) repository
-                            : new WrapperHttpLocation( repository, globalConfig );
+            return ( repository instanceof HttpLocation ) ? (HttpLocation) repository : new WrapperHttpLocation( repository, globalConfig );
         }
         catch ( final MalformedURLException e )
         {

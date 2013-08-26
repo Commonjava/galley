@@ -75,8 +75,7 @@ public class TestTransport
     // Transport implementation...
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target,
-                                          final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
         final TestDownloadJob job = downloads.get( resource );
@@ -91,16 +90,16 @@ public class TestTransport
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
-                                        final long length, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
+                                        final int timeoutSeconds )
         throws TransferException
     {
         return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream,
-                                        final long length, final String contentType, final int timeoutSeconds )
+    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
+                                        final String contentType, final int timeoutSeconds )
         throws TransferException
     {
         final TestPublishJob job = publishes.get( url );
@@ -120,7 +119,7 @@ public class TestTransport
     }
 
     @Override
-    public ListingJob createListingJob( final Resource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final String url, final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
         final TestListingJob job = listings.get( resource );

@@ -39,8 +39,7 @@ public final class HttpDownload
 
     //        private final NotFoundCache nfc;
 
-    public HttpDownload( /**final NotFoundCache nfc,**/
-    final String url, final HttpLocation location, final Transfer target, final Http http )
+    public HttpDownload( final String url, final HttpLocation location, final Transfer target, final Http http )
     {
         //            this.nfc = nfc;
         this.url = url;
@@ -103,8 +102,7 @@ public final class HttpDownload
             }
             catch ( final IOException e )
             {
-                throw new TransferException( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s",
-                                             e, target, url, e.getMessage() );
+                throw new TransferException( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", e, target, url, e.getMessage() );
             }
             finally
             {
