@@ -1,11 +1,18 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 public class HttpListing
     implements ListingJob
@@ -48,7 +55,29 @@ public class HttpListing
         // I'm wondering about this:
         // http://jsoup.org/cookbook/extracting-data/selector-syntax
         // the dependency is: org.jsoup:jsoup:1.7.2
-        throw new UnsupportedOperationException( "Not yet implemented!" );
+
+        final HashSet<String> excludes = new HashSet<String>();
+        excludes.add("../");
+        
+        ArrayList<String> al = new ArrayList<String>();
+		
+        try
+        {
+        	Document doc = Jsoup.connect(location.getUri()).get();
+        	for (Element file : doc.select("a"))
+        	{
+        		if ( file.attr("href").contains(file.text()) && !excludes.contains(file.text()))
+        		{
+        			al.add (file.text());
+        		}
+        	}
+        	return new ListingResult (resource, al.toArray(new String[al.size()]));
+        }
+        catch (IOException e)
+        {
+        	error = new TransferException("Caught IOException retrieving JSoup connection", e);
+        }
+        return null;
     }
 
 }
