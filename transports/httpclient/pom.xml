@@ -28,11 +28,6 @@
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
 
-    <dependency>
-        <groupId>org.commonjava.maven.galley</groupId>
-        <artifactId>galley-core</artifactId>
-        <scope>test</scope>
-    </dependency>
 
   </dependencies>
 </project>
