@@ -12,7 +12,6 @@ import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
 import org.commonjava.util.logging.Logger;
-import org.junit.rules.ExternalResource;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.buffer.Buffer;
@@ -20,7 +19,6 @@ import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.impl.DefaultVertx;
 
 public class TestHttpServer
-    extends ExternalResource
     implements Handler<HttpServerRequest>
 {
 
@@ -80,23 +78,17 @@ public class TestHttpServer
         return port;
     }
 
-    @Override
-    protected void after()
+    public void shutdown()
     {
         if ( vertx != null )
         {
             vertx.stop();
         }
-
-        super.after();
     }
 
-    @Override
-    protected void before()
-        throws Throwable
+    public void start()
+        throws Exception
     {
-        super.before();
-
         vertx = new DefaultVertx();
         vertx.createHttpServer()
              .requestHandler( this )
