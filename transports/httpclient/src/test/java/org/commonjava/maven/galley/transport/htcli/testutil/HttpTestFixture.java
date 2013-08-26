@@ -3,6 +3,7 @@ package org.commonjava.maven.galley.transport.htcli.testutil;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Level;
@@ -11,6 +12,7 @@ import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -21,6 +23,7 @@ import org.junit.rules.TemporaryFolder;
 
 public class HttpTestFixture
     extends ExternalResource
+    implements PasswordManager
 {
 
     public final TemporaryFolder folder = new TemporaryFolder();
@@ -33,7 +36,7 @@ public class HttpTestFixture
 
     private final TestCacheProvider cache;
 
-    private final TestPasswordManager passwords;
+    private final Map<PasswordEntry, String> passwords = new HashMap<>();
 
     private final Http http;
 
@@ -74,9 +77,7 @@ public class HttpTestFixture
 
         cache = new TestCacheProvider( folder.newFolder( "cache" ), events, decorator );
 
-        passwords = new TestPasswordManager();
-
-        http = new HttpImpl( passwords );
+        http = new HttpImpl( this );
     }
 
     @Override
@@ -118,11 +119,6 @@ public class HttpTestFixture
     public TestCacheProvider getCache()
     {
         return cache;
-    }
-
-    public TestPasswordManager getPasswords()
-    {
-        return passwords;
     }
 
     public Http getHttp()
@@ -188,16 +184,6 @@ public class HttpTestFixture
         return cache.writeToCache( resource, content );
     }
 
-    public String getPassword( final PasswordEntry id )
-    {
-        return passwords.getPassword( id );
-    }
-
-    public void setPassword( final PasswordEntry id, final String password )
-    {
-        passwords.setPassword( id, password );
-    }
-
     public int getPort()
     {
         return server.getPort();
@@ -234,4 +220,14 @@ public class HttpTestFixture
         return server.getRegisteredErrors();
     }
 
+    @Override
+    public String getPassword( final PasswordEntry id )
+    {
+        return passwords.get( id );
+    }
+
+    public void setPassword( final PasswordEntry id, final String password )
+    {
+        passwords.put( id, password );
+    }
 }
