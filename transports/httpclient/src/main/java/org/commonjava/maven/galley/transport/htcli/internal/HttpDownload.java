@@ -80,7 +80,7 @@ public final class HttpDownload
             cleanup( request );
         }
 
-        return target;
+        return error == null ? target : null;
     }
 
     @Override

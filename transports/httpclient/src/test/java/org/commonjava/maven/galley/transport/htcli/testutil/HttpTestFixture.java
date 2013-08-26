@@ -25,7 +25,7 @@ public class HttpTestFixture
 
     public final TemporaryFolder folder = new TemporaryFolder();
 
-    public final TestHttpServer server = new TestHttpServer( "download-basic" );
+    public final TestHttpServer server;
 
     private final FileEventManager events;
 
@@ -37,13 +37,28 @@ public class HttpTestFixture
 
     private final Http http;
 
+    private final String baseResource;
+
     static
     {
         Log4jUtil.configure( Level.DEBUG );
     }
 
-    public HttpTestFixture()
+    public HttpTestFixture( final String baseResource )
     {
+        String br = baseResource;
+        if ( br.startsWith( "/" ) )
+        {
+            br = br.substring( 1 );
+        }
+        if ( br.endsWith( "/" ) )
+        {
+            br = br.substring( 0, br.length() - 1 );
+        }
+
+        this.baseResource = br;
+        server = new TestHttpServer( baseResource );
+
         try
         {
             folder.create();
@@ -151,7 +166,20 @@ public class HttpTestFixture
     public Transfer writeClasspathResourceToCache( final Resource resource, final String cpResource )
         throws IOException
     {
-        return cache.writeClasspathResourceToCache( resource, cpResource );
+        final StringBuilder path = new StringBuilder();
+        if ( !cpResource.startsWith( baseResource ) )
+        {
+            path.append( baseResource );
+        }
+
+        if ( !cpResource.startsWith( "/" ) )
+        {
+            path.append( '/' );
+        }
+
+        path.append( cpResource );
+
+        return cache.writeClasspathResourceToCache( resource, path.toString() );
     }
 
     public Transfer writeToCache( final Resource resource, final String content )
@@ -194,6 +222,16 @@ public class HttpTestFixture
         throws MalformedURLException
     {
         return server.getUrlPath( url );
+    }
+
+    public void registerException( final String url, final String error )
+    {
+        server.registerException( url, error );
+    }
+
+    public Map<String, String> getRegisteredErrors()
+    {
+        return server.getRegisteredErrors();
     }
 
 }

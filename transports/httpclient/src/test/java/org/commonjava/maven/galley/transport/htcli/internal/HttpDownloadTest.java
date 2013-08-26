@@ -19,7 +19,7 @@ public class HttpDownloadTest
 {
 
     @Rule
-    public HttpTestFixture fixture = new HttpTestFixture();
+    public HttpTestFixture fixture = new HttpTestFixture( "download-basic" );
 
     @Test
     public void simpleRetrieveOfAvailableUrl()
@@ -72,6 +72,39 @@ public class HttpDownloadTest
 
         assertThat( result, notNullValue() );
         assertThat( result.exists(), equalTo( false ) );
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();
+        final String path = fixture.getUrlPath( url );
+
+        assertThat( accessesByPath.get( path ), equalTo( 1 ) );
+    }
+
+    @Test
+    public void simpleRetrieveOfUrlWithError()
+        throws Exception
+    {
+        final String fname = "simple-error.html";
+
+        final String baseUri = fixture.getBaseUri();
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
+        final Transfer transfer = fixture.getCacheReference( new Resource( location, fname ) );
+        final String url = fixture.formatUrl( fname );
+
+        final String error = "Test Error.";
+        fixture.registerException( fixture.getUrlPath( url ), error );
+
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        final HttpDownload dl = new HttpDownload( url, location, transfer, fixture.getHttp() );
+        final Transfer result = dl.call();
+
+        final TransferException err = dl.getError();
+        assertThat( err, notNullValue() );
+        assertThat( err.getMessage()
+                       .endsWith( error ), equalTo( true ) );
+
+        assertThat( result, nullValue() );
         assertThat( transfer.exists(), equalTo( false ) );
 
         final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();

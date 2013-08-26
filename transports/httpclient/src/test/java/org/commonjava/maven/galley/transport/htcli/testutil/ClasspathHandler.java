@@ -21,6 +21,8 @@ public class ClasspathHandler
 
     private final Map<String, Integer> accessesByPath = new HashMap<>();
 
+    private final Map<String, String> errors = new HashMap<>();
+
     public ClasspathHandler()
     {
     }
@@ -28,6 +30,11 @@ public class ClasspathHandler
     public Map<String, Integer> getAccessesByPath()
     {
         return accessesByPath;
+    }
+
+    public Map<String, String> getRegisteredErrors()
+    {
+        return errors;
     }
 
     @Override
@@ -48,6 +55,17 @@ public class ClasspathHandler
         else
         {
             accessesByPath.put( wholePath, i + 1 );
+        }
+
+        if ( errors.containsKey( wholePath ) )
+        {
+            final String error = errors.get( wholePath );
+            logger.error( "Returning registered error: %s", error );
+            req.response()
+               .setStatusCode( 500 )
+               .setStatusMessage( error )
+               .end();
+            return;
         }
 
         logger.info( "Looking for classpath resource: '%s'", path );
@@ -95,6 +113,11 @@ public class ClasspathHandler
                 IOUtils.closeQuietly( stream );
             }
         }
+    }
+
+    public void registerException( final String url, final String error )
+    {
+        this.errors.put( url, error );
     }
 
 }

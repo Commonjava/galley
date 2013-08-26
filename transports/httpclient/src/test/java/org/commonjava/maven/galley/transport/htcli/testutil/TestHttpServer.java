@@ -33,17 +33,7 @@ public class TestHttpServer
 
     public TestHttpServer( final String baseResource )
     {
-        String br = baseResource;
-        if ( br.startsWith( "/" ) )
-        {
-            br = br.substring( 1 );
-        }
-        if ( br.endsWith( "/" ) )
-        {
-            br = br.substring( 0, br.length() - 1 );
-        }
-
-        this.baseResource = br;
+        this.baseResource = baseResource;
 
         int port = -1;
         ServerSocket ss = null;
@@ -77,6 +67,11 @@ public class TestHttpServer
         this.handler = new ClasspathHandler();
     }
 
+    public void registerException( final String url, final String error )
+    {
+        this.handler.registerException( url, error );
+    }
+
     public int getPort()
     {
         return port;
@@ -96,6 +91,11 @@ public class TestHttpServer
     public Map<String, Integer> getAccessesByPath()
     {
         return handler.getAccessesByPath();
+    }
+
+    public Map<String, String> getRegisteredErrors()
+    {
+        return handler.getRegisteredErrors();
     }
 
     @Override
