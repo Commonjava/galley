@@ -15,6 +15,7 @@ import java.util.zip.ZipFile;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 
 public class ZipDownload
@@ -42,12 +43,17 @@ public class ZipDownload
         final File src = getArchiveFile( txfr.getLocation()
                                              .getUri() );
 
+        if ( !src.canRead() || src.isDirectory() )
+        {
+            return txfr;
+        }
+
         final boolean isJar = isJar( txfr.getLocation()
                                          .getUri() );
 
         ZipFile zf = null;
         InputStream in = null;
-        final OutputStream out = null;
+        OutputStream out = null;
         try
         {
             zf = isJar ? new JarFile( src ) : new ZipFile( src );
@@ -57,14 +63,14 @@ public class ZipDownload
             {
                 if ( entry.isDirectory() )
                 {
-                    error =
-                        new TransferException( "Cannot read stream. Source is a directory: %s!%s", txfr.getLocation()
-                                                                                                       .getUri(),
-                                               txfr.getPath() );
+                    error = new TransferException( "Cannot read stream. Source is a directory: %s!%s", txfr.getLocation()
+                                                                                                           .getUri(), txfr.getPath() );
                 }
                 else
                 {
                     in = zf.getInputStream( entry );
+                    out = txfr.openOutputStream( TransferOperation.DOWNLOAD );
+
                     copy( in, out );
 
                     return txfr;

@@ -32,7 +32,7 @@ public class FileListing
     @Override
     public ListingResult call()
     {
-        if ( src.exists() && !src.isDirectory() )
+        if ( src.canRead() && src.isDirectory() )
         {
             return new ListingResult( resource, src.list() );
         }

@@ -40,7 +40,7 @@ public class ZipListing
     public ListingResult call()
     {
         final File src = getArchiveFile( resource.getLocationUri() );
-        if ( !src.exists() )
+        if ( !src.canRead() || src.isDirectory() )
         {
             return null;
         }
@@ -85,8 +85,7 @@ public class ZipListing
         }
         catch ( final IOException e )
         {
-            error =
-                new TransferException( "Failed to get listing for: %s to: %s. Reason: %s", e, resource, e.getMessage() );
+            error = new TransferException( "Failed to get listing for: %s to: %s. Reason: %s", e, resource, e.getMessage() );
         }
         finally
         {

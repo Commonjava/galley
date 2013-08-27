@@ -107,7 +107,7 @@ public class TransferManagerImpl
         {
             if ( !cached.isDirectory() )
             {
-                throw new TransferException( "Cannot list: %s. It does not appear to be a directory." );
+                throw new TransferException( "Cannot list: %s. It does not appear to be a directory.", resource );
             }
             else
             {
@@ -132,15 +132,6 @@ public class TransferManagerImpl
             result = remoteResult;
         }
 
-        if ( result == null )
-        {
-            nfc.addMissing( resource );
-        }
-        else
-        {
-            nfc.clearMissing( resource );
-        }
-
         return result;
     }
 
@@ -149,6 +140,7 @@ public class TransferManagerImpl
     {
         if ( nfc.isMissing( resource ) )
         {
+            logger.info( "NFC: Already marked as missing: %s", resource );
             return null;
         }
 
@@ -158,13 +150,25 @@ public class TransferManagerImpl
 
         final ListingJob job = transport.createListingJob( url, resource, timeoutSeconds );
 
+        // FIXME: execute this stuff in a thread just like downloads/publishes.
         try
         {
             final ListingResult result = job.call();
 
-            if ( !suppressFailures && job.getError() != null )
+            if ( job.getError() != null )
             {
-                throw job.getError();
+                logger.info( "NFC: Download error. Marking as missing: %s", resource );
+                nfc.addMissing( resource );
+
+                if ( !suppressFailures )
+                {
+                    throw job.getError();
+                }
+            }
+            else if ( result == null )
+            {
+                logger.info( "NFC: Download did not complete. Marking as missing: %s", resource );
+                nfc.addMissing( resource );
             }
 
             return result;
@@ -311,6 +315,7 @@ public class TransferManagerImpl
 
         if ( nfc.isMissing( resource ) )
         {
+            logger.info( "NFC: Already marked as missing: %s", resource );
             return null;
         }
 
@@ -412,13 +417,22 @@ public class TransferManagerImpl
         {
             final Transfer downloaded = future.get( timeoutSeconds, TimeUnit.SECONDS );
 
-            if ( !suppressFailures && job.getError() != null )
+            if ( job.getError() != null )
             {
+                logger.info( "NFC: Download error. Marking as missing: %s", resource );
                 nfc.addMissing( resource );
-                throw job.getError();
+
+                if ( !suppressFailures )
+                {
+                    throw job.getError();
+                }
+            }
+            else if ( downloaded == null || !downloaded.exists() )
+            {
+                logger.info( "NFC: Download did not complete. Marking as missing: %s", resource );
+                nfc.addMissing( resource );
             }
 
-            nfc.clearMissing( resource );
             return downloaded;
         }
         catch ( final InterruptedException e )
@@ -495,8 +509,6 @@ public class TransferManagerImpl
         {
             out = target.openOutputStream( TransferOperation.UPLOAD );
             copy( stream, out );
-
-            nfc.clearMissing( resource );
         }
         catch ( final IOException e )
         {

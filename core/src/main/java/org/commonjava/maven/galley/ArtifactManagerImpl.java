@@ -147,7 +147,7 @@ public class ArtifactManagerImpl
     public TypeAndClassifier[] listAvailableArtifacts( final Location location, final ProjectVersionRef ref )
         throws TransferException
     {
-        final ListingResult listingResult = transferManager.list( new Resource( location, toPath( ref ) ) );
+        final ListingResult listingResult = transferManager.list( new Resource( location, toPath( ref.asProjectVersionRef() ) ) );
         if ( listingResult == null || listingResult.isEmpty() )
         {
             return new TypeAndClassifier[0];

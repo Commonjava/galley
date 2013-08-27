@@ -42,9 +42,12 @@ public class FileDownload
         OutputStream out = null;
         try
         {
-            in = new FileInputStream( src );
-            out = txfr.openOutputStream( TransferOperation.DOWNLOAD );
-            copy( in, out );
+            if ( src.canRead() && !src.isDirectory() )
+            {
+                in = new FileInputStream( src );
+                out = txfr.openOutputStream( TransferOperation.DOWNLOAD );
+                copy( in, out );
+            }
 
             return txfr;
         }
