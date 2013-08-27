@@ -49,11 +49,8 @@ public class ZipJarTransport
     @Override
     public boolean handles( final Location location )
     {
-        return ( location.getUri()
-                         .startsWith( "zip:" ) && location.getUri()
-                                                          .endsWith( ".zip" ) ) || ( location.getUri()
-                                                                                             .startsWith( "jar:" ) && location.getUri()
-                                                                                                                              .endsWith( ".jar" ) );
+        final String uri = location.getUri();
+        return uri != null && ( ( uri.startsWith( "zip:" ) && uri.endsWith( ".zip" ) ) || ( uri.startsWith( "jar:" ) && uri.endsWith( ".jar" ) ) );
     }
 
     @Override

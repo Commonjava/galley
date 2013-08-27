@@ -84,8 +84,8 @@ public class FileTransport
     @Override
     public boolean handles( final Location location )
     {
-        return location.getUri()
-                       .startsWith( "file:" );
+        final String uri = location.getUri();
+        return uri != null && uri.startsWith( "file:" );
     }
 
     @Override
