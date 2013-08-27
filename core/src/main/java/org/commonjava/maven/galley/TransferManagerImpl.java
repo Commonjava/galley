@@ -17,7 +17,6 @@ package org.commonjava.maven.galley;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +52,6 @@ import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.maven.galley.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.util.UrlUtils;
 import org.commonjava.util.logging.Logger;
 
@@ -156,6 +154,8 @@ public class TransferManagerImpl
 
         final Transport transport = transportManager.getTransport( resource );
         final String url = buildUrl( resource, suppressFailures );
+        logger.info( "LIST %s", url );
+
         final ListingJob job = transport.createListingJob( url, resource, timeoutSeconds );
 
         try
@@ -313,6 +313,8 @@ public class TransferManagerImpl
         {
             return null;
         }
+
+        logger.info( "RETRIEVE %s", url );
 
         //        if ( nfc.hasEntry( url ) )
         //        {
@@ -483,20 +485,10 @@ public class TransferManagerImpl
             throw new TransferException( "Storing not allowed in: %s", resource );
         }
 
-        final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( resource.getPath() );
-        if ( pathInfo != null && pathInfo.isSnapshot() )
-        {
-            if ( !resource.allowsSnapshots() )
-            {
-                throw new TransferException( "Cannot store snapshot in non-snapshot deploy point: %s", resource.getLocationUri() );
-            }
-        }
-        else if ( !resource.allowsReleases() )
-        {
-            throw new TransferException( "Cannot store release in snapshot-only deploy point: %s", resource.getLocationUri() );
-        }
-
+        ArtifactRules.checkStorageAuthorization( resource );
         final Transfer target = getCacheReference( resource );
+
+        logger.info( "STORE %s", target.getResource() );
 
         OutputStream out = null;
         try
@@ -525,40 +517,7 @@ public class TransferManagerImpl
     public Transfer store( final List<? extends Location> stores, final String path, final InputStream stream )
         throws TransferException
     {
-        final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( path );
-
-        Location selected = null;
-        for ( final Location store : stores )
-        {
-            if ( !store.allowsStoring() )
-            {
-                continue;
-            }
-
-            //                logger.info( "Found deploy point: %s", store.getName() );
-            if ( pathInfo == null )
-            {
-                // probably not an artifact, most likely metadata instead...
-                //                    logger.info( "Selecting it for non-artifact storage: %s", path );
-                selected = store;
-                break;
-            }
-            else if ( pathInfo.isSnapshot() )
-            {
-                if ( store.allowsSnapshots() )
-                {
-                    //                        logger.info( "Selecting it for snapshot storage: %s", pathInfo );
-                    selected = store;
-                    break;
-                }
-            }
-            else if ( store.allowsReleases() )
-            {
-                //                    logger.info( "Selecting it for release storage: %s", pathInfo );
-                selected = store;
-                break;
-            }
-        }
+        final Location selected = ArtifactRules.selectStorageLocation( path, stores );
 
         if ( selected == null )
         {
@@ -570,40 +529,6 @@ public class TransferManagerImpl
         store( res, stream );
 
         return getCacheReference( res );
-    }
-
-    /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.TransferManager#parsePathInfo(java.lang.String)
-     */
-    @Override
-    public ArtifactPathInfo parsePathInfo( final String path )
-    {
-        if ( isEmpty( path ) || path.endsWith( "/" ) )
-        {
-            return null;
-        }
-
-        final String[] parts = path.split( "/" );
-        if ( parts.length < 4 )
-        {
-            return null;
-        }
-
-        final String file = parts[parts.length - 1];
-        final String version = parts[parts.length - 2];
-        final String artifactId = parts[parts.length - 3];
-        final StringBuilder groupId = new StringBuilder();
-        for ( int i = 0; i < parts.length - 3; i++ )
-        {
-            if ( groupId.length() > 0 )
-            {
-                groupId.append( '.' );
-            }
-
-            groupId.append( parts[i] );
-        }
-
-        return new ArtifactPathInfo( groupId.toString(), artifactId, version, file, path );
     }
 
     /* (non-Javadoc)
@@ -658,6 +583,8 @@ public class TransferManagerImpl
         {
             return false;
         }
+
+        logger.info( "DELETE %s", item.getResource() );
 
         if ( item.isDirectory() )
         {
@@ -715,6 +642,8 @@ public class TransferManagerImpl
         {
             return false;
         }
+
+        logger.info( "PUBLISH %s", url );
 
         int timeoutSeconds = resource.getTimeoutSeconds();
         if ( timeoutSeconds < 1 )

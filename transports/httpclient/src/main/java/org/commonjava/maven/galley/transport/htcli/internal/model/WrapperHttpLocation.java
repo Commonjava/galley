@@ -78,8 +78,17 @@ public class WrapperHttpLocation
     @Override
     public String getUser()
     {
-        // FIXME: this could be 'user:password' presumably...
-        return url.getUserInfo();
+        final String userpass = url.getUserInfo();
+        if ( userpass != null )
+        {
+            final int idx = userpass.indexOf( ":" );
+            if ( idx > -1 )
+            {
+                return userpass.substring( 0, idx );
+            }
+        }
+
+        return userpass;
     }
 
     @Override

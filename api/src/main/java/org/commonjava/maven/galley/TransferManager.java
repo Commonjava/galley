@@ -8,7 +8,6 @@ import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.util.ArtifactPathInfo;
 
 public interface TransferManager
 {
@@ -27,8 +26,6 @@ public interface TransferManager
 
     Transfer store( List<? extends Location> stores, String path, InputStream stream )
         throws TransferException;
-
-    ArtifactPathInfo parsePathInfo( String path );
 
     Transfer getStoreRootDirectory( Location key );
 

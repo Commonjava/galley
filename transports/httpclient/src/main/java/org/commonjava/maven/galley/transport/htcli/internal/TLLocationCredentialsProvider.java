@@ -36,8 +36,7 @@ public class TLLocationCredentialsProvider
 
     private final ThreadLocal<Map<AuthScope, Credentials>> credentials = new ThreadLocal<Map<AuthScope, Credentials>>();
 
-    private final ThreadLocal<Map<AuthScope, HttpLocation>> repositories =
-        new ThreadLocal<Map<AuthScope, HttpLocation>>();
+    private final ThreadLocal<Map<AuthScope, HttpLocation>> repositories = new ThreadLocal<Map<AuthScope, HttpLocation>>();
 
     private final PasswordManager passwordManager;
 
@@ -58,7 +57,7 @@ public class TLLocationCredentialsProvider
                 //                logger.info( "Storing repository def: %s under authscope: %s:%d", repository.getName(),
                 //                             repository.getHost(), repository.getPort() );
 
-                //FIXME: Seems like multiple repos with same host/port could easily cause confusion if they're not configured the same way later on...
+                //TODO: Seems like multiple repos with same host/port could easily cause confusion if they're not configured the same way later on...
                 repos.put( as, location );
 
                 if ( location.getUser() != null )
@@ -66,19 +65,15 @@ public class TLLocationCredentialsProvider
                     creds.put( as,
                                new UsernamePasswordCredentials(
                                                                 location.getUser(),
-                                                                passwordManager.getPassword( new PasswordEntry(
-                                                                                                                     location,
-                                                                                                                     PasswordEntry.USER_PASSWORD ) ) ) );
+                                                                passwordManager.getPassword( new PasswordEntry( location, PasswordEntry.USER_PASSWORD ) ) ) );
                 }
 
                 if ( location.getProxyHost() != null && location.getProxyUser() != null )
                 {
                     creds.put( new AuthScope( location.getProxyHost(), location.getProxyPort() ),
-                               new UsernamePasswordCredentials(
-                                                                location.getProxyUser(),
-                                                                passwordManager.getPassword( new PasswordEntry(
-                                                                                                                     location,
-                                                                                                                     PasswordEntry.PROXY_PASSWORD ) ) ) );
+                               new UsernamePasswordCredentials( location.getProxyUser(),
+                                                                passwordManager.getPassword( new PasswordEntry( location,
+                                                                                                                PasswordEntry.PROXY_PASSWORD ) ) ) );
                 }
             }
 
@@ -97,7 +92,7 @@ public class TLLocationCredentialsProvider
             return null;
         }
 
-        //FIXME: Seems like multiple repos with same host/port could easily cause confusion if they're not configured the same way later on...
+        //TODO: Seems like multiple repos with same host/port could easily cause confusion if they're not configured the same way later on...
         return repos.get( new AuthScope( host, port ) );
     }
 

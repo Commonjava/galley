@@ -12,6 +12,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.util.ArtifactFormatUtils;
 
 public class ArtifactMetadataManagerImpl
     implements ArtifactMetadataManager
@@ -169,8 +170,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, java.lang.String, java.lang.String)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId,
-                                      final String filename )
+    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId, final String filename )
         throws TransferException
     {
         return transferManager.retrieveAll( expander.expand( locations ), toPath( groupId, filename ) );
@@ -190,8 +190,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref,
-                                      final String filename )
+    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref, final String filename )
         throws TransferException
     {
         return transferManager.retrieveAll( expander.expand( locations ), toPath( ref, filename ) );
@@ -251,8 +250,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, java.lang.String, java.lang.String, java.io.InputStream)
      */
     @Override
-    public Transfer store( final Location location, final String groupId, final String filename,
-                           final InputStream stream )
+    public Transfer store( final Location location, final String groupId, final String filename, final InputStream stream )
         throws TransferException
     {
         return transferManager.store( expander.expand( location ), toPath( groupId, filename ), stream );
@@ -272,8 +270,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream)
      */
     @Override
-    public Transfer store( final Location location, final ProjectRef ref, final String filename,
-                           final InputStream stream )
+    public Transfer store( final Location location, final ProjectRef ref, final String filename, final InputStream stream )
         throws TransferException
     {
         return transferManager.store( expander.expand( location ), toPath( ref, filename ), stream );
@@ -293,12 +290,11 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
-    public boolean publish( final Location location, final String groupId, final String filename,
-                            final InputStream stream, final long length, final String contentType )
+    public boolean publish( final Location location, final String groupId, final String filename, final InputStream stream, final long length,
+                            final String contentType )
         throws TransferException
     {
-        return transferManager.publish( new Resource( location, toPath( groupId, filename ) ), stream, length,
-                                        contentType );
+        return transferManager.publish( new Resource( location, toPath( groupId, filename ) ), stream, length, contentType );
     }
 
     /* (non-Javadoc)
@@ -315,14 +311,15 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
-    public boolean publish( final Location location, final ProjectRef ref, final String filename,
-                            final InputStream stream, final long length, final String contentType )
+    public boolean publish( final Location location, final ProjectRef ref, final String filename, final InputStream stream, final long length,
+                            final String contentType )
         throws TransferException
     {
         return transferManager.publish( new Resource( location, toPath( ref, filename ) ), stream, length, contentType );
     }
 
     private String toPath( final ProjectRef ref, final String filename )
+        throws TransferException
     {
         final StringBuilder sb = new StringBuilder();
         sb.append( ref.getGroupId()
@@ -332,9 +329,8 @@ public class ArtifactMetadataManagerImpl
 
         if ( ref instanceof ProjectVersionRef )
         {
-            // FIXME: Local snapshot handling...which may also need to be managed in the cache provider...
             sb.append( '/' )
-              .append( ( (ProjectVersionRef) ref ).getVersionString() );
+              .append( ArtifactFormatUtils.formatVersionDirectoryPart( (ProjectVersionRef) ref ) );
         }
 
         sb.append( '/' )

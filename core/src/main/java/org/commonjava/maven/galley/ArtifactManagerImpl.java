@@ -14,7 +14,10 @@ import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TypeMapping;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.type.TypeMapper;
+import org.commonjava.maven.galley.util.ArtifactFormatUtils;
 import org.commonjava.util.logging.Logger;
 
 public class ArtifactManagerImpl
@@ -27,6 +30,9 @@ public class ArtifactManagerImpl
 
     @Inject
     private LocationExpander expander;
+
+    @Inject
+    private TypeMapper mapper;
 
     protected ArtifactManagerImpl()
     {
@@ -110,27 +116,29 @@ public class ArtifactManagerImpl
     }
 
     private String toPath( final ProjectVersionRef src )
+        throws TransferException
     {
         /* @formatter:off */
-        // FIXME: Local snapshot handling...which may also need to be managed in the cache provider...
         if ( src instanceof ArtifactRef )
         {
             final ArtifactRef ref = (ArtifactRef) src;
-        return String.format( "%s/%s/%s/%s-%s%s.%s", 
+            final TypeMapping tm = mapper.lookup( ref.getTypeAndClassifier() );
+            
+            return String.format( "%s/%s/%s/%s-%s%s.%s", 
                                   ref.getGroupId().replace('.', '/'), 
                                   ref.getArtifactId(), 
-                                  ref.getVersionString(),
+                                  ArtifactFormatUtils.formatVersionDirectoryPart( ref ),
                                   ref.getArtifactId(), 
-                                  ref.getVersionString(), 
-                                  ( ref.getClassifier() == null ? "" : "-" + ref.getClassifier() ), 
-                                  ref.getType() );
+                                  ArtifactFormatUtils.formatVersionFilePart( ref ), 
+                                  ( tm.getClassifier() == null ? "" : "-" + tm.getClassifier() ), 
+                                  tm.getExtension() );
         }
         else
         {
             return String.format( "%s/%s/%s/", 
                                   src.getGroupId().replace('.', '/'), 
                                   src.getArtifactId(), 
-                                  src.getVersionString() );
+                                  ArtifactFormatUtils.formatVersionDirectoryPart( src ) );
         }
         /* @formatter:on */
     }
