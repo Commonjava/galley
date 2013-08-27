@@ -144,7 +144,12 @@ public class TransferManagerImpl
             return null;
         }
 
-        final Transport transport = transportManager.getTransport( resource );
+        final Transport transport = getTransport( resource );
+        if ( transport == null )
+        {
+            return null;
+        }
+
         final String url = buildUrl( resource, suppressFailures );
         logger.info( "LIST %s", url );
 
@@ -189,6 +194,25 @@ public class TransferManagerImpl
         }
 
         return null;
+    }
+
+    private Transport getTransport( final Resource resource )
+        throws TransferException
+    {
+        final Transport transport = transportManager.getTransport( resource );
+        if ( transport == null )
+        {
+            if ( resource.getLocationUri() == null )
+            {
+                logger.info( "NFC: No remote URI. Marking as missing: %s", resource );
+                nfc.addMissing( resource );
+                return null;
+            }
+
+            throw new TransferException( "No transports available to handle: %s", resource );
+        }
+
+        return transport;
     }
 
     /* (non-Javadoc)
@@ -408,7 +432,12 @@ public class TransferManagerImpl
         }
 
         final String key = getJoinKey( url, TransferOperation.DOWNLOAD );
-        final Transport transport = transportManager.getTransport( resource );
+        final Transport transport = getTransport( resource );
+        if ( transport == null )
+        {
+            return null;
+        }
+
         final DownloadJob job = transport.createDownloadJob( url, resource, target, timeoutSeconds );
 
         final Future<Transfer> future = executor.submit( job );
@@ -673,7 +702,12 @@ public class TransferManagerImpl
     {
         final String key = getJoinKey( url, TransferOperation.UPLOAD );
 
-        final Transport transport = transportManager.getTransport( resource );
+        final Transport transport = getTransport( resource );
+        if ( transport == null )
+        {
+            return false;
+        }
+
         final PublishJob job = transport.createPublishJob( url, resource, stream, length, contentType, timeoutSeconds );
 
         final Future<Boolean> future = executor.submit( job );
