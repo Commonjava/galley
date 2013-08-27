@@ -76,10 +76,10 @@ public class HttpClientTransport
     @Override
     public boolean handles( final Location location )
     {
+        final String uri = location.getUri();
         try
         {
-            return location.getUri()
-                           .startsWith( "http" ) && new URL( location.getUri() ) != null; // hack, but just verify that the URL parses.
+            return uri != null && uri.startsWith( "http" ) && new URL( location.getUri() ) != null; // hack, but just verify that the URL parses.
         }
         catch ( final MalformedURLException e )
         {
