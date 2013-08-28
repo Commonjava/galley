@@ -96,7 +96,7 @@ public final class HttpDownload
         {
             try
             {
-                out = target.openOutputStream( TransferOperation.DOWNLOAD );
+                out = target.openOutputStream( TransferOperation.DOWNLOAD, false );
 
                 copy( in, out );
             }

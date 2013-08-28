@@ -69,7 +69,7 @@ public class ZipDownload
                 else
                 {
                     in = zf.getInputStream( entry );
-                    out = txfr.openOutputStream( TransferOperation.DOWNLOAD );
+                    out = txfr.openOutputStream( TransferOperation.DOWNLOAD, false );
 
                     copy( in, out );
 
