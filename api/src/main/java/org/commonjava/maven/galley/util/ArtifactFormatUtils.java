@@ -1,14 +1,74 @@
 package org.commonjava.maven.galley.util;
 
+import static org.commonjava.maven.galley.ArtifactMetadataManager.DEFAULT_FILENAME;
+
+import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.TypeMapping;
+import org.commonjava.maven.galley.type.TypeMapper;
 
 public final class ArtifactFormatUtils
 {
 
     private ArtifactFormatUtils()
     {
+    }
+
+    public static String formatMetadataPath( final ProjectRef ref, final String filename )
+        throws TransferException
+    {
+        final StringBuilder sb = new StringBuilder();
+        sb.append( ref.getGroupId()
+                      .replace( '.', '/' ) )
+          .append( '/' )
+          .append( ref.getArtifactId() );
+
+        if ( ref instanceof ProjectVersionRef )
+        {
+            sb.append( '/' )
+              .append( ArtifactFormatUtils.formatVersionDirectoryPart( (ProjectVersionRef) ref ) );
+        }
+
+        sb.append( '/' )
+          .append( filename == null ? DEFAULT_FILENAME : filename );
+
+        return sb.toString();
+    }
+
+    public static String formatMetadataPath( final String groupId, final String filename )
+    {
+        return String.format( "%s/%s", groupId.replace( '.', '/' ), filename == null ? DEFAULT_FILENAME : filename );
+    }
+
+    public static String formatArtifactPath( final ProjectVersionRef src, final TypeMapper mapper )
+        throws TransferException
+    {
+        /* @formatter:off */
+        if ( src instanceof ArtifactRef )
+        {
+            final ArtifactRef ref = (ArtifactRef) src;
+            final TypeMapping tm = mapper.lookup( ref.getTypeAndClassifier() );
+            
+            return String.format( "%s/%s/%s/%s-%s%s.%s", 
+                                  ref.getGroupId().replace('.', '/'), 
+                                  ref.getArtifactId(), 
+                                  ArtifactFormatUtils.formatVersionDirectoryPart( ref ),
+                                  ref.getArtifactId(), 
+                                  ArtifactFormatUtils.formatVersionFilePart( ref ), 
+                                  ( tm.getClassifier() == null ? "" : "-" + tm.getClassifier() ), 
+                                  tm.getExtension() );
+        }
+        else
+        {
+            return String.format( "%s/%s/%s/", 
+                                  src.getGroupId().replace('.', '/'), 
+                                  src.getArtifactId(), 
+                                  ArtifactFormatUtils.formatVersionDirectoryPart( src ) );
+        }
+        /* @formatter:on */
     }
 
     public static String formatVersionDirectoryPart( final ProjectVersionRef ref )

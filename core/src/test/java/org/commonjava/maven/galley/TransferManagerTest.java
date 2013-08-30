@@ -12,7 +12,7 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.maven.galley.testutil.TestTransport;
+import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.junit.Before;
 import org.junit.Rule;

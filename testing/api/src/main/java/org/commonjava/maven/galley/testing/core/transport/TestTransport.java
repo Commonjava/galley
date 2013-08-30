@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.testutil;
+package org.commonjava.maven.galley.testing.core.transport;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -9,8 +9,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.TransferManagerImpl;
-import org.commonjava.maven.galley.live.testutil.TestData;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
@@ -18,6 +16,10 @@ import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.testing.core.cdi.TestData;
+import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
+import org.commonjava.maven.galley.testing.core.transport.job.TestListing;
+import org.commonjava.maven.galley.testing.core.transport.job.TestPublish;
 import org.commonjava.util.logging.Logger;
 
 /**
@@ -36,11 +38,11 @@ public class TestTransport
 {
     private final Logger logger = new Logger( getClass() );
 
-    private final Map<Resource, TestDownloadJob> downloads = new HashMap<>();
+    private final Map<Resource, TestDownload> downloads = new HashMap<>();
 
-    private final Map<String, TestPublishJob> publishes = new HashMap<>();
+    private final Map<String, TestPublish> publishes = new HashMap<>();
 
-    private final Map<Resource, TestListingJob> listings = new HashMap<>();
+    private final Map<Resource, TestListing> listings = new HashMap<>();
 
     public TestTransport()
     {
@@ -50,7 +52,7 @@ public class TestTransport
      * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during
      * your unit test.
      */
-    public void registerDownload( final Resource resource, final TestDownloadJob job )
+    public void registerDownload( final Resource resource, final TestDownload job )
     {
         new Logger( getClass() ).info( "Got transport: %s", this );
         logger.info( "Registering download: %s with job: %s", resource, job );
@@ -61,13 +63,13 @@ public class TestTransport
      * Use this to pre-register the result for a {@link PublishJob} you plan on accessing during
      * your unit test.
      */
-    public void registerPublish( final String url, final TestPublishJob job )
+    public void registerPublish( final String url, final TestPublish job )
     {
         logger.info( "Registering publish: %s with job: %s", url, job );
         publishes.put( url, job );
     }
 
-    public void registerListing( final Location location, final String path, final TestListingJob listing )
+    public void registerListing( final Location location, final String path, final TestListing listing )
     {
         listings.put( new Resource( location, path ), listing );
     }
@@ -78,7 +80,7 @@ public class TestTransport
     public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
-        final TestDownloadJob job = downloads.get( resource );
+        final TestDownload job = downloads.get( resource );
         logger.info( "Download for: %s is: %s", resource, job );
         if ( job == null )
         {
@@ -102,7 +104,7 @@ public class TestTransport
                                         final String contentType, final int timeoutSeconds )
         throws TransferException
     {
-        final TestPublishJob job = publishes.get( url );
+        final TestPublish job = publishes.get( url );
         if ( job == null )
         {
             throw new TransferException( "No publish job registered for: %s", url );
@@ -122,7 +124,7 @@ public class TestTransport
     public ListingJob createListingJob( final String url, final Resource resource, final int timeoutSeconds )
         throws TransferException
     {
-        final TestListingJob job = listings.get( resource );
+        final TestListing job = listings.get( resource );
         if ( job == null )
         {
             throw new TransferException( "No listing job registered for: %s", resource );

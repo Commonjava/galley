@@ -1,10 +1,11 @@
-package org.commonjava.maven.galley.live;
+package org.commonjava.maven.galley.cdi;
 
 import org.commonjava.maven.galley.AbstractTransferManagerTest;
 import org.commonjava.maven.galley.TransferManagerImpl;
-import org.commonjava.maven.galley.live.testutil.TransferManagerExtension;
+import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.commonjava.maven.galley.testutil.TestTransport;
+import org.commonjava.maven.galley.testing.core.cdi.ApiCDIExtension;
+import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.util.logging.Logger;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
@@ -42,7 +43,11 @@ public class TransferManagerWeldTest
     public void setup()
     {
         weld = new Weld();
-        weld.addExtension( new TransferManagerExtension( temp ) );
+
+        weld.addExtension( new ApiCDIExtension().withDefaultComponentInstances()
+                                                .withDefaultBeans()
+                                                .withDefaultBean( new FileCacheProviderConfig( temp.newFolder( "cache" ) ),
+                                                                  FileCacheProviderConfig.class ) );
         weldContainer = weld.initialize();
 
         transport = weldContainer.instance()

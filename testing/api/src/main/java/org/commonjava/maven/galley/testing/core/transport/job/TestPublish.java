@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.testutil;
+package org.commonjava.maven.galley.testing.core.transport.job;
 
 import java.io.InputStream;
 
@@ -13,33 +13,19 @@ public class TestPublish
 
     private final String url;
 
-    private final InputStream stream;
+    private InputStream stream;
 
-    private final long length;
+    private Long length;
 
-    private final String contentType;
+    private String contentType;
 
     private final Boolean result;
 
-    public TestPublish( final String url, final TransferException error )
+    public TestPublish( final String url, final TransferException error, final Boolean result )
     {
         this.url = url;
         this.error = error;
-        this.result = null;
-        this.stream = null;
-        this.length = -1;
-        this.contentType = null;
-    }
-
-    public TestPublish( final String url, final Boolean result, final InputStream stream, final long length,
-                        final String contentType )
-    {
-        this.url = url;
         this.result = result;
-        this.stream = stream;
-        this.length = length;
-        this.contentType = contentType;
-        this.error = null;
     }
 
     @Override
@@ -75,4 +61,10 @@ public class TestPublish
         return contentType;
     }
 
+    public void setContent( final InputStream stream, final long length, final String contentType )
+    {
+        this.stream = stream;
+        this.length = length;
+        this.contentType = contentType;
+    }
 }

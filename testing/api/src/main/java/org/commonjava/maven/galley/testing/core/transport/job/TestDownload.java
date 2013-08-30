@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.testutil;
+package org.commonjava.maven.galley.testing.core.transport.job;
 
 import java.io.OutputStream;
 
@@ -6,10 +6,14 @@ import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.util.logging.Logger;
 
 public class TestDownload
-    implements TestDownloadJob
+    implements DownloadJob
 {
+
+    private final Logger logger = new Logger( getClass() );
 
     private final TransferException error;
 
@@ -47,6 +51,7 @@ public class TestDownload
         OutputStream stream = null;
         try
         {
+            logger.info( "Writing '%s' to: %s.", new String( data ), transfer.getDetachedFile() );
             stream = transfer.openOutputStream( TransferOperation.DOWNLOAD );
             IOUtils.write( data, stream );
         }
@@ -58,7 +63,6 @@ public class TestDownload
         return transfer;
     }
 
-    @Override
     public void setTransfer( final Transfer transfer )
     {
         this.transfer = transfer;

@@ -1,10 +1,10 @@
-package org.commonjava.maven.galley.testutil;
+package org.commonjava.maven.galley.testing.core.transport.job;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
-public class TestListingJob
+public class TestListing
     implements ListingJob
 {
 
@@ -12,13 +12,13 @@ public class TestListingJob
 
     private final ListingResult result;
 
-    public TestListingJob( final TransferException error )
+    public TestListing( final TransferException error )
     {
         this.error = error;
         this.result = null;
     }
 
-    public TestListingJob( final ListingResult result )
+    public TestListing( final ListingResult result )
     {
         this.result = result;
         this.error = null;

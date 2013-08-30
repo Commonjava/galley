@@ -6,10 +6,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.HttpClient;
@@ -24,7 +20,6 @@ import org.commonjava.maven.galley.transport.htcli.internal.TLLocationCredential
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;
 
-@ApplicationScoped
 public class HttpImpl
     implements Http
 {
@@ -36,7 +31,6 @@ public class HttpImpl
 
     private DefaultHttpClient client;
 
-    @Inject
     private final PasswordManager passwords;
 
     public HttpImpl( final PasswordManager passwords )
@@ -45,7 +39,6 @@ public class HttpImpl
         setup();
     }
 
-    @PostConstruct
     protected void setup()
     {
         final PoolingClientConnectionManager ccm = new PoolingClientConnectionManager();
@@ -64,23 +57,19 @@ public class HttpImpl
         }
         catch ( final KeyManagementException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
-                          e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
         }
         catch ( final UnrecoverableKeyException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
-                          e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
         }
         catch ( final NoSuchAlgorithmException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
-                          e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
         }
         catch ( final KeyStoreException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
-                          e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
         }
 
         final DefaultHttpClient hc = new DefaultHttpClient( ccm );

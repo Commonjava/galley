@@ -4,17 +4,22 @@
   
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
-    <artifactId>galley</artifactId>
+    <artifactId>galley-testing</artifactId>
     <version>0.2.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>galley-core</artifactId>
-  <name>Galley :: Core API</name>
+  <artifactId>galley-test-harness-core</artifactId>
+  <name>Galley :: Test Harness for Core Classes</name>
   
   <dependencies>
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-test-harness-api</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -31,20 +36,20 @@
     <dependency>
       <groupId>org.jboss.weld.se</groupId>
       <artifactId>weld-se-core</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.commonjava.util</groupId>
       <artifactId>cdi-tools</artifactId>
-      <optional>true</optional>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.commonjava.cdi.util</groupId>
       <artifactId>weft</artifactId>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-test-harness-api</artifactId>
+      <artifactId>galley-core</artifactId>
     </dependency>
   </dependencies>
 </project>

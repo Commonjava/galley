@@ -1,5 +1,7 @@
 package org.commonjava.maven.galley;
 
+import static org.commonjava.maven.galley.util.ArtifactFormatUtils.formatArtifactPath;
+
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
@@ -14,10 +16,8 @@ import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TypeMapping;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.type.TypeMapper;
-import org.commonjava.maven.galley.util.ArtifactFormatUtils;
 import org.commonjava.util.logging.Logger;
 
 public class ArtifactManagerImpl
@@ -38,10 +38,11 @@ public class ArtifactManagerImpl
     {
     }
 
-    public ArtifactManagerImpl( final TransferManager transferManager, final LocationExpander expander )
+    public ArtifactManagerImpl( final TransferManager transferManager, final LocationExpander expander, final TypeMapper mapper )
     {
         this.transferManager = transferManager;
         this.expander = expander;
+        this.mapper = mapper;
     }
 
     /* (non-Javadoc)
@@ -51,7 +52,7 @@ public class ArtifactManagerImpl
     public boolean delete( final Location location, final ArtifactRef ref )
         throws TransferException
     {
-        final String path = toPath( ref );
+        final String path = formatArtifactPath( ref, mapper );
         return transferManager.deleteAll( expander.expand( location ), path );
     }
 
@@ -62,7 +63,7 @@ public class ArtifactManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.deleteAll( expander.expand( locations ), toPath( ref ) );
+        return transferManager.deleteAll( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
     }
 
     /* (non-Javadoc)
@@ -72,7 +73,7 @@ public class ArtifactManagerImpl
     public Transfer retrieve( final Location location, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveFirst( expander.expand( location ), toPath( ref ) );
+        return transferManager.retrieveFirst( expander.expand( location ), formatArtifactPath( ref, mapper ) );
     }
 
     /* (non-Javadoc)
@@ -82,7 +83,7 @@ public class ArtifactManagerImpl
     public Set<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveAll( expander.expand( locations ), toPath( ref ) );
+        return transferManager.retrieveAll( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
     }
 
     /* (non-Javadoc)
@@ -92,7 +93,7 @@ public class ArtifactManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveFirst( expander.expand( locations ), toPath( ref ) );
+        return transferManager.retrieveFirst( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
     }
 
     /* (non-Javadoc)
@@ -102,7 +103,7 @@ public class ArtifactManagerImpl
     public Transfer store( final Location location, final ArtifactRef ref, final InputStream stream )
         throws TransferException
     {
-        return transferManager.store( expander.expand( location ), toPath( ref ), stream );
+        return transferManager.store( expander.expand( location ), formatArtifactPath( ref, mapper ), stream );
     }
 
     /* (non-Javadoc)
@@ -112,42 +113,14 @@ public class ArtifactManagerImpl
     public boolean publish( final Location location, final ArtifactRef ref, final InputStream stream, final long length )
         throws TransferException
     {
-        return transferManager.publish( new Resource( location, toPath( ref ) ), stream, length );
-    }
-
-    private String toPath( final ProjectVersionRef src )
-        throws TransferException
-    {
-        /* @formatter:off */
-        if ( src instanceof ArtifactRef )
-        {
-            final ArtifactRef ref = (ArtifactRef) src;
-            final TypeMapping tm = mapper.lookup( ref.getTypeAndClassifier() );
-            
-            return String.format( "%s/%s/%s/%s-%s%s.%s", 
-                                  ref.getGroupId().replace('.', '/'), 
-                                  ref.getArtifactId(), 
-                                  ArtifactFormatUtils.formatVersionDirectoryPart( ref ),
-                                  ref.getArtifactId(), 
-                                  ArtifactFormatUtils.formatVersionFilePart( ref ), 
-                                  ( tm.getClassifier() == null ? "" : "-" + tm.getClassifier() ), 
-                                  tm.getExtension() );
-        }
-        else
-        {
-            return String.format( "%s/%s/%s/", 
-                                  src.getGroupId().replace('.', '/'), 
-                                  src.getArtifactId(), 
-                                  ArtifactFormatUtils.formatVersionDirectoryPart( src ) );
-        }
-        /* @formatter:on */
+        return transferManager.publish( new Resource( location, formatArtifactPath( ref, mapper ) ), stream, length );
     }
 
     @Override
     public TypeAndClassifier[] listAvailableArtifacts( final Location location, final ProjectVersionRef ref )
         throws TransferException
     {
-        final ListingResult listingResult = transferManager.list( new Resource( location, toPath( ref.asProjectVersionRef() ) ) );
+        final ListingResult listingResult = transferManager.list( new Resource( location, formatArtifactPath( ref.asProjectVersionRef(), mapper ) ) );
         if ( listingResult == null || listingResult.isEmpty() )
         {
             return new TypeAndClassifier[0];
