@@ -23,7 +23,8 @@ public final class ArtifactFormatUtils
         if ( vs.isSnapshot() )
         {
             return vs.getSingleVersion()
-                     .getBaseVersion() + "-SNAPSHOT";
+                     .getBaseVersion()
+                     .renderStandard() + "-SNAPSHOT";
         }
         else
         {
