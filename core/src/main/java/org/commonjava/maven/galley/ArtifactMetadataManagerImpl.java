@@ -4,7 +4,6 @@ import static org.commonjava.maven.galley.util.ArtifactFormatUtils.formatMetadat
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -160,7 +159,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, java.lang.String)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId )
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId )
         throws TransferException
     {
         return retrieveAll( locations, groupId, null );
@@ -170,7 +169,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, java.lang.String, java.lang.String)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId, final String filename )
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId, final String filename )
         throws TransferException
     {
         return transferManager.retrieveAll( expander.expand( locations ), formatMetadataPath( groupId, filename ) );
@@ -180,7 +179,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref )
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref )
         throws TransferException
     {
         return retrieveAll( locations, ref, null );
@@ -190,7 +189,7 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref, final String filename )
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref, final String filename )
         throws TransferException
     {
         return transferManager.retrieveAll( expander.expand( locations ), formatMetadataPath( ref, filename ) );

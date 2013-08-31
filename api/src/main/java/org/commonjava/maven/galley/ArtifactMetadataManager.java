@@ -2,7 +2,6 @@ package org.commonjava.maven.galley;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.model.Location;
@@ -49,16 +48,16 @@ public interface ArtifactMetadataManager
     Transfer retrieve( Location location, ProjectRef ref, String filename )
         throws TransferException;
 
-    Set<Transfer> retrieveAll( List<? extends Location> locations, String groupId )
+    List<Transfer> retrieveAll( List<? extends Location> locations, String groupId )
         throws TransferException;
 
-    Set<Transfer> retrieveAll( List<? extends Location> locations, String groupId, String filename )
+    List<Transfer> retrieveAll( List<? extends Location> locations, String groupId, String filename )
         throws TransferException;
 
-    Set<Transfer> retrieveAll( List<? extends Location> locations, ProjectRef ref )
+    List<Transfer> retrieveAll( List<? extends Location> locations, ProjectRef ref )
         throws TransferException;
 
-    Set<Transfer> retrieveAll( List<? extends Location> locations, ProjectRef ref, String filename )
+    List<Transfer> retrieveAll( List<? extends Location> locations, ProjectRef ref, String filename )
         throws TransferException;
 
     Transfer retrieveFirst( List<? extends Location> locations, String groupId )
@@ -88,15 +87,13 @@ public interface ArtifactMetadataManager
     boolean publish( Location location, String groupId, InputStream stream, long length )
         throws TransferException;
 
-    boolean publish( Location location, String groupId, String filename, InputStream stream, long length,
-                     String contentType )
+    boolean publish( Location location, String groupId, String filename, InputStream stream, long length, String contentType )
         throws TransferException;
 
     boolean publish( Location location, ProjectRef ref, InputStream stream, long length )
         throws TransferException;
 
-    boolean publish( Location location, ProjectRef ref, String filename, InputStream stream, long length,
-                     String contentType )
+    boolean publish( Location location, ProjectRef ref, String filename, InputStream stream, long length, String contentType )
         throws TransferException;
 
 }

@@ -22,10 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -95,6 +94,23 @@ public class TransferManagerImpl
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
+    }
+
+    @Override
+    public List<ListingResult> listAll( final List<? extends Location> locations, final String path )
+        throws TransferException
+    {
+        final List<ListingResult> results = new ArrayList<>();
+        for ( final Location location : locations )
+        {
+            final ListingResult result = list( new Resource( location, path ) );
+            if ( result != null )
+            {
+                results.add( result );
+            }
+        }
+
+        return results;
     }
 
     @Override
@@ -246,10 +262,10 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#retrieveAll(java.util.List, java.lang.String)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> stores, final String path )
+    public List<Transfer> retrieveAll( final List<? extends Location> stores, final String path )
         throws TransferException
     {
-        final Set<Transfer> results = new LinkedHashSet<Transfer>();
+        final List<Transfer> results = new ArrayList<Transfer>();
 
         Transfer stream = null;
         for ( final Location store : stores )

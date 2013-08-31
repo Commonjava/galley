@@ -2,7 +2,6 @@ package org.commonjava.maven.galley;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -22,7 +21,7 @@ public interface ArtifactManager
     Transfer retrieve( Location location, ArtifactRef ref )
         throws TransferException;
 
-    Set<Transfer> retrieveAll( List<? extends Location> locations, ArtifactRef ref )
+    List<Transfer> retrieveAll( List<? extends Location> locations, ArtifactRef ref )
         throws TransferException;
 
     Transfer retrieveFirst( List<? extends Location> locations, ArtifactRef ref )

@@ -80,7 +80,7 @@ public class ArtifactManagerImpl
      * @see org.commonjava.maven.galley.ArtifactManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ArtifactRef)
      */
     @Override
-    public Set<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref )
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
         return transferManager.retrieveAll( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
@@ -120,43 +120,48 @@ public class ArtifactManagerImpl
     public TypeAndClassifier[] listAvailableArtifacts( final Location location, final ProjectVersionRef ref )
         throws TransferException
     {
-        final ListingResult listingResult = transferManager.list( new Resource( location, formatArtifactPath( ref.asProjectVersionRef(), mapper ) ) );
-        if ( listingResult == null || listingResult.isEmpty() )
+        final List<ListingResult> listingResults =
+            transferManager.listAll( expander.expand( location ), formatArtifactPath( ref.asProjectVersionRef(), mapper ) );
+
+        if ( listingResults == null || listingResults.isEmpty() )
         {
             return new TypeAndClassifier[0];
         }
 
-        //FIXME: snapshot handling.
         final String prefix = String.format( "%s-%s", ref.getArtifactId(), ref.getVersionString() );
         final Set<TypeAndClassifier> artifacts = new HashSet<>();
-        for ( final String fname : listingResult.getListing() )
+        for ( final ListingResult listingResult : listingResults )
         {
-            if ( fname.startsWith( prefix ) )
+            //FIXME: snapshot handling.
+            for ( final String fname : listingResult.getListing() )
             {
-                final String remainder = fname.substring( prefix.length() );
-
-                String classifier = null;
-                String type = null;
-
-                if ( remainder.startsWith( "-" ) )
+                if ( fname.startsWith( prefix ) )
                 {
-                    // must have a classifier.
-                    final int extPos = remainder.indexOf( '.' );
-                    if ( extPos < 2 )
+                    final String remainder = fname.substring( prefix.length() );
+
+                    String classifier = null;
+                    String type = null;
+
+                    if ( remainder.startsWith( "-" ) )
                     {
-                        logger.info( "Listing found unparsable filename: '%s' from: %s. Skipping", fname, location );
-                        continue;
+                        // must have a classifier.
+                        final int extPos = remainder.indexOf( '.' );
+                        if ( extPos < 2 )
+                        {
+                            logger.info( "Listing found unparsable filename: '%s' from: %s. Skipping", fname, location );
+                            continue;
+                        }
+
+                        classifier = remainder.substring( 1, extPos );
+                        type = remainder.substring( extPos + 1 );
+                    }
+                    else if ( remainder.startsWith( "." ) )
+                    {
+                        type = remainder.substring( 1 );
                     }
 
-                    classifier = remainder.substring( 1, extPos );
-                    type = remainder.substring( extPos + 1 );
+                    artifacts.add( new TypeAndClassifier( type, classifier ) );
                 }
-                else if ( remainder.startsWith( "." ) )
-                {
-                    type = remainder.substring( 1 );
-                }
-
-                artifacts.add( new TypeAndClassifier( type, classifier ) );
             }
         }
 

@@ -15,7 +15,7 @@ public interface TransferManager
     Transfer retrieveFirst( List<? extends Location> stores, String path )
         throws TransferException;
 
-    Set<Transfer> retrieveAll( List<? extends Location> stores, String path )
+    List<Transfer> retrieveAll( List<? extends Location> stores, String path )
         throws TransferException;
 
     Transfer retrieve( Resource resource )
@@ -45,5 +45,8 @@ public interface TransferManager
 
     ListingResult list( Resource resource )
         throws TransferException;
+
+    List<ListingResult> listAll( List<? extends Location> locations, String path )
+                    throws TransferException;
 
 }
