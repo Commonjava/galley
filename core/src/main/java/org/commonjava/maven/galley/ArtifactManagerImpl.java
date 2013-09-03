@@ -34,6 +34,9 @@ public class ArtifactManagerImpl
     @Inject
     private TypeMapper mapper;
 
+    @Inject
+    private ArtifactMetadataManager metadataManager;
+
     protected ArtifactManagerImpl()
     {
     }
@@ -166,6 +169,25 @@ public class ArtifactManagerImpl
         }
 
         return artifacts.toArray( new TypeAndClassifier[artifacts.size()] );
+    }
+
+    @Override
+    public ProjectVersionRef resolveSnapshotVersion( final Location location, final ProjectVersionRef ref )
+        throws TransferException
+    {
+        if ( !ref.isSpecificVersion() )
+        {
+            throw new TransferException( "Cannot resolve the snapshot in a compound or range version specification!" );
+        }
+
+        if ( ref.isRelease() )
+        {
+            return ref;
+        }
+
+        final Transfer metadata = metadataManager.retrieve( location, ref );
+
+        return null;
     }
 
 }
