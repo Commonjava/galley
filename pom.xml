@@ -23,6 +23,10 @@
     <developerConnection>scm:git:git@github.com:jdcasey/galley.git</developerConnection>
     <url>http://github.com/jdcasey/galley</url>
   </scm>
+  
+  <properties>
+    <atlasVersion>0.9.1</atlasVersion>
+  </properties>
 
   <dependencyManagement>
     <dependencies>
@@ -70,7 +74,7 @@
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-identities</artifactId>
-        <version>0.9.1-SNAPSHOT</version>
+        <version>${atlasVersion}</version>
       </dependency>
       
       <dependency>
