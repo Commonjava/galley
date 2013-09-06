@@ -78,7 +78,7 @@ public class TransferManagerImpl
     private final Map<String, Future<?>> pending = new ConcurrentHashMap<String, Future<?>>();
 
     @Inject
-    @ExecutorConfig( threads = 4, daemon = true, named = "galley-transfers", priority = 8 )
+    @ExecutorConfig( threads = 8, daemon = true, named = "galley-transfers", priority = 8 )
     private ExecutorService executor;
 
     protected TransferManagerImpl()
