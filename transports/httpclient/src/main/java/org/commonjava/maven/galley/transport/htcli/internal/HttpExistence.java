@@ -1,28 +1,20 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.copy;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.util.logging.Logger;
 
-public final class HttpDownload
-    implements DownloadJob
+public final class HttpExistence
+    implements ExistenceJob
 {
 
     private final Logger logger = new Logger( getClass() );
@@ -31,31 +23,27 @@ public final class HttpDownload
 
     private final HttpLocation location;
 
-    private final Transfer target;
-
     private final Http http;
 
     private TransferException error;
 
-    public HttpDownload( final String url, final HttpLocation location, final Transfer target, final Http http )
+    public HttpExistence( final String url, final HttpLocation location, final Http http )
     {
         this.url = url;
         this.location = location;
-        this.target = target;
         this.http = http;
     }
 
     @Override
-    public Transfer call()
+    public Boolean call()
     {
-        final HttpGet request = new HttpGet( url );
+        final HttpHead request = new HttpHead( url );
 
         http.bindCredentialsTo( location, request );
 
         try
         {
-            final InputStream in = executeGet( request, url );
-            writeTarget( target, in, url, location );
+            return execute( request, url );
         }
         catch ( final TransferException e )
         {
@@ -66,7 +54,7 @@ public final class HttpDownload
             cleanup( request );
         }
 
-        return error == null ? target : null;
+        return false;
     }
 
     @Override
@@ -75,34 +63,10 @@ public final class HttpDownload
         return error;
     }
 
-    private void writeTarget( final Transfer target, final InputStream in, final String url, final Location repository )
+    private boolean execute( final HttpHead request, final String url )
         throws TransferException
     {
-        OutputStream out = null;
-        if ( in != null )
-        {
-            try
-            {
-                out = target.openOutputStream( TransferOperation.DOWNLOAD, false );
-
-                copy( in, out );
-            }
-            catch ( final IOException e )
-            {
-                throw new TransferException( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", e, target, url, e.getMessage() );
-            }
-            finally
-            {
-                closeQuietly( in );
-                closeQuietly( out );
-            }
-        }
-    }
-
-    private InputStream executeGet( final HttpGet request, final String url )
-        throws TransferException
-    {
-        InputStream result = null;
+        boolean result = false;
 
         try
         {
@@ -113,19 +77,14 @@ public final class HttpDownload
             if ( sc != HttpStatus.SC_OK )
             {
                 logger.warn( "%s : %s", line, url );
-                if ( sc == HttpStatus.SC_NOT_FOUND )
-                {
-                    result = null;
-                }
-                else
+                if ( sc != HttpStatus.SC_NOT_FOUND )
                 {
                     throw new TransferException( "HTTP request failed: %s", line );
                 }
             }
             else
             {
-                result = response.getEntity()
-                                 .getContent();
+                result = true;
             }
         }
         catch ( final ClientProtocolException e )
@@ -140,7 +99,7 @@ public final class HttpDownload
         return result;
     }
 
-    private void cleanup( final HttpGet request )
+    private void cleanup( final HttpHead request )
     {
         http.clearBoundCredentials( location );
         request.abort();

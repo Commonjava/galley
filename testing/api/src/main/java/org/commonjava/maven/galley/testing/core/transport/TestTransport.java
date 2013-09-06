@@ -13,11 +13,13 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.testing.core.cdi.TestData;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
+import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
 import org.commonjava.maven.galley.testing.core.transport.job.TestListing;
 import org.commonjava.maven.galley.testing.core.transport.job.TestPublish;
 import org.commonjava.util.logging.Logger;
@@ -44,6 +46,8 @@ public class TestTransport
 
     private final Map<Resource, TestListing> listings = new HashMap<>();
 
+    private final Map<Resource, TestExistence> exists = new HashMap<>();
+
     public TestTransport()
     {
     }
@@ -69,9 +73,14 @@ public class TestTransport
         publishes.put( url, job );
     }
 
-    public void registerListing( final Location location, final String path, final TestListing listing )
+    public void registerListing( final Resource resource, final TestListing listing )
     {
-        listings.put( new Resource( location, path ), listing );
+        listings.put( resource, listing );
+    }
+
+    public void registerExistence( final Resource resource, final TestExistence exists )
+    {
+        this.exists.put( resource, exists );
     }
 
     // Transport implementation...
@@ -128,6 +137,19 @@ public class TestTransport
         if ( job == null )
         {
             throw new TransferException( "No listing job registered for: %s", resource );
+        }
+
+        return job;
+    }
+
+    @Override
+    public ExistenceJob createExistenceJob( final String url, final Resource resource, final int timeoutSeconds )
+        throws TransferException
+    {
+        final TestExistence job = exists.get( resource );
+        if ( job == null )
+        {
+            throw new TransferException( "No existence job registered for: %s", resource );
         }
 
         return job;

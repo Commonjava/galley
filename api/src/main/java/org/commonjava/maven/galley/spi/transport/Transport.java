@@ -34,6 +34,12 @@ public interface Transport
     PublishJob createPublishJob( String url, Resource resource, InputStream stream, long length, String contentType, int timeoutSeconds )
         throws TransferException;
 
+    /**
+     * @return NEVER NULL
+     */
+    ExistenceJob createExistenceJob( String url, Resource resource, int timeoutSeconds )
+        throws TransferException;
+
     boolean handles( Location location );
 
 }

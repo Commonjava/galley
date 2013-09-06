@@ -3,6 +3,7 @@ package org.commonjava.maven.galley;
 import static org.commonjava.maven.galley.util.ArtifactFormatUtils.formatArtifactPath;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -172,22 +173,41 @@ public class ArtifactManagerImpl
     }
 
     @Override
-    public ProjectVersionRef resolveSnapshotVersion( final Location location, final ProjectVersionRef ref )
+    public ProjectVersionRef resolveVariableVersion( final Location location, final ProjectVersionRef ref )
         throws TransferException
     {
-        if ( !ref.isSpecificVersion() )
-        {
-            throw new TransferException( "Cannot resolve the snapshot in a compound or range version specification!" );
-        }
+        return resolveVariableVersion( Collections.singletonList( location ), ref );
+    }
 
+    @Override
+    public ProjectVersionRef resolveVariableVersion( final List<? extends Location> locations, final ProjectVersionRef ref )
+        throws TransferException
+    {
         if ( ref.isRelease() )
         {
             return ref;
         }
 
-        final Transfer metadata = metadataManager.retrieve( location, ref );
+        final List<Transfer> retrieveAll = metadataManager.retrieveAll( expander.expand( locations ), ref );
+        // parse versions from these
+        // apply pluggable strategy to select one
+        // use ProjectVersionRef.select() to return the selected version
 
         return null;
+    }
+
+    @Override
+    public Resource checkExistence( final Location location, final ArtifactRef ref )
+        throws TransferException
+    {
+        return transferManager.findFirstExisting( expander.expand( location ), formatArtifactPath( ref, mapper ) );
+    }
+
+    @Override
+    public List<Resource> findAllExisting( final List<? extends Location> locations, final ArtifactRef ref )
+        throws TransferException
+    {
+        return transferManager.findAllExisting( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
     }
 
 }

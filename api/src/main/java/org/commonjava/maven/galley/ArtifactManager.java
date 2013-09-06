@@ -7,6 +7,7 @@ import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 
 public interface ArtifactManager
@@ -36,7 +37,16 @@ public interface ArtifactManager
     TypeAndClassifier[] listAvailableArtifacts( Location location, ProjectVersionRef ref )
         throws TransferException;
 
-    ProjectVersionRef resolveSnapshotVersion( Location location, ProjectVersionRef ref )
+    ProjectVersionRef resolveVariableVersion( Location location, ProjectVersionRef ref )
+        throws TransferException;
+
+    ProjectVersionRef resolveVariableVersion( List<? extends Location> locations, ProjectVersionRef ref )
+        throws TransferException;
+
+    List<Resource> findAllExisting( List<? extends Location> locations, ArtifactRef ref )
+        throws TransferException;
+
+    Resource checkExistence( Location location, ArtifactRef ref )
         throws TransferException;
 
 }

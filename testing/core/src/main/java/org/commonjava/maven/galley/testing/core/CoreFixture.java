@@ -1,9 +1,14 @@
 package org.commonjava.maven.galley.testing.core;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.commonjava.maven.galley.ArtifactManagerImpl;
 import org.commonjava.maven.galley.TransferManagerImpl;
+import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
+import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
+import org.commonjava.maven.galley.internal.xfer.ListingHandler;
+import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.junit.rules.TemporaryFolder;
 
@@ -31,10 +36,16 @@ public class CoreFixture
             setTransports( new TransportManagerImpl( getTransport() ) );
         }
 
+        final ExecutorService executor = Executors.newFixedThreadPool( 2 );
+
+        final DownloadHandler dh = new DownloadHandler( getNfc(), executor );
+        final UploadHandler uh = new UploadHandler( getNfc(), executor );
+        final ListingHandler lh = new ListingHandler( getNfc() );
+        final ExistenceHandler eh = new ExistenceHandler( getNfc() );
+
         if ( getTransfers() == null )
         {
-            setTransfers( new TransferManagerImpl( getTransports(), getCache(), getNfc(), getEvents(), getDecorator(),
-                                                   Executors.newFixedThreadPool( 2 ) ) );
+            setTransfers( new TransferManagerImpl( getTransports(), getCache(), getNfc(), getEvents(), getDecorator(), dh, uh, lh, eh ) );
         }
 
         if ( getArtifacts() == null )

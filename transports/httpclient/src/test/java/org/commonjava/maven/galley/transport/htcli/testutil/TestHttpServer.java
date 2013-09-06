@@ -66,8 +66,7 @@ public class TestHttpServer
 
         if ( port < 8000 )
         {
-            throw new RuntimeException( "Failed to start test HTTP server. Cannot find open port in " + TRIES
-                + " tries." );
+            throw new RuntimeException( "Failed to start test HTTP server. Cannot find open port in " + TRIES + " tries." );
         }
 
         this.port = port;
@@ -169,33 +168,63 @@ public class TestHttpServer
         }
         else
         {
-            InputStream stream = null;
-            try
-            {
-                stream = url.openStream();
+            final String method = req.method()
+                                     .toUpperCase();
 
-                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                IOUtils.copy( stream, baos );
+            logger.info( "Method: '%s'", method );
+            switch ( method )
+            {
+                case "GET":
+                {
+                    doGet( req, url );
+                    break;
+                }
+                case "HEAD":
+                {
+                    req.response()
+                       .setStatusCode( 200 )
+                       .end();
+                    break;
+                }
+                default:
+                {
+                    req.response()
+                       .setStatusCode( 400 )
+                       .setStatusMessage( "Method: " + method + " not supported by test fixture." )
+                       .end();
+                }
+            }
+        }
+    }
 
-                final int len = baos.toByteArray().length;
-                final Buffer buf = new Buffer( baos.toByteArray() );
-                logger.info( "Send: %d bytes", len );
-                req.response()
-                   .putHeader( "Content-Length", Integer.toString( len ) )
-                   .end( buf );
-            }
-            catch ( final IOException e )
-            {
-                logger.error( "Failed to stream content for: %s. Reason: %s", e, url, e.getMessage() );
-                req.response()
-                   .setStatusCode( 500 )
-                   .setStatusMessage( "FAIL: " + e.getMessage() )
-                   .end();
-            }
-            finally
-            {
-                IOUtils.closeQuietly( stream );
-            }
+    private void doGet( final HttpServerRequest req, final URL url )
+    {
+        InputStream stream = null;
+        try
+        {
+            stream = url.openStream();
+
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            IOUtils.copy( stream, baos );
+
+            final int len = baos.toByteArray().length;
+            final Buffer buf = new Buffer( baos.toByteArray() );
+            logger.info( "Send: %d bytes", len );
+            req.response()
+               .putHeader( "Content-Length", Integer.toString( len ) )
+               .end( buf );
+        }
+        catch ( final IOException e )
+        {
+            logger.error( "Failed to stream content for: %s. Reason: %s", e, url, e.getMessage() );
+            req.response()
+               .setStatusCode( 500 )
+               .setStatusMessage( "FAIL: " + e.getMessage() )
+               .end();
+        }
+        finally
+        {
+            IOUtils.closeQuietly( stream );
         }
     }
 

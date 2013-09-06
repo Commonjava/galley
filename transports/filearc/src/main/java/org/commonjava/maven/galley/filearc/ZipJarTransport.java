@@ -7,12 +7,14 @@ import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.filearc.internal.ZipDownload;
+import org.commonjava.maven.galley.filearc.internal.ZipExistence;
 import org.commonjava.maven.galley.filearc.internal.ZipListing;
 import org.commonjava.maven.galley.filearc.internal.ZipPublish;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -58,6 +60,13 @@ public class ZipJarTransport
         throws TransferException
     {
         return new ZipListing( resource );
+    }
+
+    @Override
+    public ExistenceJob createExistenceJob( final String url, final Resource resource, final int timeoutSeconds )
+        throws TransferException
+    {
+        return new ZipExistence( resource );
     }
 
 }

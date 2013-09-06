@@ -9,6 +9,7 @@ import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.filearc.internal.FileDownload;
+import org.commonjava.maven.galley.filearc.internal.FileExistence;
 import org.commonjava.maven.galley.filearc.internal.FileListing;
 import org.commonjava.maven.galley.filearc.internal.FilePublish;
 import org.commonjava.maven.galley.model.Location;
@@ -16,6 +17,7 @@ import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -94,6 +96,13 @@ public class FileTransport
     {
         final File src = new File( url );
         return new FileListing( resource, src );
+    }
+
+    @Override
+    public ExistenceJob createExistenceJob( final String url, final Resource resource, final int timeoutSeconds )
+        throws TransferException
+    {
+        return new FileExistence( new File( url ) );
     }
 
 }

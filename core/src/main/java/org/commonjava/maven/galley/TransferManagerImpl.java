@@ -21,22 +21,17 @@ import static org.apache.commons.io.IOUtils.copy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 
-import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
+import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
+import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
+import org.commonjava.maven.galley.internal.xfer.ListingHandler;
+import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
@@ -46,12 +41,8 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
-import org.commonjava.maven.galley.spi.transport.DownloadJob;
-import org.commonjava.maven.galley.spi.transport.ListingJob;
-import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.maven.galley.util.UrlUtils;
 import org.commonjava.util.logging.Logger;
 
 public class TransferManagerImpl
@@ -75,25 +66,87 @@ public class TransferManagerImpl
     @Inject
     private TransferDecorator transferDecorator;
 
-    private final Map<String, Future<?>> pending = new ConcurrentHashMap<String, Future<?>>();
+    @Inject
+    private DownloadHandler downloader;
 
     @Inject
-    @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
-    private ExecutorService executor;
+    private UploadHandler uploader;
+
+    @Inject
+    private ListingHandler lister;
+
+    @Inject
+    private ExistenceHandler exister;
 
     protected TransferManagerImpl()
     {
     }
 
     public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider, final NotFoundCache nfc,
-                                final FileEventManager fileEventManager, final TransferDecorator transferDecorator, final ExecutorService executor )
+                                final FileEventManager fileEventManager, final TransferDecorator transferDecorator, final DownloadHandler downloader,
+                                final UploadHandler uploader, final ListingHandler lister, final ExistenceHandler exister )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;
         this.nfc = nfc;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
-        this.executor = executor;
+        this.downloader = downloader;
+        this.uploader = uploader;
+        this.lister = lister;
+        this.exister = exister;
+    }
+
+    @Override
+    public boolean exists( final Resource resource )
+        throws TransferException
+    {
+        return exists( resource, false );
+    }
+
+    @Override
+    public Resource findFirstExisting( final List<? extends Location> locations, final String path )
+        throws TransferException
+    {
+        for ( final Location location : locations )
+        {
+            final Resource resource = new Resource( location, path );
+            if ( exists( resource, true ) )
+            {
+                return resource;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public List<Resource> findAllExisting( final List<? extends Location> locations, final String path )
+        throws TransferException
+    {
+        final List<Resource> results = new ArrayList<>();
+        for ( final Location location : locations )
+        {
+            final Resource resource = new Resource( location, path );
+            if ( exists( resource, true ) )
+            {
+                results.add( resource );
+            }
+        }
+
+        return results;
+    }
+
+    private boolean exists( final Resource resource, final boolean suppressFailures )
+        throws TransferException
+    {
+        final Transfer cached = getCacheReference( resource );
+        if ( cached.exists() )
+        {
+            return true;
+        }
+
+        return exister.exists( resource, getTimeoutSeconds( resource ), getTransport( resource ), suppressFailures );
     }
 
     @Override
@@ -103,7 +156,7 @@ public class TransferManagerImpl
         final List<ListingResult> results = new ArrayList<>();
         for ( final Location location : locations )
         {
-            final ListingResult result = list( new Resource( location, path ) );
+            final ListingResult result = doList( new Resource( location, path ), true );
             if ( result != null )
             {
                 results.add( result );
@@ -115,6 +168,12 @@ public class TransferManagerImpl
 
     @Override
     public ListingResult list( final Resource resource )
+        throws TransferException
+    {
+        return doList( resource, false );
+    }
+
+    private ListingResult doList( final Resource resource, final boolean suppressFailures )
         throws TransferException
     {
         final Transfer cached = getCacheReference( resource );
@@ -132,7 +191,7 @@ public class TransferManagerImpl
         }
 
         final int timeoutSeconds = getTimeoutSeconds( resource );
-        final ListingResult remoteResult = getListing( resource, timeoutSeconds, false );
+        final ListingResult remoteResult = lister.list( resource, timeoutSeconds, getTransport( resource ), suppressFailures );
 
         ListingResult result;
         if ( cacheResult != null && remoteResult != null )
@@ -149,67 +208,6 @@ public class TransferManagerImpl
         }
 
         return result;
-    }
-
-    private ListingResult getListing( final Resource resource, final int timeoutSeconds, final boolean suppressFailures )
-        throws TransferException
-    {
-        if ( nfc.isMissing( resource ) )
-        {
-            logger.info( "NFC: Already marked as missing: %s", resource );
-            return null;
-        }
-
-        final Transport transport = getTransport( resource );
-        if ( transport == null )
-        {
-            return null;
-        }
-
-        final String url = buildUrl( resource, suppressFailures );
-        logger.info( "LIST %s", url );
-
-        final ListingJob job = transport.createListingJob( url, resource, timeoutSeconds );
-
-        // FIXME: execute this stuff in a thread just like downloads/publishes.
-        try
-        {
-            final ListingResult result = job.call();
-
-            if ( job.getError() != null )
-            {
-                logger.info( "NFC: Download error. Marking as missing: %s", resource );
-                nfc.addMissing( resource );
-
-                if ( !suppressFailures )
-                {
-                    throw job.getError();
-                }
-            }
-            else if ( result == null )
-            {
-                logger.info( "NFC: Download did not complete. Marking as missing: %s", resource );
-                nfc.addMissing( resource );
-            }
-
-            return result;
-        }
-        catch ( final TimeoutException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Timed-out download: %s. Reason: %s", e, resource, e.getMessage() );
-            }
-        }
-        catch ( final Exception e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Failed listing: %s. Reason: %s", e, resource, e.getMessage() );
-            }
-        }
-
-        return null;
     }
 
     private Transport getTransport( final Resource resource )
@@ -309,7 +307,8 @@ public class TransferManagerImpl
             // TODO: (see above re:storing) Handle things like local archives that really don't need to be cached...
             target = getCacheReference( resource );
 
-            final Transfer retrieved = download( resource, target, suppressFailures );
+            final Transfer retrieved =
+                downloader.download( resource, target, getTimeoutSeconds( resource ), getTransport( resource ), suppressFailures );
 
             if ( retrieved != null && retrieved.exists() && !target.equals( retrieved ) )
             {
@@ -339,202 +338,6 @@ public class TransferManagerImpl
         }
     }
 
-    private Transfer download( final Resource resource, final Transfer target, final boolean suppressFailures )
-        throws TransferException
-    {
-        if ( !resource.allowsDownloading() )
-        {
-            return null;
-        }
-
-        final String url = buildUrl( resource, suppressFailures );
-        if ( url == null )
-        {
-            return null;
-        }
-
-        if ( nfc.isMissing( resource ) )
-        {
-            logger.info( "NFC: Already marked as missing: %s", resource );
-            return null;
-        }
-
-        logger.info( "RETRIEVE %s", url );
-
-        //        if ( nfc.hasEntry( url ) )
-        //        {
-        //            fileEventManager.fire( new FileNotFoundEvent( repository, target.getPath() ) );
-        //            return false;
-        //        }
-
-        final int timeoutSeconds = getTimeoutSeconds( resource );
-        Transfer result = joinDownload( url, target, timeoutSeconds, suppressFailures );
-        if ( result == null )
-        {
-            result = startDownload( url, resource, target, timeoutSeconds, suppressFailures );
-        }
-
-        return result;
-    }
-
-    private int getTimeoutSeconds( final Resource resource )
-    {
-        int timeoutSeconds = resource.getTimeoutSeconds();
-        if ( timeoutSeconds < 1 )
-        {
-            timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
-        }
-
-        return timeoutSeconds;
-    }
-
-    private Transfer joinDownload( final String url, final Transfer target, final int timeoutSeconds, final boolean suppressFailures )
-        throws TransferException
-    {
-        // if the target file already exists, skip joining.
-        if ( target.exists() )
-        {
-            return target;
-        }
-        else
-        {
-            final String key = getJoinKey( url, TransferOperation.DOWNLOAD );
-
-            @SuppressWarnings( "unchecked" )
-            final Future<Transfer> future = (Future<Transfer>) pending.get( key );
-            if ( future != null )
-            {
-                Transfer f = null;
-                try
-                {
-                    f = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-                    return f;
-                }
-                catch ( final InterruptedException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Download interrupted: %s", e, url );
-                    }
-                }
-                catch ( final ExecutionException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Download failed: %s", e, url );
-                    }
-                }
-                catch ( final TimeoutException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Timeout on: %s", e, url );
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private Transfer startDownload( final String url, final Resource resource, final Transfer target, final int timeoutSeconds,
-                                    final boolean suppressFailures )
-        throws TransferException
-    {
-        if ( target.exists() )
-        {
-            return target;
-        }
-
-        final String key = getJoinKey( url, TransferOperation.DOWNLOAD );
-        final Transport transport = getTransport( resource );
-        if ( transport == null )
-        {
-            return null;
-        }
-
-        final DownloadJob job = transport.createDownloadJob( url, resource, target, timeoutSeconds );
-
-        final Future<Transfer> future = executor.submit( job );
-        pending.put( key, future );
-        try
-        {
-            final Transfer downloaded = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-            if ( job.getError() != null )
-            {
-                logger.info( "NFC: Download error. Marking as missing: %s", resource );
-                nfc.addMissing( resource );
-
-                if ( !suppressFailures )
-                {
-                    throw job.getError();
-                }
-            }
-            else if ( downloaded == null || !downloaded.exists() )
-            {
-                logger.info( "NFC: Download did not complete. Marking as missing: %s", resource );
-                nfc.addMissing( resource );
-            }
-
-            return downloaded;
-        }
-        catch ( final InterruptedException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Interrupted download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
-            }
-        }
-        catch ( final ExecutionException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Failed to download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
-            }
-        }
-        catch ( final TimeoutException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
-            }
-        }
-        finally
-        {
-            //            logger.info( "Marking download complete: %s", url );
-            pending.remove( key );
-        }
-
-        return null;
-    }
-
-    private String buildUrl( final Resource resource, final boolean suppressFailures )
-        throws TransferException
-    {
-        final String remoteBase = resource.getLocationUri();
-        if ( remoteBase == null )
-        {
-            return null;
-        }
-
-        String url = null;
-        try
-        {
-            url = UrlUtils.buildUrl( remoteBase, resource.getPath() );
-        }
-        catch ( final MalformedURLException e )
-        {
-            throw new TransferException( "Invalid URL for: %s. Reason: %s", e, resource, e.getMessage() );
-        }
-
-        return url;
-    }
-
-    /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.TransferManager#store(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream)
-     */
     @Override
     public Transfer store( final Resource resource, final InputStream stream )
         throws TransferException
@@ -689,115 +492,18 @@ public class TransferManagerImpl
     public boolean publish( final Resource resource, final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
-        if ( !resource.allowsPublishing() )
-        {
-            throw new TransferException( "Publishing not allowed in: %s", resource );
-        }
+        return uploader.upload( resource, stream, length, contentType, getTimeoutSeconds( resource ), getTransport( resource ) );
+    }
 
-        final String url = buildUrl( resource, false );
-        if ( url == null )
-        {
-            return false;
-        }
-
-        logger.info( "PUBLISH %s", url );
-
+    private int getTimeoutSeconds( final Resource resource )
+    {
         int timeoutSeconds = resource.getTimeoutSeconds();
         if ( timeoutSeconds < 1 )
         {
             timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
         }
 
-        joinPublish( url, resource, timeoutSeconds );
-        return doPublish( url, resource, timeoutSeconds, stream, length, contentType );
-    }
-
-    private boolean doPublish( final String url, final Resource resource, final int timeoutSeconds, final InputStream stream, final long length,
-                               final String contentType )
-        throws TransferException
-    {
-        final String key = getJoinKey( url, TransferOperation.UPLOAD );
-
-        final Transport transport = getTransport( resource );
-        if ( transport == null )
-        {
-            return false;
-        }
-
-        final PublishJob job = transport.createPublishJob( url, resource, stream, length, contentType, timeoutSeconds );
-
-        final Future<Boolean> future = executor.submit( job );
-        pending.put( key, future );
-        try
-        {
-            final Boolean published = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-            if ( job.getError() != null )
-            {
-                throw job.getError();
-            }
-
-            nfc.clearMissing( resource );
-            return published;
-        }
-        catch ( final InterruptedException e )
-        {
-            throw new TransferException( "Interrupted publish: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
-        }
-        catch ( final ExecutionException e )
-        {
-            throw new TransferException( "Failed to publish: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
-        }
-        catch ( final TimeoutException e )
-        {
-            throw new TransferException( "Timed-out publish: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
-        }
-        finally
-        {
-            //            logger.info( "Marking download complete: %s", url );
-            pending.remove( key );
-        }
-    }
-
-    /**
-     * @return true if (a) previous upload in progress succeeded, or (b) there was no previous upload.
-     */
-    private boolean joinPublish( final String url, final Resource resource, final int timeoutSeconds )
-        throws TransferException
-    {
-        final String key = getJoinKey( url, TransferOperation.UPLOAD );
-
-        @SuppressWarnings( "unchecked" )
-        final Future<Boolean> future = (Future<Boolean>) pending.get( key );
-        if ( future != null )
-        {
-            Boolean f = null;
-            try
-            {
-                f = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-                return f;
-            }
-            catch ( final InterruptedException e )
-            {
-                throw new TransferException( "Publish interrupted: %s", e, url );
-            }
-            catch ( final ExecutionException e )
-            {
-                throw new TransferException( "Publish failed: %s", e, url );
-            }
-            catch ( final TimeoutException e )
-            {
-                throw new TransferException( "Timeout on: %s", e, url );
-            }
-        }
-
-        return true;
-    }
-
-    private String getJoinKey( final String url, final TransferOperation operation )
-    {
-        return operation.name() + "::" + url;
+        return timeoutSeconds;
     }
 
 }

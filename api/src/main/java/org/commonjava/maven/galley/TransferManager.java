@@ -2,7 +2,6 @@ package org.commonjava.maven.galley;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Set;
 
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
@@ -47,6 +46,15 @@ public interface TransferManager
         throws TransferException;
 
     List<ListingResult> listAll( List<? extends Location> locations, String path )
-                    throws TransferException;
+        throws TransferException;
+
+    boolean exists( Resource resource )
+        throws TransferException;
+
+    Resource findFirstExisting( List<? extends Location> locations, String path )
+        throws TransferException;
+
+    List<Resource> findAllExisting( List<? extends Location> locations, String path )
+        throws TransferException;
 
 }

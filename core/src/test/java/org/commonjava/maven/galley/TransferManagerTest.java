@@ -5,6 +5,10 @@ import java.util.concurrent.Executors;
 
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
+import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
+import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
+import org.commonjava.maven.galley.internal.xfer.ListingHandler;
+import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
@@ -60,7 +64,12 @@ public class TransferManagerTest
         decorator = new NoOpTransferDecorator();
         executor = Executors.newSingleThreadExecutor();
 
-        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, decorator, executor );
+        final DownloadHandler dh = new DownloadHandler( nfc, executor );
+        final UploadHandler uh = new UploadHandler( nfc, executor );
+        final ListingHandler lh = new ListingHandler( nfc );
+        final ExistenceHandler eh = new ExistenceHandler( nfc );
+
+        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, decorator, dh, uh, lh, eh );
     }
 
     @Override

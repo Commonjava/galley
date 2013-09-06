@@ -13,11 +13,13 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpDownload;
+import org.commonjava.maven.galley.transport.htcli.internal.HttpExistence;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpListing;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
 import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
@@ -106,6 +108,13 @@ public class HttpClientTransport
         {
             throw new TransferException( "Failed to parse base-URL for: %s", e, repository.getUri() );
         }
+    }
+
+    @Override
+    public ExistenceJob createExistenceJob( final String url, final Resource resource, final int timeoutSeconds )
+        throws TransferException
+    {
+        return new HttpExistence( url, getHttpLocation( resource.getLocation() ), http );
     }
 
 }

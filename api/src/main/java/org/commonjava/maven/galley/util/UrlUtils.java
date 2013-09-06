@@ -6,6 +6,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
+import org.commonjava.maven.galley.model.Resource;
+
 public final class UrlUtils
 {
 
@@ -23,8 +25,7 @@ public final class UrlUtils
     {
         if ( isEmpty( dbUrl ) )
         {
-            throw new IllegalArgumentException(
-                                                "Cannot calculate sibling database URL based on empty or null database URL." );
+            throw new IllegalArgumentException( "Cannot calculate sibling database URL based on empty or null database URL." );
         }
 
         final StringBuilder sb = new StringBuilder();
@@ -48,14 +49,25 @@ public final class UrlUtils
             return sb.toString();
         }
 
-        throw new IllegalArgumentException( "Cannot calculate sibling database URL for: '" + dbUrl
-            + "' (cannot find last path separator '/')" );
+        throw new IllegalArgumentException( "Cannot calculate sibling database URL for: '" + dbUrl + "' (cannot find last path separator '/')" );
     }
 
     public static String buildUrl( final String baseUrl, final String... parts )
         throws MalformedURLException
     {
         return buildUrl( baseUrl, null, parts );
+    }
+
+    public static String buildUrl( final Resource resource )
+        throws MalformedURLException
+    {
+        final String remoteBase = resource.getLocationUri();
+        if ( remoteBase == null )
+        {
+            return null;
+        }
+
+        return buildUrl( remoteBase, resource.getPath() );
     }
 
     public static String buildUrl( final String baseUrl, final Map<String, String> params, final String... parts )
