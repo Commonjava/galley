@@ -11,6 +11,7 @@ import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -22,6 +23,7 @@ import org.junit.rules.TemporaryFolder;
  * 
  * @author jdcasey
  */
+@Ignore
 public class TransferManagerWeldTest
     extends AbstractTransferManagerTest
 {
