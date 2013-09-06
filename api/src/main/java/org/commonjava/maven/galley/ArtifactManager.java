@@ -36,4 +36,7 @@ public interface ArtifactManager
     TypeAndClassifier[] listAvailableArtifacts( Location location, ProjectVersionRef ref )
         throws TransferException;
 
+    ProjectVersionRef resolveSnapshotVersion( Location location, ProjectVersionRef ref )
+        throws TransferException;
+
 }
