@@ -23,6 +23,7 @@ import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.spi.version.VersionResolver;
 import org.commonjava.maven.galley.type.TypeMapper;
 import org.commonjava.util.logging.Logger;
 
@@ -41,7 +42,7 @@ public class ArtifactManagerImpl
     private TypeMapper mapper;
 
     @Inject
-    private ArtifactMetadataManager metadataManager;
+    private VersionResolver versionResolver;
 
     protected ArtifactManagerImpl()
     {
@@ -190,17 +191,7 @@ public class ArtifactManagerImpl
     public ProjectVersionRef resolveVariableVersion( final List<? extends Location> locations, final ProjectVersionRef ref )
         throws TransferException
     {
-        if ( ref.isRelease() )
-        {
-            return ref;
-        }
-
-        final List<Transfer> retrieveAll = metadataManager.retrieveAll( expander.expand( locations ), ref );
-        // parse versions from these
-        // apply pluggable strategy to select one
-        // use ProjectVersionRef.select() to return the selected version
-
-        return null;
+        return versionResolver.resolveVariableVersions( locations, ref );
     }
 
     @Override

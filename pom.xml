@@ -141,6 +141,11 @@
         <version>2.0.1-final</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-interpolation</artifactId>
+        <version>1.19</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   
