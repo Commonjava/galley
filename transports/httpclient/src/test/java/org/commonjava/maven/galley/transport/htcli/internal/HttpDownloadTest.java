@@ -8,7 +8,7 @@ import static org.junit.Assert.assertThat;
 import java.util.Map;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
@@ -29,7 +29,7 @@ public class HttpDownloadTest
 
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new Resource( location, fname ) );
+        final Transfer transfer = fixture.getCacheReference( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
         assertThat( transfer.exists(), equalTo( false ) );
@@ -59,7 +59,7 @@ public class HttpDownloadTest
 
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new Resource( location, fname ) );
+        final Transfer transfer = fixture.getCacheReference( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
         assertThat( transfer.exists(), equalTo( false ) );
@@ -88,7 +88,7 @@ public class HttpDownloadTest
 
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new Resource( location, fname ) );
+        final Transfer transfer = fixture.getCacheReference( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
         final String error = "Test Error.";

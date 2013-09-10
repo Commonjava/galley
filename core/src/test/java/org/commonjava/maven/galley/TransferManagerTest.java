@@ -69,7 +69,7 @@ public class TransferManagerTest
         final ListingHandler lh = new ListingHandler( nfc );
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
-        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, decorator, dh, uh, lh, eh );
+        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, decorator, dh, uh, lh, eh, Executors.newFixedThreadPool( 2 ) );
     }
 
     @Override

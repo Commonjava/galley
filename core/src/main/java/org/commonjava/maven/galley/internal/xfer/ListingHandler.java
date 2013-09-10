@@ -1,16 +1,13 @@
 package org.commonjava.maven.galley.internal.xfer;
 
-import static org.commonjava.maven.galley.util.UrlUtils.buildUrl;
-
-import java.net.MalformedURLException;
 import java.util.concurrent.TimeoutException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -34,7 +31,7 @@ public class ListingHandler
         this.nfc = nfc;
     }
 
-    public ListingResult list( final Resource resource, final int timeoutSeconds, final Transport transport, final boolean suppressFailures )
+    public ListingResult list( final ConcreteResource resource, final int timeoutSeconds, final Transport transport, final boolean suppressFailures )
         throws TransferException
     {
         if ( nfc.isMissing( resource ) )
@@ -48,26 +45,9 @@ public class ListingHandler
             return null;
         }
 
-        String url;
-        try
-        {
-            url = buildUrl( resource );
-        }
-        catch ( final MalformedURLException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Failed to build URL for resource: %s. Reason: %s", e, resource, e.getMessage() );
-            }
-            else
-            {
-                return null;
-            }
-        }
+        logger.info( "LIST %s", resource );
 
-        logger.info( "LIST %s", url );
-
-        final ListingJob job = transport.createListingJob( url, resource, timeoutSeconds );
+        final ListingJob job = transport.createListingJob( resource, timeoutSeconds );
 
         // TODO: execute this stuff in a thread just like downloads/publishes. Requires cache storage...
         try

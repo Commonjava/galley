@@ -8,20 +8,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.io.FileUtils;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.util.logging.Logger;
 
 @Named( "file-galley-cache" )
 public class FileCacheProvider
     implements CacheProvider
 {
+
+    private final Logger logger = new Logger( getClass() );
 
     @Inject
     private FileCacheProviderConfig config;
@@ -47,26 +51,45 @@ public class FileCacheProvider
     }
 
     @Override
-    public File getDetachedFile( final Resource resource )
+    public File getDetachedFile( final ConcreteResource resource )
     {
-        return new File( getFilePath( resource ) );
+        final File f = new File( getFilePath( resource ) );
+
+        final long current = System.currentTimeMillis();
+        final long lastModified = f.lastModified();
+        final int tos = resource.getTimeoutSeconds() < 0 ? Location.DEFAULT_CACHE_TIMEOUT_SECONDS : resource.getTimeoutSeconds();
+        final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
+
+        if ( current - lastModified > timeout && f.exists() )
+        {
+            try
+            {
+                FileUtils.forceDelete( f );
+            }
+            catch ( final IOException e )
+            {
+                logger.error( "Failed to delete: %s.", e, f );
+            }
+        }
+
+        return f;
     }
 
     @Override
-    public boolean isDirectory( final Resource resource )
+    public boolean isDirectory( final ConcreteResource resource )
     {
         return getDetachedFile( resource ).isDirectory();
     }
 
     @Override
-    public InputStream openInputStream( final Resource resource )
+    public InputStream openInputStream( final ConcreteResource resource )
         throws IOException
     {
         return new FileInputStream( getDetachedFile( resource ) );
     }
 
     @Override
-    public OutputStream openOutputStream( final Resource resource )
+    public OutputStream openOutputStream( final ConcreteResource resource )
         throws IOException
     {
         final File file = getDetachedFile( resource );
@@ -81,47 +104,47 @@ public class FileCacheProvider
     }
 
     @Override
-    public boolean exists( final Resource resource )
+    public boolean exists( final ConcreteResource resource )
     {
         return getDetachedFile( resource ).exists();
     }
 
     @Override
-    public void copy( final Resource from, final Resource to )
+    public void copy( final ConcreteResource from, final ConcreteResource to )
         throws IOException
     {
         FileUtils.copyFile( getDetachedFile( from ), getDetachedFile( to ) );
     }
 
     @Override
-    public boolean delete( final Resource resource )
+    public boolean delete( final ConcreteResource resource )
         throws IOException
     {
         return getDetachedFile( resource ).delete();
     }
 
     @Override
-    public String[] list( final Resource resource )
+    public String[] list( final ConcreteResource resource )
     {
         return getDetachedFile( resource ).list();
     }
 
     @Override
-    public void mkdirs( final Resource resource )
+    public void mkdirs( final ConcreteResource resource )
         throws IOException
     {
         getDetachedFile( resource ).mkdirs();
     }
 
     @Override
-    public void createFile( final Resource resource )
+    public void createFile( final ConcreteResource resource )
         throws IOException
     {
         getDetachedFile( resource ).createNewFile();
     }
 
     @Override
-    public void createAlias( final Resource from, final Resource to )
+    public void createAlias( final ConcreteResource from, final ConcreteResource to )
         throws IOException
     {
         // if the download landed in a different repository, copy it to the current one for
@@ -131,8 +154,7 @@ public class FileCacheProvider
         final String fromPath = from.getPath();
         final String toPath = to.getPath();
 
-        if ( fromKey != null && toKey != null && !fromKey.equals( toKey ) && fromPath != null && toPath != null
-            && !fromPath.equals( toPath ) )
+        if ( fromKey != null && toKey != null && !fromKey.equals( toKey ) && fromPath != null && toPath != null && !fromPath.equals( toPath ) )
         {
             if ( config.isAliasLinking() )
             {
@@ -149,11 +171,12 @@ public class FileCacheProvider
     }
 
     @Override
-    public String getFilePath( final Resource resource )
+    public String getFilePath( final ConcreteResource resource )
     {
         return Paths.get( config.getCacheBasedir()
                                 .getPath(), config.getPathGenerator()
                                                   .getFilePath( resource ) )
                     .toString();
     }
+
 }

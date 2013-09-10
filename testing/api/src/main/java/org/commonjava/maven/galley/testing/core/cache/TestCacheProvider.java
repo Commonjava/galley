@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -35,12 +35,12 @@ public class TestCacheProvider
         this.decorator = decorator;
     }
 
-    public Transfer getCacheReference( final Resource resource )
+    public Transfer getCacheReference( final ConcreteResource resource )
     {
         return new Transfer( resource, this, events, decorator );
     }
 
-    public Transfer writeClasspathResourceToCache( final Resource resource, final String cpResource )
+    public Transfer writeClasspathResourceToCache( final ConcreteResource resource, final String cpResource )
         throws IOException
     {
         final InputStream in = Thread.currentThread()
@@ -67,7 +67,7 @@ public class TestCacheProvider
         return tx;
     }
 
-    public Transfer writeToCache( final Resource resource, final String content )
+    public Transfer writeToCache( final ConcreteResource resource, final String content )
         throws IOException
     {
         if ( content == null )
@@ -91,20 +91,20 @@ public class TestCacheProvider
     }
 
     @Override
-    public boolean isDirectory( final Resource resource )
+    public boolean isDirectory( final ConcreteResource resource )
     {
         return getDetachedFile( resource ).isDirectory();
     }
 
     @Override
-    public InputStream openInputStream( final Resource resource )
+    public InputStream openInputStream( final ConcreteResource resource )
         throws IOException
     {
         return new FileInputStream( getDetachedFile( resource ) );
     }
 
     @Override
-    public OutputStream openOutputStream( final Resource resource )
+    public OutputStream openOutputStream( final ConcreteResource resource )
         throws IOException
     {
         final File f = getDetachedFile( resource );
@@ -118,13 +118,13 @@ public class TestCacheProvider
     }
 
     @Override
-    public boolean exists( final Resource resource )
+    public boolean exists( final ConcreteResource resource )
     {
         return getDetachedFile( resource ).exists();
     }
 
     @Override
-    public void copy( final Resource from, final Resource to )
+    public void copy( final ConcreteResource from, final ConcreteResource to )
         throws IOException
     {
         final File ff = getDetachedFile( from );
@@ -140,13 +140,13 @@ public class TestCacheProvider
     }
 
     @Override
-    public String getFilePath( final Resource resource )
+    public String getFilePath( final ConcreteResource resource )
     {
         return getDetachedFile( resource ).getPath();
     }
 
     @Override
-    public boolean delete( final Resource resource )
+    public boolean delete( final ConcreteResource resource )
         throws IOException
     {
         FileUtils.forceDelete( getDetachedFile( resource ) );
@@ -154,33 +154,33 @@ public class TestCacheProvider
     }
 
     @Override
-    public String[] list( final Resource resource )
+    public String[] list( final ConcreteResource resource )
     {
         return getDetachedFile( resource ).list();
     }
 
     @Override
-    public File getDetachedFile( final Resource resource )
+    public File getDetachedFile( final ConcreteResource resource )
     {
         return new File( new File( dir, resource.getLocationName() ), resource.getPath() );
     }
 
     @Override
-    public void mkdirs( final Resource resource )
+    public void mkdirs( final ConcreteResource resource )
         throws IOException
     {
         getDetachedFile( resource ).mkdirs();
     }
 
     @Override
-    public void createFile( final Resource resource )
+    public void createFile( final ConcreteResource resource )
         throws IOException
     {
         getDetachedFile( resource ).createNewFile();
     }
 
     @Override
-    public void createAlias( final Resource from, final Resource to )
+    public void createAlias( final ConcreteResource from, final ConcreteResource to )
         throws IOException
     {
         final File fromFile = getDetachedFile( from );

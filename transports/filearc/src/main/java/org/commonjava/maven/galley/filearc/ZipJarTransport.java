@@ -10,8 +10,8 @@ import org.commonjava.maven.galley.filearc.internal.ZipDownload;
 import org.commonjava.maven.galley.filearc.internal.ZipExistence;
 import org.commonjava.maven.galley.filearc.internal.ZipListing;
 import org.commonjava.maven.galley.filearc.internal.ZipPublish;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
@@ -26,26 +26,25 @@ public class ZipJarTransport
 {
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target, final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
         return new ZipDownload( target );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
-                                        final int timeoutSeconds )
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final int timeoutSeconds )
         throws TransferException
     {
-        return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
+        return createPublishJob( resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
-                                        final String contentType, final int timeoutSeconds )
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final String contentType,
+                                        final int timeoutSeconds )
         throws TransferException
     {
-        return new ZipPublish( url, stream );
+        return new ZipPublish( resource, stream );
     }
 
     @Override
@@ -56,14 +55,14 @@ public class ZipJarTransport
     }
 
     @Override
-    public ListingJob createListingJob( final String url, final Resource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final ConcreteResource resource, final int timeoutSeconds )
         throws TransferException
     {
         return new ZipListing( resource );
     }
 
     @Override
-    public ExistenceJob createExistenceJob( final String url, final Resource resource, final int timeoutSeconds )
+    public ExistenceJob createExistenceJob( final ConcreteResource resource, final int timeoutSeconds )
         throws TransferException
     {
         return new ZipExistence( resource );

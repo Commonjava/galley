@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class FileListing
@@ -15,9 +15,9 @@ public class FileListing
 
     private final File src;
 
-    private final Resource resource;
+    private final ConcreteResource resource;
 
-    public FileListing( final Resource resource, final File src )
+    public FileListing( final ConcreteResource resource, final File src )
     {
         this.resource = resource;
         this.src = src;

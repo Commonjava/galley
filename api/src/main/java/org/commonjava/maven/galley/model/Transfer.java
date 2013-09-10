@@ -16,7 +16,7 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 public final class Transfer
 {
 
-    private final Resource resource;
+    private final ConcreteResource resource;
 
     private final CacheProvider provider;
 
@@ -24,16 +24,16 @@ public final class Transfer
 
     private final FileEventManager fileEventManager;
 
-    public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager,
-                     final TransferDecorator decorator, final String... path )
+    public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager, final TransferDecorator decorator,
+                     final String... path )
     {
-        this.resource = new Resource( loc, path );
+        this.resource = new ConcreteResource( loc, path );
         this.fileEventManager = fileEventManager;
         this.decorator = decorator;
         this.provider = provider;
     }
 
-    public Transfer( final Resource resource, final CacheProvider provider, final FileEventManager fileEventManager,
+    public Transfer( final ConcreteResource resource, final CacheProvider provider, final FileEventManager fileEventManager,
                      final TransferDecorator decorator )
     {
         this.resource = resource;
@@ -57,7 +57,7 @@ public final class Transfer
         return resource.getPath();
     }
 
-    public Resource getResource()
+    public ConcreteResource getResource()
     {
         return resource;
     }
@@ -75,12 +75,12 @@ public final class Transfer
             return null;
         }
 
-        return new Transfer( resource.getParent(), provider, fileEventManager, decorator );
+        return new Transfer( (ConcreteResource) resource.getParent(), provider, fileEventManager, decorator );
     }
 
     public Transfer getChild( final String file )
     {
-        return new Transfer( resource.getChild( file ), provider, fileEventManager, decorator );
+        return new Transfer( (ConcreteResource) resource.getChild( file ), provider, fileEventManager, decorator );
     }
 
     public void touch()

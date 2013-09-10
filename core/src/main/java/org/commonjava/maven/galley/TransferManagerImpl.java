@@ -22,21 +22,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 
+import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
 import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferBatch;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -78,13 +89,18 @@ public class TransferManagerImpl
     @Inject
     private ExistenceHandler exister;
 
+    @Inject
+    @ExecutorConfig( threads = 12, daemon = true, named = "galley-batching", priority = 8 )
+    private ExecutorService executor;
+
     protected TransferManagerImpl()
     {
     }
 
     public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider, final NotFoundCache nfc,
                                 final FileEventManager fileEventManager, final TransferDecorator transferDecorator, final DownloadHandler downloader,
-                                final UploadHandler uploader, final ListingHandler lister, final ExistenceHandler exister )
+                                final UploadHandler uploader, final ListingHandler lister, final ExistenceHandler exister,
+                                final ExecutorService executor )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;
@@ -95,25 +111,25 @@ public class TransferManagerImpl
         this.uploader = uploader;
         this.lister = lister;
         this.exister = exister;
+        this.executor = executor;
     }
 
     @Override
-    public boolean exists( final Resource resource )
+    public boolean exists( final ConcreteResource resource )
         throws TransferException
     {
         return exists( resource, false );
     }
 
     @Override
-    public Resource findFirstExisting( final List<? extends Location> locations, final String path )
+    public ConcreteResource findFirstExisting( final VirtualResource virt )
         throws TransferException
     {
-        for ( final Location location : locations )
+        for ( final ConcreteResource res : virt )
         {
-            final Resource resource = new Resource( location, path );
-            if ( exists( resource, true ) )
+            if ( exists( res, true ) )
             {
-                return resource;
+                return res;
             }
         }
 
@@ -121,23 +137,22 @@ public class TransferManagerImpl
     }
 
     @Override
-    public List<Resource> findAllExisting( final List<? extends Location> locations, final String path )
+    public List<ConcreteResource> findAllExisting( final VirtualResource virt )
         throws TransferException
     {
-        final List<Resource> results = new ArrayList<>();
-        for ( final Location location : locations )
+        final List<ConcreteResource> results = new ArrayList<>();
+        for ( final ConcreteResource res : virt )
         {
-            final Resource resource = new Resource( location, path );
-            if ( exists( resource, true ) )
+            if ( exists( res, true ) )
             {
-                results.add( resource );
+                results.add( res );
             }
         }
 
         return results;
     }
 
-    private boolean exists( final Resource resource, final boolean suppressFailures )
+    private boolean exists( final ConcreteResource resource, final boolean suppressFailures )
         throws TransferException
     {
         final Transfer cached = getCacheReference( resource );
@@ -150,13 +165,13 @@ public class TransferManagerImpl
     }
 
     @Override
-    public List<ListingResult> listAll( final List<? extends Location> locations, final String path )
+    public List<ListingResult> listAll( final VirtualResource virt )
         throws TransferException
     {
         final List<ListingResult> results = new ArrayList<>();
-        for ( final Location location : locations )
+        for ( final ConcreteResource res : virt )
         {
-            final ListingResult result = doList( new Resource( location, path ), true );
+            final ListingResult result = doList( res, true );
             if ( result != null )
             {
                 results.add( result );
@@ -167,13 +182,13 @@ public class TransferManagerImpl
     }
 
     @Override
-    public ListingResult list( final Resource resource )
+    public ListingResult list( final ConcreteResource resource )
         throws TransferException
     {
         return doList( resource, false );
     }
 
-    private ListingResult doList( final Resource resource, final boolean suppressFailures )
+    private ListingResult doList( final ConcreteResource resource, final boolean suppressFailures )
         throws TransferException
     {
         final Transfer cached = getCacheReference( resource );
@@ -210,7 +225,7 @@ public class TransferManagerImpl
         return result;
     }
 
-    private Transport getTransport( final Resource resource )
+    private Transport getTransport( final ConcreteResource resource )
         throws TransferException
     {
         final Transport transport = transportManager.getTransport( resource );
@@ -223,7 +238,9 @@ public class TransferManagerImpl
                 return null;
             }
 
-            throw new TransferException( "No transports available to handle: %s", resource );
+            throw new TransferException( "No transports available to handle: %s with location type: %s", resource, resource.getLocation()
+                                                                                                                           .getClass()
+                                                                                                                           .getSimpleName() );
         }
 
         return transport;
@@ -233,26 +250,26 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#retrieveFirst(java.util.List, java.lang.String)
      */
     @Override
-    public Transfer retrieveFirst( final List<? extends Location> stores, final String path )
+    public Transfer retrieveFirst( final VirtualResource virt )
         throws TransferException
     {
         Transfer target = null;
 
-        for ( final Location store : stores )
+        for ( final ConcreteResource res : virt )
         {
-            if ( store == null )
+            if ( res == null )
             {
                 continue;
             }
 
-            target = retrieve( new Resource( store, path ), true );
+            target = retrieve( res, true );
             if ( target != null )
             {
                 return target;
             }
         }
 
-        fileEventManager.fire( new FileNotFoundEvent( stores, path ) );
+        fileEventManager.fire( new FileNotFoundEvent( virt ) );
         return null;
     }
 
@@ -260,40 +277,27 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#retrieveAll(java.util.List, java.lang.String)
      */
     @Override
-    public List<Transfer> retrieveAll( final List<? extends Location> stores, final String path )
+    public List<Transfer> retrieveAll( final VirtualResource virt )
         throws TransferException
     {
-        final List<Transfer> results = new ArrayList<Transfer>();
+        TransferBatch batch = new TransferBatch( Collections.singleton( virt ) );
+        batch = batchRetrieveAll( batch );
 
-        Transfer stream = null;
-        for ( final Location store : stores )
-        {
-            stream = retrieve( new Resource( store, path ), true );
-            if ( stream != null )
-            {
-                results.add( stream );
-            }
-        }
-
-        if ( results.isEmpty() )
-        {
-            fileEventManager.fire( new FileNotFoundEvent( stores, path ) );
-        }
-
-        return results;
+        return new ArrayList<>( batch.getTransfers()
+                                     .values() );
     }
 
     /* (non-Javadoc)
      * @see org.commonjava.maven.galley.TransferManager#retrieve(org.commonjava.maven.galley.model.Location, java.lang.String)
      */
     @Override
-    public Transfer retrieve( final Resource resource )
+    public Transfer retrieve( final ConcreteResource resource )
         throws TransferException
     {
         return retrieve( resource, false );
     }
 
-    private Transfer retrieve( final Resource resource, final boolean suppressFailures )
+    private Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures )
         throws TransferException
     {
         // TODO: Handle the case where storage isn't allowed? 
@@ -339,7 +343,7 @@ public class TransferManagerImpl
     }
 
     @Override
-    public Transfer store( final Resource resource, final InputStream stream )
+    public Transfer store( final ConcreteResource resource, final InputStream stream )
         throws TransferException
     {
         if ( !resource.allowsStoring() )
@@ -374,21 +378,20 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#store(java.util.List, java.lang.String, java.io.InputStream)
      */
     @Override
-    public Transfer store( final List<? extends Location> stores, final String path, final InputStream stream )
+    public Transfer store( final VirtualResource virt, final InputStream stream )
         throws TransferException
     {
-        final Location selected = ArtifactRules.selectStorageLocation( path, stores );
+        final ConcreteResource selected = ArtifactRules.selectStorageResource( virt );
 
         if ( selected == null )
         {
             logger.warn( "Cannot deploy. No valid deploy points in group." );
-            throw new TransferException( "No deployment locations available for: %s in: %s", path, stores );
+            throw new TransferException( "No deployment locations available for: %s in: %s", virt.getPath(), virt.getLocations() );
         }
 
-        final Resource res = new Resource( selected, path );
-        store( res, stream );
+        store( selected, stream );
 
-        return getCacheReference( res );
+        return getCacheReference( selected );
     }
 
     /* (non-Javadoc)
@@ -397,14 +400,14 @@ public class TransferManagerImpl
     @Override
     public Transfer getStoreRootDirectory( final Location key )
     {
-        return new Transfer( new Resource( key ), cacheProvider, fileEventManager, transferDecorator );
+        return new Transfer( new ConcreteResource( key ), cacheProvider, fileEventManager, transferDecorator );
     }
 
     /* (non-Javadoc)
      * @see org.commonjava.maven.galley.TransferManager#getCacheReference(org.commonjava.maven.galley.model.Location, java.lang.String)
      */
     @Override
-    public Transfer getCacheReference( final Resource resource )
+    public Transfer getCacheReference( final ConcreteResource resource )
     {
         return new Transfer( resource, cacheProvider, fileEventManager, transferDecorator );
     }
@@ -413,13 +416,13 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#deleteAll(java.util.List, java.lang.String)
      */
     @Override
-    public boolean deleteAll( final List<? extends Location> stores, final String path )
+    public boolean deleteAll( final VirtualResource virt )
         throws TransferException
     {
         boolean result = false;
-        for ( final Location store : stores )
+        for ( final ConcreteResource res : virt )
         {
-            result = delete( new Resource( store, path ) ) || result;
+            result = delete( res ) || result;
         }
 
         return result;
@@ -429,7 +432,7 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#delete(org.commonjava.maven.galley.model.Location, java.lang.String)
      */
     @Override
-    public boolean delete( final Resource resource )
+    public boolean delete( final ConcreteResource resource )
         throws TransferException
     {
         final Transfer item = getCacheReference( resource );
@@ -479,7 +482,7 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
      */
     @Override
-    public boolean publish( final Resource resource, final InputStream stream, final long length )
+    public boolean publish( final ConcreteResource resource, final InputStream stream, final long length )
         throws TransferException
     {
         return publish( resource, stream, length, null );
@@ -489,21 +492,202 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
-    public boolean publish( final Resource resource, final InputStream stream, final long length, final String contentType )
+    public boolean publish( final ConcreteResource resource, final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
         return uploader.upload( resource, stream, length, contentType, getTimeoutSeconds( resource ), getTransport( resource ) );
     }
 
-    private int getTimeoutSeconds( final Resource resource )
+    private int getTimeoutSeconds( final ConcreteResource resource )
     {
-        int timeoutSeconds = resource.getTimeoutSeconds();
-        if ( timeoutSeconds < 1 )
+        Integer timeoutSeconds = resource.getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class );
+        if ( timeoutSeconds == null )
         {
-            timeoutSeconds = Location.DEFAULT_TIMEOUT_SECONDS;
+            timeoutSeconds = Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS;
         }
 
         return timeoutSeconds;
+    }
+
+    @Override
+    public <T extends TransferBatch> T batchRetrieve( final T batch )
+        throws TransferException
+    {
+        return doBatch( batch.getResources(), batch, true );
+    }
+
+    @Override
+    public <T extends TransferBatch> T batchRetrieveAll( final T batch )
+        throws TransferException
+    {
+        final Set<Resource> resources = batch.getResources();
+        for ( final Resource resource : new HashSet<>( resources ) )
+        {
+            if ( resource instanceof VirtualResource )
+            {
+                resources.remove( resource );
+                for ( final Resource r : (VirtualResource) resource )
+                {
+                    resources.add( r );
+                }
+            }
+        }
+
+        return doBatch( resources, batch, false );
+    }
+
+    private <T extends TransferBatch> T doBatch( final Set<Resource> resources, final T batch, final boolean suppressFailures )
+        throws TransferException
+    {
+        final Set<BatchRetriever> retrievers = new HashSet<>( resources.size() );
+        for ( final Resource resource : resources )
+        {
+            retrievers.add( new BatchRetriever( this, resource, suppressFailures ) );
+        }
+
+        final Map<ConcreteResource, TransferException> errors = new HashMap<>();
+        final Map<ConcreteResource, Transfer> transfers = new HashMap<>();
+
+        int tries = 1;
+        while ( !retrievers.isEmpty() )
+        {
+            logger.info( "Starting attempt #%d to retrieve batch", tries );
+            final CountDownLatch latch = new CountDownLatch( resources.size() );
+            for ( final BatchRetriever retriever : retrievers )
+            {
+                retriever.setLatch( latch );
+                executor.execute( retriever );
+            }
+
+            try
+            {
+                latch.await();
+            }
+            catch ( final InterruptedException e )
+            {
+                logger.error( "Failed to wait for batch retrieval attempts to complete: %s", e, e.getMessage() );
+            }
+
+            for ( final BatchRetriever retriever : new HashSet<>( retrievers ) )
+            {
+                final ConcreteResource resource = retriever.getLastTry();
+                final TransferException error = retriever.getError();
+                if ( error != null )
+                {
+                    errors.put( resource, error );
+                    retrievers.remove( retriever );
+                    logger.info( "ERROR: %s...%s", error, resource, error.getMessage() );
+                    continue;
+                }
+
+                final Transfer transfer = retriever.getTransfer();
+                if ( transfer != null && transfer.exists() )
+                {
+                    transfers.put( resource, transfer );
+                    retrievers.remove( retriever );
+                    logger.info( "Completed: %s", resource );
+                    continue;
+                }
+
+                if ( !retriever.hasMoreTries() )
+                {
+                    logger.info( "Not completed, but out of tries: %s", resource );
+                    retrievers.remove( retriever );
+                }
+            }
+
+            tries++;
+        }
+
+        batch.setErrors( errors );
+        batch.setTransfers( transfers );
+
+        return batch;
+    }
+
+    private static final class BatchRetriever
+        implements Runnable
+    {
+
+        private final TransferManagerImpl xfer;
+
+        private final List<ConcreteResource> resources;
+
+        private int tries = 0;
+
+        private Transfer transfer;
+
+        private TransferException error;
+
+        private CountDownLatch latch;
+
+        private ConcreteResource lastTry;
+
+        private final boolean suppressFailures;
+
+        public BatchRetriever( final TransferManagerImpl xfer, final Resource resource, final boolean suppressFailures )
+        {
+            this.xfer = xfer;
+            this.suppressFailures = suppressFailures;
+            if ( resource instanceof ConcreteResource )
+            {
+                resources = Collections.singletonList( (ConcreteResource) resource );
+            }
+            else
+            {
+                resources = ( (VirtualResource) resource ).toConcreteResources();
+            }
+        }
+
+        public void setLatch( final CountDownLatch latch )
+        {
+            this.latch = latch;
+        }
+
+        @Override
+        public void run()
+        {
+            if ( !hasMoreTries() )
+            {
+                return;
+            }
+
+            lastTry = resources.get( tries );
+            try
+            {
+                transfer = xfer.retrieve( lastTry, suppressFailures );
+            }
+            catch ( final TransferException e )
+            {
+                error = e;
+            }
+            finally
+            {
+                tries++;
+                latch.countDown();
+            }
+        }
+
+        public boolean hasMoreTries()
+        {
+            return resources.size() > tries;
+        }
+
+        public ConcreteResource getLastTry()
+        {
+            return lastTry;
+        }
+
+        public TransferException getError()
+        {
+            return error;
+        }
+
+        public Transfer getTransfer()
+        {
+            return transfer;
+        }
+
     }
 
 }

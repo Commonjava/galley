@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
 import org.junit.Rule;
@@ -80,7 +80,7 @@ public class HttpListTest
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
 
-        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -96,7 +96,7 @@ public class HttpListTest
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
 
-        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );
@@ -114,7 +114,7 @@ public class HttpListTest
 
         fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
 
-        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );
@@ -132,7 +132,7 @@ public class HttpListTest
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
-        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -147,7 +147,7 @@ public class HttpListTest
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
-        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -165,7 +165,7 @@ public class HttpListTest
 
         fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
 
-        final HttpListing listing = new HttpListing( url, new Resource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );

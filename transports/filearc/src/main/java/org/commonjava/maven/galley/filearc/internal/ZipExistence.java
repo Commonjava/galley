@@ -12,7 +12,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 
 public class ZipExistence
@@ -21,9 +21,9 @@ public class ZipExistence
 
     private TransferException error;
 
-    private final Resource resource;
+    private final ConcreteResource resource;
 
-    public ZipExistence( final Resource resource )
+    public ZipExistence( final ConcreteResource resource )
     {
         this.resource = resource;
     }

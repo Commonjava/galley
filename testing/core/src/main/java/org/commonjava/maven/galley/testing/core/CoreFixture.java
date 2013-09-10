@@ -37,6 +37,7 @@ public class CoreFixture
         }
 
         final ExecutorService executor = Executors.newFixedThreadPool( 2 );
+        final ExecutorService batchExecutor = Executors.newFixedThreadPool( 2 );
 
         final DownloadHandler dh = new DownloadHandler( getNfc(), executor );
         final UploadHandler uh = new UploadHandler( getNfc(), executor );
@@ -45,7 +46,7 @@ public class CoreFixture
 
         if ( getTransfers() == null )
         {
-            setTransfers( new TransferManagerImpl( getTransports(), getCache(), getNfc(), getEvents(), getDecorator(), dh, uh, lh, eh ) );
+            setTransfers( new TransferManagerImpl( getTransports(), getCache(), getNfc(), getEvents(), getDecorator(), dh, uh, lh, eh, batchExecutor ) );
         }
 
         if ( getArtifacts() == null )

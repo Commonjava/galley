@@ -11,7 +11,7 @@ import java.io.OutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Level;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -52,7 +52,7 @@ public abstract class AbstractTransferManagerTest
         final Location loc = new SimpleLocation( "file:///test-repo" );
         final String path = "/path/to/test.txt";
 
-        final Resource resource = new Resource( loc, path );
+        final ConcreteResource resource = new ConcreteResource( loc, path );
 
         // put in some wrong content that will cause problems if the cache isn't used.
         getTransport().registerDownload( resource, new TestDownload( "This is WRONG".getBytes() ) );
@@ -87,7 +87,7 @@ public abstract class AbstractTransferManagerTest
         final Location loc = new SimpleLocation( "file:///test-repo" );
         final String path = "/path/to/test.txt";
 
-        final Resource resource = new Resource( loc, path );
+        final ConcreteResource resource = new ConcreteResource( loc, path );
 
         // put in the content that we want to "download"
         getTransport().registerDownload( resource, new TestDownload( testContent.getBytes() ) );

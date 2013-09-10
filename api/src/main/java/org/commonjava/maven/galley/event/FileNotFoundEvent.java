@@ -1,37 +1,19 @@
 package org.commonjava.maven.galley.event;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 
 public class FileNotFoundEvent
 {
 
-    private final List<? extends Location> locations;
+    private final Resource resource;
 
-    private final String path;
-
-    public FileNotFoundEvent( final List<? extends Location> locations, final String path )
+    public FileNotFoundEvent( final Resource resource )
     {
-        this.locations = locations;
-        this.path = path;
+        this.resource = resource;
     }
 
-    public FileNotFoundEvent( final Location store, final String path )
+    public Resource getResource()
     {
-        this.locations = Collections.singletonList( store );
-        this.path = path;
+        return resource;
     }
-
-    public List<? extends Location> getLocations()
-    {
-        return locations;
-    }
-
-    public String getPath()
-    {
-        return path;
-    }
-
 }

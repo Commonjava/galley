@@ -2,8 +2,9 @@ package org.commonjava.maven.galley;
 
 import java.util.Collection;
 
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.util.ArtifactPathInfo;
 
 public final class ArtifactRules
@@ -13,7 +14,7 @@ public final class ArtifactRules
     {
     }
 
-    public static void checkStorageAuthorization( final Resource resource )
+    public static void checkStorageAuthorization( final ConcreteResource resource )
         throws TransferException
     {
         final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( resource.getPath() );
@@ -30,48 +31,38 @@ public final class ArtifactRules
         }
     }
 
-    public static Location selectStorageLocation( final String path, final Collection<? extends Location> locations )
+    public static ConcreteResource selectStorageResource( final VirtualResource virt )
+    {
+        ConcreteResource selected = null;
+        for ( final ConcreteResource res : virt )
+        {
+            if ( res.allowsStoring() )
+            {
+                selected = res;
+                break;
+            }
+        }
+
+        return selected;
+    }
+
+    public static Location selectStorageLocation( final Collection<? extends Location> locations )
     {
         if ( locations == null )
         {
             return null;
         }
 
-        return selectStorageLocation( path, locations.toArray( new Location[locations.size()] ) );
+        return selectStorageLocation( locations.toArray( new Location[locations.size()] ) );
     }
 
-    public static Location selectStorageLocation( final String path, final Location... locations )
+    public static Location selectStorageLocation( final Location... locations )
     {
-        final ArtifactPathInfo pathInfo = ArtifactPathInfo.parse( path );
-
         Location selected = null;
         for ( final Location location : locations )
         {
-            if ( !location.allowsStoring() )
+            if ( location.allowsStoring() )
             {
-                continue;
-            }
-
-            //                logger.info( "Found deploy point: %s", store.getName() );
-            if ( pathInfo == null )
-            {
-                // probably not an artifact, most likely metadata instead...
-                //                    logger.info( "Selecting it for non-artifact storage: %s", path );
-                selected = location;
-                break;
-            }
-            else if ( pathInfo.isSnapshot() )
-            {
-                if ( location.allowsSnapshots() )
-                {
-                    //                        logger.info( "Selecting it for snapshot storage: %s", pathInfo );
-                    selected = location;
-                    break;
-                }
-            }
-            else if ( location.allowsReleases() )
-            {
-                //                    logger.info( "Selecting it for release storage: %s", pathInfo );
                 selected = location;
                 break;
             }

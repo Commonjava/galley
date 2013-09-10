@@ -6,11 +6,11 @@ import java.util.TreeSet;
 public class ListingResult
 {
 
-    private final Resource resource;
+    private final ConcreteResource resource;
 
     private final String[] listing;
 
-    public ListingResult( final Resource resource, final String[] listing )
+    public ListingResult( final ConcreteResource resource, final String[] listing )
     {
         this.resource = resource;
         this.listing = listing;

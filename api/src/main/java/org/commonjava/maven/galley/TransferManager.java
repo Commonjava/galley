@@ -3,58 +3,66 @@ package org.commonjava.maven.galley;
 import java.io.InputStream;
 import java.util.List;
 
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferBatch;
+import org.commonjava.maven.galley.model.VirtualResource;
 
 public interface TransferManager
 {
 
-    Transfer retrieveFirst( List<? extends Location> stores, String path )
+    <T extends TransferBatch> T batchRetrieve( T batch )
         throws TransferException;
 
-    List<Transfer> retrieveAll( List<? extends Location> stores, String path )
+    <T extends TransferBatch> T batchRetrieveAll( T batch )
         throws TransferException;
 
-    Transfer retrieve( Resource resource )
+    Transfer retrieveFirst( VirtualResource resource )
         throws TransferException;
 
-    Transfer store( Resource resource, InputStream stream )
+    List<Transfer> retrieveAll( VirtualResource resource )
         throws TransferException;
 
-    Transfer store( List<? extends Location> stores, String path, InputStream stream )
+    Transfer retrieve( ConcreteResource resource )
+        throws TransferException;
+
+    Transfer store( ConcreteResource resource, InputStream stream )
+        throws TransferException;
+
+    Transfer store( VirtualResource resource, InputStream stream )
         throws TransferException;
 
     Transfer getStoreRootDirectory( Location key );
 
-    Transfer getCacheReference( Resource resource );
+    Transfer getCacheReference( ConcreteResource resource );
 
-    boolean deleteAll( List<? extends Location> stores, String path )
+    boolean deleteAll( VirtualResource resource )
         throws TransferException;
 
-    boolean delete( Resource resource )
+    boolean delete( ConcreteResource resource )
         throws TransferException;
 
-    boolean publish( Resource resource, InputStream stream, long length )
+    boolean publish( ConcreteResource resource, InputStream stream, long length )
         throws TransferException;
 
-    boolean publish( Resource resource, InputStream stream, long length, String contentType )
+    boolean publish( ConcreteResource resource, InputStream stream, long length, String contentType )
         throws TransferException;
 
-    ListingResult list( Resource resource )
+    ListingResult list( ConcreteResource resource )
         throws TransferException;
 
-    List<ListingResult> listAll( List<? extends Location> locations, String path )
+    List<ListingResult> listAll( VirtualResource resource )
         throws TransferException;
 
-    boolean exists( Resource resource )
+    boolean exists( ConcreteResource resource )
         throws TransferException;
 
-    Resource findFirstExisting( List<? extends Location> locations, String path )
+    ConcreteResource findFirstExisting( VirtualResource resource )
         throws TransferException;
 
-    List<Resource> findAllExisting( List<? extends Location> locations, String path )
+    List<ConcreteResource> findAllExisting( VirtualResource resource )
         throws TransferException;
 
 }

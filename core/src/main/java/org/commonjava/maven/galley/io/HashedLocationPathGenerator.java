@@ -7,7 +7,7 @@ import javax.inject.Named;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 
 @Named( "hashed-location-galley-pathgen" )
@@ -17,7 +17,7 @@ public class HashedLocationPathGenerator
 {
 
     @Override
-    public String getFilePath( final Resource resource )
+    public String getFilePath( final ConcreteResource resource )
     {
         return Paths.get( formatLocationDir( resource.getLocation() ), resource.getPath() )
                     .toString();

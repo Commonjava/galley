@@ -1,5 +1,7 @@
 package org.commonjava.maven.galley.transport.htcli;
 
+import static org.commonjava.maven.galley.util.UrlUtils.buildUrl;
+
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,8 +11,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
@@ -53,26 +55,25 @@ public class HttpClientTransport
     }
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target, final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpDownload( url, getHttpLocation( resource.getLocation() ), target, http );
+        return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, http );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
-                                        final String contentType, final int timeoutSeconds )
-        throws TransferException
-    {
-        return new HttpPublish( url, getHttpLocation( resource.getLocation() ), stream, length, contentType, http );
-    }
-
-    @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final String contentType,
                                         final int timeoutSeconds )
         throws TransferException
     {
-        return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
+        return new HttpPublish( getUrl( resource ), getHttpLocation( resource.getLocation() ), stream, length, contentType, http );
+    }
+
+    @Override
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final int timeoutSeconds )
+        throws TransferException
+    {
+        return createPublishJob( resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
@@ -91,10 +92,11 @@ public class HttpClientTransport
     }
 
     @Override
-    public ListingJob createListingJob( final String url, final Resource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final ConcreteResource resource, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpListing( url, new Resource( getHttpLocation( resource.getLocation() ), resource.getPath() ), timeoutSeconds, http );
+        return new HttpListing( getUrl( resource ), new ConcreteResource( getHttpLocation( resource.getLocation() ), resource.getPath() ),
+                                timeoutSeconds, http );
     }
 
     private HttpLocation getHttpLocation( final Location repository )
@@ -111,10 +113,23 @@ public class HttpClientTransport
     }
 
     @Override
-    public ExistenceJob createExistenceJob( final String url, final Resource resource, final int timeoutSeconds )
+    public ExistenceJob createExistenceJob( final ConcreteResource resource, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpExistence( url, getHttpLocation( resource.getLocation() ), http );
+        return new HttpExistence( getUrl( resource ), getHttpLocation( resource.getLocation() ), http );
+    }
+
+    private String getUrl( final ConcreteResource resource )
+        throws TransferException
+    {
+        try
+        {
+            return buildUrl( resource );
+        }
+        catch ( final MalformedURLException e )
+        {
+            throw new TransferException( "Failed to build URL for resource: %s. Reason: %s", e, resource, e.getMessage() );
+        }
     }
 
 }

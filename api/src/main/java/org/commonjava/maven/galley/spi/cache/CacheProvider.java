@@ -5,40 +5,40 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 
 public interface CacheProvider
 {
 
-    boolean isDirectory( Resource resource );
+    boolean isDirectory( ConcreteResource resource );
 
-    InputStream openInputStream( Resource resource )
+    InputStream openInputStream( ConcreteResource resource )
         throws IOException;
 
-    OutputStream openOutputStream( Resource resource )
+    OutputStream openOutputStream( ConcreteResource resource )
         throws IOException;
 
-    boolean exists( Resource resource );
+    boolean exists( ConcreteResource resource );
 
-    void copy( Resource from, Resource to )
+    void copy( ConcreteResource from, ConcreteResource to )
         throws IOException;
 
-    String getFilePath( Resource resource );
+    String getFilePath( ConcreteResource resource );
 
-    boolean delete( Resource resource )
+    boolean delete( ConcreteResource resource )
         throws IOException;
 
-    String[] list( Resource resource );
+    String[] list( ConcreteResource resource );
 
-    File getDetachedFile( Resource resource );
+    File getDetachedFile( ConcreteResource resource );
 
-    void mkdirs( Resource resource )
+    void mkdirs( ConcreteResource resource )
         throws IOException;
 
-    void createFile( Resource resource )
+    void createFile( ConcreteResource resource )
         throws IOException;
 
-    void createAlias( Resource from, Resource to )
+    void createAlias( ConcreteResource from, ConcreteResource to )
         throws IOException;
 
 }

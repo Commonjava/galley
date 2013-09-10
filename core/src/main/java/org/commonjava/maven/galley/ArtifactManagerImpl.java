@@ -1,11 +1,13 @@
 package org.commonjava.maven.galley;
 
-import static org.commonjava.maven.galley.util.ArtifactFormatUtils.formatArtifactPath;
+import static org.commonjava.maven.galley.util.PathUtils.formatArtifactPath;
 
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -13,10 +15,13 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.maven.galley.model.ArtifactBatch;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.type.TypeMapper;
 import org.commonjava.util.logging.Logger;
@@ -57,7 +62,7 @@ public class ArtifactManagerImpl
         throws TransferException
     {
         final String path = formatArtifactPath( ref, mapper );
-        return transferManager.deleteAll( expander.expand( location ), path );
+        return transferManager.deleteAll( new VirtualResource( expander.expand( location ), path ) );
     }
 
     /* (non-Javadoc)
@@ -67,7 +72,7 @@ public class ArtifactManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.deleteAll( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
+        return transferManager.deleteAll( new VirtualResource( expander.expand( locations ), formatArtifactPath( ref, mapper ) ) );
     }
 
     /* (non-Javadoc)
@@ -77,7 +82,7 @@ public class ArtifactManagerImpl
     public Transfer retrieve( final Location location, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveFirst( expander.expand( location ), formatArtifactPath( ref, mapper ) );
+        return transferManager.retrieveFirst( new VirtualResource( expander.expand( location ), formatArtifactPath( ref, mapper ) ) );
     }
 
     /* (non-Javadoc)
@@ -87,7 +92,7 @@ public class ArtifactManagerImpl
     public List<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveAll( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
+        return transferManager.retrieveAll( new VirtualResource( expander.expand( locations ), formatArtifactPath( ref, mapper ) ) );
     }
 
     /* (non-Javadoc)
@@ -97,7 +102,7 @@ public class ArtifactManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.retrieveFirst( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
+        return transferManager.retrieveFirst( new VirtualResource( expander.expand( locations ), formatArtifactPath( ref, mapper ) ) );
     }
 
     /* (non-Javadoc)
@@ -107,7 +112,9 @@ public class ArtifactManagerImpl
     public Transfer store( final Location location, final ArtifactRef ref, final InputStream stream )
         throws TransferException
     {
-        return transferManager.store( expander.expand( location ), formatArtifactPath( ref, mapper ), stream );
+        final List<Location> locations = expander.expand( location );
+        final Location selected = ArtifactRules.selectStorageLocation( locations );
+        return selected == null ? null : transferManager.store( new ConcreteResource( selected, formatArtifactPath( ref, mapper ) ), stream );
     }
 
     /* (non-Javadoc)
@@ -117,7 +124,7 @@ public class ArtifactManagerImpl
     public boolean publish( final Location location, final ArtifactRef ref, final InputStream stream, final long length )
         throws TransferException
     {
-        return transferManager.publish( new Resource( location, formatArtifactPath( ref, mapper ) ), stream, length );
+        return transferManager.publish( new ConcreteResource( location, formatArtifactPath( ref, mapper ) ), stream, length );
     }
 
     @Override
@@ -125,7 +132,7 @@ public class ArtifactManagerImpl
         throws TransferException
     {
         final List<ListingResult> listingResults =
-            transferManager.listAll( expander.expand( location ), formatArtifactPath( ref.asProjectVersionRef(), mapper ) );
+            transferManager.listAll( new VirtualResource( expander.expand( location ), formatArtifactPath( ref.asProjectVersionRef(), mapper ) ) );
 
         if ( listingResults == null || listingResults.isEmpty() )
         {
@@ -197,17 +204,47 @@ public class ArtifactManagerImpl
     }
 
     @Override
-    public Resource checkExistence( final Location location, final ArtifactRef ref )
+    public ConcreteResource checkExistence( final Location location, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.findFirstExisting( expander.expand( location ), formatArtifactPath( ref, mapper ) );
+        return transferManager.findFirstExisting( new VirtualResource( expander.expand( location ), formatArtifactPath( ref, mapper ) ) );
     }
 
     @Override
-    public List<Resource> findAllExisting( final List<? extends Location> locations, final ArtifactRef ref )
+    public List<ConcreteResource> findAllExisting( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.findAllExisting( expander.expand( locations ), formatArtifactPath( ref, mapper ) );
+        return transferManager.findAllExisting( new VirtualResource( expander.expand( locations ), formatArtifactPath( ref, mapper ) ) );
+    }
+
+    private void resolveArtifactMappings( final ArtifactBatch batch )
+        throws TransferException
+    {
+        final Map<ArtifactRef, Resource> resources = new HashMap<>( batch.size() );
+        for ( final ArtifactRef artifact : batch )
+        {
+            final String path = formatArtifactPath( artifact, mapper );
+            final List<? extends Location> locations = expander.expand( batch.getLocations( artifact ) );
+            resources.put( artifact, new VirtualResource( locations, path ) );
+        }
+
+        batch.setArtifactToResourceMapping( resources );
+    }
+
+    @Override
+    public ArtifactBatch batchRetrieve( final ArtifactBatch batch )
+        throws TransferException
+    {
+        resolveArtifactMappings( batch );
+        return transferManager.batchRetrieve( batch );
+    }
+
+    @Override
+    public ArtifactBatch batchRetrieveAll( final ArtifactBatch batch )
+        throws TransferException
+    {
+        resolveArtifactMappings( batch );
+        return transferManager.batchRetrieveAll( batch );
     }
 
 }

@@ -10,7 +10,7 @@ import org.apache.log4j.Level;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
@@ -154,12 +154,12 @@ public class HttpTestFixture
         return folder.getRoot();
     }
 
-    public Transfer getCacheReference( final Resource resource )
+    public Transfer getCacheReference( final ConcreteResource resource )
     {
         return cache.getCacheReference( resource );
     }
 
-    public Transfer writeClasspathResourceToCache( final Resource resource, final String cpResource )
+    public Transfer writeClasspathResourceToCache( final ConcreteResource resource, final String cpResource )
         throws IOException
     {
         final StringBuilder path = new StringBuilder();
@@ -178,7 +178,7 @@ public class HttpTestFixture
         return cache.writeClasspathResourceToCache( resource, path.toString() );
     }
 
-    public Transfer writeToCache( final Resource resource, final String content )
+    public Transfer writeToCache( final ConcreteResource resource, final String content )
         throws IOException
     {
         return cache.writeToCache( resource, content );

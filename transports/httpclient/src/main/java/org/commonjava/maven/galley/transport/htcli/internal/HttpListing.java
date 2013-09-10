@@ -13,7 +13,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -41,11 +41,11 @@ public class HttpListing
 
     private final Http http;
 
-    private final Resource resource;
+    private final ConcreteResource resource;
 
     private final String url;
 
-    public HttpListing( final String url, final Resource resource, final int timeoutSeconds, final Http http )
+    public HttpListing( final String url, final ConcreteResource resource, final int timeoutSeconds, final Http http )
     {
         this.url = url;
         this.resource = resource;

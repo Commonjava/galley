@@ -28,7 +28,7 @@ import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.util.logging.Log4jUtil;
@@ -58,11 +58,11 @@ public abstract class CacheProviderTCK
         final String fname = dir + "file.txt";
 
         final CacheProvider provider = getCacheProvider();
-        final OutputStream out = provider.openOutputStream( new Resource( loc, fname ) );
+        final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        assertThat( provider.isDirectory( new Resource( loc, dir ) ), equalTo( true ) );
+        assertThat( provider.isDirectory( new ConcreteResource( loc, dir ) ), equalTo( true ) );
     }
 
     @Test
@@ -76,7 +76,7 @@ public abstract class CacheProviderTCK
         final String fname = dir + "file.txt";
 
         final CacheProvider provider = getCacheProvider();
-        final OutputStream out = provider.openOutputStream( new Resource( loc, fname ) );
+        final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
         out.write( content.getBytes( "UTF-8" ) );
         out.flush();
         out.close();
@@ -87,7 +87,7 @@ public abstract class CacheProviderTCK
         // live testing has these spurious foo.txt.#0 files cropping up.
         //
         // I have no idea what they are, but I'm sick of fighting JBoss bugs for now.
-        final Set<String> listing = new HashSet<String>( Arrays.asList( provider.list( new Resource( loc, dir ) ) ) );
+        final Set<String> listing = new HashSet<String>( Arrays.asList( provider.list( new ConcreteResource( loc, dir ) ) ) );
 
         System.out.printf( "\n\nFile listing is:\n\n  %s\n\n\n", join( listing, "\n  " ) );
 
@@ -105,11 +105,11 @@ public abstract class CacheProviderTCK
         final String fname = "/path/to/my/file.txt";
 
         final CacheProvider provider = getCacheProvider();
-        final OutputStream out = provider.openOutputStream( new Resource( loc, fname ) );
+        final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        assertThat( provider.exists( new Resource( loc, fname ) ), equalTo( true ) );
+        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), equalTo( true ) );
     }
 
     @Test
@@ -122,15 +122,15 @@ public abstract class CacheProviderTCK
         final String fname = "/path/to/my/file.txt";
 
         final CacheProvider provider = getCacheProvider();
-        final OutputStream out = provider.openOutputStream( new Resource( loc, fname ) );
+        final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        assertThat( provider.exists( new Resource( loc, fname ) ), equalTo( true ) );
+        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), equalTo( true ) );
 
-        provider.delete( new Resource( loc, fname ) );
+        provider.delete( new ConcreteResource( loc, fname ) );
 
-        assertThat( provider.exists( new Resource( loc, fname ) ), equalTo( false ) );
+        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), equalTo( false ) );
     }
 
     @Test
@@ -143,11 +143,11 @@ public abstract class CacheProviderTCK
         final String fname = "/path/to/my/file.txt";
 
         final CacheProvider provider = getCacheProvider();
-        final OutputStream out = provider.openOutputStream( new Resource( loc, fname ) );
+        final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        final InputStream in = provider.openInputStream( new Resource( loc, fname ) );
+        final InputStream in = provider.openInputStream( new ConcreteResource( loc, fname ) );
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int read = -1;
         final byte[] buf = new byte[512];
@@ -173,13 +173,13 @@ public abstract class CacheProviderTCK
         final Location loc2 = new SimpleLocation( "http://bar.com" );
 
         final CacheProvider provider = getCacheProvider();
-        final OutputStream out = provider.openOutputStream( new Resource( loc, fname ) );
+        final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        provider.copy( new Resource( loc, fname ), new Resource( loc2, fname ) );
+        provider.copy( new ConcreteResource( loc, fname ), new ConcreteResource( loc2, fname ) );
 
-        final InputStream in = provider.openInputStream( new Resource( loc2, fname ) );
+        final InputStream in = provider.openInputStream( new ConcreteResource( loc2, fname ) );
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int read = -1;
         final byte[] buf = new byte[512];

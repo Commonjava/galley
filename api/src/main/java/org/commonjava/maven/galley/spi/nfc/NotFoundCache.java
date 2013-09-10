@@ -4,18 +4,18 @@ import java.util.Map;
 import java.util.Set;
 
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 
 public interface NotFoundCache
 {
 
-    void addMissing( Resource resource );
+    void addMissing( ConcreteResource resource );
 
-    boolean isMissing( Resource resource );
+    boolean isMissing( ConcreteResource resource );
 
     void clearMissing( Location location );
 
-    void clearMissing( Resource resource );
+    void clearMissing( ConcreteResource resource );
 
     void clearAllMissing();
 

@@ -6,7 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 
 public final class UrlUtils
 {
@@ -58,7 +58,7 @@ public final class UrlUtils
         return buildUrl( baseUrl, null, parts );
     }
 
-    public static String buildUrl( final Resource resource )
+    public static String buildUrl( final ConcreteResource resource )
         throws MalformedURLException
     {
         final String remoteBase = resource.getLocationUri();

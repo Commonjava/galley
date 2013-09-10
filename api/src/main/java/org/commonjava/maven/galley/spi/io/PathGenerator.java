@@ -1,8 +1,8 @@
 package org.commonjava.maven.galley.spi.io;
 
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 
 public interface PathGenerator
 {
-    String getFilePath( final Resource resource );
+    String getFilePath( final ConcreteResource resource );
 }

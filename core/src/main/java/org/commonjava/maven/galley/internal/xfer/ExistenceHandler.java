@@ -1,15 +1,12 @@
 package org.commonjava.maven.galley.internal.xfer;
 
-import static org.commonjava.maven.galley.util.UrlUtils.buildUrl;
-
-import java.net.MalformedURLException;
 import java.util.concurrent.TimeoutException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -33,7 +30,7 @@ public class ExistenceHandler
         this.nfc = nfc;
     }
 
-    public boolean exists( final Resource resource, final int timeoutSeconds, final Transport transport, final boolean suppressFailures )
+    public boolean exists( final ConcreteResource resource, final int timeoutSeconds, final Transport transport, final boolean suppressFailures )
         throws TransferException
     {
         if ( nfc.isMissing( resource ) )
@@ -47,26 +44,9 @@ public class ExistenceHandler
             return false;
         }
 
-        String url;
-        try
-        {
-            url = buildUrl( resource );
-        }
-        catch ( final MalformedURLException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Failed to build URL for resource: %s. Reason: %s", e, resource, e.getMessage() );
-            }
-            else
-            {
-                return false;
-            }
-        }
+        logger.info( "EXISTS %s", resource );
 
-        logger.info( "EXISTS %s", url );
-
-        final ExistenceJob job = transport.createExistenceJob( url, resource, timeoutSeconds );
+        final ExistenceJob job = transport.createExistenceJob( resource, timeoutSeconds );
 
         // TODO: execute this stuff in a thread just like downloads/publishes. Requires cache storage...
         try

@@ -14,7 +14,7 @@ import java.util.zip.ZipFile;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class ZipListing
@@ -23,9 +23,9 @@ public class ZipListing
 
     private TransferException error;
 
-    private final Resource resource;
+    private final ConcreteResource resource;
 
-    public ZipListing( final Resource resource )
+    public ZipListing( final ConcreteResource resource )
     {
         this.resource = resource;
     }

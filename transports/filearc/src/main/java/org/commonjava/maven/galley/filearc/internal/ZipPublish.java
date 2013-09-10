@@ -2,8 +2,6 @@ package org.commonjava.maven.galley.filearc.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchiveFile;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchivePath;
 import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
 
 import java.io.File;
@@ -18,6 +16,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 
 public class ZipPublish
@@ -28,11 +27,11 @@ public class ZipPublish
 
     private TransferException error;
 
-    private final String destUri;
+    private final ConcreteResource resource;
 
-    public ZipPublish( final String destUri, final InputStream stream )
+    public ZipPublish( final ConcreteResource resource, final InputStream stream )
     {
-        this.destUri = destUri;
+        this.resource = resource;
         this.stream = stream;
     }
 
@@ -45,8 +44,8 @@ public class ZipPublish
     @Override
     public Boolean call()
     {
-        final String path = getArchivePath( destUri );
-        final File dest = getArchiveFile( destUri );
+        final String path = resource.getPath();
+        final File dest = new File( resource.getLocationUri() );
 
         if ( dest.exists() )
         {
@@ -80,9 +79,7 @@ public class ZipPublish
         }
         catch ( final IOException e )
         {
-            error =
-                new TransferException( "Failed to write path: %s to NEW archive: %s. Reason: %s", e, path, dest,
-                                       e.getMessage() );
+            error = new TransferException( "Failed to write path: %s to NEW archive: %s. Reason: %s", e, path, dest, e.getMessage() );
         }
         finally
         {
@@ -144,9 +141,7 @@ public class ZipPublish
         }
         catch ( final IOException e )
         {
-            error =
-                new TransferException( "Failed to write path: %s to EXISTING archive: %s. Reason: %s", e, path, dest,
-                                       e.getMessage() );
+            error = new TransferException( "Failed to write path: %s to EXISTING archive: %s. Reason: %s", e, path, dest, e.getMessage() );
         }
         finally
         {

@@ -5,7 +5,11 @@ import java.util.Map;
 public interface Location
 {
 
-    int DEFAULT_TIMEOUT_SECONDS = 30;
+    String CONNECTION_TIMEOUT_SECONDS = "connection-timeout";
+
+    int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 30;
+
+    int DEFAULT_CACHE_TIMEOUT_SECONDS = 86400;
 
     boolean allowsDownloading();
 

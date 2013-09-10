@@ -1,5 +1,6 @@
 package org.commonjava.maven.galley.util;
 
+import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.galley.ArtifactMetadataManager.DEFAULT_FILENAME;
 
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
@@ -10,11 +11,46 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.TypeMapping;
 import org.commonjava.maven.galley.type.TypeMapper;
 
-public final class ArtifactFormatUtils
+public final class PathUtils
 {
 
-    private ArtifactFormatUtils()
+    public static final String ROOT = "/";
+
+    private static final String[] ROOT_ARRY = { ROOT };
+
+    private PathUtils()
     {
+    }
+
+    public static String[] parentPath( final String path )
+    {
+        final String[] parts = path.split( "/" );
+        if ( parts.length == 1 )
+        {
+            return ROOT_ARRY;
+        }
+        else
+        {
+            final String[] parentParts = new String[parts.length - 1];
+            System.arraycopy( parts, 0, parentParts, 0, parentParts.length );
+            return parentParts;
+        }
+    }
+
+    public static String normalize( final String... path )
+    {
+        if ( path == null || path.length < 1 )
+        {
+            return ROOT;
+        }
+
+        String result = join( path, "/" );
+        while ( result.startsWith( "/" ) && result.length() > 1 )
+        {
+            result = result.substring( 1 );
+        }
+
+        return result;
     }
 
     public static String formatMetadataPath( final ProjectRef ref, final String filename )
@@ -29,7 +65,7 @@ public final class ArtifactFormatUtils
         if ( ref instanceof ProjectVersionRef )
         {
             sb.append( '/' )
-              .append( ArtifactFormatUtils.formatVersionDirectoryPart( (ProjectVersionRef) ref ) );
+              .append( PathUtils.formatVersionDirectoryPart( (ProjectVersionRef) ref ) );
         }
 
         sb.append( '/' )
@@ -55,9 +91,9 @@ public final class ArtifactFormatUtils
             return String.format( "%s/%s/%s/%s-%s%s.%s", 
                                   ref.getGroupId().replace('.', '/'), 
                                   ref.getArtifactId(), 
-                                  ArtifactFormatUtils.formatVersionDirectoryPart( ref ),
+                                  PathUtils.formatVersionDirectoryPart( ref ),
                                   ref.getArtifactId(), 
-                                  ArtifactFormatUtils.formatVersionFilePart( ref ), 
+                                  PathUtils.formatVersionFilePart( ref ), 
                                   ( tm.getClassifier() == null ? "" : "-" + tm.getClassifier() ), 
                                   tm.getExtension() );
         }
@@ -66,7 +102,7 @@ public final class ArtifactFormatUtils
             return String.format( "%s/%s/%s/", 
                                   src.getGroupId().replace('.', '/'), 
                                   src.getArtifactId(), 
-                                  ArtifactFormatUtils.formatVersionDirectoryPart( src ) );
+                                  PathUtils.formatVersionDirectoryPart( src ) );
         }
         /* @formatter:on */
     }

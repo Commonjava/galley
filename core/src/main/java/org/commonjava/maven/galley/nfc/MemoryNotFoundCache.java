@@ -9,7 +9,7 @@ import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 
 @Named( "memory-galley-nfc" )
@@ -23,7 +23,7 @@ public class MemoryNotFoundCache
     private final Map<Location, Set<String>> missing = new HashMap<>();
 
     @Override
-    public void addMissing( final Resource resource )
+    public void addMissing( final ConcreteResource resource )
     {
         //        logger.info( "Adding to NFC: %s", resource );
         Set<String> missing = this.missing.get( resource.getLocation() );
@@ -37,7 +37,7 @@ public class MemoryNotFoundCache
     }
 
     @Override
-    public boolean isMissing( final Resource resource )
+    public boolean isMissing( final ConcreteResource resource )
     {
         final Set<String> missing = this.missing.get( resource.getLocation() );
         //        logger.info( "Checking NFC listing: %s for path: %s in: %s", missing, resource.getPath(), resource.getLocation() );
@@ -52,7 +52,7 @@ public class MemoryNotFoundCache
     }
 
     @Override
-    public void clearMissing( final Resource resource )
+    public void clearMissing( final ConcreteResource resource )
     {
         //        logger.info( "Clearing from NFC: %s", resource );
         final Set<String> missing = this.missing.get( resource.getLocation() );

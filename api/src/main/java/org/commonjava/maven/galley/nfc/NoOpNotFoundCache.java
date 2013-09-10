@@ -8,7 +8,7 @@ import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 
 @Named( "no-op-galley-nfc" )
@@ -18,12 +18,12 @@ public class NoOpNotFoundCache
 {
 
     @Override
-    public void addMissing( final Resource resource )
+    public void addMissing( final ConcreteResource resource )
     {
     }
 
     @Override
-    public boolean isMissing( final Resource resource )
+    public boolean isMissing( final ConcreteResource resource )
     {
         return false;
     }
@@ -34,7 +34,7 @@ public class NoOpNotFoundCache
     }
 
     @Override
-    public void clearMissing( final Resource resource )
+    public void clearMissing( final ConcreteResource resource )
     {
     }
 

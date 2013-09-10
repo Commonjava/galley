@@ -1,8 +1,5 @@
 package org.commonjava.maven.galley.internal.xfer;
 
-import static org.commonjava.maven.galley.util.UrlUtils.buildUrl;
-
-import java.net.MalformedURLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -16,7 +13,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -32,7 +29,7 @@ public class DownloadHandler
     @Inject
     private NotFoundCache nfc;
 
-    private final Map<String, Future<Transfer>> pending = new ConcurrentHashMap<>();
+    private final Map<Transfer, Future<Transfer>> pending = new ConcurrentHashMap<>();
 
     @Inject
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
@@ -48,33 +45,13 @@ public class DownloadHandler
         this.executor = executor;
     }
 
-    public Transfer download( final Resource resource, final Transfer target, final int timeoutSeconds, final Transport transport,
+    // FIXME: download batch
+
+    public Transfer download( final ConcreteResource resource, final Transfer target, final int timeoutSeconds, final Transport transport,
                               final boolean suppressFailures )
         throws TransferException
     {
         if ( !resource.allowsDownloading() )
-        {
-            return null;
-        }
-
-        String url;
-        try
-        {
-            url = buildUrl( resource );
-        }
-        catch ( final MalformedURLException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Failed to build URL for resource: %s. Reason: %s", e, resource, e.getMessage() );
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        if ( url == null )
         {
             return null;
         }
@@ -85,7 +62,7 @@ public class DownloadHandler
             return null;
         }
 
-        logger.info( "RETRIEVE %s", url );
+        logger.info( "RETRIEVE %s", resource );
 
         //        if ( nfc.hasEntry( url ) )
         //        {
@@ -93,16 +70,16 @@ public class DownloadHandler
         //            return false;
         //        }
 
-        Transfer result = joinDownload( url, target, timeoutSeconds, suppressFailures );
+        Transfer result = joinDownload( target, timeoutSeconds, suppressFailures );
         if ( result == null )
         {
-            result = startDownload( url, resource, target, timeoutSeconds, transport, suppressFailures );
+            result = startDownload( resource, target, timeoutSeconds, transport, suppressFailures );
         }
 
         return result;
     }
 
-    private Transfer joinDownload( final String url, final Transfer target, final int timeoutSeconds, final boolean suppressFailures )
+    private Transfer joinDownload( final Transfer target, final int timeoutSeconds, final boolean suppressFailures )
         throws TransferException
     {
         // if the target file already exists, skip joining.
@@ -112,7 +89,7 @@ public class DownloadHandler
         }
         else
         {
-            final Future<Transfer> future = pending.get( url );
+            final Future<Transfer> future = pending.get( target );
             if ( future != null )
             {
                 Transfer f = null;
@@ -126,21 +103,21 @@ public class DownloadHandler
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( "Download interrupted: %s", e, url );
+                        throw new TransferException( "Download interrupted: %s", e, target );
                     }
                 }
                 catch ( final ExecutionException e )
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( "Download failed: %s", e, url );
+                        throw new TransferException( "Download failed: %s", e, target );
                     }
                 }
                 catch ( final TimeoutException e )
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( "Timeout on: %s", e, url );
+                        throw new TransferException( "Timeout on: %s", e, target );
                     }
                 }
             }
@@ -149,8 +126,8 @@ public class DownloadHandler
         return null;
     }
 
-    private Transfer startDownload( final String url, final Resource resource, final Transfer target, final int timeoutSeconds,
-                                    final Transport transport, final boolean suppressFailures )
+    private Transfer startDownload( final ConcreteResource resource, final Transfer target, final int timeoutSeconds, final Transport transport,
+                                    final boolean suppressFailures )
         throws TransferException
     {
         if ( target.exists() )
@@ -163,10 +140,10 @@ public class DownloadHandler
             return null;
         }
 
-        final DownloadJob job = transport.createDownloadJob( url, resource, target, timeoutSeconds );
+        final DownloadJob job = transport.createDownloadJob( resource, target, timeoutSeconds );
 
         final Future<Transfer> future = executor.submit( job );
-        pending.put( url, future );
+        pending.put( target, future );
         try
         {
             final Transfer downloaded = future.get( timeoutSeconds, TimeUnit.SECONDS );
@@ -193,27 +170,27 @@ public class DownloadHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Interrupted download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
+                throw new TransferException( "Interrupted download: %s. Reason: %s", e, resource, e.getMessage() );
             }
         }
         catch ( final ExecutionException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed to download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
+                throw new TransferException( "Failed to download: %s. Reason: %s", e, resource, e.getMessage() );
             }
         }
         catch ( final TimeoutException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: %s from: %s. Reason: %s", e, url, resource, e.getMessage() );
+                throw new TransferException( "Timed-out download: %s. Reason: %s", e, resource, e.getMessage() );
             }
         }
         finally
         {
             //            logger.info( "Marking download complete: %s", url );
-            pending.remove( url );
+            pending.remove( target );
         }
 
         return null;

@@ -12,6 +12,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -54,8 +55,8 @@ public final class HttpDownload
 
         try
         {
-            final InputStream in = executeGet( request, url );
-            writeTarget( target, in, url, location );
+            final HttpResponse response = executeGet( request, url );
+            writeTarget( target, request, response, url, location );
         }
         catch ( final TransferException e )
         {
@@ -75,20 +76,24 @@ public final class HttpDownload
         return error;
     }
 
-    private void writeTarget( final Transfer target, final InputStream in, final String url, final Location repository )
+    private void writeTarget( final Transfer target, final HttpGet request, final HttpResponse response, final String url, final Location repository )
         throws TransferException
     {
         OutputStream out = null;
-        if ( in != null )
+        if ( response != null )
         {
+            InputStream in = null;
             try
             {
+                in = response.getEntity()
+                             .getContent();
                 out = target.openOutputStream( TransferOperation.DOWNLOAD, false );
 
                 copy( in, out );
             }
             catch ( final IOException e )
             {
+                request.abort();
                 throw new TransferException( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", e, target, url, e.getMessage() );
             }
             finally
@@ -99,11 +104,9 @@ public final class HttpDownload
         }
     }
 
-    private InputStream executeGet( final HttpGet request, final String url )
+    private HttpResponse executeGet( final HttpGet request, final String url )
         throws TransferException
     {
-        InputStream result = null;
-
         try
         {
             final HttpResponse response = http.getClient()
@@ -112,10 +115,12 @@ public final class HttpDownload
             final int sc = line.getStatusCode();
             if ( sc != HttpStatus.SC_OK )
             {
+                EntityUtils.consume( response.getEntity() );
+
                 logger.warn( "%s : %s", line, url );
                 if ( sc == HttpStatus.SC_NOT_FOUND )
                 {
-                    result = null;
+                    return null;
                 }
                 else
                 {
@@ -124,8 +129,7 @@ public final class HttpDownload
             }
             else
             {
-                result = response.getEntity()
-                                 .getContent();
+                return response;
             }
         }
         catch ( final ClientProtocolException e )
@@ -136,15 +140,12 @@ public final class HttpDownload
         {
             throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
         }
-
-        return result;
     }
 
     private void cleanup( final HttpGet request )
     {
         http.clearBoundCredentials( location );
-        request.abort();
-        http.closeConnection();
+        //        http.closeConnection();
     }
 
 }

@@ -12,8 +12,8 @@ import org.commonjava.maven.galley.filearc.internal.FileDownload;
 import org.commonjava.maven.galley.filearc.internal.FileExistence;
 import org.commonjava.maven.galley.filearc.internal.FileListing;
 import org.commonjava.maven.galley.filearc.internal.FilePublish;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -21,6 +21,7 @@ import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.util.PathUtils;
 
 @ApplicationScoped
 @Named( "file-galley-transport" )
@@ -46,24 +47,23 @@ public class FileTransport
     }
 
     @Override
-    public DownloadJob createDownloadJob( final String url, final Resource resource, final Transfer target, final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
-        final File src = new File( url );
+        final File src = getFile( resource );
         return new FileDownload( target, src );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
-                                        final int timeoutSeconds )
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final int timeoutSeconds )
         throws TransferException
     {
-        return createPublishJob( url, resource, stream, length, null, timeoutSeconds );
+        return createPublishJob( resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
-    public PublishJob createPublishJob( final String url, final Resource resource, final InputStream stream, final long length,
-                                        final String contentType, final int timeoutSeconds )
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final String contentType,
+                                        final int timeoutSeconds )
         throws TransferException
     {
         final File pubDir = config.getPubDir();
@@ -91,18 +91,24 @@ public class FileTransport
     }
 
     @Override
-    public ListingJob createListingJob( final String url, final Resource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final ConcreteResource resource, final int timeoutSeconds )
         throws TransferException
     {
-        final File src = new File( url );
+        final File src = getFile( resource );
         return new FileListing( resource, src );
     }
 
     @Override
-    public ExistenceJob createExistenceJob( final String url, final Resource resource, final int timeoutSeconds )
+    public ExistenceJob createExistenceJob( final ConcreteResource resource, final int timeoutSeconds )
         throws TransferException
     {
-        return new FileExistence( new File( url ) );
+        final File src = getFile( resource );
+        return new FileExistence( src );
+    }
+
+    private File getFile( final ConcreteResource resource )
+    {
+        return new File( PathUtils.normalize( resource.getLocationUri(), resource.getPath() ) );
     }
 
 }
