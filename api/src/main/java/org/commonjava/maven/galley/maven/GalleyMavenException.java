@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 import java.util.IllegalFormatException;
 
 public class GalleyMavenException
-    extends Exception
+    extends RuntimeException
 {
     private static final long serialVersionUID = 1L;
 

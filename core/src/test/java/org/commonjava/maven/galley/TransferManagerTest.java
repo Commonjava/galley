@@ -18,6 +18,7 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
+import org.commonjava.maven.galley.type.StandardTypeMapper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -56,7 +57,7 @@ public class TransferManagerTest
     @Before
     public void setup()
     {
-        transport = new TestTransport();
+        transport = new TestTransport( new StandardTypeMapper() );
         transportMgr = new TransportManagerImpl( transport );
         cacheProvider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
         nfc = new MemoryNotFoundCache();

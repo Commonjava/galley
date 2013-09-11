@@ -5,6 +5,7 @@ import org.commonjava.maven.galley.ArtifactMetadataManager;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.maven.reader.MavenPomReader;
 import org.commonjava.maven.galley.nfc.NoOpNotFoundCache;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -46,6 +47,8 @@ public class ApiFixture
 
     private StandardTypeMapper mapper;
 
+    private MavenPomReader pomReader;
+
     public ApiFixture()
     {
         temp = new TemporaryFolder();
@@ -62,9 +65,15 @@ public class ApiFixture
         {
             locations = new NoOpLocationExpander();
         }
+
+        if ( mapper == null )
+        {
+            mapper = new StandardTypeMapper();
+        }
+
         if ( transport == null )
         {
-            transport = new TestTransport();
+            transport = new TestTransport( mapper );
         }
 
         if ( decorator == null )
@@ -84,9 +93,9 @@ public class ApiFixture
             cache = new TestCacheProvider( temp.newFolder( "cache" ), events, decorator );
         }
 
-        if ( mapper == null )
+        if ( pomReader == null && artifacts != null )
         {
-            mapper = new StandardTypeMapper();
+            pomReader = new MavenPomReader( artifacts );
         }
     }
 
@@ -140,39 +149,46 @@ public class ApiFixture
         return nfc;
     }
 
-    public void setTemp( final TemporaryFolder temp )
+    public ApiFixture setTemp( final TemporaryFolder temp )
     {
         this.temp = temp;
+        return this;
     }
 
-    public void setLocations( final LocationExpander locations )
+    public ApiFixture setLocations( final LocationExpander locations )
     {
         this.locations = locations;
+        return this;
     }
 
-    public void setDecorator( final TransferDecorator decorator )
+    public ApiFixture setDecorator( final TransferDecorator decorator )
     {
         this.decorator = decorator;
+        return this;
     }
 
-    public void setEvents( final FileEventManager events )
+    public ApiFixture setEvents( final FileEventManager events )
     {
         this.events = events;
+        return this;
     }
 
-    public void setCache( final TestCacheProvider cache )
+    public ApiFixture setCache( final TestCacheProvider cache )
     {
         this.cache = cache;
+        return this;
     }
 
-    public void setTransport( final TestTransport transport )
+    public ApiFixture setTransport( final TestTransport transport )
     {
         this.transport = transport;
+        return this;
     }
 
-    public void setNfc( final NotFoundCache nfc )
+    public ApiFixture setNfc( final NotFoundCache nfc )
     {
         this.nfc = nfc;
+        return this;
     }
 
     public TransportManager getTransports()
@@ -195,24 +211,28 @@ public class ApiFixture
         return metadata;
     }
 
-    public void setTransports( final TransportManager transports )
+    public ApiFixture setTransports( final TransportManager transports )
     {
         this.transports = transports;
+        return this;
     }
 
-    public void setTransfers( final TransferManager transfers )
+    public ApiFixture setTransfers( final TransferManager transfers )
     {
         this.transfers = transfers;
+        return this;
     }
 
-    public void setArtifacts( final ArtifactManager artifacts )
+    public ApiFixture setArtifacts( final ArtifactManager artifacts )
     {
         this.artifacts = artifacts;
+        return this;
     }
 
-    public void setMetadata( final ArtifactMetadataManager metadata )
+    public ApiFixture setMetadata( final ArtifactMetadataManager metadata )
     {
         this.metadata = metadata;
+        return this;
     }
 
     public StandardTypeMapper getMapper()
@@ -220,9 +240,21 @@ public class ApiFixture
         return mapper;
     }
 
-    public void setMapper( final StandardTypeMapper mapper )
+    public ApiFixture setMapper( final StandardTypeMapper mapper )
     {
         this.mapper = mapper;
+        return this;
+    }
+
+    public MavenPomReader getPomReader()
+    {
+        return pomReader;
+    }
+
+    public ApiFixture setPomReader( final MavenPomReader pomReader )
+    {
+        this.pomReader = pomReader;
+        return this;
     }
 
 }

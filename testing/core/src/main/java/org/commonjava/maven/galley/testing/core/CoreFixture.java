@@ -53,6 +53,8 @@ public class CoreFixture
         {
             setArtifacts( new ArtifactManagerImpl( getTransfers(), getLocations(), getMapper() ) );
         }
+
+        super.initMissingComponents();
     }
 
 }

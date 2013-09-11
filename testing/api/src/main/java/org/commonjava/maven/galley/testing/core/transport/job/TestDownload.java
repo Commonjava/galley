@@ -1,5 +1,7 @@
 package org.commonjava.maven.galley.testing.core.transport.job;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -30,6 +32,21 @@ public class TestDownload
     public TestDownload( final byte[] data )
     {
         this.data = data;
+        this.error = null;
+    }
+
+    public TestDownload( final String classpathResource )
+        throws IOException
+    {
+        final InputStream stream = Thread.currentThread()
+                                         .getContextClassLoader()
+                                         .getResourceAsStream( classpathResource );
+        if ( stream == null )
+        {
+            throw new IllegalArgumentException( "classpath resource: " + classpathResource + " is missing." );
+        }
+
+        this.data = IOUtils.toByteArray( stream );
         this.error = null;
     }
 

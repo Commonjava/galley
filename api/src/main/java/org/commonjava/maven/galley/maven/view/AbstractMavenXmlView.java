@@ -48,7 +48,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         return resolveXPathExpression( expression.replace( '.', '/' ), -1 );
     }
 
-    protected final String resolveXPathExpression( String path, final int maxCount )
+    public final String resolveXPathExpression( String path, final int maxAncestry )
         throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
@@ -56,7 +56,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
             path += "/text()";
         }
 
-        final Node result = resolveXPathToNode( path, maxCount );
+        final Node result = resolveXPathToNode( path, maxAncestry );
         if ( result != null && result.getNodeType() == Node.TEXT_NODE )
         {
             return resolveExpressions( result.getTextContent()
@@ -66,7 +66,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         return null;
     }
 
-    protected final List<String> resolveXPathExpressionToList( String path, final int maxCount )
+    public final List<String> resolveXPathExpressionToList( String path, final int maxAncestry )
         throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
@@ -74,7 +74,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
             path += "/text()";
         }
 
-        final List<Node> nodes = resolveXPathToNodeList( path, maxCount );
+        final List<Node> nodes = resolveXPathToNodeList( path, maxAncestry );
         final List<String> result = new ArrayList<>( nodes.size() );
         for ( final Node node : nodes )
         {
@@ -88,7 +88,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    protected synchronized Node resolveXPathToNode( final String path, final int maxCount )
+    public final synchronized Node resolveXPathToNode( final String path, final int maxAncestry )
         throws GalleyMavenException
     {
         try
@@ -100,11 +100,11 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
                 xpaths.put( path, expression );
             }
 
-            final int count = 0;
+            int ancestryDepth = 0;
             Node result = null;
             for ( final DocRef<T> dr : stack )
             {
-                if ( maxCount > -1 && count > maxCount )
+                if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
                 {
                     break;
                 }
@@ -115,6 +115,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
                 }
 
                 result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
+                ancestryDepth++;
             }
 
             return result;
@@ -125,7 +126,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         }
     }
 
-    protected synchronized List<Node> resolveXPathToNodeList( final String path, final int maxCount )
+    public final synchronized List<Node> resolveXPathToNodeList( final String path, final int maxAncestry )
         throws GalleyMavenException
     {
         try
@@ -137,11 +138,11 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
                 xpaths.put( path, expression );
             }
 
-            final int count = 0;
+            int ancestryDepth = 0;
             final List<Node> result = new ArrayList<>();
             for ( final DocRef<T> dr : stack )
             {
-                if ( maxCount > -1 && count > maxCount )
+                if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
                 {
                     break;
                 }
@@ -153,6 +154,98 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
                     {
                         result.add( nl.item( i ) );
                     }
+                }
+
+                ancestryDepth++;
+            }
+
+            return result;
+        }
+        catch ( final XPathExpressionException e )
+        {
+            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+        }
+    }
+
+    public final String resolveXPathExpressionFrom( final Node root, String path )
+        throws GalleyMavenException
+    {
+        if ( !path.endsWith( "/text()" ) )
+        {
+            path += "/text()";
+        }
+
+        final Node result = resolveXPathToNodeFrom( root, path );
+        if ( result != null && result.getNodeType() == Node.TEXT_NODE )
+        {
+            return resolveExpressions( result.getTextContent()
+                                             .trim() );
+        }
+
+        return null;
+    }
+
+    public final List<String> resolveXPathExpressionToListFrom( final Node root, String path )
+        throws GalleyMavenException
+    {
+        if ( !path.endsWith( "/text()" ) )
+        {
+            path += "/text()";
+        }
+
+        final List<Node> nodes = resolveXPathToNodeListFrom( root, path );
+        final List<String> result = new ArrayList<>( nodes.size() );
+        for ( final Node node : nodes )
+        {
+            if ( node != null && node.getNodeType() == Node.TEXT_NODE )
+            {
+                result.add( resolveExpressions( node.getTextContent()
+                                                    .trim() ) );
+            }
+        }
+
+        return result;
+    }
+
+    public final synchronized Node resolveXPathToNodeFrom( final Node root, final String path )
+        throws GalleyMavenException
+    {
+        try
+        {
+            XPathExpression expression = xpaths.get( path );
+            if ( expression == null )
+            {
+                expression = xpath.compile( path );
+                xpaths.put( path, expression );
+            }
+
+            return (Node) expression.evaluate( root, XPathConstants.NODE );
+        }
+        catch ( final XPathExpressionException e )
+        {
+            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+        }
+    }
+
+    public final synchronized List<Node> resolveXPathToNodeListFrom( final Node root, final String path )
+        throws GalleyMavenException
+    {
+        try
+        {
+            XPathExpression expression = xpaths.get( path );
+            if ( expression == null )
+            {
+                expression = xpath.compile( path );
+                xpaths.put( path, expression );
+            }
+
+            final List<Node> result = new ArrayList<>();
+            final NodeList nl = (NodeList) expression.evaluate( root, XPathConstants.NODESET );
+            if ( nl != null )
+            {
+                for ( int i = 0; i < nl.getLength(); i++ )
+                {
+                    result.add( nl.item( i ) );
                 }
             }
 
