@@ -37,18 +37,18 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
                                  .newXPath();
     }
 
-    public final List<DocRef<T>> getDocRefStack()
+    public List<DocRef<T>> getDocRefStack()
     {
         return stack;
     }
 
-    public final String resolveMavenExpression( final String expression )
+    public String resolveMavenExpression( final String expression )
         throws GalleyMavenException
     {
         return resolveXPathExpression( expression.replace( '.', '/' ), -1 );
     }
 
-    public final String resolveXPathExpression( String path, final int maxAncestry )
+    public String resolveXPathExpression( String path, final int maxAncestry )
         throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
@@ -66,7 +66,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         return null;
     }
 
-    public final List<String> resolveXPathExpressionToList( String path, final int maxAncestry )
+    public List<String> resolveXPathExpressionToList( String path, final int maxAncestry )
         throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
@@ -88,7 +88,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    public final synchronized Node resolveXPathToNode( final String path, final int maxAncestry )
+    public synchronized Node resolveXPathToNode( final String path, final int maxAncestry )
         throws GalleyMavenException
     {
         try
@@ -126,7 +126,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         }
     }
 
-    public final synchronized List<Node> resolveXPathToNodeList( final String path, final int maxAncestry )
+    public synchronized List<Node> resolveXPathToNodeList( final String path, final int maxAncestry )
         throws GalleyMavenException
     {
         try
@@ -167,7 +167,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         }
     }
 
-    public final String resolveXPathExpressionFrom( final Node root, String path )
+    public String resolveXPathExpressionFrom( final Node root, String path )
         throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
@@ -185,7 +185,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         return null;
     }
 
-    public final List<String> resolveXPathExpressionToListFrom( final Node root, String path )
+    public List<String> resolveXPathExpressionToListFrom( final Node root, String path )
         throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
@@ -207,7 +207,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    public final synchronized Node resolveXPathToNodeFrom( final Node root, final String path )
+    public synchronized Node resolveXPathToNodeFrom( final Node root, final String path )
         throws GalleyMavenException
     {
         try
@@ -227,7 +227,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         }
     }
 
-    public final synchronized List<Node> resolveXPathToNodeListFrom( final Node root, final String path )
+    public synchronized List<Node> resolveXPathToNodeListFrom( final Node root, final String path )
         throws GalleyMavenException
     {
         try
@@ -257,7 +257,7 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
         }
     }
 
-    public final String resolveExpressions( final String value )
+    public String resolveExpressions( final String value )
         throws GalleyMavenException
     {
         synchronized ( this )

@@ -26,12 +26,12 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 
     private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<>();
 
-    protected synchronized final void cache( final DocRef<T> dr )
+    protected synchronized void cache( final DocRef<T> dr )
     {
         cache.put( new DocCacheKey<T>( dr ), new WeakReference<DocRef<T>>( dr ) );
     }
 
-    protected synchronized final DocRef<T> getFirstCached( final T ref, final List<? extends Location> locations )
+    protected synchronized DocRef<T> getFirstCached( final T ref, final List<? extends Location> locations )
     {
         for ( final Location location : locations )
         {
@@ -54,7 +54,7 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         return null;
     }
 
-    protected synchronized final Map<Location, DocRef<T>> getAllCached( final T ref, final List<? extends Location> locations )
+    protected synchronized Map<Location, DocRef<T>> getAllCached( final T ref, final List<? extends Location> locations )
     {
         final Map<Location, DocRef<T>> result = new HashMap<Location, DocRef<T>>();
         for ( final Location location : locations )
@@ -78,7 +78,7 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         return result;
     }
 
-    protected final Document parse( final Transfer transfer )
+    protected Document parse( final Transfer transfer )
         throws GalleyMavenException
     {
         InputStream stream = null;

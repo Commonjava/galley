@@ -11,6 +11,8 @@ public interface Location
 
     int DEFAULT_CACHE_TIMEOUT_SECONDS = 86400;
 
+    int MIN_CACHE_TIMEOUT_SECONDS = 3600;
+
     boolean allowsDownloading();
 
     boolean allowsPublishing();

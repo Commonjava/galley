@@ -57,13 +57,17 @@ public class FileCacheProvider
 
         final long current = System.currentTimeMillis();
         final long lastModified = f.lastModified();
-        final int tos = resource.getTimeoutSeconds() < 0 ? Location.DEFAULT_CACHE_TIMEOUT_SECONDS : resource.getTimeoutSeconds();
+        final int tos =
+            resource.getTimeoutSeconds() < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS : resource.getTimeoutSeconds();
+
         final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
 
         if ( current - lastModified > timeout && f.exists() )
         {
             try
             {
+                logger.info( "Deleting cached file: %s\n  due to timeout after: %s\n  elapsed: %s\n  original timeout in seconds: %s", f, timeout,
+                             ( current - lastModified ), tos );
                 FileUtils.forceDelete( f );
             }
             catch ( final IOException e )

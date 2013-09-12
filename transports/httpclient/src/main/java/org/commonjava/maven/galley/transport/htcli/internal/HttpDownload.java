@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -53,10 +54,14 @@ public final class HttpDownload
 
         http.bindCredentialsTo( location, request );
 
+        HttpResponse response = null;
         try
         {
-            final HttpResponse response = executeGet( request, url );
-            writeTarget( target, request, response, url, location );
+            response = executeGet( request, url );
+            if ( response != null )
+            {
+                writeTarget( target, request, response, url, location );
+            }
         }
         catch ( final TransferException e )
         {
@@ -85,11 +90,12 @@ public final class HttpDownload
             InputStream in = null;
             try
             {
-                in = response.getEntity()
-                             .getContent();
-                out = target.openOutputStream( TransferOperation.DOWNLOAD, false );
+                final HttpEntity entity = response.getEntity();
 
+                in = entity.getContent();
+                out = target.openOutputStream( TransferOperation.DOWNLOAD, false );
                 copy( in, out );
+                EntityUtils.consume( entity );
             }
             catch ( final IOException e )
             {
@@ -134,10 +140,12 @@ public final class HttpDownload
         }
         catch ( final ClientProtocolException e )
         {
+            request.abort();
             throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
         }
         catch ( final IOException e )
         {
+            request.abort();
             throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
         }
     }

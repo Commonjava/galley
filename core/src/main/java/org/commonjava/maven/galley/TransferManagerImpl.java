@@ -255,6 +255,7 @@ public class TransferManagerImpl
     {
         Transfer target = null;
 
+        TransferException lastError = null;
         for ( final ConcreteResource res : virt )
         {
             if ( res == null )
@@ -262,11 +263,24 @@ public class TransferManagerImpl
                 continue;
             }
 
-            target = retrieve( res, true );
-            if ( target != null )
+            try
             {
-                return target;
+                target = retrieve( res, true );
+                lastError = null;
+                if ( target != null && target.exists() )
+                {
+                    return target;
+                }
             }
+            catch ( final TransferException e )
+            {
+                lastError = e;
+            }
+        }
+
+        if ( lastError != null )
+        {
+            throw lastError;
         }
 
         fileEventManager.fire( new FileNotFoundEvent( virt ) );
@@ -310,6 +324,16 @@ public class TransferManagerImpl
         {
             // TODO: (see above re:storing) Handle things like local archives that really don't need to be cached...
             target = getCacheReference( resource );
+
+            if ( target.exists() )
+            {
+                return target;
+            }
+
+            if ( !resource.allowsDownloading() )
+            {
+                return null;
+            }
 
             final Transfer retrieved =
                 downloader.download( resource, target, getTimeoutSeconds( resource ), getTransport( resource ), suppressFailures );

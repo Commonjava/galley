@@ -34,17 +34,17 @@ public abstract class AbstractMavenElementView
     protected abstract String getManagedViewQualifierFragment()
         throws GalleyMavenException;
 
-    public final Element getElement()
+    public Element getElement()
     {
         return element;
     }
 
-    public final MavenPomView getPomView()
+    public MavenPomView getPomView()
     {
         return pomView;
     }
 
-    public final String getProfileId()
+    public String getProfileId()
     {
         return pomView.getProfileIdFor( element );
     }

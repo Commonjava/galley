@@ -150,7 +150,8 @@ public class DownloadHandler
 
             if ( job.getError() != null )
             {
-                logger.info( "NFC: Download error. Marking as missing: %s", resource );
+                logger.info( "NFC: Download error. Marking as missing: %s\nError was: %s", job.getError(), resource, job.getError()
+                                                                                                                        .getMessage() );
                 nfc.addMissing( resource );
 
                 if ( !suppressFailures )
