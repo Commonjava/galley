@@ -82,19 +82,19 @@ public class PomPeek
 
     private ProjectVersionRef parentKey;
 
-    public PomPeek( final Transfer transfer, final boolean parseMainCoord, final boolean parseParentCoord )
+    private final boolean parseMainCoord;
+
+    public PomPeek( final Transfer transfer, final boolean parseMainCoord )
         throws GalleyMavenException
     {
+        this.parseMainCoord = parseMainCoord;
         coordKeys = new HashSet<>();
         if ( parseMainCoord )
         {
             coordKeys.addAll( COORD_KEYS );
         }
 
-        if ( parseParentCoord )
-        {
-            coordKeys.addAll( PARENT_KEYS );
-        }
+        coordKeys.addAll( PARENT_KEYS );
 
         parseCoordElements( transfer );
 
@@ -249,6 +249,7 @@ public class PomPeek
         if ( isValidArtifactId( pa ) && isValidGroupId( pg ) && isValidVersion( pv ) )
         {
             parentKey = new ProjectVersionRef( pg, pa, pv );
+            valid = valid || !parseMainCoord;
         }
 
         return valid;

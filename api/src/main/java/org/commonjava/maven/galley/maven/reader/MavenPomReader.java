@@ -64,7 +64,7 @@ public class MavenPomReader
                 }
 
                 dr = new DocRef<ProjectVersionRef>( next, transfer.getLocation(), parse( transfer ) );
-                peek = new PomPeek( transfer, false, true );
+                peek = new PomPeek( transfer, false );
                 dr.setAttribute( PEEK, peek );
 
                 cache( dr );

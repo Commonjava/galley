@@ -18,11 +18,15 @@ import org.commonjava.maven.galley.maven.reader.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.view.MavenMetadataView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.version.VersionResolver;
+import org.commonjava.util.logging.Logger;
+import org.commonjava.util.logging.helper.JoinString;
 
 @ApplicationScoped
 public class VersionResolverImpl
     implements VersionResolver
 {
+
+    private final Logger logger = new Logger( getClass() );
 
     @Inject
     private MavenMetadataReader metadataReader;
@@ -84,11 +88,11 @@ public class VersionResolverImpl
         final List<String> allVersions = new ArrayList<String>();
         try
         {
-            final MavenMetadataView metadata = metadataReader.getMetadata( ref, locations );
+            final MavenMetadataView metadata = metadataReader.getMetadata( ref.asProjectRef(), locations );
 
             if ( metadata != null )
             {
-                final List<String> versions = metadata.resolveValues( "/metadata/versioning/versions" );
+                final List<String> versions = metadata.resolveValues( "/metadata/versioning/versions/version" );
 
                 if ( versions != null )
                 {
@@ -107,11 +111,23 @@ public class VersionResolverImpl
             throw new TransferException( "Failed to resolve/parse metadata for variable version of: %s. Reason: %s", e, ref, e.getMessage() );
         }
 
+        logger.info( "%s: RAW versions found: %s", ref, new JoinString( ", ", allVersions ) );
         final LinkedList<SingleVersion> specs = new LinkedList<SingleVersion>();
         if ( allVersions != null && !allVersions.isEmpty() )
         {
-            for ( final String spec : allVersions )
+            for ( String spec : allVersions )
             {
+                if ( spec == null )
+                {
+                    continue;
+                }
+
+                spec = spec.trim();
+                if ( spec.length() < 1 )
+                {
+                    continue;
+                }
+
                 try
                 {
                     specs.add( VersionUtils.createSingleVersion( spec ) );
@@ -123,6 +139,7 @@ public class VersionResolverImpl
             }
         }
 
+        logger.info( "%s: Available versions are: %s", ref, new JoinString( ", ", specs ) );
         if ( !specs.isEmpty() )
         {
             Collections.sort( specs );
@@ -130,11 +147,13 @@ public class VersionResolverImpl
             do
             {
                 ver = specs.removeLast();
+                logger.info( "Checking whether %s is concrete...", ver );
             }
             while ( !ver.isConcrete() );
 
             if ( ver != null )
             {
+                logger.info( "Selecting %s for %s", ver, ref );
                 return ref.selectVersion( ver );
             }
         }

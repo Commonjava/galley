@@ -55,24 +55,31 @@ public class FileCacheProvider
     {
         final File f = new File( getFilePath( resource ) );
 
-        final long current = System.currentTimeMillis();
-        final long lastModified = f.lastModified();
-        final int tos =
-            resource.getTimeoutSeconds() < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS : resource.getTimeoutSeconds();
-
-        final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
-
-        if ( current - lastModified > timeout && f.exists() )
+        if ( !resource.isRoot() && f.exists() && !f.isDirectory() )
         {
-            try
+            final long current = System.currentTimeMillis();
+            final long lastModified = f.lastModified();
+            final int tos =
+                resource.getTimeoutSeconds() < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS : resource.getTimeoutSeconds();
+
+            final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
+
+            if ( current - lastModified > timeout )
             {
-                logger.info( "Deleting cached file: %s\n  due to timeout after: %s\n  elapsed: %s\n  original timeout in seconds: %s", f, timeout,
-                             ( current - lastModified ), tos );
-                FileUtils.forceDelete( f );
-            }
-            catch ( final IOException e )
-            {
-                logger.error( "Failed to delete: %s.", e, f );
+                final File mved = new File( f.getPath() + ".to-delete" );
+                f.renameTo( mved );
+
+                try
+                {
+                    logger.info( "Deleting cached file: %s (moved to: %s)\n  due to timeout after: %s\n  elapsed: %s\n  original timeout in seconds: %s",
+                                 f, mved, timeout, ( current - lastModified ), tos );
+
+                    FileUtils.forceDelete( mved );
+                }
+                catch ( final IOException e )
+                {
+                    logger.error( "Failed to delete: %s.", e, f );
+                }
             }
         }
 

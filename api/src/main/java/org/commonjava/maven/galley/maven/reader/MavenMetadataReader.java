@@ -16,11 +16,14 @@ import org.commonjava.maven.galley.maven.view.DocRef;
 import org.commonjava.maven.galley.maven.view.MavenMetadataView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.util.logging.Logger;
 
 @ApplicationScoped
 public class MavenMetadataReader
     extends AbstractMavenXmlReader<ProjectRef>
 {
+
+    private final Logger logger = new Logger( getClass() );
 
     @Inject
     private ArtifactMetadataManager metadataManager;
@@ -84,6 +87,7 @@ public class MavenMetadataReader
             }
         }
 
+        logger.info( "Got %d metadata documents for: %s", docs.size(), ref );
         return new MavenMetadataView( docs );
     }
 
