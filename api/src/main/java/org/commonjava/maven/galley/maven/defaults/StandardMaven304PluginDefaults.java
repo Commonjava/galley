@@ -59,7 +59,8 @@ public class StandardMaven304PluginDefaults
         String version = DEFAULT_VERSIONS.get( ref );
         if ( version == null )
         {
-            version = "LATEST";
+            // range that will match anything, but allow selection strategy to satisfy the rough equivalent of "LATEST"
+            version = "[0,]";
         }
 
         return version;

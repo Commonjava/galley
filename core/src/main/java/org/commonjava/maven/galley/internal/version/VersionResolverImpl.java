@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
+import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.atlas.ident.version.VersionUtils;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -115,26 +116,26 @@ public class VersionResolverImpl
         final LinkedList<SingleVersion> specs = new LinkedList<SingleVersion>();
         if ( allVersions != null && !allVersions.isEmpty() )
         {
-            for ( String spec : allVersions )
+            for ( String ver : allVersions )
             {
-                if ( spec == null )
+                if ( ver == null )
                 {
                     continue;
                 }
 
-                spec = spec.trim();
-                if ( spec.length() < 1 )
+                ver = ver.trim();
+                if ( ver.length() < 1 )
                 {
                     continue;
                 }
 
                 try
                 {
-                    specs.add( VersionUtils.createSingleVersion( spec ) );
+                    specs.add( VersionUtils.createSingleVersion( ver ) );
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    throw new TransferException( "Unparsable version spec found in metadata: '%s'. Reason: %s", e, spec, e.getMessage() );
+                    throw new TransferException( "Unparsable version spec found in metadata: '%s'. Reason: %s", e, ver, e.getMessage() );
                 }
             }
         }
@@ -142,6 +143,8 @@ public class VersionResolverImpl
         logger.info( "%s: Available versions are: %s", ref, new JoinString( ", ", specs ) );
         if ( !specs.isEmpty() )
         {
+            final VersionSpec spec = ref.getVersionSpec();
+
             Collections.sort( specs );
             SingleVersion ver = null;
             do
@@ -149,7 +152,7 @@ public class VersionResolverImpl
                 ver = specs.removeLast();
                 logger.info( "Checking whether %s is concrete...", ver );
             }
-            while ( !ver.isConcrete() );
+            while ( !ver.isConcrete() || !spec.contains( ver ) );
 
             if ( ver != null )
             {
