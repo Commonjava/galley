@@ -11,7 +11,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class DependencyView
-    extends AbstractMavenGAVView
+    extends ProjectVersionRefView
 {
 
     private static final String C = "classifier";
@@ -120,14 +120,7 @@ public class DependencyView
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append( G )
-          .append( TEXTEQ )
-          .append( getGroupId() )
-          .append( "\" and " )
-          .append( A )
-          .append( TEXTEQ )
-          .append( getArtifactId() )
-          .append( "\"" );
+        sb.append( super.getManagedViewQualifierFragment() );
 
         final String cls = getClassifier();
         if ( cls != null )

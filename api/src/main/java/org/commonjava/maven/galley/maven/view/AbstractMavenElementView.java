@@ -108,15 +108,23 @@ public abstract class AbstractMavenElementView
         }
 
         final StringBuilder sb = new StringBuilder();
-        sb.append( "ancestor::project/" )
-          .append( managementXpathFragment )
-          .append( '[' )
-          .append( qualifier )
-          .append( "]/%s|ancestor::profile/" )
+        sb.append( "/project/" )
           .append( managementXpathFragment )
           .append( '[' )
           .append( qualifier )
           .append( "]/%s" );
+
+        final String profileId = getProfileId();
+        if ( profileId != null )
+        {
+            sb.append( "|//profile[id/text()=\"" )
+              .append( profileId )
+              .append( "\"]/" )
+              .append( managementXpathFragment )
+              .append( '[' )
+              .append( qualifier )
+              .append( "]/%s" );
+        }
 
         managementXpath = sb.toString();
     }
@@ -133,7 +141,12 @@ public abstract class AbstractMavenElementView
                 break;
             }
 
-            final NodeList matches = e.getElementsByTagName( named );
+            NodeList matches = e.getElementsByTagName( named );
+            if ( matches == null || matches.getLength() < 1 )
+            {
+                matches = e.getElementsByTagNameNS( "*", named );
+            }
+
             if ( matches == null || matches.getLength() < 1 )
             {
                 return null;

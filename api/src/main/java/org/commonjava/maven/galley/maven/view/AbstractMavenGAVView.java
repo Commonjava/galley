@@ -32,6 +32,11 @@ public abstract class AbstractMavenGAVView
         return new ProjectVersionRef( getGroupId(), getArtifactId(), getVersion() );
     }
 
+    protected void setVersion( final String version )
+    {
+        this.version = version;
+    }
+
     @Override
     public String toString()
     {

@@ -45,7 +45,13 @@ public abstract class AbstractMavenXmlView<T extends ProjectRef>
     public String resolveMavenExpression( final String expression )
         throws GalleyMavenException
     {
-        return resolveXPathExpression( expression.replace( '.', '/' ), -1 );
+        String value = resolveXPathExpression( expression.replace( '.', '/' ), -1 );
+        if ( value == null )
+        {
+            value = resolveXPathExpression( "//properties/" + expression, -1 );
+        }
+
+        return value;
     }
 
     public String resolveXPathExpression( String path, final int maxAncestry )

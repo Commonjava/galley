@@ -26,6 +26,11 @@ public abstract class AbstractMavenGAView
         return groupId;
     }
 
+    protected void setGroupId( final String groupId )
+    {
+        this.groupId = groupId;
+    }
+
     public synchronized String getArtifactId()
     {
         if ( artifactId == null )

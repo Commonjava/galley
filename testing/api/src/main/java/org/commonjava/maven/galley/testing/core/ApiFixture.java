@@ -5,6 +5,7 @@ import org.commonjava.maven.galley.ArtifactMetadataManager;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.reader.MavenPomReader;
 import org.commonjava.maven.galley.nfc.NoOpNotFoundCache;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
@@ -48,6 +49,8 @@ public class ApiFixture
     private StandardTypeMapper mapper;
 
     private MavenPomReader pomReader;
+
+    private StandardMaven304PluginDefaults pluginDefaults;
 
     public ApiFixture()
     {
@@ -93,9 +96,14 @@ public class ApiFixture
             cache = new TestCacheProvider( temp.newFolder( "cache" ), events, decorator );
         }
 
+        if ( pluginDefaults == null )
+        {
+            pluginDefaults = new StandardMaven304PluginDefaults();
+        }
+
         if ( pomReader == null && artifacts != null )
         {
-            pomReader = new MavenPomReader( artifacts );
+            pomReader = new MavenPomReader( artifacts, pluginDefaults );
         }
     }
 
@@ -255,6 +263,16 @@ public class ApiFixture
     {
         this.pomReader = pomReader;
         return this;
+    }
+
+    public StandardMaven304PluginDefaults getPluginDefaults()
+    {
+        return pluginDefaults;
+    }
+
+    public void setPluginDefaults( final StandardMaven304PluginDefaults pluginDefaults )
+    {
+        this.pluginDefaults = pluginDefaults;
     }
 
 }
