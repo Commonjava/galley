@@ -1,5 +1,11 @@
 package org.commonjava.maven.galley.maven.view;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
+import java.util.List;
+
+import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.junit.Test;
 
 public class DependencyViewTest
@@ -70,6 +76,17 @@ public class DependencyViewTest
         dv.asArtifactRef()
           .getVersionSpec();
 
+    }
+
+    @Test
+    public void bomDependencyInParent()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "managed-depless-child.pom.xml", "managed-bom-parent.pom.xml" );
+        final List<DependencyView> managed = pomView.getAllManagedDependencies();
+        assertThat( managed.size(), equalTo( 1 ) );
+        final DependencyView dv = managed.get( 0 );
+        assertThat( dv.getScope(), equalTo( DependencyScope._import ) );
     }
 
     @Test

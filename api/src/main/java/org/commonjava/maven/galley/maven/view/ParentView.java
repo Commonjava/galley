@@ -3,7 +3,7 @@ package org.commonjava.maven.galley.maven.view;
 import org.w3c.dom.Element;
 
 public class ParentView
-    extends ProjectVersionRefView
+    extends MavenGAVView
 {
 
     public ParentView( final MavenPomView pomView, final Element element )

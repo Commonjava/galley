@@ -60,7 +60,7 @@ public class StandardMaven304PluginDefaults
         if ( version == null )
         {
             // range that will match anything, but allow selection strategy to satisfy the rough equivalent of "LATEST"
-            version = "[0,]";
+            version = "[0.0.0.1,]";
         }
 
         return version;

@@ -7,6 +7,7 @@ import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.reader.MavenPomReader;
+import org.commonjava.maven.galley.maven.view.XPathManager;
 import org.commonjava.maven.galley.nfc.NoOpNotFoundCache;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -51,6 +52,8 @@ public class ApiFixture
     private MavenPomReader pomReader;
 
     private StandardMaven304PluginDefaults pluginDefaults;
+
+    private XPathManager xpathManager;
 
     public ApiFixture()
     {
@@ -101,9 +104,14 @@ public class ApiFixture
             pluginDefaults = new StandardMaven304PluginDefaults();
         }
 
+        if ( xpathManager == null )
+        {
+            xpathManager = new XPathManager();
+        }
+
         if ( pomReader == null && artifacts != null )
         {
-            pomReader = new MavenPomReader( artifacts, pluginDefaults );
+            pomReader = new MavenPomReader( artifacts, xpathManager, pluginDefaults );
         }
     }
 
@@ -273,6 +281,16 @@ public class ApiFixture
     public void setPluginDefaults( final StandardMaven304PluginDefaults pluginDefaults )
     {
         this.pluginDefaults = pluginDefaults;
+    }
+
+    public XPathManager getXpathManager()
+    {
+        return xpathManager;
+    }
+
+    public void setXpathManager( final XPathManager xpathManager )
+    {
+        this.xpathManager = xpathManager;
     }
 
 }

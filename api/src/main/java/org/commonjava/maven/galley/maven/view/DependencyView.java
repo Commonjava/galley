@@ -1,6 +1,7 @@
 package org.commonjava.maven.galley.maven.view;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
@@ -8,10 +9,10 @@ import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
 public class DependencyView
-    extends ProjectVersionRefView
+    extends MavenGAVView
 {
 
     private static final String C = "classifier";
@@ -22,9 +23,7 @@ public class DependencyView
 
     private static final String OPTIONAL = "optional";
 
-    private static final String EXCLUSIONS = "exclusions";
-
-    private static final String EXCLUSION = "exclusions";
+    private static final String EXCLUSIONS = "exclusions/exclusion";
 
     private String classifier;
 
@@ -43,7 +42,7 @@ public class DependencyView
 
     public boolean isManaged()
     {
-        return pomView.resolveXPathToNodeFrom( element, "ancestor::dependencyManagement" ) != null;
+        return pomView.resolveXPathToNodeFrom( element, "ancestor::dependencyManagement", true ) != null;
     }
 
     public synchronized String getClassifier()
@@ -57,7 +56,7 @@ public class DependencyView
         return classifier;
     }
 
-    public synchronized String getType()
+    public synchronized String getRawType()
         throws GalleyMavenException
     {
         if ( type == null )
@@ -66,6 +65,13 @@ public class DependencyView
         }
 
         return type;
+    }
+
+    public synchronized String getType()
+        throws GalleyMavenException
+    {
+        final String type = getRawType();
+        return type == null ? "jar" : type;
     }
 
     public synchronized DependencyScope getScope()
@@ -77,7 +83,7 @@ public class DependencyView
             scope = DependencyScope.getScope( s );
         }
 
-        return scope;
+        return scope == null ? DependencyScope.compile : scope;
     }
 
     public synchronized boolean isOptional()
@@ -96,15 +102,13 @@ public class DependencyView
     {
         if ( exclusions == null )
         {
-            final Element exNode = getElementWithManagement( EXCLUSIONS );
-            if ( exNode != null )
+            final List<Node> nodes = getFirstNodesWithManagement( EXCLUSIONS );
+            if ( nodes != null )
             {
                 final Set<ProjectRefView> exclusions = new HashSet<>();
-                final NodeList exNodes = exNode.getElementsByTagName( EXCLUSION );
-                for ( int i = 0; i < exNodes.getLength(); i++ )
+                for ( final Node node : nodes )
                 {
-                    final Element exclusion = (Element) exNodes.item( i );
-                    exclusions.add( new ProjectRefView( pomView, exclusion ) );
+                    exclusions.add( new MavenGAView( pomView, (Element) node ) );
                 }
 
                 this.exclusions = exclusions;
@@ -120,26 +124,34 @@ public class DependencyView
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append( super.getManagedViewQualifierFragment() );
+        sb.append( G )
+          .append( TEXTEQ )
+          .append( getGroupId() )
+          .append( QUOTE )
+          .append( AND )
+          .append( A )
+          .append( TEXTEQ )
+          .append( getArtifactId() )
+          .append( QUOTE );
 
         final String cls = getClassifier();
         if ( cls != null )
         {
-            sb.append( " and " )
+            sb.append( AND )
               .append( C )
               .append( TEXTEQ )
               .append( cls )
-              .append( "\"" );
+              .append( QUOTE );
         }
 
-        final String type = getType();
+        final String type = getRawType();
         if ( type != null )
         {
             sb.append( " and " )
               .append( T )
               .append( TEXTEQ )
               .append( type )
-              .append( "\"" );
+              .append( QUOTE );
         }
 
         return sb.toString();

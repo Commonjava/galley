@@ -1,0 +1,13 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>org.foo</groupId>
+    <artifactId>bar-project</artifactId>
+  </parent>
+  
+  <groupId>org.foo</groupId>
+  <artifactId>bar</artifactId>
+  <version>1</version>
+  
+</project>

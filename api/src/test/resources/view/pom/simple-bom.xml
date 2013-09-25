@@ -1,0 +1,17 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.foo</groupId>
+  <artifactId>bar</artifactId>
+  <version>1</version>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>dep.group</groupId>
+        <artifactId>dep-artifact</artifactId>
+        <version>1.0</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>

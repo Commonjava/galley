@@ -14,6 +14,7 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.view.DocRef;
 import org.commonjava.maven.galley.maven.view.MavenMetadataView;
+import org.commonjava.maven.galley.maven.view.XPathManager;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
@@ -28,13 +29,17 @@ public class MavenMetadataReader
     @Inject
     private ArtifactMetadataManager metadataManager;
 
+    @Inject
+    private XPathManager xpath;
+
     protected MavenMetadataReader()
     {
     }
 
-    public MavenMetadataReader( final ArtifactMetadataManager metadataManager )
+    public MavenMetadataReader( final ArtifactMetadataManager metadataManager, final XPathManager xpath )
     {
         this.metadataManager = metadataManager;
+        this.xpath = xpath;
     }
 
     public MavenMetadataView getMetadata( final ProjectRef ref, final List<? extends Location> locations )
@@ -88,7 +93,7 @@ public class MavenMetadataReader
         }
 
         logger.info( "Got %d metadata documents for: %s", docs.size(), ref );
-        return new MavenMetadataView( docs );
+        return new MavenMetadataView( docs, xpath );
     }
 
 }

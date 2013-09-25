@@ -51,4 +51,10 @@ public final class DocRef<T extends ProjectRef>
         return val == null ? null : type.cast( val );
     }
 
+    @Override
+    public String toString()
+    {
+        return String.format( "DocRef [%s] (from: %s)", ref, location );
+    }
+
 }

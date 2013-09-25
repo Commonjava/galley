@@ -1,20 +1,14 @@
 package org.commonjava.maven.galley.maven.view;
 
-import org.w3c.dom.Element;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 
-public class ProjectRefView
-    extends AbstractMavenGAView
+public interface ProjectRefView
 {
 
-    protected ProjectRefView( final MavenPomView pomView, final Element element )
-    {
-        super( pomView, element, null );
-    }
+    String getGroupId();
 
-    @Override
-    protected String getManagedViewQualifierFragment()
-    {
-        return null;
-    }
+    String getArtifactId();
+
+    ProjectRef asProjectRef();
 
 }

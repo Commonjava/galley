@@ -19,15 +19,13 @@ import org.commonjava.maven.galley.maven.reader.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.view.MavenMetadataView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.version.VersionResolver;
-import org.commonjava.util.logging.Logger;
-import org.commonjava.util.logging.helper.JoinString;
 
 @ApplicationScoped
 public class VersionResolverImpl
     implements VersionResolver
 {
 
-    private final Logger logger = new Logger( getClass() );
+    //    private final Logger logger = new Logger( getClass() );
 
     @Inject
     private MavenMetadataReader metadataReader;
@@ -112,7 +110,7 @@ public class VersionResolverImpl
             throw new TransferException( "Failed to resolve/parse metadata for variable version of: %s. Reason: %s", e, ref, e.getMessage() );
         }
 
-        logger.info( "%s: RAW versions found: %s", ref, new JoinString( ", ", allVersions ) );
+        //        logger.info( "%s: RAW versions found: %s", ref, new JoinString( ", ", allVersions ) );
         final LinkedList<SingleVersion> specs = new LinkedList<SingleVersion>();
         if ( allVersions != null && !allVersions.isEmpty() )
         {
@@ -140,7 +138,7 @@ public class VersionResolverImpl
             }
         }
 
-        logger.info( "%s: Available versions are: %s", ref, new JoinString( ", ", specs ) );
+        //        logger.info( "%s: Available versions are: %s", ref, new JoinString( ", ", specs ) );
         if ( !specs.isEmpty() )
         {
             final VersionSpec spec = ref.getVersionSpec();
@@ -150,13 +148,13 @@ public class VersionResolverImpl
             do
             {
                 ver = specs.removeLast();
-                logger.info( "Checking whether %s is concrete...", ver );
+                //                logger.info( "Checking whether %s is concrete...", ver );
             }
             while ( !ver.isConcrete() || !spec.contains( ver ) );
 
             if ( ver != null )
             {
-                logger.info( "Selecting %s for %s", ver, ref );
+                //                logger.info( "Selecting %s for %s", ver, ref );
                 return ref.selectVersion( ver );
             }
         }

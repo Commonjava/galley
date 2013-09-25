@@ -6,24 +6,24 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 
 public class MavenMetadataView
-    extends AbstractMavenXmlView<ProjectRef>
+    extends MavenXmlView<ProjectRef>
 {
 
-    public MavenMetadataView( final List<DocRef<ProjectRef>> stack )
+    public MavenMetadataView( final List<DocRef<ProjectRef>> stack, final XPathManager xpath )
     {
-        super( stack );
+        super( stack, xpath );
     }
 
     public String resolveSingleValue( final String path )
         throws GalleyMavenException
     {
-        return resolveXPathExpression( path, -1 );
+        return resolveXPathExpression( path, true, -1 );
     }
 
     public List<String> resolveValues( final String path )
         throws GalleyMavenException
     {
-        return resolveXPathExpressionToList( path, -1 );
+        return resolveXPathExpressionToAggregatedList( path, true, -1 );
     }
 
 }

@@ -5,7 +5,7 @@ import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
 import org.w3c.dom.Element;
 
 public class PluginView
-    extends ProjectVersionRefView
+    extends MavenGAVView
 {
 
     private final MavenPluginDefaults pluginDefaults;
@@ -18,7 +18,7 @@ public class PluginView
 
     public boolean isManaged()
     {
-        return pomView.resolveXPathToNodeFrom( element, "ancestor::pluginManagement" ) != null;
+        return pomView.resolveXPathToNodeFrom( element, "ancestor::pluginManagement", true ) != null;
     }
 
     @Override
@@ -45,4 +45,22 @@ public class PluginView
         return super.getGroupId();
     }
 
+    @Override
+    protected String getManagedViewQualifierFragment()
+        throws GalleyMavenException
+    {
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append( G )
+          .append( TEXTEQ )
+          .append( getGroupId() )
+          .append( QUOTE )
+          .append( AND )
+          .append( A )
+          .append( TEXTEQ )
+          .append( getArtifactId() )
+          .append( QUOTE );
+
+        return sb.toString();
+    }
 }

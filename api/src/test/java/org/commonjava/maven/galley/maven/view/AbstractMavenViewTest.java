@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,6 +15,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.log4j.Level;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -30,6 +32,8 @@ public abstract class AbstractMavenViewTest
     private DocumentBuilder docBuilder;
 
     private Transformer transformer;
+
+    private XPathManager xpath;
 
     protected final Logger logger = new Logger( getClass() );
 
@@ -54,6 +58,8 @@ public abstract class AbstractMavenViewTest
         transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
         transformer.setOutputProperty( OutputKeys.ENCODING, "UTF-8" );
         transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
+
+        xpath = new XPathManager();
     }
 
     protected DependencyView loadFirstDirectDependency( final String... pomNames )
@@ -69,6 +75,7 @@ public abstract class AbstractMavenViewTest
         throws Exception
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
+        final ProjectVersionRef pvr = new ProjectVersionRef( "not.used", "project-ref", "1.0" );
         for ( final String pomName : pomNames )
         {
             final InputStream is = Thread.currentThread()
@@ -79,14 +86,35 @@ public abstract class AbstractMavenViewTest
                                                             .newDocumentBuilder()
                                                             .parse( is );
 
-            final DocRef<ProjectVersionRef> dr =
-                new DocRef<ProjectVersionRef>( new ProjectVersionRef( "not.used", "project-ref", "1.0" ),
-                                               new SimpleLocation( "http://localhost:8080/" ), document );
+            final DocRef<ProjectVersionRef> dr = new DocRef<ProjectVersionRef>( pvr, new SimpleLocation( "http://localhost:8080/" ), document );
 
             stack.add( dr );
         }
 
-        return new MavenPomView( stack, new StandardMaven304PluginDefaults() );
+        return new MavenPomView( stack, xpath, new StandardMaven304PluginDefaults() );
+    }
+
+    protected MavenXmlView<ProjectRef> loadDocs( final Set<String> localOnlyPaths, final String... docNames )
+        throws Exception
+    {
+        final List<DocRef<ProjectRef>> stack = new ArrayList<>();
+        final ProjectRef pr = new ProjectRef( "not.used", "project-ref" );
+        for ( final String pomName : docNames )
+        {
+            final InputStream is = Thread.currentThread()
+                                         .getContextClassLoader()
+                                         .getResourceAsStream( getBaseResource() + pomName );
+
+            final Document document = DocumentBuilderFactory.newInstance()
+                                                            .newDocumentBuilder()
+                                                            .parse( is );
+
+            final DocRef<ProjectRef> dr = new DocRef<ProjectRef>( pr, new SimpleLocation( "http://localhost:8080/" ), document );
+
+            stack.add( dr );
+        }
+
+        return new MavenXmlView<ProjectRef>( stack, xpath, localOnlyPaths );
     }
 
     protected void dump( final Node node )
