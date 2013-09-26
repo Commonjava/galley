@@ -345,10 +345,12 @@ public class TransferManagerImpl
 
             if ( target.exists() )
             {
+                logger.info( "DOWNLOADED: %s", resource );
                 return target;
             }
             else
             {
+                logger.info( "NOT DOWNLOADED: %s", resource );
                 return null;
             }
         }

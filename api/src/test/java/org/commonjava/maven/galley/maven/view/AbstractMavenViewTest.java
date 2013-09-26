@@ -71,6 +71,15 @@ public abstract class AbstractMavenViewTest
                   .get( 0 );
     }
 
+    protected DependencyView loadFirstManagedDependency( final String... pomNames )
+        throws Exception
+    {
+        final MavenPomView mpv = loadPoms( pomNames );
+
+        return mpv.getAllManagedDependencies()
+                  .get( 0 );
+    }
+
     protected MavenPomView loadPoms( final String... pomNames )
         throws Exception
     {

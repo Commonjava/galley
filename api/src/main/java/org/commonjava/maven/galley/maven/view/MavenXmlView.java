@@ -98,7 +98,16 @@ public class MavenXmlView<T extends ProjectRef>
             path += "/text()";
         }
 
-        final Node result = resolveXPathToNode( path, cachePath, maxAncestry );
+        Node result = null;
+        try
+        {
+            result = resolveXPathToNode( path, cachePath, maxAncestry );
+        }
+        catch ( final GalleyMavenException e )
+        {
+            // TODO: We don't want to spit this out, but is there another more appropriate action than ignoring it?
+        }
+
         if ( result != null && result.getNodeType() == Node.TEXT_NODE )
         {
             final String raw = result.getTextContent()
@@ -187,13 +196,13 @@ public class MavenXmlView<T extends ProjectRef>
                     }
                 }
             }
-
-            return result;
         }
         catch ( final XPathExpressionException e )
         {
             throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
+
+        return result;
     }
 
     public synchronized List<Node> resolveXPathToAggregatedNodeList( final String path, final boolean cachePath, final int maxDepth )
@@ -426,7 +435,7 @@ public class MavenXmlView<T extends ProjectRef>
 
     public boolean containsExpression( final String value )
     {
-        return value.matches( EXPRESSION_PATTERN );
+        return value != null && value.matches( EXPRESSION_PATTERN );
     }
 
     public String resolveExpressions( final String value, final String... activeProfileIds )
@@ -434,6 +443,7 @@ public class MavenXmlView<T extends ProjectRef>
     {
         if ( !containsExpression( value ) )
         {
+            //            logger.info( "No expressions in: '%s'", value );
             return value;
         }
 
@@ -469,6 +479,8 @@ public class MavenXmlView<T extends ProjectRef>
         implements ValueSource
     {
 
+        //        private final Logger logger = new Logger( getClass() );
+
         private final MavenXmlView<T> view;
 
         private final List<Object> feedback = new ArrayList<>();
@@ -499,7 +511,9 @@ public class MavenXmlView<T extends ProjectRef>
         {
             try
             {
-                return view.resolveMavenExpression( expr, activeProfileIds );
+                final String value = view.resolveMavenExpression( expr, activeProfileIds );
+                //                logger.info( "Value of: '%s' is: '%s'", expr, value );
+                return value;
             }
             catch ( final GalleyMavenException e )
             {
@@ -507,7 +521,7 @@ public class MavenXmlView<T extends ProjectRef>
                 feedback.add( e );
             }
 
-            return expr;
+            return null;
         }
 
     }

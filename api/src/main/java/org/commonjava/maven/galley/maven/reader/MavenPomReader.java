@@ -236,11 +236,11 @@ public class MavenPomReader
             if ( DependencyScope._import == dv.getScope() && "pom".equals( dv.getType() ) )
             {
                 final ProjectVersionRef ref = dv.asProjectVersionRef();
+                logger.info( "Found BOM: %s for: %s", ref, view.getRef() );
 
                 // This is a BOM, it's likely to be used in multiple locations...cache this.
                 final MavenPomView imp = read( ref, locations, true );
 
-                logger.info( "Found BOM: %s for: %s", ref, view.getRef() );
                 view.addMixin( new MavenXmlMixin<ProjectVersionRef>( imp, MavenXmlMixin.DEPENDENCY_MIXIN ) );
             }
         }

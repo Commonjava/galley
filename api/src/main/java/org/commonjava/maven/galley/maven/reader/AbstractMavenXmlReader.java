@@ -12,6 +12,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.stax.StAXSource;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -25,6 +33,19 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 {
 
     private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<>();
+
+    private final XMLInputFactory inputFactory;
+
+    private final TransformerFactory transformerFactory;
+
+    private final DocumentBuilderFactory dbFactory;
+
+    protected AbstractMavenXmlReader()
+    {
+        inputFactory = XMLInputFactory.newInstance();
+        transformerFactory = TransformerFactory.newInstance();
+        dbFactory = DocumentBuilderFactory.newInstance();
+    }
 
     protected synchronized void cache( final DocRef<T> dr )
     {
@@ -82,21 +103,47 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         throws GalleyMavenException
     {
         InputStream stream = null;
+        Document doc = null;
         try
         {
             stream = transfer.openInputStream( false );
-            return DocumentBuilderFactory.newInstance()
-                                         .newDocumentBuilder()
-                                         .parse( stream );
+            try
+            {
+                doc = dbFactory.newDocumentBuilder()
+                               .parse( stream );
+            }
+            catch ( SAXException | ParserConfigurationException e )
+            {
+                try
+                {
+                    inputFactory.setProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
+                    final Transformer transformer = transformerFactory.newTransformer();
+
+                    final XMLEventReader eventReader = inputFactory.createXMLEventReader( stream );
+                    final StAXSource source = new StAXSource( eventReader );
+                    final DOMResult result = new DOMResult();
+
+                    transformer.transform( source, result );
+
+                    doc = (Document) result.getNode();
+                }
+                catch ( TransformerException | XMLStreamException e1 )
+                {
+                    throw new GalleyMavenException( "Failed to parse: %s.\n\nSTaX error: %s\n\nOriginal DOM error: %s", e1, transfer,
+                                                    e1.getMessage(), e.getMessage() );
+                }
+            }
         }
-        catch ( IOException | SAXException | ParserConfigurationException e )
+        catch ( final IOException e )
         {
-            throw new GalleyMavenException( "Failed to parse: %s. Reason: %s", e, transfer, e.getMessage() );
+            throw new GalleyMavenException( "Failed to read: %s. Reason: %s", e, transfer, e.getMessage() );
         }
         finally
         {
             closeQuietly( stream );
         }
+
+        return doc;
     }
 
     private static final class DocCacheKey<T extends ProjectRef>

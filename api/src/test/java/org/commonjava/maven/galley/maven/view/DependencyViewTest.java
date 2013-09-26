@@ -63,6 +63,34 @@ public class DependencyViewTest
     }
 
     @Test
+    public void dependencyVersionExpressionWithDotsInParentPom()
+        throws Exception
+    {
+        final DependencyView dv = loadFirstDirectDependency( "dep-expr-in-parent.pom.xml", "dep-expr-parent.pom.xml" );
+
+        logger.info( "%s", dv.asProjectRef() );
+        logger.info( "%s", dv.asProjectVersionRef()
+                             .getVersionSpec() );
+        logger.info( "%s", dv.asVersionlessArtifactRef() );
+        logger.info( "%s", dv.asArtifactRef()
+                             .getVersionSpec() );
+    }
+
+    @Test
+    public void managedDependencyVersionExpressionWithDotsInParentPom()
+        throws Exception
+    {
+        final DependencyView dv = loadFirstManagedDependency( "managed-dep-expr-in-parent.pom.xml", "dep-expr-parent.pom.xml" );
+
+        logger.info( "%s", dv.asProjectRef() );
+        logger.info( "%s", dv.asProjectVersionRef()
+                             .getVersionSpec() );
+        logger.info( "%s", dv.asVersionlessArtifactRef() );
+        logger.info( "%s", dv.asArtifactRef()
+                             .getVersionSpec() );
+    }
+
+    @Test
     public void managedDependency()
         throws Exception
     {

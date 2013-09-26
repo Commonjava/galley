@@ -234,8 +234,15 @@ public class MavenElementView
             e = (Element) matches.item( 0 );
         }
 
-        return e == null ? null : pomView.resolveExpressions( e.getTextContent()
-                                                               .trim() );
+        if ( e == null )
+        {
+            return null;
+        }
+
+        final String val = e.getTextContent()
+                            .trim();
+        //        logger.info( "Resolving expressions in: '%s'", val );
+        return pomView.resolveExpressions( val );
     }
 
     protected Node getNode( final String path )
