@@ -109,6 +109,21 @@ public class MavenPomView
         return depViews;
     }
 
+    public List<DependencyView> getAllBOMs()
+    {
+        final List<Node> depNodes =
+            resolveXPathToAggregatedNodeList( "//dependencyManagement/dependencies/dependency[type/text()=\"pom\" and scope/text()=\"import\"]",
+                                              true, -1 );
+
+        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
+        for ( final Node node : depNodes )
+        {
+            depViews.add( new DependencyView( this, (Element) node ) );
+        }
+
+        return depViews;
+    }
+
     // TODO: Do these methods need to be here??
 
     public String resolveXPathExpression( final String path, final boolean localOnly )

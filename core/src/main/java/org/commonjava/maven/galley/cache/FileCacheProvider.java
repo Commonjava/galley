@@ -2,7 +2,6 @@ package org.commonjava.maven.galley.cache;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -111,7 +110,7 @@ public class FileCacheProvider
             throw new IOException( "Cannot create directory: " + dir );
         }
 
-        return new FileOutputStream( file );
+        return new AtomicFileOutputStreamWrapper( file );
     }
 
     @Override

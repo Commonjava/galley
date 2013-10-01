@@ -1,8 +1,11 @@
 package org.commonjava.maven.galley.maven.view;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+
+import java.util.List;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -91,6 +94,28 @@ public class MavenPomViewTest
         assertThat( aid, nullValue() );
 
         pomView.asProjectVersionRef();
+    }
+
+    @Test
+    public void retrieveDirectBOMReference()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "pom-with-bom.xml" );
+        final List<DependencyView> boms = pomView.getAllBOMs();
+
+        assertThat( boms, notNullValue() );
+        assertThat( boms.size(), equalTo( 1 ) );
+    }
+
+    @Test
+    public void retrieveBOMReferenceInParent()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "pom-with-bom-child.xml", "pom-with-bom.xml" );
+        final List<DependencyView> boms = pomView.getAllBOMs();
+
+        assertThat( boms, notNullValue() );
+        assertThat( boms.size(), equalTo( 1 ) );
     }
 
 }

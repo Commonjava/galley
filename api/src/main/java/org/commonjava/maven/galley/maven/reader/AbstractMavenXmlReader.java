@@ -26,6 +26,7 @@ import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.view.DocRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -38,13 +39,19 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 
     private final TransformerFactory transformerFactory;
 
+    private final Logger logger = new Logger( getClass() );
+
     private final DocumentBuilderFactory dbFactory;
 
     protected AbstractMavenXmlReader()
     {
         inputFactory = XMLInputFactory.newInstance();
-        transformerFactory = TransformerFactory.newInstance();
+        logger.info( "Using XMLInputFactory: %s", inputFactory.getClass()
+                                                              .getName() );
+
         dbFactory = DocumentBuilderFactory.newInstance();
+
+        transformerFactory = TransformerFactory.newInstance();
     }
 
     protected synchronized void cache( final DocRef<T> dr )
@@ -106,31 +113,35 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         Document doc = null;
         try
         {
-            stream = transfer.openInputStream( false );
             try
             {
+                stream = transfer.openInputStream( false );
                 doc = dbFactory.newDocumentBuilder()
                                .parse( stream );
             }
             catch ( SAXException | ParserConfigurationException e )
             {
+                logger.error( "Failed to parse: %s. DOM error: %s. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...", e, transfer,
+                              e.getMessage() );
                 try
                 {
+                    closeQuietly( stream );
+                    stream = transfer.openInputStream( false );
                     inputFactory.setProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
-                    final Transformer transformer = transformerFactory.newTransformer();
 
                     final XMLEventReader eventReader = inputFactory.createXMLEventReader( stream );
                     final StAXSource source = new StAXSource( eventReader );
                     final DOMResult result = new DOMResult();
 
+                    final Transformer transformer = transformerFactory.newTransformer();
                     transformer.transform( source, result );
 
                     doc = (Document) result.getNode();
                 }
                 catch ( TransformerException | XMLStreamException e1 )
                 {
-                    throw new GalleyMavenException( "Failed to parse: %s.\n\nSTaX error: %s\n\nOriginal DOM error: %s", e1, transfer,
-                                                    e1.getMessage(), e.getMessage() );
+                    throw new GalleyMavenException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, transfer, e1.getMessage(),
+                                                    e.getMessage() );
                 }
             }
         }
