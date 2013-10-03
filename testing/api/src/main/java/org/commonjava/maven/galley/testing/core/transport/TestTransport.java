@@ -8,7 +8,6 @@ import javax.enterprise.inject.Default;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -23,8 +22,6 @@ import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
 import org.commonjava.maven.galley.testing.core.transport.job.TestListing;
 import org.commonjava.maven.galley.testing.core.transport.job.TestPublish;
-import org.commonjava.maven.galley.type.TypeMapper;
-import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.logging.Logger;
 
 /**
@@ -50,27 +47,6 @@ public class TestTransport
     private final Map<ConcreteResource, TestListing> listings = new HashMap<>();
 
     private final Map<ConcreteResource, TestExistence> exists = new HashMap<>();
-
-    private final TypeMapper mapper;
-
-    public TestTransport( final TypeMapper mapper )
-    {
-        this.mapper = mapper;
-    }
-
-    /**
-     * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during
-     * your unit test.
-     * @throws TransferException in the event the artifact referenced has a variable version.
-     */
-    public void registerDownload( final Location location, final ArtifactRef ref, final TestDownload job )
-        throws TransferException
-    {
-        new Logger( getClass() ).info( "Got transport: %s", this );
-        logger.info( "Registering download: %s from: %s with job: %s", ref, location, job );
-        final ConcreteResource resource = new ConcreteResource( location, PathUtils.formatArtifactPath( ref, mapper ) );
-        downloads.put( resource, job );
-    }
 
     /**
      * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during

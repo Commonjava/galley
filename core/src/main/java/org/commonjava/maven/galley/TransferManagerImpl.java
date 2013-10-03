@@ -377,7 +377,6 @@ public class TransferManagerImpl
             throw new TransferException( "Storing not allowed in: %s", resource );
         }
 
-        ArtifactRules.checkStorageAuthorization( resource );
         final Transfer target = getCacheReference( resource );
 
         logger.info( "STORE %s", target.getResource() );
@@ -398,26 +397,6 @@ public class TransferManagerImpl
         }
 
         return target;
-    }
-
-    /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.TransferManager#store(java.util.List, java.lang.String, java.io.InputStream)
-     */
-    @Override
-    public Transfer store( final VirtualResource virt, final InputStream stream )
-        throws TransferException
-    {
-        final ConcreteResource selected = ArtifactRules.selectStorageResource( virt );
-
-        if ( selected == null )
-        {
-            logger.warn( "Cannot deploy. No valid deploy points in group." );
-            throw new TransferException( "No deployment locations available for: %s in: %s", virt.getPath(), virt.getLocations() );
-        }
-
-        store( selected, stream );
-
-        return getCacheReference( selected );
     }
 
     /* (non-Javadoc)

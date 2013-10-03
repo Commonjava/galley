@@ -1,13 +1,8 @@
 package org.commonjava.maven.galley.testing.core;
 
-import org.commonjava.maven.galley.ArtifactManager;
-import org.commonjava.maven.galley.ArtifactMetadataManager;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
-import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
-import org.commonjava.maven.galley.maven.reader.MavenPomReader;
-import org.commonjava.maven.galley.maven.view.XPathManager;
 import org.commonjava.maven.galley.nfc.NoOpNotFoundCache;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -17,7 +12,6 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.testing.core.cache.TestCacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
-import org.commonjava.maven.galley.type.StandardTypeMapper;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -43,18 +37,6 @@ public class ApiFixture
 
     private TransferManager transfers;
 
-    private ArtifactManager artifacts;
-
-    private ArtifactMetadataManager metadata;
-
-    private StandardTypeMapper mapper;
-
-    private MavenPomReader pomReader;
-
-    private StandardMaven304PluginDefaults pluginDefaults;
-
-    private XPathManager xpathManager;
-
     public ApiFixture()
     {
         temp = new TemporaryFolder();
@@ -72,14 +54,9 @@ public class ApiFixture
             locations = new NoOpLocationExpander();
         }
 
-        if ( mapper == null )
-        {
-            mapper = new StandardTypeMapper();
-        }
-
         if ( transport == null )
         {
-            transport = new TestTransport( mapper );
+            transport = new TestTransport();
         }
 
         if ( decorator == null )
@@ -98,25 +75,10 @@ public class ApiFixture
         {
             cache = new TestCacheProvider( temp.newFolder( "cache" ), events, decorator );
         }
-
-        if ( pluginDefaults == null )
-        {
-            pluginDefaults = new StandardMaven304PluginDefaults();
-        }
-
-        if ( xpathManager == null )
-        {
-            xpathManager = new XPathManager();
-        }
-
-        if ( pomReader == null && artifacts != null )
-        {
-            pomReader = new MavenPomReader( artifacts, xpathManager, pluginDefaults );
-        }
     }
 
     @Override
-    protected void before()
+    public void before()
         throws Throwable
     {
         super.before();
@@ -124,7 +86,7 @@ public class ApiFixture
     }
 
     @Override
-    protected void after()
+    public void after()
     {
         temp.delete();
         super.after();
@@ -217,16 +179,6 @@ public class ApiFixture
         return transfers;
     }
 
-    public ArtifactManager getArtifacts()
-    {
-        return artifacts;
-    }
-
-    public ArtifactMetadataManager getMetadata()
-    {
-        return metadata;
-    }
-
     public ApiFixture setTransports( final TransportManager transports )
     {
         this.transports = transports;
@@ -237,60 +189,6 @@ public class ApiFixture
     {
         this.transfers = transfers;
         return this;
-    }
-
-    public ApiFixture setArtifacts( final ArtifactManager artifacts )
-    {
-        this.artifacts = artifacts;
-        return this;
-    }
-
-    public ApiFixture setMetadata( final ArtifactMetadataManager metadata )
-    {
-        this.metadata = metadata;
-        return this;
-    }
-
-    public StandardTypeMapper getMapper()
-    {
-        return mapper;
-    }
-
-    public ApiFixture setMapper( final StandardTypeMapper mapper )
-    {
-        this.mapper = mapper;
-        return this;
-    }
-
-    public MavenPomReader getPomReader()
-    {
-        return pomReader;
-    }
-
-    public ApiFixture setPomReader( final MavenPomReader pomReader )
-    {
-        this.pomReader = pomReader;
-        return this;
-    }
-
-    public StandardMaven304PluginDefaults getPluginDefaults()
-    {
-        return pluginDefaults;
-    }
-
-    public void setPluginDefaults( final StandardMaven304PluginDefaults pluginDefaults )
-    {
-        this.pluginDefaults = pluginDefaults;
-    }
-
-    public XPathManager getXpathManager()
-    {
-        return xpathManager;
-    }
-
-    public void setXpathManager( final XPathManager xpathManager )
-    {
-        this.xpathManager = xpathManager;
     }
 
 }

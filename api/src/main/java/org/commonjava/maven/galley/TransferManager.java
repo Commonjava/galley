@@ -31,9 +31,6 @@ public interface TransferManager
     Transfer store( ConcreteResource resource, InputStream stream )
         throws TransferException;
 
-    Transfer store( VirtualResource resource, InputStream stream )
-        throws TransferException;
-
     Transfer getStoreRootDirectory( Location key );
 
     Transfer getCacheReference( ConcreteResource resource );

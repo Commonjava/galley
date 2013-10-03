@@ -3,7 +3,6 @@ package org.commonjava.maven.galley.testing.core;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.commonjava.maven.galley.ArtifactManagerImpl;
 import org.commonjava.maven.galley.TransferManagerImpl;
 import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
@@ -47,11 +46,6 @@ public class CoreFixture
         if ( getTransfers() == null )
         {
             setTransfers( new TransferManagerImpl( getTransports(), getCache(), getNfc(), getEvents(), getDecorator(), dh, uh, lh, eh, batchExecutor ) );
-        }
-
-        if ( getArtifacts() == null )
-        {
-            setArtifacts( new ArtifactManagerImpl( getTransfers(), getLocations(), getMapper() ) );
         }
 
         super.initMissingComponents();
