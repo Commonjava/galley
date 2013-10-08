@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Node;
 
 public class MavenXmlMixin<T extends ProjectRef>
@@ -52,11 +53,13 @@ public class MavenXmlMixin<T extends ProjectRef>
     }
 
     public String resolveXPathExpression( final String path )
+        throws GalleyMavenException
     {
         return mixin.resolveXPathExpression( path, true, -1 );
     }
 
     public Node resolveXPathToNode( final String path )
+        throws GalleyMavenException
     {
         return mixin.resolveXPathToNode( path, true, -1 );
     }

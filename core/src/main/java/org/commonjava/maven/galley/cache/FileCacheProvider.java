@@ -7,6 +7,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -15,8 +21,12 @@ import javax.inject.Named;
 import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
 import org.commonjava.util.logging.Logger;
 
 @Named( "file-galley-cache" )
@@ -26,63 +36,92 @@ public class FileCacheProvider
 
     private final Logger logger = new Logger( getClass() );
 
+    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<>( 10000 );
+
     @Inject
     private FileCacheProviderConfig config;
+
+    @Inject
+    private PathGenerator pathGenerator;
+
+    @Inject
+    private FileEventManager fileEventManager;
+
+    @Inject
+    private TransferDecorator transferDecorator;
 
     protected FileCacheProvider()
     {
     }
 
-    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final boolean aliasLinking )
+    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
+                              final TransferDecorator transferDecorator, final boolean aliasLinking )
     {
-        this.config = new FileCacheProviderConfig( cacheBasedir ).withAliasLinking( aliasLinking )
-                                                                 .withPathGenerator( pathGenerator );
+        this.pathGenerator = pathGenerator;
+        this.fileEventManager = fileEventManager;
+        this.transferDecorator = transferDecorator;
+        this.config = new FileCacheProviderConfig( cacheBasedir ).withAliasLinking( aliasLinking );
     }
 
-    public FileCacheProvider( final FileCacheProviderConfig config )
+    public FileCacheProvider( final FileCacheProviderConfig config, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
+                              final TransferDecorator transferDecorator )
     {
         this.config = config;
+        this.pathGenerator = pathGenerator;
+        this.fileEventManager = fileEventManager;
+        this.transferDecorator = transferDecorator;
     }
 
-    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator )
+    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
+                              final TransferDecorator transferDecorator )
     {
-        this( cacheBasedir, pathGenerator, true );
+        this( cacheBasedir, pathGenerator, fileEventManager, transferDecorator, true );
     }
 
     @Override
     public File getDetachedFile( final ConcreteResource resource )
     {
-        final File f = new File( getFilePath( resource ) );
-
-        if ( !resource.isRoot() && f.exists() && !f.isDirectory() )
+        // TODO: this might be a bit heavy-handed, but we need to be sure. 
+        // Maybe I can improve it later.
+        final Transfer txfr = getTransfer( resource );
+        synchronized ( txfr )
         {
-            final long current = System.currentTimeMillis();
-            final long lastModified = f.lastModified();
-            final int tos =
-                resource.getTimeoutSeconds() < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS : resource.getTimeoutSeconds();
+            final File f = new File( getFilePath( resource ) );
 
-            final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
-
-            if ( current - lastModified > timeout )
+            if ( !resource.isRoot() && f.exists() && !f.isDirectory() )
             {
-                final File mved = new File( f.getPath() + ".to-delete" );
-                f.renameTo( mved );
+                final long current = System.currentTimeMillis();
+                final long lastModified = f.lastModified();
+                final int tos =
+                    resource.getTimeoutSeconds() < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
+                                    : resource.getTimeoutSeconds();
 
-                try
-                {
-                    logger.info( "Deleting cached file: %s (moved to: %s)\n  due to timeout after: %s\n  elapsed: %s\n  original timeout in seconds: %s",
-                                 f, mved, timeout, ( current - lastModified ), tos );
+                final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
 
-                    FileUtils.forceDelete( mved );
-                }
-                catch ( final IOException e )
+                if ( current - lastModified > timeout )
                 {
-                    logger.error( "Failed to delete: %s.", e, f );
+                    final File mved = new File( f.getPath() + SUFFIX_TO_DELETE );
+                    f.renameTo( mved );
+
+                    try
+                    {
+                        logger.info( "Deleting cached file: %s (moved to: %s)\n  due to timeout after: %s\n  elapsed: %s\n  original timeout in seconds: %s",
+                                     f, mved, timeout, ( current - lastModified ), tos );
+
+                        if ( mved.exists() )
+                        {
+                            FileUtils.forceDelete( mved );
+                        }
+                    }
+                    catch ( final IOException e )
+                    {
+                        logger.error( "Failed to delete: %s.", e, f );
+                    }
                 }
             }
-        }
 
-        return f;
+            return f;
+        }
     }
 
     @Override
@@ -136,7 +175,32 @@ public class FileCacheProvider
     @Override
     public String[] list( final ConcreteResource resource )
     {
-        return getDetachedFile( resource ).list();
+        final String[] listing = getDetachedFile( resource ).list();
+        if ( listing == null )
+        {
+            return null;
+        }
+
+        final List<String> list = new ArrayList<>( Arrays.asList( listing ) );
+        for ( final Iterator<String> it = list.iterator(); it.hasNext(); )
+        {
+            final String fname = it.next();
+            if ( fname.charAt( 0 ) == '.' )
+            {
+                it.remove();
+                continue;
+            }
+
+            for ( final String suffix : HIDDEN_SUFFIXES )
+            {
+                if ( fname.endsWith( suffix ) )
+                {
+                    it.remove();
+                }
+            }
+        }
+
+        return list.toArray( new String[list.size()] );
     }
 
     @Override
@@ -184,9 +248,27 @@ public class FileCacheProvider
     public String getFilePath( final ConcreteResource resource )
     {
         return Paths.get( config.getCacheBasedir()
-                                .getPath(), config.getPathGenerator()
-                                                  .getFilePath( resource ) )
+                                .getPath(), pathGenerator.getFilePath( resource ) )
                     .toString();
+    }
+
+    @Override
+    public synchronized Transfer getTransfer( final ConcreteResource resource )
+    {
+        Transfer t = transferCache.get( resource );
+        if ( t == null )
+        {
+            t = new Transfer( resource, this, fileEventManager, transferDecorator );
+            transferCache.put( resource, t );
+        }
+
+        return t;
+    }
+
+    @Override
+    public void clearTransferCache()
+    {
+        transferCache.clear();
     }
 
 }

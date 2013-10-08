@@ -154,9 +154,9 @@ public class HttpTestFixture
         return folder.getRoot();
     }
 
-    public Transfer getCacheReference( final ConcreteResource resource )
+    public Transfer getTransfer( final ConcreteResource resource )
     {
-        return cache.getCacheReference( resource );
+        return cache.getTransfer( resource );
     }
 
     public Transfer writeClasspathResourceToCache( final ConcreteResource resource, final String cpResource )

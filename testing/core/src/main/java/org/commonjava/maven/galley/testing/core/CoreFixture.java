@@ -45,7 +45,7 @@ public class CoreFixture
 
         if ( getTransfers() == null )
         {
-            setTransfers( new TransferManagerImpl( getTransports(), getCache(), getNfc(), getEvents(), getDecorator(), dh, uh, lh, eh, batchExecutor ) );
+            setTransfers( new TransferManagerImpl( getTransports(), getCache(), getNfc(), getEvents(), dh, uh, lh, eh, batchExecutor ) );
         }
 
         super.initMissingComponents();

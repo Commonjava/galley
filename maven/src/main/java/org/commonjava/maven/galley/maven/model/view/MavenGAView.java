@@ -1,6 +1,7 @@
 package org.commonjava.maven.galley.maven.model.view;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 
 public class MavenGAView
@@ -51,8 +52,16 @@ public class MavenGAView
 
     @Override
     public ProjectRef asProjectRef()
+        throws GalleyMavenException
     {
-        return new ProjectRef( getGroupId(), getArtifactId() );
+        try
+        {
+            return new ProjectRef( getGroupId(), getArtifactId() );
+        }
+        catch ( final IllegalArgumentException e )
+        {
+            throw new GalleyMavenException( "Cannot render ProjectRef: %s:%s. Reason: %s", e, getGroupId(), getArtifactId(), e.getMessage() );
+        }
     }
 
     @Override

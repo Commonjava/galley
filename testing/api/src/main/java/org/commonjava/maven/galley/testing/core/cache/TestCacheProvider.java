@@ -35,11 +35,6 @@ public class TestCacheProvider
         this.decorator = decorator;
     }
 
-    public Transfer getCacheReference( final ConcreteResource resource )
-    {
-        return new Transfer( resource, this, events, decorator );
-    }
-
     public Transfer writeClasspathResourceToCache( final ConcreteResource resource, final String cpResource )
         throws IOException
     {
@@ -51,7 +46,7 @@ public class TestCacheProvider
             throw new IOException( "Classpath resource not found: " + cpResource );
         }
 
-        final Transfer tx = getCacheReference( resource );
+        final Transfer tx = getTransfer( resource );
         OutputStream out = null;
         try
         {
@@ -75,7 +70,7 @@ public class TestCacheProvider
             throw new IOException( "Content is empty!" );
         }
 
-        final Transfer tx = getCacheReference( resource );
+        final Transfer tx = getTransfer( resource );
         OutputStream out = null;
         try
         {
@@ -186,6 +181,17 @@ public class TestCacheProvider
         final File fromFile = getDetachedFile( from );
         final File toFile = getDetachedFile( to );
         Files.createLink( Paths.get( fromFile.toURI() ), Paths.get( toFile.toURI() ) );
+    }
+
+    @Override
+    public void clearTransferCache()
+    {
+    }
+
+    @Override
+    public Transfer getTransfer( final ConcreteResource resource )
+    {
+        return new Transfer( resource, this, events, decorator );
     }
 
 }

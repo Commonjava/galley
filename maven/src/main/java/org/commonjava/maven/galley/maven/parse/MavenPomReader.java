@@ -1,7 +1,5 @@
 package org.commonjava.maven.galley.maven.parse;
 
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,8 +45,10 @@ public class MavenPomReader
     {
     }
 
-    public MavenPomReader( final ArtifactManager artifactManager, final XPathManager xpath, final MavenPluginDefaults pluginDefaults )
+    public MavenPomReader( final XMLInfrastructure xml, final ArtifactManager artifactManager, final XPathManager xpath,
+                           final MavenPluginDefaults pluginDefaults )
     {
+        super( xml );
         this.artifacts = artifactManager;
         this.xpath = xpath;
         this.pluginDefaults = pluginDefaults;
@@ -89,7 +89,7 @@ public class MavenPomReader
                      .getParentRef();
         }
 
-        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults );
+        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, xml );
         assembleImportedInformation( view, locations );
 
         logStructure( view );
@@ -111,27 +111,43 @@ public class MavenPomReader
 
         sb.append( "\n\n" )
           .append( view.getRef() )
-          .append( " consists of:\n  " )
-          .append( join( stack, "\n  " ) )
-          .append( "\n\n" );
+          .append( " consists of:\n  " );
+
+        int i = 0;
+        for ( final DocRef<ProjectVersionRef> docref : stack )
+        {
+            sb.append( "\n  D" )
+              .append( i++ )
+              .append( docref );
+        }
+
+        sb.append( "\n\n" );
+
         if ( mixins != null && !mixins.isEmpty() )
         {
-            sb.append( "Mix-ins for " )
+            sb.append( mixins.size() )
+              .append( " Mix-ins for " )
               .append( view.getRef() )
               .append( ":\n\n" );
+
+            i = 0;
             for ( final MavenXmlMixin<ProjectVersionRef> mixin : mixins )
             {
-                sb.append( mixin )
+                sb.append( 'M' )
+                  .append( i++ )
+                  .append( mixin )
                   .append( "\n    " );
                 sb.append( printStructure( (MavenPomView) mixin.getMixin() ) );
             }
+
+            sb.append( "\n\n" );
         }
 
         return sb.toString();
     }
 
     private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final List<? extends Location> locations, final boolean cache )
-        throws TransferException
+        throws TransferException, GalleyMavenException
     {
         DocRef<ProjectVersionRef> dr = getFirstCached( ref, locations );
         if ( dr == null )
@@ -158,6 +174,7 @@ public class MavenPomReader
     }
 
     private DocRef<ProjectVersionRef> getDocRef( final Transfer pom, final List<? extends Location> locations, final boolean cache )
+        throws GalleyMavenException
     {
         PomPeek peek;
         final Transfer transfer = pom;
@@ -220,7 +237,7 @@ public class MavenPomReader
         }
         while ( next != null );
 
-        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults );
+        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, xml );
         assembleImportedInformation( view, locations );
 
         logStructure( view );
@@ -229,6 +246,7 @@ public class MavenPomReader
     }
 
     private void assembleImportedInformation( final MavenPomView view, final List<? extends Location> locations )
+        throws GalleyMavenException
     {
         final List<DependencyView> md = view.getAllManagedDependencies();
         for ( final DependencyView dv : md )

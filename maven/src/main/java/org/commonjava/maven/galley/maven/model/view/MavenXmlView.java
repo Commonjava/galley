@@ -15,7 +15,11 @@ import org.codehaus.plexus.interpolation.StringSearchInterpolator;
 import org.codehaus.plexus.interpolation.ValueSource;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
+import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
+import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
+import org.commonjava.util.logging.Logger;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -24,7 +28,7 @@ public class MavenXmlView<T extends ProjectRef>
 
     private static final String EXPRESSION_PATTERN = ".*\\$\\{.+\\}.*";
 
-    //    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = new Logger( getClass() );
 
     private final List<DocRef<T>> stack;
 
@@ -36,17 +40,21 @@ public class MavenXmlView<T extends ProjectRef>
 
     private final Set<String> localOnlyPaths;
 
-    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final String... localOnlyPaths )
+    private final XMLInfrastructure xml;
+
+    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final String... localOnlyPaths )
     {
         this.stack = stack;
         this.xpath = xpath;
+        this.xml = xml;
         this.localOnlyPaths = new HashSet<>( Arrays.asList( localOnlyPaths ) );
     }
 
-    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final Set<String> localOnlyPaths )
+    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final Set<String> localOnlyPaths )
     {
         this.stack = stack;
         this.xpath = xpath;
+        this.xml = xml;
         this.localOnlyPaths = localOnlyPaths;
     }
 
@@ -91,7 +99,6 @@ public class MavenXmlView<T extends ProjectRef>
     }
 
     public String resolveXPathExpression( String path, final boolean cachePath, final int maxAncestry, final String... activeProfileIds )
-        throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
         {
@@ -103,7 +110,7 @@ public class MavenXmlView<T extends ProjectRef>
         {
             result = resolveXPathToNode( path, cachePath, maxAncestry );
         }
-        catch ( final GalleyMavenException e )
+        catch ( final GalleyMavenRuntimeException e )
         {
             // TODO: We don't want to spit this out, but is there another more appropriate action than ignoring it?
         }
@@ -121,7 +128,6 @@ public class MavenXmlView<T extends ProjectRef>
     }
 
     public List<String> resolveXPathExpressionToAggregatedList( String path, final boolean cachePath, final int maxAncestry )
-        throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
         {
@@ -143,7 +149,7 @@ public class MavenXmlView<T extends ProjectRef>
     }
 
     public Node resolveXPathToNode( final String path, final boolean cachePath, final int maxDepth )
-        throws GalleyMavenException
+        throws GalleyMavenRuntimeException
     {
         Node result = null;
         try
@@ -199,14 +205,14 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
 
         return result;
     }
 
     public synchronized List<Node> resolveXPathToAggregatedNodeList( final String path, final boolean cachePath, final int maxDepth )
-        throws GalleyMavenException
+        throws GalleyMavenRuntimeException
     {
         try
         {
@@ -265,12 +271,12 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
     }
 
     public synchronized List<Node> resolveXPathToFirstNodeList( final String path, final boolean cachePath, final int maxDepth )
-        throws GalleyMavenException
+        throws GalleyMavenRuntimeException
     {
         try
         {
@@ -322,11 +328,12 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
     }
 
     private List<Node> getLocalNodeList( final XPathExpression expression, final Document doc, final String path )
+        throws GalleyMavenRuntimeException
     {
         NodeList nl;
         try
@@ -335,7 +342,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
 
         if ( nl != null )
@@ -354,7 +361,6 @@ public class MavenXmlView<T extends ProjectRef>
     }
 
     public String resolveXPathExpressionFrom( final Node root, String path )
-        throws GalleyMavenException
     {
         if ( !path.endsWith( "/text()" ) )
         {
@@ -394,7 +400,6 @@ public class MavenXmlView<T extends ProjectRef>
     }
 
     public synchronized Node resolveXPathToNodeFrom( final Node root, final String path, final boolean cachePath )
-        throws GalleyMavenException
     {
         try
         {
@@ -404,12 +409,12 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
     }
 
     public synchronized List<Node> resolveXPathToNodeListFrom( final Node root, final String path, final boolean cachePath )
-        throws GalleyMavenException
+        throws GalleyMavenRuntimeException
     {
         try
         {
@@ -429,7 +434,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
     }
 
@@ -439,7 +444,6 @@ public class MavenXmlView<T extends ProjectRef>
     }
 
     public String resolveExpressions( final String value, final String... activeProfileIds )
-        throws GalleyMavenException
     {
         if ( !containsExpression( value ) )
         {
@@ -471,7 +475,8 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final InterpolationException e )
         {
-            throw new GalleyMavenException( "Failed to interpolate expressions in: '%s'. Reason: %s", e, value, e.getMessage() );
+            logger.error( "Failed to resolve expressions in: '%s'. Reason: %s", e, value, e.getMessage() );
+            return value;
         }
     }
 
@@ -539,6 +544,11 @@ public class MavenXmlView<T extends ProjectRef>
     public void removeMixin( final MavenXmlMixin<T> mixin )
     {
         mixins.remove( mixin );
+    }
+
+    public String toXML( final Element element )
+    {
+        return xml.toXML( element );
     }
 
 }

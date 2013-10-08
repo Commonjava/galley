@@ -10,48 +10,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.inject.Inject;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.stax.StAXSource;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 {
 
     private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<>();
 
-    private final XMLInputFactory inputFactory;
-
-    private final TransformerFactory transformerFactory;
+    @Inject
+    protected XMLInfrastructure xml;
 
     private final Logger logger = new Logger( getClass() );
 
-    private final DocumentBuilderFactory dbFactory;
-
     protected AbstractMavenXmlReader()
     {
-        inputFactory = XMLInputFactory.newInstance();
-        logger.info( "Using XMLInputFactory: %s", inputFactory.getClass()
-                                                              .getName() );
+    }
 
-        dbFactory = DocumentBuilderFactory.newInstance();
-
-        transformerFactory = TransformerFactory.newInstance();
+    protected AbstractMavenXmlReader( final XMLInfrastructure xml )
+    {
+        this.xml = xml;
     }
 
     protected synchronized void cache( final DocRef<T> dr )
@@ -107,7 +98,7 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
     }
 
     protected Document parse( final Transfer transfer )
-        throws GalleyMavenException
+        throws GalleyMavenXMLException
     {
         InputStream stream = null;
         Document doc = null;
@@ -116,10 +107,9 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
             try
             {
                 stream = transfer.openInputStream( false );
-                doc = dbFactory.newDocumentBuilder()
-                               .parse( stream );
+                doc = xml.parseDocument( stream );
             }
-            catch ( SAXException | ParserConfigurationException e )
+            catch ( final GalleyMavenXMLException e )
             {
                 logger.error( "Failed to parse: %s. DOM error: %s. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...", e, transfer,
                               e.getMessage() );
@@ -127,27 +117,27 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
                 {
                     closeQuietly( stream );
                     stream = transfer.openInputStream( false );
-                    inputFactory.setProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
+                    xml.setInputFactoryProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
 
-                    final XMLEventReader eventReader = inputFactory.createXMLEventReader( stream );
+                    final XMLEventReader eventReader = xml.createXMLEventReader( stream );
                     final StAXSource source = new StAXSource( eventReader );
                     final DOMResult result = new DOMResult();
 
-                    final Transformer transformer = transformerFactory.newTransformer();
+                    final Transformer transformer = xml.newTransformer();
                     transformer.transform( source, result );
 
                     doc = (Document) result.getNode();
                 }
                 catch ( TransformerException | XMLStreamException e1 )
                 {
-                    throw new GalleyMavenException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, transfer, e1.getMessage(),
-                                                    e.getMessage() );
+                    throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, transfer, e1.getMessage(),
+                                                       e.getMessage() );
                 }
             }
         }
         catch ( final IOException e )
         {
-            throw new GalleyMavenException( "Failed to read: %s. Reason: %s", e, transfer, e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to read: %s. Reason: %s", e, transfer, e.getMessage() );
         }
         finally
         {

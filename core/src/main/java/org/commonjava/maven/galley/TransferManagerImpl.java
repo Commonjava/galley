@@ -50,7 +50,6 @@ import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -75,9 +74,6 @@ public class TransferManagerImpl
     private FileEventManager fileEventManager;
 
     @Inject
-    private TransferDecorator transferDecorator;
-
-    @Inject
     private DownloadHandler downloader;
 
     @Inject
@@ -98,15 +94,13 @@ public class TransferManagerImpl
     }
 
     public TransferManagerImpl( final TransportManager transportManager, final CacheProvider cacheProvider, final NotFoundCache nfc,
-                                final FileEventManager fileEventManager, final TransferDecorator transferDecorator, final DownloadHandler downloader,
-                                final UploadHandler uploader, final ListingHandler lister, final ExistenceHandler exister,
-                                final ExecutorService executor )
+                                final FileEventManager fileEventManager, final DownloadHandler downloader, final UploadHandler uploader,
+                                final ListingHandler lister, final ExistenceHandler exister, final ExecutorService executor )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;
         this.nfc = nfc;
         this.fileEventManager = fileEventManager;
-        this.transferDecorator = transferDecorator;
         this.downloader = downloader;
         this.uploader = uploader;
         this.lister = lister;
@@ -405,7 +399,7 @@ public class TransferManagerImpl
     @Override
     public Transfer getStoreRootDirectory( final Location key )
     {
-        return new Transfer( new ConcreteResource( key ), cacheProvider, fileEventManager, transferDecorator );
+        return cacheProvider.getTransfer( new ConcreteResource( key ) );
     }
 
     /* (non-Javadoc)
@@ -414,7 +408,7 @@ public class TransferManagerImpl
     @Override
     public Transfer getCacheReference( final ConcreteResource resource )
     {
-        return new Transfer( resource, cacheProvider, fileEventManager, transferDecorator );
+        return cacheProvider.getTransfer( resource );
     }
 
     /* (non-Javadoc)

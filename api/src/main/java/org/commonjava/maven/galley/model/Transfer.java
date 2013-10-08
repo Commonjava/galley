@@ -12,6 +12,7 @@ import org.commonjava.maven.galley.event.FileStorageEvent;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.util.TransferUnlockingOutputStream;
 
 public final class Transfer
 {
@@ -23,6 +24,8 @@ public final class Transfer
     private final TransferDecorator decorator;
 
     private final FileEventManager fileEventManager;
+
+    private boolean locked = false;
 
     public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager, final TransferDecorator decorator,
                      final String... path )
@@ -40,6 +43,47 @@ public final class Transfer
         this.fileEventManager = fileEventManager;
         this.decorator = decorator;
         this.provider = provider;
+    }
+
+    public boolean isLocked()
+    {
+        return locked;
+    }
+
+    public synchronized void unlock()
+    {
+        locked = false;
+        notifyAll();
+    }
+
+    public synchronized void waitForUnlock()
+    {
+        if ( locked )
+        {
+            try
+            {
+                wait();
+            }
+            catch ( final InterruptedException e )
+            {
+                // TODO
+            }
+        }
+    }
+
+    public synchronized void waitForUnlock( final long millis )
+    {
+        if ( locked )
+        {
+            try
+            {
+                wait( millis );
+            }
+            catch ( final InterruptedException e )
+            {
+                // TODO
+            }
+        }
     }
 
     public boolean isDirectory()
@@ -75,16 +119,17 @@ public final class Transfer
             return null;
         }
 
-        return new Transfer( (ConcreteResource) resource.getParent(), provider, fileEventManager, decorator );
+        return provider.getTransfer( (ConcreteResource) resource.getParent() );
     }
 
     public Transfer getChild( final String file )
     {
-        return new Transfer( (ConcreteResource) resource.getChild( file ), provider, fileEventManager, decorator );
+        return provider.getTransfer( (ConcreteResource) resource.getChild( file ) );
     }
 
     public void touch()
     {
+        waitForUnlock();
         fileEventManager.fire( new FileAccessEvent( this ) );
     }
 
@@ -97,6 +142,7 @@ public final class Transfer
     public InputStream openInputStream( final boolean fireEvents )
         throws IOException
     {
+        waitForUnlock();
         try
         {
             InputStream stream = provider.openInputStream( resource );
@@ -131,15 +177,17 @@ public final class Transfer
     public OutputStream openOutputStream( final TransferOperation accessType, final boolean fireEvents )
         throws IOException
     {
+        waitForUnlock();
         try
         {
+            locked = true;
             OutputStream stream = provider.openOutputStream( resource );
             if ( stream == null )
             {
                 return null;
             }
 
-            stream = decorator.decorateWrite( stream, accessType );
+            stream = decorator.decorateWrite( new TransferUnlockingOutputStream( stream, this ), accessType );
             if ( fireEvents )
             {
                 fileEventManager.fire( new FileStorageEvent( accessType, this ) );
@@ -159,13 +207,23 @@ public final class Transfer
 
     public boolean exists()
     {
+        waitForUnlock();
         return provider.exists( resource );
     }
 
     public void copyFrom( final Transfer f )
         throws IOException
     {
-        provider.copy( f.getResource(), resource );
+        waitForUnlock();
+        locked = true;
+        try
+        {
+            provider.copy( f.getResource(), resource );
+        }
+        finally
+        {
+            unlock();
+        }
     }
 
     public String getFullPath()
@@ -182,6 +240,7 @@ public final class Transfer
     public boolean delete( final boolean fireEvents )
         throws IOException
     {
+        waitForUnlock();
         try
         {
             final boolean deleted = provider.delete( resource );
@@ -209,7 +268,16 @@ public final class Transfer
 
     public File getDetachedFile()
     {
-        return provider.getDetachedFile( resource );
+        waitForUnlock();
+        locked = true;
+        try
+        {
+            return provider.getDetachedFile( resource );
+        }
+        finally
+        {
+            unlock();
+        }
     }
 
     public void mkdirs()
@@ -221,6 +289,7 @@ public final class Transfer
     public void createFile()
         throws IOException
     {
+        waitForUnlock();
         provider.createFile( resource );
     }
 

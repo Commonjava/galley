@@ -7,6 +7,7 @@ import java.util.Set;
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
+import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -41,12 +42,12 @@ public class DependencyView
     }
 
     public boolean isManaged()
+        throws GalleyMavenException
     {
         return pomView.resolveXPathToNodeFrom( element, "ancestor::dependencyManagement", true ) != null;
     }
 
     public synchronized String getClassifier()
-        throws GalleyMavenException
     {
         if ( classifier == null )
         {
@@ -57,7 +58,6 @@ public class DependencyView
     }
 
     public synchronized String getRawType()
-        throws GalleyMavenException
     {
         if ( type == null )
         {
@@ -68,14 +68,12 @@ public class DependencyView
     }
 
     public synchronized String getType()
-        throws GalleyMavenException
     {
         final String type = getRawType();
         return type == null ? "jar" : type;
     }
 
     public synchronized DependencyScope getScope()
-        throws GalleyMavenException
     {
         if ( scope == null )
         {
@@ -98,7 +96,6 @@ public class DependencyView
     }
 
     public synchronized Set<ProjectRefView> getExclusions()
-        throws GalleyMavenException
     {
         if ( exclusions == null )
         {
@@ -120,7 +117,6 @@ public class DependencyView
 
     @Override
     protected String getManagedViewQualifierFragment()
-        throws GalleyMavenException
     {
         final StringBuilder sb = new StringBuilder();
 
@@ -158,13 +154,33 @@ public class DependencyView
     }
 
     public ArtifactRef asArtifactRef()
+        throws GalleyMavenException
     {
-        return new ArtifactRef( asProjectVersionRef(), getType(), getClassifier(), isOptional() );
+        try
+        {
+            return new ArtifactRef( asProjectVersionRef(), getType(), getClassifier(), isOptional() );
+        }
+        catch ( IllegalArgumentException | InvalidVersionSpecificationException e )
+        {
+            final String classifier = getClassifier();
+            throw new GalleyMavenException( "Cannot render ArtifactRef: %s:%s:%s:%s%s. Reason: %s", e, getGroupId(), getArtifactId(), getVersion(),
+                                            getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
+        }
     }
 
     public VersionlessArtifactRef asVersionlessArtifactRef()
+        throws GalleyMavenException
     {
-        return new VersionlessArtifactRef( asProjectRef(), getType(), getClassifier(), isOptional() );
+        try
+        {
+            return new VersionlessArtifactRef( asProjectRef(), getType(), getClassifier(), isOptional() );
+        }
+        catch ( IllegalArgumentException | InvalidVersionSpecificationException e )
+        {
+            final String classifier = getClassifier();
+            throw new GalleyMavenException( "Cannot render VersionlessArtifactRef: %s:%s:%s%s. Reason: %s", e, getGroupId(), getArtifactId(),
+                                            getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
+        }
     }
 
 }

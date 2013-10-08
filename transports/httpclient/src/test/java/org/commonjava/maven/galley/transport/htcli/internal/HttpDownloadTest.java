@@ -29,7 +29,7 @@ public class HttpDownloadTest
 
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new ConcreteResource( location, fname ) );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
         assertThat( transfer.exists(), equalTo( false ) );
@@ -59,7 +59,7 @@ public class HttpDownloadTest
 
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new ConcreteResource( location, fname ) );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
         assertThat( transfer.exists(), equalTo( false ) );
@@ -88,7 +88,7 @@ public class HttpDownloadTest
 
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
-        final Transfer transfer = fixture.getCacheReference( new ConcreteResource( location, fname ) );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
         final String error = "Test Error.";

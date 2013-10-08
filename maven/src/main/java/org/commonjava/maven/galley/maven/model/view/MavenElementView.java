@@ -51,7 +51,6 @@ public class MavenElementView
      * Override this to provide the xpath fragment used to find management values for this view.
      */
     protected String getManagedViewQualifierFragment()
-        throws GalleyMavenException
     {
         return null;
     }
@@ -77,7 +76,6 @@ public class MavenElementView
     }
 
     protected String getValueWithManagement( final String named )
-        throws GalleyMavenException
     {
         String value = getValue( named );
         //        logger.info( "Value of path: '%s' local to: %s is: '%s'\nIn: %s", named, element, value, pomView.getRef() );
@@ -102,6 +100,7 @@ public class MavenElementView
     }
 
     protected List<Node> getAggregateNodesWithManagement( final String path )
+        throws GalleyMavenException
     {
         List<Node> nodes = pomView.resolveXPathToNodeListFrom( this.element, path, true );
         if ( nodes == null || nodes.isEmpty() )
@@ -142,7 +141,6 @@ public class MavenElementView
     }
 
     private String[] managementXpathsFor( final String named )
-        throws GalleyMavenException
     {
         initManagementXpaths();
         if ( managementXpaths == null )
@@ -161,7 +159,6 @@ public class MavenElementView
     }
 
     private void initManagementXpaths()
-        throws GalleyMavenException
     {
         if ( managementXpathFragment == null )
         {
@@ -209,7 +206,6 @@ public class MavenElementView
     }
 
     protected String getValue( final String path )
-        throws GalleyMavenException
     {
         final String[] names = path.split( "/" );
         Element e = element;
@@ -266,6 +262,11 @@ public class MavenElementView
         }
 
         return e;
+    }
+
+    public String toXML()
+    {
+        return pomView.toXML( element );
     }
 
 }

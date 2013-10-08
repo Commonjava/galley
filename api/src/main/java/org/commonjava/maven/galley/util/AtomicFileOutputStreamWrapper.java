@@ -1,10 +1,12 @@
-package org.commonjava.maven.galley.cache;
+package org.commonjava.maven.galley.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
 
 public class AtomicFileOutputStreamWrapper
     extends OutputStream
@@ -20,7 +22,7 @@ public class AtomicFileOutputStreamWrapper
         throws FileNotFoundException
     {
         this.targetFile = targetFile;
-        this.downloadFile = new File( targetFile.getPath() + ".download" );
+        this.downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_DOWNLOAD );
         this.stream = new FileOutputStream( downloadFile );
     }
 

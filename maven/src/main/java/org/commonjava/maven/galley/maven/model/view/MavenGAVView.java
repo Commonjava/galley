@@ -1,7 +1,6 @@
 package org.commonjava.maven.galley.maven.model.view;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 
@@ -24,7 +23,6 @@ public class MavenGAVView
 
     @Override
     public synchronized String getVersion()
-        throws GalleyMavenException
     {
         if ( version == null )
         {
@@ -40,7 +38,15 @@ public class MavenGAVView
     public ProjectVersionRef asProjectVersionRef()
         throws GalleyMavenException
     {
-        return new ProjectVersionRef( getGroupId(), getArtifactId(), getVersion() );
+        try
+        {
+            return new ProjectVersionRef( getGroupId(), getArtifactId(), getVersion() );
+        }
+        catch ( final IllegalArgumentException e )
+        {
+            throw new GalleyMavenException( "Cannot render ProjectVersionRef: %s:%s:%s. Reason: %s", e, getGroupId(), getArtifactId(), getVersion(),
+                                            e.getMessage() );
+        }
     }
 
     protected void setVersion( final String version )
@@ -57,14 +63,7 @@ public class MavenGAVView
     @Override
     public boolean isValid()
     {
-        try
-        {
-            return super.isValid() && !containsExpression( getVersion() ) && asProjectVersionRef().getVersionSpec() != null;
-        }
-        catch ( final InvalidVersionSpecificationException e )
-        {
-            return false;
-        }
+        return super.isValid() && !containsExpression( getVersion() );
     }
 
 }

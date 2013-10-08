@@ -14,7 +14,6 @@ import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
@@ -45,8 +44,6 @@ public class TransferManagerTest
 
     private FileEventManager fileEvents;
 
-    private TransferDecorator decorator;
-
     private ExecutorService executor;
 
     private TestTransport transport;
@@ -58,10 +55,11 @@ public class TransferManagerTest
     {
         transport = new TestTransport();
         transportMgr = new TransportManagerImpl( transport );
-        cacheProvider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator() );
+        cacheProvider =
+            new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(), new NoOpFileEventManager(),
+                                   new NoOpTransferDecorator(), true );
         nfc = new MemoryNotFoundCache();
         fileEvents = new NoOpFileEventManager();
-        decorator = new NoOpTransferDecorator();
         executor = Executors.newSingleThreadExecutor();
 
         final DownloadHandler dh = new DownloadHandler( nfc, executor );
@@ -69,7 +67,7 @@ public class TransferManagerTest
         final ListingHandler lh = new ListingHandler( nfc );
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
-        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, decorator, dh, uh, lh, eh, Executors.newFixedThreadPool( 2 ) );
+        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, dh, uh, lh, eh, Executors.newFixedThreadPool( 2 ) );
     }
 
     @Override

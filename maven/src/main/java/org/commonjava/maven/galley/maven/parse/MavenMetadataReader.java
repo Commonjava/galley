@@ -36,8 +36,9 @@ public class MavenMetadataReader
     {
     }
 
-    public MavenMetadataReader( final ArtifactMetadataManager metadataManager, final XPathManager xpath )
+    public MavenMetadataReader( final XMLInfrastructure xml, final ArtifactMetadataManager metadataManager, final XPathManager xpath )
     {
+        super( xml );
         this.metadataManager = metadataManager;
         this.xpath = xpath;
     }
@@ -93,7 +94,7 @@ public class MavenMetadataReader
         }
 
         logger.info( "Got %d metadata documents for: %s", docs.size(), ref );
-        return new MavenMetadataView( docs, xpath );
+        return new MavenMetadataView( docs, xpath, xml );
     }
 
 }

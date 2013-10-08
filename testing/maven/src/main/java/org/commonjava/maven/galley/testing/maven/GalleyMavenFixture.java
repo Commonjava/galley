@@ -9,6 +9,7 @@ import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
+import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
 import org.commonjava.maven.galley.maven.type.TypeMapper;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
@@ -26,7 +27,7 @@ public class GalleyMavenFixture
     extends ExternalResource
 {
 
-    private final ApiFixture api;
+    private ApiFixture api;
 
     private ArtifactManager artifacts;
 
@@ -39,6 +40,8 @@ public class GalleyMavenFixture
     private MavenPluginDefaults pluginDefaults;
 
     private XPathManager xpathManager;
+
+    private XMLInfrastructure xmlInfra;
 
     public GalleyMavenFixture( final ApiFixture api )
     {
@@ -74,9 +77,14 @@ public class GalleyMavenFixture
             xpathManager = new XPathManager();
         }
 
+        if ( xmlInfra == null )
+        {
+            xmlInfra = new XMLInfrastructure();
+        }
+
         if ( pomReader == null && artifacts != null )
         {
-            pomReader = new MavenPomReader( artifacts, xpathManager, pluginDefaults );
+            pomReader = new MavenPomReader( xmlInfra, artifacts, xpathManager, pluginDefaults );
         }
     }
 
@@ -93,11 +101,6 @@ public class GalleyMavenFixture
     {
         api.after();
         super.after();
-    }
-
-    public ApiFixture getApiFixture()
-    {
-        return api;
     }
 
     public ArtifactManager getArtifacts()
@@ -252,5 +255,35 @@ public class GalleyMavenFixture
     public ApiFixture setTransfers( final TransferManager transfers )
     {
         return api.setTransfers( transfers );
+    }
+
+    public XMLInfrastructure getXmlInfra()
+    {
+        return xmlInfra;
+    }
+
+    public void setXmlInfra( final XMLInfrastructure xmlInfra )
+    {
+        this.xmlInfra = xmlInfra;
+    }
+
+    public ApiFixture getApi()
+    {
+        return api;
+    }
+
+    public void setApi( final ApiFixture api )
+    {
+        this.api = api;
+    }
+
+    public void setMapper( final TypeMapper mapper )
+    {
+        this.mapper = mapper;
+    }
+
+    public void setPluginDefaults( final MavenPluginDefaults pluginDefaults )
+    {
+        this.pluginDefaults = pluginDefaults;
     }
 }

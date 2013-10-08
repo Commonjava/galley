@@ -93,6 +93,44 @@ public class DependencyViewTest
     }
 
     @Test
+    public void managedDependency_ExpressionPropertyInBOMsParent()
+        throws Exception
+    {
+        // FIXME: POM <dep> -> parent -> BOM <dep> -> parent/${expression}
+        final DependencyView dv =
+            loadFirstDirectDependency( "child-with-bom-in-parent.xml", "parent-with-bom.xml", "bom-with-version-in-parent.xml",
+                                       "parent-with-versions.xml" );
+
+        logger.info( dv.asProjectVersionRef()
+                       .toString() );
+        //        logger.info( "%s", dv.asProjectRef() );
+        //        logger.info( "%s", dv.asProjectVersionRef()
+        //                             .getVersionSpec() );
+        //        logger.info( "%s", dv.asVersionlessArtifactRef() );
+        //        logger.info( "%s", dv.asArtifactRef()
+        //                             .getVersionSpec() );
+    }
+
+    @Test
+    public void managedDependency_ExpressionPropertyInBOMsParentWithPropRelocation()
+        throws Exception
+    {
+        // FIXME: POM <dep> -> parent -> BOM <dep> -> parent/${expression}
+        final DependencyView dv =
+            loadFirstDirectDependency( "child-with-bom-in-parent.xml", "parent-with-bom.xml", "bom-with-version-in-parent.xml",
+                                       "parent-with-versions-relocated.xml" );
+
+        logger.info( dv.asProjectVersionRef()
+                       .toString() );
+        //        logger.info( "%s", dv.asProjectRef() );
+        //        logger.info( "%s", dv.asProjectVersionRef()
+        //                             .getVersionSpec() );
+        //        logger.info( "%s", dv.asVersionlessArtifactRef() );
+        //        logger.info( "%s", dv.asArtifactRef()
+        //                             .getVersionSpec() );
+    }
+
+    @Test
     public void managedDependency()
         throws Exception
     {

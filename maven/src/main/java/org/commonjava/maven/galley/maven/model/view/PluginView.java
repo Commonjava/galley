@@ -17,13 +17,13 @@ public class PluginView
     }
 
     public boolean isManaged()
+        throws GalleyMavenException
     {
         return pomView.resolveXPathToNodeFrom( element, "ancestor::pluginManagement", true ) != null;
     }
 
     @Override
     public synchronized String getVersion()
-        throws GalleyMavenException
     {
         if ( super.getVersion() == null )
         {
@@ -47,7 +47,6 @@ public class PluginView
 
     @Override
     protected String getManagedViewQualifierFragment()
-        throws GalleyMavenException
     {
         final StringBuilder sb = new StringBuilder();
 

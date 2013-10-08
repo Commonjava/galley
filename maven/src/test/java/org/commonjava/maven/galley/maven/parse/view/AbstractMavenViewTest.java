@@ -10,7 +10,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -23,6 +22,7 @@ import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.MavenXmlView;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.util.logging.Log4jUtil;
 import org.commonjava.util.logging.Logger;
@@ -40,6 +40,8 @@ public abstract class AbstractMavenViewTest
 
     private XPathManager xpath;
 
+    private XMLInfrastructure xml;
+
     protected final Logger logger = new Logger( getClass() );
 
     @BeforeClass
@@ -52,11 +54,10 @@ public abstract class AbstractMavenViewTest
     public void setup()
         throws Exception
     {
-        docBuilder = DocumentBuilderFactory.newInstance()
-                                           .newDocumentBuilder();
+        xml = new XMLInfrastructure();
+        docBuilder = xml.newDocumentBuilder();
 
-        transformer = TransformerFactory.newInstance()
-                                        .newTransformer();
+        transformer = xml.newTransformer();
 
         transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "no" );
         transformer.setOutputProperty( OutputKeys.METHOD, "xml" );
@@ -105,7 +106,8 @@ public abstract class AbstractMavenViewTest
             stack.add( dr );
         }
 
-        return new MavenPomView( stack, xpath, new StandardMaven304PluginDefaults() );
+        // FIXME: The use of pvr here is probably going to lead to problems.
+        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(), xml );
     }
 
     protected MavenXmlView<ProjectRef> loadDocs( final Set<String> localOnlyPaths, final String... docNames )
@@ -128,7 +130,7 @@ public abstract class AbstractMavenViewTest
             stack.add( dr );
         }
 
-        return new MavenXmlView<ProjectRef>( stack, xpath, localOnlyPaths );
+        return new MavenXmlView<ProjectRef>( stack, xpath, xml, localOnlyPaths );
     }
 
     protected void dump( final Node node )
