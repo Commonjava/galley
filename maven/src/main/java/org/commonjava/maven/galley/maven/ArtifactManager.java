@@ -2,6 +2,7 @@ package org.commonjava.maven.galley.maven;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -42,7 +43,7 @@ public interface ArtifactManager
     boolean publish( Location location, ArtifactRef ref, InputStream stream, long length )
         throws TransferException;
 
-    TypeAndClassifier[] listAvailableArtifacts( Location location, ProjectVersionRef ref )
+    Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( Location location, ProjectVersionRef ref )
         throws TransferException;
 
     ProjectVersionRef resolveVariableVersion( Location location, ProjectVersionRef ref )

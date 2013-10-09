@@ -26,7 +26,7 @@ public class ListingResult
         return resource.getPath();
     }
 
-    public Resource getResource()
+    public ConcreteResource getResource()
     {
         return resource;
     }

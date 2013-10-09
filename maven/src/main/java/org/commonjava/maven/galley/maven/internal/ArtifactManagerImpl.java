@@ -5,10 +5,9 @@ import static org.commonjava.maven.galley.maven.util.ArtifactPathUtils.formatArt
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -136,7 +135,7 @@ public class ArtifactManagerImpl
     }
 
     @Override
-    public TypeAndClassifier[] listAvailableArtifacts( final Location location, final ProjectVersionRef ref )
+    public Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( final Location location, final ProjectVersionRef ref )
         throws TransferException
     {
         final List<ListingResult> listingResults =
@@ -144,11 +143,11 @@ public class ArtifactManagerImpl
 
         if ( listingResults == null || listingResults.isEmpty() )
         {
-            return new TypeAndClassifier[0];
+            return Collections.emptyMap();
         }
 
+        final Map<TypeAndClassifier, ConcreteResource> result = new LinkedHashMap<>();
         final String prefix = String.format( "%s-%s", ref.getArtifactId(), ref.getVersionString() );
-        final Set<TypeAndClassifier> artifacts = new HashSet<>();
         for ( final ListingResult listingResult : listingResults )
         {
             //FIXME: snapshot handling.
@@ -179,12 +178,14 @@ public class ArtifactManagerImpl
                         type = remainder.substring( 1 );
                     }
 
-                    artifacts.add( new TypeAndClassifier( type, classifier ) );
+                    final ConcreteResource res = (ConcreteResource) listingResult.getResource()
+                                                                                 .getChild( fname );
+                    result.put( new TypeAndClassifier( type, classifier ), res );
                 }
             }
         }
 
-        return artifacts.toArray( new TypeAndClassifier[artifacts.size()] );
+        return result;
     }
 
     @Override

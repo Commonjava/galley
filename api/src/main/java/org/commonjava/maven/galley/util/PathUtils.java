@@ -1,6 +1,5 @@
 package org.commonjava.maven.galley.util;
 
-import static org.apache.commons.lang.StringUtils.join;
 
 public final class PathUtils
 {
@@ -35,13 +34,43 @@ public final class PathUtils
             return ROOT;
         }
 
-        String result = join( path, "/" );
-        while ( result.startsWith( "/" ) && result.length() > 1 )
+        final StringBuilder sb = new StringBuilder();
+        for ( String part : path )
         {
-            result = result.substring( 1 );
+            if ( part.length() < 1 || "/".equals( part ) )
+            {
+                continue;
+            }
+
+            while ( part.charAt( 0 ) == '/' )
+            {
+                if ( part.length() < 2 )
+                {
+                    continue;
+                }
+
+                part = part.substring( 1 );
+            }
+
+            while ( part.charAt( part.length() - 1 ) == '/' )
+            {
+                if ( part.length() < 2 )
+                {
+                    continue;
+                }
+
+                part = part.substring( 0, part.length() - 1 );
+            }
+
+            if ( sb.length() > 0 )
+            {
+                sb.append( '/' );
+            }
+
+            sb.append( part );
         }
 
-        return result;
+        return sb.toString();
     }
 
 }
