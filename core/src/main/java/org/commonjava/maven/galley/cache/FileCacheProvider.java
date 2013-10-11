@@ -88,7 +88,7 @@ public class FileCacheProvider
         {
             final File f = new File( getFilePath( resource ) );
 
-            if ( !resource.isRoot() && f.exists() && !f.isDirectory() )
+            if ( !resource.isRoot() && f.exists() && !f.isDirectory() && resource.getTimeoutSeconds() > 0 )
             {
                 final long current = System.currentTimeMillis();
                 final long lastModified = f.lastModified();
