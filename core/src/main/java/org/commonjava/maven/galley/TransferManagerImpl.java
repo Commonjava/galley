@@ -36,6 +36,7 @@ import javax.inject.Inject;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
+import org.commonjava.maven.galley.internal.xfer.BatchRetriever;
 import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
@@ -305,7 +306,7 @@ public class TransferManagerImpl
         return retrieve( resource, false );
     }
 
-    private Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures )
+    public Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures )
         throws TransferException
     {
         // TODO: Handle the case where storage isn't allowed? 
@@ -538,6 +539,8 @@ public class TransferManagerImpl
     private <T extends TransferBatch> T doBatch( final Set<Resource> resources, final T batch, final boolean suppressFailures )
         throws TransferException
     {
+        logger.info( "Attempting to batch-retrieve %d resources", resources.size() );
+
         final Set<BatchRetriever> retrievers = new HashSet<>( resources.size() );
         for ( final Resource resource : resources )
         {
@@ -550,7 +553,7 @@ public class TransferManagerImpl
         int tries = 1;
         while ( !retrievers.isEmpty() )
         {
-            logger.info( "Starting attempt #%d to retrieve batch", tries );
+            logger.info( "Starting attempt #%d to retrieve batch (batch size is currently: %d)", tries, retrievers.size() );
             final CountDownLatch latch = new CountDownLatch( resources.size() );
             for ( final BatchRetriever retriever : retrievers )
             {
@@ -602,91 +605,6 @@ public class TransferManagerImpl
         batch.setTransfers( transfers );
 
         return batch;
-    }
-
-    private static final class BatchRetriever
-        implements Runnable
-    {
-
-        private final TransferManagerImpl xfer;
-
-        private final List<ConcreteResource> resources;
-
-        private int tries = 0;
-
-        private Transfer transfer;
-
-        private TransferException error;
-
-        private CountDownLatch latch;
-
-        private ConcreteResource lastTry;
-
-        private final boolean suppressFailures;
-
-        public BatchRetriever( final TransferManagerImpl xfer, final Resource resource, final boolean suppressFailures )
-        {
-            this.xfer = xfer;
-            this.suppressFailures = suppressFailures;
-            if ( resource instanceof ConcreteResource )
-            {
-                resources = Collections.singletonList( (ConcreteResource) resource );
-            }
-            else
-            {
-                resources = ( (VirtualResource) resource ).toConcreteResources();
-            }
-        }
-
-        public void setLatch( final CountDownLatch latch )
-        {
-            this.latch = latch;
-        }
-
-        @Override
-        public void run()
-        {
-            if ( !hasMoreTries() )
-            {
-                return;
-            }
-
-            lastTry = resources.get( tries );
-            try
-            {
-                transfer = xfer.retrieve( lastTry, suppressFailures );
-            }
-            catch ( final TransferException e )
-            {
-                error = e;
-            }
-            finally
-            {
-                tries++;
-                latch.countDown();
-            }
-        }
-
-        public boolean hasMoreTries()
-        {
-            return resources.size() > tries;
-        }
-
-        public ConcreteResource getLastTry()
-        {
-            return lastTry;
-        }
-
-        public TransferException getError()
-        {
-            return error;
-        }
-
-        public Transfer getTransfer()
-        {
-            return transfer;
-        }
-
     }
 
 }
