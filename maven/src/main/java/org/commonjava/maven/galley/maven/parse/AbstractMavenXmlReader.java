@@ -1,9 +1,5 @@
 package org.commonjava.maven.galley.maven.parse;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
@@ -11,20 +7,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.stax.StAXSource;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.util.logging.Logger;
-import org.w3c.dom.Document;
 
 public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 {
@@ -33,8 +19,6 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 
     @Inject
     protected XMLInfrastructure xml;
-
-    private final Logger logger = new Logger( getClass() );
 
     protected AbstractMavenXmlReader()
     {
@@ -95,56 +79,6 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         }
 
         return result;
-    }
-
-    protected Document parse( final Transfer transfer )
-        throws GalleyMavenXMLException
-    {
-        InputStream stream = null;
-        Document doc = null;
-        try
-        {
-            try
-            {
-                stream = transfer.openInputStream( false );
-                doc = xml.parseDocument( stream );
-            }
-            catch ( final GalleyMavenXMLException e )
-            {
-                logger.error( "Failed to parse: %s. DOM error: %s. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...", e, transfer,
-                              e.getMessage() );
-                try
-                {
-                    closeQuietly( stream );
-                    stream = transfer.openInputStream( false );
-                    xml.setInputFactoryProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
-
-                    final XMLEventReader eventReader = xml.createXMLEventReader( stream );
-                    final StAXSource source = new StAXSource( eventReader );
-                    final DOMResult result = new DOMResult();
-
-                    final Transformer transformer = xml.newTransformer();
-                    transformer.transform( source, result );
-
-                    doc = (Document) result.getNode();
-                }
-                catch ( TransformerException | XMLStreamException e1 )
-                {
-                    throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, transfer, e1.getMessage(),
-                                                       e.getMessage() );
-                }
-            }
-        }
-        catch ( final IOException e )
-        {
-            throw new GalleyMavenXMLException( "Failed to read: %s. Reason: %s", e, transfer, e.getMessage() );
-        }
-        finally
-        {
-            closeQuietly( stream );
-        }
-
-        return doc;
     }
 
     private static final class DocCacheKey<T extends ProjectRef>

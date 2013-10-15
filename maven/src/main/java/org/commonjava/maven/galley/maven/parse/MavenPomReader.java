@@ -22,6 +22,7 @@ import org.commonjava.maven.galley.maven.parse.peek.PomPeek;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
+import org.w3c.dom.Document;
 
 @ApplicationScoped
 public class MavenPomReader
@@ -65,7 +66,7 @@ public class MavenPomReader
         final ProjectVersionRef ref = dr.getAttribute( PEEK, PomPeek.class )
                                         .getKey();
         ProjectVersionRef next = dr.getAttribute( PEEK, PomPeek.class )
-                                   .getParentRef();
+                                   .getParentKey();
         while ( next != null && dr != null )
         {
             try
@@ -86,7 +87,7 @@ public class MavenPomReader
             stack.add( dr );
 
             next = dr.getAttribute( PEEK, PomPeek.class )
-                     .getParentRef();
+                     .getParentKey();
         }
 
         final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, xml );
@@ -160,8 +161,9 @@ public class MavenPomReader
                 return null;
             }
 
-            dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation(), parse( transfer ) );
-            final PomPeek peek = new PomPeek( transfer, false );
+            final Document doc = xml.parse( transfer );
+            dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation(), doc );
+            final PomPeek peek = new PomPeek( transfer, false, xml );
             dr.setAttribute( PEEK, peek );
 
             if ( cache )
@@ -179,13 +181,14 @@ public class MavenPomReader
         PomPeek peek;
         final Transfer transfer = pom;
 
-        peek = new PomPeek( transfer, true );
+        final Document doc = xml.parse( transfer );
+        peek = new PomPeek( transfer, true, xml );
         final ProjectVersionRef ref = peek.getKey();
         DocRef<ProjectVersionRef> dr = getFirstCached( ref, Arrays.asList( pom.getLocation() ) );
 
         if ( dr == null )
         {
-            dr = new DocRef<ProjectVersionRef>( peek.getKey(), transfer.getLocation(), parse( transfer ) );
+            dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation(), doc );
         }
 
         dr.setAttribute( PEEK, peek );
@@ -233,7 +236,7 @@ public class MavenPomReader
 
             stack.add( dr );
 
-            next = peek.getParentRef();
+            next = peek.getParentKey();
         }
         while ( next != null );
 

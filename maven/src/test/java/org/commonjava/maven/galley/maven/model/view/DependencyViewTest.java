@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.parse.view;
+package org.commonjava.maven.galley.maven.model.view;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

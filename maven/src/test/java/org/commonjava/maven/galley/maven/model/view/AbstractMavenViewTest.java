@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.parse.view;
+package org.commonjava.maven.galley.maven.model.view;
 
 import java.io.InputStream;
 import java.io.StringWriter;

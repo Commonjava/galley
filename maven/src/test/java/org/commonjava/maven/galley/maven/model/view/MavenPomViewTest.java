@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.parse.view;
+package org.commonjava.maven.galley.maven.model.view;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -9,9 +9,6 @@ import java.util.List;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.galley.maven.model.view.DependencyView;
-import org.commonjava.maven.galley.maven.model.view.MavenPomView;
-import org.commonjava.maven.galley.maven.model.view.MavenXmlMixin;
 import org.junit.Ignore;
 import org.junit.Test;
 

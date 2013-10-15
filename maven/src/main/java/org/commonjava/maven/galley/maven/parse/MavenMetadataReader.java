@@ -78,7 +78,7 @@ public class MavenMetadataReader
         {
             for ( final Transfer transfer : transfers )
             {
-                final DocRef<ProjectRef> dr = new DocRef<ProjectRef>( ref, transfer.getLocation(), parse( transfer ) );
+                final DocRef<ProjectRef> dr = new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer ) );
                 final int idx = locations.indexOf( transfer.getLocation() );
                 docs.set( idx, dr );
             }

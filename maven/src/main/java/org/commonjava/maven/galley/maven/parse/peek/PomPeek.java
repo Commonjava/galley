@@ -15,12 +15,12 @@ import java.util.Set;
 import java.util.Stack;
 
 import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
+import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.model.Transfer;
 
 public class PomPeek
@@ -84,10 +84,13 @@ public class PomPeek
 
     private final boolean parseMainCoord;
 
-    public PomPeek( final Transfer transfer, final boolean parseMainCoord )
+    private final XMLInfrastructure xmlInfra;
+
+    public PomPeek( final Transfer transfer, final boolean parseMainCoord, final XMLInfrastructure xmlInfra )
         throws GalleyMavenException
     {
         this.parseMainCoord = parseMainCoord;
+        this.xmlInfra = xmlInfra;
         coordKeys = new HashSet<>();
         if ( parseMainCoord )
         {
@@ -110,7 +113,7 @@ public class PomPeek
         return key;
     }
 
-    public ProjectVersionRef getParentRef()
+    public ProjectVersionRef getParentKey()
     {
         return parentKey;
     }
@@ -123,8 +126,7 @@ public class PomPeek
         try
         {
             stream = transfer.openInputStream( false );
-            xml = XMLInputFactory.newFactory()
-                                 .createXMLStreamReader( stream );
+            xml = xmlInfra.createSafeXMLStreamReader( stream );
 
             final Stack<String> path = new Stack<String>();
             while ( xml.hasNext() )
