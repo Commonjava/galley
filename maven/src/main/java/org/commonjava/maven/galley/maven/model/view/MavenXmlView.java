@@ -345,7 +345,7 @@ public class MavenXmlView<T extends ProjectRef>
             throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
         }
 
-        if ( nl != null )
+        if ( nl != null && nl.getLength() > 0 )
         {
             final List<Node> result = new ArrayList<>();
             for ( int i = 0; i < nl.getLength(); i++ )

@@ -18,7 +18,7 @@ public class PluginView
 
     protected PluginView( final MavenPomView pomView, final Element element, final MavenPluginDefaults pluginDefaults )
     {
-        super( pomView, element, "pluginManagement/plugins/plugin" );
+        super( pomView, element, "build/pluginManagement/plugins/plugin" );
         this.pluginDefaults = pluginDefaults;
     }
 
@@ -32,7 +32,7 @@ public class PluginView
     {
         if ( pluginDependencies == null )
         {
-            final List<Node> nodes = getFirstNodesWithManagement( "/dependencies/dependency" );
+            final List<Node> nodes = getFirstNodesWithManagement( "dependencies/dependency" );
             if ( nodes != null )
             {
                 final List<PluginDependencyView> result = new ArrayList<>();
@@ -76,12 +76,14 @@ public class PluginView
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append( G )
-          .append( TEXTEQ )
-          .append( getGroupId() )
-          .append( QUOTE )
-          .append( AND )
-          .append( A )
+        // TODO: This isn't great (skipping match on groupId), but groupId can be implied...
+        //        sb.append( G )
+        //          .append( TEXTEQ )
+        //          .append( getGroupId() )
+        //          .append( QUOTE )
+        //          .append( AND );
+
+        sb.append( A )
           .append( TEXTEQ )
           .append( getArtifactId() )
           .append( QUOTE );
