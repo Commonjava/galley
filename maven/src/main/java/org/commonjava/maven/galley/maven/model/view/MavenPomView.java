@@ -77,7 +77,9 @@ public class MavenPomView
     public List<DependencyView> getAllDirectDependencies()
         throws GalleyMavenException
     {
-        final List<Node> depNodes = resolveXPathToAggregatedNodeList( "//dependency[not(ancestor::dependencyManagement)]", true, -1 );
+        final List<Node> depNodes =
+            resolveXPathToAggregatedNodeList( "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]",
+                                              true, -1 );
         final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
         for ( final Node node : depNodes )
         {

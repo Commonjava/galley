@@ -1,14 +1,20 @@
 package org.commonjava.maven.galley.maven.model.view;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class PluginView
     extends MavenGAVView
 {
 
     private final MavenPluginDefaults pluginDefaults;
+
+    private List<PluginDependencyView> pluginDependencies;
 
     protected PluginView( final MavenPomView pomView, final Element element, final MavenPluginDefaults pluginDefaults )
     {
@@ -20,6 +26,26 @@ public class PluginView
         throws GalleyMavenException
     {
         return pomView.resolveXPathToNodeFrom( element, "ancestor::pluginManagement", true ) != null;
+    }
+
+    public synchronized List<PluginDependencyView> getLocalPluginDependencies()
+    {
+        if ( pluginDependencies == null )
+        {
+            final List<Node> nodes = getFirstNodesWithManagement( "/dependencies/dependency" );
+            if ( nodes != null )
+            {
+                final List<PluginDependencyView> result = new ArrayList<>();
+                for ( final Node node : nodes )
+                {
+                    result.add( new PluginDependencyView( pomView, (Element) node, this ) );
+                }
+
+                this.pluginDependencies = result;
+            }
+        }
+
+        return pluginDependencies;
     }
 
     @Override
