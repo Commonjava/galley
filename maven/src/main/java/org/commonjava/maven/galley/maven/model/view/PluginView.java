@@ -1,6 +1,8 @@
 package org.commonjava.maven.galley.maven.model.view;
 
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.AND;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXTEQ;
 
@@ -55,21 +57,15 @@ public class PluginView
 
                 this.pluginDependencies = result;
             }
-
-            final Set<PluginDependencyView> implied = pluginImplications.getImpliedPluginDependencies( this );
-            if ( implied != null && !implied.isEmpty() )
-            {
-                for ( final PluginDependencyView impliedDep : implied )
-                {
-                    if ( !result.contains( impliedDep ) )
-                    {
-                        result.add( impliedDep );
-                    }
-                }
-            }
         }
 
         return pluginDependencies;
+    }
+
+    public Set<PluginDependencyView> getImpliedPluginDependencies()
+        throws GalleyMavenException
+    {
+        return pluginImplications.getImpliedPluginDependencies( this );
     }
 
     @Override
@@ -100,16 +96,21 @@ public class PluginView
     {
         final StringBuilder sb = new StringBuilder();
 
-        // TODO: This isn't great (skipping match on groupId), but groupId can be implied...
-        //        sb.append( G )
-        //          .append( TEXTEQ )
-        //          .append( getGroupId() )
-        //          .append( QUOTE )
-        //          .append( AND );
+        final String aid = getArtifactId();
+        final String gid = getGroupId();
+        final String dgid = pluginDefaults.getDefaultGroupId( aid );
+        if ( !gid.equals( dgid ) )
+        {
+            sb.append( G )
+              .append( TEXTEQ )
+              .append( gid )
+              .append( QUOTE )
+              .append( AND );
+        }
 
         sb.append( A )
           .append( TEXTEQ )
-          .append( getArtifactId() )
+          .append( aid )
           .append( QUOTE );
 
         return sb.toString();

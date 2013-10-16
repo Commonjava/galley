@@ -54,7 +54,8 @@ public abstract class AbstractMavenPluginImplications
         final Set<PluginDependencyView> views = new HashSet<>( implied.size() );
         for ( final ProjectRef impliedRef : implied )
         {
-            views.add( createPluginDependency( pv, impliedRef ) );
+            final PluginDependencyView pd = createPluginDependency( pv, impliedRef );
+            views.add( pd );
         }
 
         return views;

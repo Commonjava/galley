@@ -1,0 +1,17 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>org.foo</groupId>
+  <artifactId>bar-project</artifactId>
+  <version>0.0.0.1</version>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.15</version>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>

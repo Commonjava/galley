@@ -6,6 +6,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
+import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -119,6 +120,25 @@ public class MavenPomViewTest
 
         assertThat( boms, notNullValue() );
         assertThat( boms.size(), equalTo( 1 ) );
+    }
+
+    @Test
+    public void retrieveImpliedPluginDepsForSurefire()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "pom-with-surefire.xml" );
+
+        final List<PluginView> plugins = pomView.getAllBuildPlugins();
+        assertThat( plugins, notNullValue() );
+        assertThat( plugins.size(), equalTo( 1 ) );
+
+        final PluginView pv = plugins.get( 0 );
+        assertThat( pv, notNullValue() );
+
+        final Set<PluginDependencyView> ipdvs = pv.getImpliedPluginDependencies();
+        assertThat( ipdvs, notNullValue() );
+        assertThat( ipdvs.size(), equalTo( 5 ) );
+
     }
 
 }

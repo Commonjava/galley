@@ -78,20 +78,26 @@ public class XMLInfrastructure
         if ( relativePath.length() > 0 && !"/".equals( relativePath ) )
         {
             final String[] intermediates = relativePath.split( "/" );
-            for ( final String intermediate : intermediates )
+
+            // DO NOT traverse last "intermediate"...this will be the new element!
+            for ( int i = 0; i < intermediates.length - 1; i++ )
             {
-                final NodeList nl = insertionPoint.getElementsByTagNameNS( below.getNamespaceURI(), intermediate );
+                final NodeList nl = insertionPoint.getElementsByTagNameNS( below.getNamespaceURI(), intermediates[i] );
                 if ( nl != null && nl.getLength() > 0 )
                 {
                     insertionPoint = (Element) nl.item( 0 );
                 }
                 else
                 {
-                    final Element e = doc.createElementNS( below.getNamespaceURI(), intermediate );
+                    final Element e = doc.createElementNS( below.getNamespaceURI(), intermediates[i] );
                     insertionPoint.appendChild( e );
                     insertionPoint = e;
                 }
             }
+
+            final Element e = doc.createElementNS( below.getNamespaceURI(), intermediates[intermediates.length - 1] );
+            insertionPoint.appendChild( e );
+            insertionPoint = e;
         }
 
         for ( final Entry<String, String> entry : leafElements.entrySet() )

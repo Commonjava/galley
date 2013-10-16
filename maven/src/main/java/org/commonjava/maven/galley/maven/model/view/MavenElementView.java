@@ -195,28 +195,7 @@ public class MavenElementView
 
     protected String getValue( final String path )
     {
-        final String[] names = path.split( "/" );
-        Element e = element;
-        for ( final String named : names )
-        {
-            if ( e == null )
-            {
-                break;
-            }
-
-            NodeList matches = e.getElementsByTagName( named );
-            if ( matches == null || matches.getLength() < 1 )
-            {
-                matches = e.getElementsByTagNameNS( "*", named );
-            }
-
-            if ( matches == null || matches.getLength() < 1 )
-            {
-                return null;
-            }
-
-            e = (Element) matches.item( 0 );
-        }
+        final Element e = (Element) pomView.resolveXPathToNodeFrom( element, path, false );
 
         if ( e == null )
         {
