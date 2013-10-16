@@ -1,5 +1,7 @@
 package org.commonjava.maven.galley.maven.model.view;
 
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
+
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;

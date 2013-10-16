@@ -1,10 +1,16 @@
 package org.commonjava.maven.galley.maven.model.view;
 
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXTEQ;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.defaults.MavenPluginImplications;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -16,10 +22,14 @@ public class PluginView
 
     private List<PluginDependencyView> pluginDependencies;
 
-    protected PluginView( final MavenPomView pomView, final Element element, final MavenPluginDefaults pluginDefaults )
+    private final MavenPluginImplications pluginImplications;
+
+    protected PluginView( final MavenPomView pomView, final Element element, final MavenPluginDefaults pluginDefaults,
+                          final MavenPluginImplications pluginImplications )
     {
         super( pomView, element, "build/pluginManagement/plugins/plugin" );
         this.pluginDefaults = pluginDefaults;
+        this.pluginImplications = pluginImplications;
     }
 
     public boolean isManaged()
@@ -29,19 +39,33 @@ public class PluginView
     }
 
     public synchronized List<PluginDependencyView> getLocalPluginDependencies()
+        throws GalleyMavenException
     {
         if ( pluginDependencies == null )
         {
+            final List<PluginDependencyView> result = new ArrayList<>();
+
             final List<Node> nodes = getFirstNodesWithManagement( "dependencies/dependency" );
             if ( nodes != null )
             {
-                final List<PluginDependencyView> result = new ArrayList<>();
                 for ( final Node node : nodes )
                 {
-                    result.add( new PluginDependencyView( pomView, (Element) node, this ) );
+                    result.add( new PluginDependencyView( pomView, this, (Element) node ) );
                 }
 
                 this.pluginDependencies = result;
+            }
+
+            final Set<PluginDependencyView> implied = pluginImplications.getImpliedPluginDependencies( this );
+            if ( implied != null && !implied.isEmpty() )
+            {
+                for ( final PluginDependencyView impliedDep : implied )
+                {
+                    if ( !result.contains( impliedDep ) )
+                    {
+                        result.add( impliedDep );
+                    }
+                }
             }
         }
 
@@ -90,4 +114,5 @@ public class PluginView
 
         return sb.toString();
     }
+
 }

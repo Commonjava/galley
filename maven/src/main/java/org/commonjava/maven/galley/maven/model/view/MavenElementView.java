@@ -11,18 +11,6 @@ import org.w3c.dom.NodeList;
 public class MavenElementView
 {
 
-    protected static final String G = "groupId";
-
-    protected static final String A = "artifactId";
-
-    protected static final String V = "version";
-
-    protected static final String AND = " and ";
-
-    protected static final String TEXTEQ = "/text()=\"";
-
-    protected static final String QUOTE = "\"";
-
     //    private final Logger logger = new Logger( getClass() );
 
     protected final Element element;

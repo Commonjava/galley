@@ -9,7 +9,7 @@ public class PluginDependencyView
 
     private final PluginView plugin;
 
-    public PluginDependencyView( final MavenPomView pomView, final Element element, final PluginView plugin )
+    public PluginDependencyView( final MavenPomView pomView, final PluginView plugin, final Element element )
     {
         super( pomView, element );
         this.plugin = plugin;

@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.xml.parsers.DocumentBuilder;
@@ -34,7 +36,9 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 @ApplicationScoped
@@ -64,6 +68,43 @@ public class XMLInfrastructure
         dbFactory = DocumentBuilderFactory.newInstance();
 
         transformerFactory = TransformerFactory.newInstance();
+    }
+
+    public Element createElement( final Element below, final String relativePath, final Map<String, String> leafElements )
+    {
+        final Document doc = below.getOwnerDocument();
+
+        Element insertionPoint = below;
+        if ( relativePath.length() > 0 && !"/".equals( relativePath ) )
+        {
+            final String[] intermediates = relativePath.split( "/" );
+            for ( final String intermediate : intermediates )
+            {
+                final NodeList nl = insertionPoint.getElementsByTagNameNS( below.getNamespaceURI(), intermediate );
+                if ( nl != null && nl.getLength() > 0 )
+                {
+                    insertionPoint = (Element) nl.item( 0 );
+                }
+                else
+                {
+                    final Element e = doc.createElementNS( below.getNamespaceURI(), intermediate );
+                    insertionPoint.appendChild( e );
+                    insertionPoint = e;
+                }
+            }
+        }
+
+        for ( final Entry<String, String> entry : leafElements.entrySet() )
+        {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
+
+            final Element e = doc.createElementNS( below.getNamespaceURI(), key );
+            insertionPoint.appendChild( e );
+            e.setTextContent( value );
+        }
+
+        return insertionPoint;
     }
 
     public DocumentBuilder newDocumentBuilder()

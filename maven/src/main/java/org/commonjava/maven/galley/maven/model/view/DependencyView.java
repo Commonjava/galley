@@ -1,5 +1,15 @@
 package org.commonjava.maven.galley.maven.model.view;
 
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.AND;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.END_PAREN;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.NOT;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.OPEN_PAREN;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.OR;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXTEQ;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -139,15 +149,36 @@ public class DependencyView
               .append( cls )
               .append( QUOTE );
         }
+        else
+        {
+            sb.append( AND )
+              .append( NOT )
+              .append( C )
+              .append( END_PAREN );
+        }
 
         final String type = getRawType();
         if ( type != null )
         {
-            sb.append( " and " )
+            sb.append( AND )
               .append( T )
               .append( TEXTEQ )
               .append( type )
               .append( QUOTE );
+        }
+        else
+        {
+            sb.append( AND )
+              .append( OPEN_PAREN )
+              .append( NOT )
+              .append( T )
+              .append( END_PAREN )
+              .append( OR )
+              .append( T )
+              .append( TEXTEQ )
+              .append( "jar" )
+              .append( QUOTE )
+              .append( END_PAREN );
         }
 
         return sb.toString();

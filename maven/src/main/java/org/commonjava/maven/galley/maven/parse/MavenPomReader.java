@@ -13,6 +13,7 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
@@ -38,6 +39,9 @@ public class MavenPomReader
 
     @Inject
     private MavenPluginDefaults pluginDefaults;
+
+    @Inject
+    private MavenPluginImplications pluginImplications;
 
     @Inject
     private XPathManager xpath;
@@ -90,7 +94,7 @@ public class MavenPomReader
                      .getParentKey();
         }
 
-        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, xml );
+        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, pluginImplications, xml );
         assembleImportedInformation( view, locations );
 
         logStructure( view );
@@ -240,7 +244,7 @@ public class MavenPomReader
         }
         while ( next != null );
 
-        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, xml );
+        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, pluginImplications, xml );
         assembleImportedInformation( view, locations );
 
         logStructure( view );

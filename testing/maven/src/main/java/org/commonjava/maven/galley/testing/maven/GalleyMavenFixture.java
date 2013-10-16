@@ -4,7 +4,9 @@ import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
@@ -39,6 +41,8 @@ public class GalleyMavenFixture
 
     private MavenPluginDefaults pluginDefaults;
 
+    private MavenPluginImplications pluginImplications;
+
     private XPathManager xpathManager;
 
     private XMLInfrastructure xmlInfra;
@@ -72,14 +76,19 @@ public class GalleyMavenFixture
             pluginDefaults = new StandardMaven304PluginDefaults();
         }
 
-        if ( xpathManager == null )
-        {
-            xpathManager = new XPathManager();
-        }
-
         if ( xmlInfra == null )
         {
             xmlInfra = new XMLInfrastructure();
+        }
+
+        if ( pluginImplications == null )
+        {
+            pluginImplications = new StandardMavenPluginImplications( xmlInfra );
+        }
+
+        if ( xpathManager == null )
+        {
+            xpathManager = new XPathManager();
         }
 
         if ( pomReader == null && artifacts != null )
@@ -285,5 +294,15 @@ public class GalleyMavenFixture
     public void setPluginDefaults( final MavenPluginDefaults pluginDefaults )
     {
         this.pluginDefaults = pluginDefaults;
+    }
+
+    public MavenPluginImplications getPluginImplications()
+    {
+        return pluginImplications;
+    }
+
+    public void setPluginImplications( final MavenPluginImplications pluginImplications )
+    {
+        this.pluginImplications = pluginImplications;
     }
 }

@@ -6,8 +6,6 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
-import org.commonjava.maven.galley.maven.model.view.DependencyView;
-import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.junit.Test;
 
 public class DependencyViewTest
@@ -202,6 +200,43 @@ public class DependencyViewTest
         dv.asVersionlessArtifactRef();
         dv.asArtifactRef()
           .getVersionSpec();
+
+    }
+
+    @Test
+    public void managedDependencyWithProjectVersionExpressionInParent()
+        throws Exception
+    {
+        final DependencyView dv = loadFirstDirectDependency( "managed-child.pom.xml", "managed-dep-project-property-in-parent.pom.xml" );
+
+        dv.asProjectRef();
+        dv.asProjectVersionRef()
+          .getVersionSpec();
+
+        dv.asVersionlessArtifactRef();
+        dv.asArtifactRef()
+          .getVersionSpec();
+
+        assertThat( dv.asArtifactRef()
+                      .getVersionString(), equalTo( "1.0" ) );
+
+    }
+
+    @Test
+    public void managedDependencyWithTwoTypeEntriesInParent()
+        throws Exception
+    {
+        final DependencyView dv = loadFirstDirectDependency( "managed-child.pom.xml", "managed-dep-two-types-in-parent.pom.xml" );
+
+        dv.asProjectRef();
+        dv.asProjectVersionRef()
+          .getVersionSpec();
+
+        dv.asVersionlessArtifactRef();
+        dv.asArtifactRef()
+          .getVersionSpec();
+
+        assertThat( dv.getScope(), equalTo( DependencyScope.compile ) );
 
     }
 

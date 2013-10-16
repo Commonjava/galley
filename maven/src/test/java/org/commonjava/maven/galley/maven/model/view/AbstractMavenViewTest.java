@@ -17,11 +17,7 @@ import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
-import org.commonjava.maven.galley.maven.model.view.DependencyView;
-import org.commonjava.maven.galley.maven.model.view.DocRef;
-import org.commonjava.maven.galley.maven.model.view.MavenPomView;
-import org.commonjava.maven.galley.maven.model.view.MavenXmlView;
-import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.util.logging.Log4jUtil;
@@ -107,7 +103,7 @@ public abstract class AbstractMavenViewTest
         }
 
         // FIXME: The use of pvr here is probably going to lead to problems.
-        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(), xml );
+        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ), xml );
     }
 
     protected MavenXmlView<ProjectRef> loadDocs( final Set<String> localOnlyPaths, final String... docNames )

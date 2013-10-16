@@ -1,11 +1,14 @@
 package org.commonjava.maven.galley.maven.model.view;
 
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -18,11 +21,14 @@ public class MavenPomView
 
     private final MavenPluginDefaults pluginDefaults;
 
+    private final MavenPluginImplications pluginImplications;
+
     public MavenPomView( final ProjectVersionRef ref, final List<DocRef<ProjectVersionRef>> stack, final XPathManager xpath,
-                         final MavenPluginDefaults pluginDefaults, final XMLInfrastructure xml )
+                         final MavenPluginDefaults pluginDefaults, final MavenPluginImplications pluginImplications, final XMLInfrastructure xml )
     {
         // define what xpaths are not inheritable...
         super( stack, xpath, xml, "/project/parent", "/project/artifactId" );
+        this.pluginImplications = pluginImplications;
 
         if ( stack.isEmpty() )
         {
@@ -169,7 +175,7 @@ public class MavenPomView
 
     public PluginView asPlugin( final Element element )
     {
-        return new PluginView( this, element, pluginDefaults );
+        return new PluginView( this, element, pluginDefaults, pluginImplications );
     }
 
     public ParentView getParent()
@@ -215,7 +221,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new PluginView( this, (Element) node, pluginDefaults ) );
+            result.add( new PluginView( this, (Element) node, pluginDefaults, pluginImplications ) );
         }
 
         return result;
@@ -251,7 +257,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new PluginView( this, (Element) node, pluginDefaults ) );
+            result.add( new PluginView( this, (Element) node, pluginDefaults, pluginImplications ) );
         }
 
         return result;
@@ -269,7 +275,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new PluginView( this, (Element) node, pluginDefaults ) );
+            result.add( new PluginView( this, (Element) node, pluginDefaults, pluginImplications ) );
         }
 
         return result;
@@ -305,7 +311,7 @@ public class MavenPomView
                 continue;
             }
 
-            final Node vNode = resolveXPathToNodeFrom( node, MavenElementView.V, true );
+            final Node vNode = resolveXPathToNodeFrom( node, V, true );
             if ( vNode != null )
             {
                 result.add( new MavenGAVView( this, (Element) node ) );
