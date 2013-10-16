@@ -51,12 +51,13 @@ public class MavenPomReader
     }
 
     public MavenPomReader( final XMLInfrastructure xml, final ArtifactManager artifactManager, final XPathManager xpath,
-                           final MavenPluginDefaults pluginDefaults )
+                           final MavenPluginDefaults pluginDefaults, final MavenPluginImplications pluginImplications )
     {
         super( xml );
         this.artifacts = artifactManager;
         this.xpath = xpath;
         this.pluginDefaults = pluginDefaults;
+        this.pluginImplications = pluginImplications;
     }
 
     public MavenPomView read( final Transfer pom, final List<? extends Location> locations )

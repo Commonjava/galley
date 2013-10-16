@@ -93,7 +93,7 @@ public class GalleyMavenFixture
 
         if ( pomReader == null && artifacts != null )
         {
-            pomReader = new MavenPomReader( xmlInfra, artifacts, xpathManager, pluginDefaults );
+            pomReader = new MavenPomReader( xmlInfra, artifacts, xpathManager, pluginDefaults, pluginImplications );
         }
     }
 
