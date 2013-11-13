@@ -84,6 +84,7 @@ public class DependencyView
     }
 
     public synchronized DependencyScope getScope()
+        throws GalleyMavenException
     {
         if ( scope == null )
         {
@@ -106,6 +107,7 @@ public class DependencyView
     }
 
     public synchronized Set<ProjectRefView> getExclusions()
+        throws GalleyMavenException
     {
         if ( exclusions == null )
         {

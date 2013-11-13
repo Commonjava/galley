@@ -4,12 +4,15 @@ import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
+import org.commonjava.util.logging.Logger;
 import org.w3c.dom.Element;
 
 public class MavenGAVView
     extends MavenGAView
     implements ProjectVersionRefView
 {
+
+    private final Logger logger = new Logger( getClass() );
 
     private String version;
 
@@ -25,6 +28,7 @@ public class MavenGAVView
 
     @Override
     public synchronized String getVersion()
+        throws GalleyMavenException
     {
         if ( version == null )
         {
@@ -65,7 +69,16 @@ public class MavenGAVView
     @Override
     public boolean isValid()
     {
-        return super.isValid() && !containsExpression( getVersion() );
+        try
+        {
+            return super.isValid() && !containsExpression( getVersion() );
+        }
+        catch ( final GalleyMavenException e )
+        {
+            logger.warn( "Failed to lookup management element. Reason: %s", e, e.getMessage() );
+        }
+
+        return false;
     }
 
 }

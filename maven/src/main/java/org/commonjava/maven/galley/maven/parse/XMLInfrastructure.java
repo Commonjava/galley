@@ -1,6 +1,7 @@
 package org.commonjava.maven.galley.maven.parse;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -20,7 +22,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -31,6 +32,7 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
@@ -47,13 +49,36 @@ public class XMLInfrastructure
 
     private final Logger logger = new Logger( getClass() );
 
-    private final XMLInputFactory inputFactory;
-
     private final DocumentBuilderFactory dbFactory;
 
     private final TransformerFactory transformerFactory;
 
     private final XMLInputFactory safeInputFactory;
+
+    static
+    {
+        final Map<String, String> props = new HashMap<String, String>()
+        {
+
+            {
+                put( "org.apache.xml.dtm.DTMManager", "org.apache.xml.dtm.ref.DTMManagerDefault" );
+                put( "com.sun.org.apache.xml.internal.dtm.DTMManager", "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault" );
+            }
+
+            private static final long serialVersionUID = 1L;
+        };
+
+        for ( final Entry<String, String> entry : props.entrySet() )
+        {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
+
+            if ( System.getProperty( key ) == null )
+            {
+                System.setProperty( key, value );
+            }
+        }
+    }
 
     public XMLInfrastructure()
     {
@@ -61,11 +86,17 @@ public class XMLInfrastructure
         safeInputFactory.setProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
         safeInputFactory.setProperty( XMLInputFactory.IS_VALIDATING, false );
 
-        inputFactory = XMLInputFactory.newInstance();
-        logger.info( "Using XMLInputFactory: %s", inputFactory.getClass()
-                                                              .getName() );
-
         dbFactory = DocumentBuilderFactory.newInstance();
+
+        // TODO: Probably don't need these available, since it's unlikely Maven can do much with them.
+        dbFactory.setValidating( false );
+        dbFactory.setXIncludeAware( false );
+        dbFactory.setNamespaceAware( false );
+
+        // TODO: Are these wise?? We're mainly interested in harvesting POM information, not preserving fidelity...
+        dbFactory.setIgnoringComments( true );
+        dbFactory.setExpandEntityReferences( false );
+        dbFactory.setCoalescing( true );
 
         transformerFactory = TransformerFactory.newInstance();
     }
@@ -123,62 +154,6 @@ public class XMLInfrastructure
         catch ( final ParserConfigurationException e )
         {
             throw new GalleyMavenXMLException( "Failed to create DocumentBuilder: %s", e, e.getMessage() );
-        }
-    }
-
-    public XMLEventReader createXMLEventReader( final InputStream stream )
-        throws GalleyMavenXMLException
-    {
-        try
-        {
-            return inputFactory.createXMLEventReader( stream );
-        }
-        catch ( final XMLStreamException e )
-        {
-            throw new GalleyMavenXMLException( "Failed to create XMLEventReader: %s", e, e.getMessage() );
-        }
-    }
-
-    public XMLEventReader createSafeXMLEventReader( final InputStream stream )
-        throws GalleyMavenXMLException
-    {
-        try
-        {
-            byte[] xml = IOUtils.toByteArray( stream );
-            xml = fixUglyXML( xml );
-            return safeInputFactory.createXMLEventReader( new ByteArrayInputStream( xml ) );
-        }
-        catch ( final XMLStreamException | IOException e )
-        {
-            throw new GalleyMavenXMLException( "Failed to create XMLEventReader: %s", e, e.getMessage() );
-        }
-    }
-
-    public XMLStreamReader createXMLStreamReader( final InputStream stream )
-        throws GalleyMavenXMLException
-    {
-        try
-        {
-            return inputFactory.createXMLStreamReader( stream );
-        }
-        catch ( final XMLStreamException e )
-        {
-            throw new GalleyMavenXMLException( "Failed to create XMLEventReader: %s", e, e.getMessage() );
-        }
-    }
-
-    public XMLStreamReader createSafeXMLStreamReader( final InputStream stream )
-        throws GalleyMavenXMLException
-    {
-        try
-        {
-            byte[] xml = IOUtils.toByteArray( stream );
-            xml = fixUglyXML( xml );
-            return safeInputFactory.createXMLStreamReader( new ByteArrayInputStream( xml ) );
-        }
-        catch ( final XMLStreamException | IOException e )
-        {
-            throw new GalleyMavenXMLException( "Failed to create XMLEventReader: %s", e, e.getMessage() );
         }
     }
 
@@ -322,6 +297,43 @@ public class XMLInfrastructure
         }
 
         return doc;
+    }
+
+    public ProjectVersionRef getParentRef( final Document doc )
+        throws GalleyMavenXMLException
+    {
+        final Element project = doc.getDocumentElement();
+        final NodeList nl = project.getElementsByTagName( "parent" );
+        if ( nl == null || nl.getLength() < 1 )
+        {
+            logger.info( "No parent declaration." );
+            return null;
+        }
+
+        final Element parent = (Element) nl.item( 0 );
+        final String gid = getChildText( "groupId", parent );
+        final String aid = getChildText( "artifactId", parent );
+        final String ver = getChildText( "version", parent );
+
+        if ( isEmpty( gid ) || isEmpty( aid ) || isEmpty( ver ) )
+        {
+            throw new GalleyMavenXMLException( "Project parent is present but invalid! (g=%s,  a=%s, v=%s)", gid, aid, ver );
+        }
+
+        return new ProjectVersionRef( gid, aid, ver );
+    }
+
+    private String getChildText( final String name, final Element parent )
+    {
+        final NodeList nl = parent.getElementsByTagName( name );
+        if ( nl == null || nl.getLength() < 1 )
+        {
+            logger.info( "No element: %s in: %s", name, parent.getNodeName() );
+            return null;
+        }
+
+        return nl.item( 0 )
+                 .getTextContent();
     }
 
 }

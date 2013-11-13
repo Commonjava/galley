@@ -19,7 +19,6 @@ import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.MavenXmlMixin;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
-import org.commonjava.maven.galley.maven.parse.peek.PomPeek;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
@@ -29,8 +28,6 @@ import org.w3c.dom.Document;
 public class MavenPomReader
     extends AbstractMavenXmlReader<ProjectVersionRef>
 {
-
-    private static final String PEEK = "peek";
 
     private final Logger logger = new Logger( getClass() );
 
@@ -60,18 +57,15 @@ public class MavenPomReader
         this.pluginImplications = pluginImplications;
     }
 
-    public MavenPomView read( final Transfer pom, final List<? extends Location> locations )
+    public MavenPomView read( final ProjectVersionRef ref, final Transfer pom, final List<? extends Location> locations )
         throws GalleyMavenException
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
 
-        DocRef<ProjectVersionRef> dr = getDocRef( pom, locations, false );
+        DocRef<ProjectVersionRef> dr = getDocRef( ref, pom, locations, false );
         stack.add( dr );
 
-        final ProjectVersionRef ref = dr.getAttribute( PEEK, PomPeek.class )
-                                        .getKey();
-        ProjectVersionRef next = dr.getAttribute( PEEK, PomPeek.class )
-                                   .getParentKey();
+        ProjectVersionRef next = xml.getParentRef( dr.getDoc() );
         while ( next != null && dr != null )
         {
             try
@@ -91,8 +85,7 @@ public class MavenPomReader
 
             stack.add( dr );
 
-            next = dr.getAttribute( PEEK, PomPeek.class )
-                     .getParentKey();
+            next = xml.getParentRef( dr.getDoc() );
         }
 
         final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, pluginImplications, xml );
@@ -168,8 +161,6 @@ public class MavenPomReader
 
             final Document doc = xml.parse( transfer );
             dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation(), doc );
-            final PomPeek peek = new PomPeek( transfer, false, xml );
-            dr.setAttribute( PEEK, peek );
 
             if ( cache )
             {
@@ -180,23 +171,19 @@ public class MavenPomReader
         return dr;
     }
 
-    private DocRef<ProjectVersionRef> getDocRef( final Transfer pom, final List<? extends Location> locations, final boolean cache )
+    private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final Transfer pom, final List<? extends Location> locations,
+                                                 final boolean cache )
         throws GalleyMavenException
     {
-        PomPeek peek;
         final Transfer transfer = pom;
 
         final Document doc = xml.parse( transfer );
-        peek = new PomPeek( transfer, true, xml );
-        final ProjectVersionRef ref = peek.getKey();
         DocRef<ProjectVersionRef> dr = getFirstCached( ref, Arrays.asList( pom.getLocation() ) );
 
         if ( dr == null )
         {
             dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation(), doc );
         }
-
-        dr.setAttribute( PEEK, peek );
 
         if ( cache )
         {
@@ -217,7 +204,6 @@ public class MavenPomReader
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
 
-        PomPeek peek;
         ProjectVersionRef next = ref;
         do
         {
@@ -237,11 +223,9 @@ public class MavenPomReader
                 throw new GalleyMavenException( "Cannot resolve %s, %d levels dep in the ancestry stack of: %s", next, stack.size(), ref );
             }
 
-            peek = dr.getAttribute( PEEK, PomPeek.class );
-
             stack.add( dr );
 
-            next = peek.getParentKey();
+            next = xml.getParentRef( dr.getDoc() );
         }
         while ( next != null );
 

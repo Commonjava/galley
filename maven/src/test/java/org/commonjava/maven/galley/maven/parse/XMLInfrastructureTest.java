@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import java.io.InputStream;
 
 import org.apache.log4j.Level;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.util.logging.Log4jUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,6 +24,16 @@ public class XMLInfrastructureTest
     protected String getBaseResource()
     {
         return "xml/";
+    }
+
+    @Test
+    public void parseParentRef()
+        throws Exception
+    {
+        final Document doc = loadDocument( "pom-with-parent.xml" );
+        final ProjectVersionRef parentRef = new XMLInfrastructure().getParentRef( doc );
+
+        assertThat( parentRef, notNullValue() );
     }
 
     @Test

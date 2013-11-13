@@ -28,6 +28,7 @@ public abstract class AbstractMavenPluginImplications
     }
 
     protected PluginDependencyView createPluginDependency( final PluginView pv, final ProjectRef ref )
+        throws GalleyMavenException
     {
         final Map<String, String> map = new LinkedHashMap<>();
         map.put( G, ref.getGroupId() );

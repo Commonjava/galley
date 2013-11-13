@@ -21,6 +21,8 @@ public class MavenElementView
 
     private String[] managementXpaths;
 
+    private Element managementElement;
+
     public MavenElementView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
     {
         this.pomView = pomView;
@@ -64,86 +66,57 @@ public class MavenElementView
     }
 
     protected String getValueWithManagement( final String named )
+        throws GalleyMavenException
     {
-        String value = getValue( named );
+        final String value = getValueFrom( named, element );
         //        logger.info( "Value of path: '%s' local to: %s is: '%s'\nIn: %s", named, element, value, pomView.getRef() );
         if ( value == null )
         {
-            final String[] managementXpaths = managementXpathsFor( named + "/text()" );
-            for ( final String managementXpath : managementXpaths )
+            final Element mgmt = getManagementElement();
+            if ( mgmt != null )
             {
-                if ( managementXpath != null )
-                {
-                    value = pomView.resolveXPathExpression( managementXpath, false, -1 );
-                    //                    logger.info( "Value of management xpath: '%s' in %s is '%s'\nIn: %s", named, element, value, pomView.getRef() );
-                    if ( value != null )
-                    {
-                        break;
-                    }
-                }
+                return getValueFrom( named, mgmt );
             }
         }
 
         return value;
     }
 
-    protected List<Node> getAggregateNodesWithManagement( final String path )
+    private synchronized Element getManagementElement()
         throws GalleyMavenException
     {
-        List<Node> nodes = pomView.resolveXPathToNodeListFrom( this.element, path, true );
-        if ( nodes == null || nodes.isEmpty() )
+        if ( managementElement == null )
         {
-            final String[] xpaths = managementXpathsFor( path );
-            for ( final String xpath : xpaths )
+            initManagementXpaths();
+            for ( final String xpath : managementXpaths )
             {
-                nodes = pomView.resolveXPathToAggregatedNodeList( xpath, false, -1 );
-                if ( nodes != null && !nodes.isEmpty() )
+                final Element e = pomView.resolveXPathToElement( xpath, false );
+                if ( e != null )
                 {
+                    managementElement = e;
                     break;
                 }
             }
         }
 
-        return nodes;
+        return managementElement;
     }
 
     protected List<Node> getFirstNodesWithManagement( final String path )
+        throws GalleyMavenException
     {
         //        logger.info( "Resolving '%s' from node: %s", path, this.element );
-        List<Node> nodes = pomView.resolveXPathToNodeListFrom( this.element, path, true );
+        final List<Node> nodes = pomView.resolveXPathToNodeListFrom( this.element, path, true );
         if ( nodes == null || nodes.isEmpty() )
         {
-            final String[] xpaths = managementXpathsFor( path );
-            for ( final String xpath : xpaths )
+            final Element managedElement = getManagementElement();
+            if ( managedElement != null )
             {
-                //                logger.info( "Resolving '%s' from POM hierarchy.", xpath );
-                nodes = pomView.resolveXPathToFirstNodeList( xpath, false, -1 );
-                if ( nodes != null && !nodes.isEmpty() )
-                {
-                    break;
-                }
+                return pomView.resolveXPathToNodeListFrom( managedElement, path, true );
             }
         }
 
         return nodes;
-    }
-
-    private String[] managementXpathsFor( final String named )
-    {
-        initManagementXpaths();
-        if ( managementXpaths == null )
-        {
-            return null;
-        }
-
-        final String[] result = new String[managementXpaths.length];
-        for ( int i = 0; i < result.length; i++ )
-        {
-            //            logger.info( "Customizing management XPath: '%s' for: '%s'", managementXpaths[i], named );
-            result[i] = String.format( managementXpaths[i], named );
-        }
-
-        return result;
     }
 
     private void initManagementXpaths()
@@ -172,7 +145,7 @@ public class MavenElementView
               .append( managementXpathFragment )
               .append( '[' )
               .append( qualifier )
-              .append( "]/%s" );
+              .append( "]" );
 
             final String xp = sb.toString();
             xpaths.add( xp );
@@ -184,7 +157,7 @@ public class MavenElementView
           .append( managementXpathFragment )
           .append( '[' )
           .append( qualifier )
-          .append( "]/%s" );
+          .append( "]" );
 
         final String xp = sb.toString();
         xpaths.add( xp );
@@ -195,15 +168,47 @@ public class MavenElementView
 
     protected String getValue( final String path )
     {
-        final Element e = (Element) pomView.resolveXPathToNodeFrom( element, path, false );
+        return getValueFrom( path, element );
+    }
 
-        if ( e == null )
+    protected String getValueFrom( final String path, final Element element )
+    {
+        String val;
+        if ( path.contains( "(\\/\\/|\\[" ) )
         {
-            return null;
+            final Element e = (Element) pomView.resolveXPathToNodeFrom( element, path, false );
+
+            if ( e == null )
+            {
+                return null;
+            }
+
+            val = e.getTextContent()
+                   .trim();
+        }
+        else
+        {
+            final String[] parts = path.split( "/" );
+            Element e = element;
+            NodeList nl;
+            for ( final String part : parts )
+            {
+                nl = element.getElementsByTagName( part );
+                if ( nl == null || nl.getLength() < 1 )
+                {
+                    return null;
+                }
+
+                e = (Element) nl.item( 0 );
+                if ( e == null )
+                {
+                    return null;
+                }
+            }
+
+            val = e.getTextContent();
         }
 
-        final String val = e.getTextContent()
-                            .trim();
         //        logger.info( "Resolving expressions in: '%s'", val );
         return pomView.resolveExpressions( val );
     }
