@@ -51,11 +51,13 @@ public class ArtifactManagerImpl
     {
     }
 
-    public ArtifactManagerImpl( final TransferManager transferManager, final LocationExpander expander, final TypeMapper mapper )
+    public ArtifactManagerImpl( final TransferManager transferManager, final LocationExpander expander, final TypeMapper mapper,
+                                final VersionResolver versionResolver )
     {
         this.transferManager = transferManager;
         this.expander = expander;
         this.mapper = mapper;
+        this.versionResolver = versionResolver;
     }
 
     /* (non-Javadoc)

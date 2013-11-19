@@ -9,7 +9,9 @@ import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults
 import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
+import org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.type.StandardTypeMapper;
@@ -47,6 +49,10 @@ public class GalleyMavenFixture
 
     private XMLInfrastructure xmlInfra;
 
+    private MavenMetadataReader metaReader;
+
+    private VersionResolverImpl versions;
+
     public GalleyMavenFixture( final ApiFixture api )
     {
         this.api = api;
@@ -61,14 +67,24 @@ public class GalleyMavenFixture
             mapper = new StandardTypeMapper();
         }
 
-        if ( artifacts == null )
-        {
-            this.artifacts = new ArtifactManagerImpl( api.getTransfers(), api.getLocations(), getMapper() );
-        }
-
         if ( metadata == null )
         {
             this.metadata = new ArtifactMetadataManagerImpl( api.getTransfers(), api.getLocations() );
+        }
+
+        if ( metaReader == null )
+        {
+            metaReader = new MavenMetadataReader( getXmlInfra(), getMetadata(), getXpathManager() );
+        }
+
+        if ( versions == null )
+        {
+            versions = new VersionResolverImpl( metaReader );
+        }
+
+        if ( artifacts == null )
+        {
+            this.artifacts = new ArtifactManagerImpl( api.getTransfers(), api.getLocations(), getMapper(), getVersions() );
         }
 
         if ( pluginDefaults == null )
@@ -304,5 +320,25 @@ public class GalleyMavenFixture
     public void setPluginImplications( final MavenPluginImplications pluginImplications )
     {
         this.pluginImplications = pluginImplications;
+    }
+
+    public MavenMetadataReader getMetaReader()
+    {
+        return metaReader;
+    }
+
+    public VersionResolverImpl getVersions()
+    {
+        return versions;
+    }
+
+    public void setMetaReader( final MavenMetadataReader metaReader )
+    {
+        this.metaReader = metaReader;
+    }
+
+    public void setVersions( final VersionResolverImpl versions )
+    {
+        this.versions = versions;
     }
 }

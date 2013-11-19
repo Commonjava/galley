@@ -40,6 +40,60 @@ public class MavenPomViewTest
     }
 
     @Test
+    public void dependencyManagedBySingleBOMWithExpressionToProjectGroupId()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "pom-with-bom-expr.xml" );
+        final MavenPomView bomView = loadPoms( "simple-bom-expr.xml" );
+
+        pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+
+        final DependencyView dv = pomView.getAllDirectDependencies()
+                                         .get( 0 );
+
+        assertThat( dv.getVersion(), equalTo( "1.0" ) );
+        assertThat( dv.getScope(), equalTo( DependencyScope.test ) );
+    }
+
+    @Test
+    public void projectWithBOMContainingBOMs()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "pom-with-bom-of-boms.xml" );
+        final MavenPomView bomView = loadPoms( "bom-with-boms.xml" );
+
+        pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+
+        final List<DependencyView> boms = pomView.getAllBOMs();
+
+        System.out.printf( "Found %d boms\n\n", boms.size() );
+        for ( final DependencyView bom : boms )
+        {
+            System.out.println( bom.asProjectVersionRef() );
+        }
+    }
+
+    @Test
+    public void retrieveManagedDependencyFromBOMWithExpressionToBOMGroupId()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "pom-with-bom-expr.xml" );
+        final MavenPomView bomView = loadPoms( "simple-bom-expr.xml" );
+
+        pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+
+        DependencyView dv = pomView.getAllManagedDependencies()
+                                   .get( 0 );
+
+        assertThat( dv.getGroupId(), equalTo( "org.foo" ) );
+
+        dv = pomView.getAllBOMs()
+                    .get( 0 );
+
+        assertThat( dv.getGroupId(), equalTo( "org.foo" ) );
+    }
+
+    @Test
     public void resolveParentVersionExpressionWithoutProjectPrefix()
         throws Exception
     {

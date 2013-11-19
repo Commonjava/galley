@@ -30,6 +30,15 @@ public class VersionResolverImpl
     @Inject
     private MavenMetadataReader metadataReader;
 
+    protected VersionResolverImpl()
+    {
+    }
+
+    public VersionResolverImpl( final MavenMetadataReader metadataReader )
+    {
+        this.metadataReader = metadataReader;
+    }
+
     @Override
     public ProjectVersionRef resolveVariableVersions( final List<? extends Location> locations, final ProjectVersionRef ref )
         throws TransferException

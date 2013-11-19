@@ -42,7 +42,7 @@ public class FileDownload
         OutputStream out = null;
         try
         {
-            if ( src.canRead() && !src.isDirectory() )
+            if ( src.exists() && !src.isDirectory() )
             {
                 in = new FileInputStream( src );
                 out = txfr.openOutputStream( TransferOperation.DOWNLOAD, false );

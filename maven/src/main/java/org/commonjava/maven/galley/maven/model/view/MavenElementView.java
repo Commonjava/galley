@@ -21,7 +21,7 @@ public class MavenElementView
 
     private String[] managementXpaths;
 
-    private Element managementElement;
+    private MavenElementView managementElement;
 
     public MavenElementView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
     {
@@ -72,29 +72,32 @@ public class MavenElementView
         //        logger.info( "Value of path: '%s' local to: %s is: '%s'\nIn: %s", named, element, value, pomView.getRef() );
         if ( value == null )
         {
-            final Element mgmt = getManagementElement();
+            final MavenElementView mgmt = getManagementElement();
             if ( mgmt != null )
             {
-                return getValueFrom( named, mgmt );
+                return mgmt.getValue( named );
             }
         }
 
         return value;
     }
 
-    private synchronized Element getManagementElement()
+    private synchronized MavenElementView getManagementElement()
         throws GalleyMavenException
     {
         if ( managementElement == null )
         {
             initManagementXpaths();
-            for ( final String xpath : managementXpaths )
+            if ( managementXpaths != null )
             {
-                final Element e = pomView.resolveXPathToElement( xpath, false );
-                if ( e != null )
+                for ( final String xpath : managementXpaths )
                 {
-                    managementElement = e;
-                    break;
+                    final MavenElementView e = pomView.resolveXPathToElementView( xpath, false, -1 );
+                    if ( e != null )
+                    {
+                        managementElement = e;
+                        break;
+                    }
                 }
             }
         }
@@ -109,10 +112,10 @@ public class MavenElementView
         final List<Node> nodes = pomView.resolveXPathToNodeListFrom( this.element, path, true );
         if ( nodes == null || nodes.isEmpty() )
         {
-            final Element managedElement = getManagementElement();
+            final MavenElementView managedElement = getManagementElement();
             if ( managedElement != null )
             {
-                return pomView.resolveXPathToNodeListFrom( managedElement, path, true );
+                return managedElement.getFirstNodesWithManagement( path );
             }
         }
 

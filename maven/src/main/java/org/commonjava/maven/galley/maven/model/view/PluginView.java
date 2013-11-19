@@ -2,9 +2,12 @@ package org.commonjava.maven.galley.maven.model.view;
 
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.AND;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.END_PAREN;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.EQQUOTE;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXTEQ;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.RESOLVE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,15 +109,21 @@ public class PluginView
         final String dgid = pluginDefaults.getDefaultGroupId( aid );
         if ( !gid.equals( dgid ) )
         {
-            sb.append( G )
-              .append( TEXTEQ )
+            sb.append( RESOLVE )
+              .append( G )
+              .append( TEXT )
+              .append( END_PAREN )
+              .append( EQQUOTE )
               .append( gid )
               .append( QUOTE )
               .append( AND );
         }
 
-        sb.append( A )
-          .append( TEXTEQ )
+        sb.append( RESOLVE )
+          .append( A )
+          .append( TEXT )
+          .append( END_PAREN )
+          .append( EQQUOTE )
           .append( aid )
           .append( QUOTE );
 

@@ -7,7 +7,6 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
@@ -240,19 +239,16 @@ public class MavenPomReader
     private void assembleImportedInformation( final MavenPomView view, final List<? extends Location> locations )
         throws GalleyMavenException
     {
-        final List<DependencyView> md = view.getAllManagedDependencies();
+        final List<DependencyView> md = view.getAllBOMs();
         for ( final DependencyView dv : md )
         {
-            if ( DependencyScope._import == dv.getScope() && "pom".equals( dv.getType() ) )
-            {
-                final ProjectVersionRef ref = dv.asProjectVersionRef();
-                logger.info( "Found BOM: %s for: %s", ref, view.getRef() );
+            final ProjectVersionRef ref = dv.asProjectVersionRef();
+            logger.info( "Found BOM: %s for: %s", ref, view.getRef() );
 
-                // This is a BOM, it's likely to be used in multiple locations...cache this.
-                final MavenPomView imp = read( ref, locations, true );
+            // This is a BOM, it's likely to be used in multiple locations...cache this.
+            final MavenPomView imp = read( ref, locations, true );
 
-                view.addMixin( new MavenXmlMixin<ProjectVersionRef>( imp, MavenXmlMixin.DEPENDENCY_MIXIN ) );
-            }
+            view.addMixin( new MavenXmlMixin<ProjectVersionRef>( imp, MavenXmlMixin.DEPENDENCY_MIXIN ) );
         }
     }
 

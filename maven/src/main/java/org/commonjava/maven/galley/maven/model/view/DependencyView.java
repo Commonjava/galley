@@ -3,12 +3,14 @@ package org.commonjava.maven.galley.maven.model.view;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.AND;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.END_PAREN;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.EQQUOTE;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.NOT;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.OPEN_PAREN;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.OR;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXTEQ;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.RESOLVE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXT;
 
 import java.util.HashSet;
 import java.util.List;
@@ -132,13 +134,19 @@ public class DependencyView
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append( G )
-          .append( TEXTEQ )
+        sb.append( RESOLVE )
+          .append( G )
+          .append( TEXT )
+          .append( END_PAREN )
+          .append( EQQUOTE )
           .append( getGroupId() )
           .append( QUOTE )
           .append( AND )
+          .append( RESOLVE )
           .append( A )
-          .append( TEXTEQ )
+          .append( TEXT )
+          .append( END_PAREN )
+          .append( EQQUOTE )
           .append( getArtifactId() )
           .append( QUOTE );
 
@@ -146,8 +154,11 @@ public class DependencyView
         if ( cls != null )
         {
             sb.append( AND )
+              .append( RESOLVE )
               .append( C )
-              .append( TEXTEQ )
+              .append( TEXT )
+              .append( END_PAREN )
+              .append( EQQUOTE )
               .append( cls )
               .append( QUOTE );
         }
@@ -163,8 +174,11 @@ public class DependencyView
         if ( type != null )
         {
             sb.append( AND )
+              .append( RESOLVE )
               .append( T )
-              .append( TEXTEQ )
+              .append( TEXT )
+              .append( END_PAREN )
+              .append( EQQUOTE )
               .append( type )
               .append( QUOTE );
         }
@@ -176,8 +190,11 @@ public class DependencyView
               .append( T )
               .append( END_PAREN )
               .append( OR )
+              .append( RESOLVE )
               .append( T )
-              .append( TEXTEQ )
+              .append( TEXT )
+              .append( END_PAREN )
+              .append( EQQUOTE )
               .append( "jar" )
               .append( QUOTE )
               .append( END_PAREN );

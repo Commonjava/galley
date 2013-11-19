@@ -1,6 +1,5 @@
 package org.commonjava.maven.galley.util;
 
-
 public final class PathUtils
 {
 
@@ -35,10 +34,21 @@ public final class PathUtils
         }
 
         final StringBuilder sb = new StringBuilder();
+        int idx = 0;
         for ( String part : path )
         {
             if ( part.length() < 1 || "/".equals( part ) )
             {
+                continue;
+            }
+
+            if ( idx == 0 && part.startsWith( "file:" ) )
+            {
+                if ( part.length() > 5 )
+                {
+                    sb.append( part.substring( 5 ) );
+                }
+
                 continue;
             }
 
@@ -68,6 +78,7 @@ public final class PathUtils
             }
 
             sb.append( part );
+            idx++;
         }
 
         return sb.toString();

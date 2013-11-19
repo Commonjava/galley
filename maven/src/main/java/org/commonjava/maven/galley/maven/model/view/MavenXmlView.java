@@ -28,19 +28,19 @@ public class MavenXmlView<T extends ProjectRef>
 
     private static final String EXPRESSION_PATTERN = ".*\\$\\{.+\\}.*";
 
-    private final Logger logger = new Logger( getClass() );
+    protected final Logger logger = new Logger( getClass() );
 
-    private final List<DocRef<T>> stack;
+    protected final List<DocRef<T>> stack;
 
-    private final XPathManager xpath;
+    protected final XPathManager xpath;
 
-    private StringSearchInterpolator ssi;
+    protected StringSearchInterpolator ssi;
 
-    private final List<MavenXmlMixin<T>> mixins = new ArrayList<>();
+    protected final List<MavenXmlMixin<T>> mixins = new ArrayList<>();
 
-    private final Set<String> localOnlyPaths;
+    protected final Set<String> localOnlyPaths;
 
-    private final XMLInfrastructure xml;
+    protected final XMLInfrastructure xml;
 
     public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final String... localOnlyPaths )
     {
@@ -332,7 +332,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
     }
 
-    private List<Node> getLocalNodeList( final XPathExpression expression, final Document doc, final String path )
+    protected List<Node> getLocalNodeList( final XPathExpression expression, final Document doc, final String path )
         throws GalleyMavenRuntimeException
     {
         NodeList nl;
