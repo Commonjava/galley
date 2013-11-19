@@ -16,7 +16,7 @@ public final class DocRef<T extends ProjectRef>
 
     private final Location location;
 
-    private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> attributes = new HashMap<String, Object>();
 
     public DocRef( final T ref, final Location location, final Document doc )
     {

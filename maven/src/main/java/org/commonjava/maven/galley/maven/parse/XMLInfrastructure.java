@@ -184,7 +184,15 @@ public class XMLInfrastructure
 
             result = sw.toString();
         }
-        catch ( ParserConfigurationException | DOMException | TransformerException e )
+        catch ( final TransformerException e )
+        {
+            throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
+        }
+        catch ( final DOMException e )
+        {
+            throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
+        }
+        catch ( final ParserConfigurationException e )
         {
             throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
         }
@@ -215,33 +223,58 @@ public class XMLInfrastructure
         {
             doc = newDocumentBuilder().parse( new ByteArrayInputStream( xml ) );
         }
-        catch ( GalleyMavenXMLException | SAXException | IOException e )
+        catch ( final GalleyMavenXMLException e )
         {
-            logger.debug( "Failed to parse: %s. DOM error: %s. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...", e, docSource,
-                          e.getMessage() );
-            try
-            {
-                closeQuietly( stream );
-
-                xml = fixUglyXML( xml );
-
-                final XMLEventReader eventReader = safeInputFactory.createXMLEventReader( new ByteArrayInputStream( xml ) );
-                final StAXSource source = new StAXSource( eventReader );
-                final DOMResult result = new DOMResult();
-
-                final Transformer transformer = newTransformer();
-                transformer.transform( source, result );
-
-                doc = (Document) result.getNode();
-            }
-            catch ( TransformerException | XMLStreamException | IOException e1 )
-            {
-                throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
-                                                   e.getMessage() );
-            }
+            closeQuietly( stream );
+            doc = fallbackParseDocument( xml, docSource, e );
+        }
+        catch ( final SAXException e )
+        {
+            closeQuietly( stream );
+            doc = fallbackParseDocument( xml, docSource, e );
+        }
+        catch ( final IOException e )
+        {
+            closeQuietly( stream );
+            doc = fallbackParseDocument( xml, docSource, e );
         }
 
         return doc;
+    }
+
+    private Document fallbackParseDocument( byte[] xml, final Object docSource, final Exception e )
+        throws GalleyMavenXMLException
+    {
+        logger.debug( "Failed to parse: %s. DOM error: %s. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...", e, docSource,
+                      e.getMessage() );
+        try
+        {
+            xml = fixUglyXML( xml );
+
+            final XMLEventReader eventReader = safeInputFactory.createXMLEventReader( new ByteArrayInputStream( xml ) );
+            final StAXSource source = new StAXSource( eventReader );
+            final DOMResult result = new DOMResult();
+
+            final Transformer transformer = newTransformer();
+            transformer.transform( source, result );
+
+            return (Document) result.getNode();
+        }
+        catch ( final TransformerException e1 )
+        {
+            throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
+                                               e.getMessage() );
+        }
+        catch ( final XMLStreamException e1 )
+        {
+            throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
+                                               e.getMessage() );
+        }
+        catch ( final IOException e1 )
+        {
+            throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
+                                               e.getMessage() );
+        }
     }
 
     private byte[] fixUglyXML( final byte[] xml )

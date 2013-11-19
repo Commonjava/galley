@@ -40,13 +40,13 @@ public class TestTransport
 {
     private final Logger logger = new Logger( getClass() );
 
-    private final Map<ConcreteResource, TestDownload> downloads = new HashMap<>();
+    private final Map<ConcreteResource, TestDownload> downloads = new HashMap<ConcreteResource, TestDownload>();
 
-    private final Map<ConcreteResource, TestPublish> publishes = new HashMap<>();
+    private final Map<ConcreteResource, TestPublish> publishes = new HashMap<ConcreteResource, TestPublish>();
 
-    private final Map<ConcreteResource, TestListing> listings = new HashMap<>();
+    private final Map<ConcreteResource, TestListing> listings = new HashMap<ConcreteResource, TestListing>();
 
-    private final Map<ConcreteResource, TestExistence> exists = new HashMap<>();
+    private final Map<ConcreteResource, TestExistence> exists = new HashMap<ConcreteResource, TestExistence>();
 
     /**
      * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during

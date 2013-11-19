@@ -92,7 +92,7 @@ public class MavenPomView
         final List<MavenElementView> depNodes =
             resolveXPathToAggregatedElementViewList( "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]",
                                                      true, -1 );
-        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
+        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenElementView node : depNodes )
         {
             depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
@@ -105,7 +105,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> depNodes = resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency", true, -1 );
-        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
+        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenElementView node : depNodes )
         {
             depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
@@ -121,7 +121,7 @@ public class MavenPomView
             resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[type/text()=\"pom\" and scope/text()=\"import\"]",
                                                      true, -1 );
 
-        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
+        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenElementView node : depNodes )
         {
             depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
@@ -267,7 +267,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//extension", true, -1 );
-        final List<ExtensionView> result = new ArrayList<>( list.size() );
+        final List<ExtensionView> result = new ArrayList<ExtensionView>( list.size() );
         for ( final MavenElementView node : list )
         {
             if ( node == null )
@@ -285,7 +285,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
-        final List<PluginView> result = new ArrayList<>( list.size() );
+        final List<PluginView> result = new ArrayList<PluginView>( list.size() );
         for ( final MavenElementView node : list )
         {
             if ( node == null )
@@ -303,7 +303,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
-        final List<DependencyView> result = new ArrayList<>( list.size() );
+        final List<DependencyView> result = new ArrayList<DependencyView>( list.size() );
         for ( final MavenElementView node : list )
         {
             if ( node == null )
@@ -321,7 +321,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//build/plugins/plugin", true, -1 );
-        final List<PluginView> result = new ArrayList<>( list.size() );
+        final List<PluginView> result = new ArrayList<PluginView>( list.size() );
         for ( final MavenElementView node : list )
         {
             if ( node == null )
@@ -339,7 +339,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
-        final List<PluginView> result = new ArrayList<>( list.size() );
+        final List<PluginView> result = new ArrayList<PluginView>( list.size() );
         for ( final MavenElementView node : list )
         {
             if ( node == null )
@@ -357,7 +357,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
-        final List<ProjectVersionRefView> result = new ArrayList<>( list.size() );
+        final List<ProjectVersionRefView> result = new ArrayList<ProjectVersionRefView>( list.size() );
         for ( final MavenElementView node : list )
         {
             if ( node == null )
@@ -375,7 +375,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
-        final List<ProjectRefView> result = new ArrayList<>( list.size() );
+        final List<ProjectRefView> result = new ArrayList<ProjectRefView>( list.size() );
         for ( final MavenElementView node : list )
         {
             if ( node == null )
@@ -415,7 +415,7 @@ public class MavenPomView
             }
 
             int ancestryDepth = 0;
-            final List<MavenElementView> result = new ArrayList<>();
+            final List<MavenElementView> result = new ArrayList<MavenElementView>();
             for ( final DocRef<ProjectVersionRef> dr : stack )
             {
                 if ( maxAncestry > -1 && ancestryDepth > maxAncestry )

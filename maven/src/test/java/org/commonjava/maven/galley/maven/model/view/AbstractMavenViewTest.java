@@ -85,7 +85,7 @@ public abstract class AbstractMavenViewTest
     protected MavenPomView loadPoms( final String... pomNames )
         throws Exception
     {
-        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
+        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
         final ProjectVersionRef pvr = new ProjectVersionRef( "not.used", "project-ref", "1.0" );
         for ( final String pomName : pomNames )
         {
@@ -109,7 +109,7 @@ public abstract class AbstractMavenViewTest
     protected MavenXmlView<ProjectRef> loadDocs( final Set<String> localOnlyPaths, final String... docNames )
         throws Exception
     {
-        final List<DocRef<ProjectRef>> stack = new ArrayList<>();
+        final List<DocRef<ProjectRef>> stack = new ArrayList<DocRef<ProjectRef>>();
         final ProjectRef pr = new ProjectRef( "not.used", "project-ref" );
         for ( final String pomName : docNames )
         {

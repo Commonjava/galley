@@ -46,10 +46,10 @@ public class MavenMetadataReader
     public MavenMetadataView getMetadata( final ProjectRef ref, final List<? extends Location> locations )
         throws GalleyMavenException
     {
-        final List<DocRef<ProjectRef>> docs = new ArrayList<>( locations.size() );
+        final List<DocRef<ProjectRef>> docs = new ArrayList<DocRef<ProjectRef>>( locations.size() );
         final Map<Location, DocRef<ProjectRef>> cached = getAllCached( ref, locations );
 
-        final List<? extends Location> toRetrieve = new ArrayList<>( locations );
+        final List<? extends Location> toRetrieve = new ArrayList<Location>( locations );
         for ( final Location loc : locations )
         {
             final DocRef<ProjectRef> dr = cached.get( loc );

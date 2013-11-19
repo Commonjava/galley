@@ -135,7 +135,7 @@ public class TransferManagerImpl
     public List<ConcreteResource> findAllExisting( final VirtualResource virt )
         throws TransferException
     {
-        final List<ConcreteResource> results = new ArrayList<>();
+        final List<ConcreteResource> results = new ArrayList<ConcreteResource>();
         for ( final ConcreteResource res : virt )
         {
             if ( exists( res, true ) )
@@ -163,7 +163,7 @@ public class TransferManagerImpl
     public List<ListingResult> listAll( final VirtualResource virt )
         throws TransferException
     {
-        final List<ListingResult> results = new ArrayList<>();
+        final List<ListingResult> results = new ArrayList<ListingResult>();
         for ( final ConcreteResource res : virt )
         {
             final ListingResult result = doList( res, true );
@@ -292,8 +292,8 @@ public class TransferManagerImpl
         TransferBatch batch = new TransferBatch( Collections.singleton( virt ) );
         batch = batchRetrieveAll( batch );
 
-        return new ArrayList<>( batch.getTransfers()
-                                     .values() );
+        return new ArrayList<Transfer>( batch.getTransfers()
+                                             .values() );
     }
 
     /* (non-Javadoc)
@@ -521,7 +521,7 @@ public class TransferManagerImpl
         throws TransferException
     {
         final Set<Resource> resources = batch.getResources();
-        for ( final Resource resource : new HashSet<>( resources ) )
+        for ( final Resource resource : new HashSet<Resource>( resources ) )
         {
             if ( resource instanceof VirtualResource )
             {
@@ -541,14 +541,14 @@ public class TransferManagerImpl
     {
         logger.info( "Attempting to batch-retrieve %d resources", resources.size() );
 
-        final Set<BatchRetriever> retrievers = new HashSet<>( resources.size() );
+        final Set<BatchRetriever> retrievers = new HashSet<BatchRetriever>( resources.size() );
         for ( final Resource resource : resources )
         {
             retrievers.add( new BatchRetriever( this, resource, suppressFailures ) );
         }
 
-        final Map<ConcreteResource, TransferException> errors = new HashMap<>();
-        final Map<ConcreteResource, Transfer> transfers = new HashMap<>();
+        final Map<ConcreteResource, TransferException> errors = new HashMap<ConcreteResource, TransferException>();
+        final Map<ConcreteResource, Transfer> transfers = new HashMap<ConcreteResource, Transfer>();
 
         int tries = 1;
         while ( !retrievers.isEmpty() )
@@ -570,7 +570,7 @@ public class TransferManagerImpl
                 logger.error( "Failed to wait for batch retrieval attempts to complete: %s", e, e.getMessage() );
             }
 
-            for ( final BatchRetriever retriever : new HashSet<>( retrievers ) )
+            for ( final BatchRetriever retriever : new HashSet<BatchRetriever>( retrievers ) )
             {
                 final ConcreteResource resource = retriever.getLastTry();
                 final TransferException error = retriever.getError();

@@ -24,7 +24,7 @@ public class ArtifactBatch
 
     public ArtifactBatch( final List<? extends Location> locations, final Collection<ArtifactRef> artifacts )
     {
-        this.artifacts = new HashMap<>();
+        this.artifacts = new HashMap<ArtifactRef, List<? extends Location>>();
         for ( final ArtifactRef artifact : artifacts )
         {
             this.artifacts.put( artifact, locations );
@@ -38,8 +38,8 @@ public class ArtifactBatch
 
     public void setArtifactToResourceMapping( final Map<ArtifactRef, Resource> mappings )
     {
-        artifactMappings = new HashMap<>();
-        final Set<ConcreteResource> resources = new HashSet<>();
+        artifactMappings = new HashMap<ArtifactRef, List<ConcreteResource>>();
+        final Set<ConcreteResource> resources = new HashSet<ConcreteResource>();
         for ( final Entry<ArtifactRef, Resource> entry : mappings.entrySet() )
         {
             final ArtifactRef artifact = entry.getKey();

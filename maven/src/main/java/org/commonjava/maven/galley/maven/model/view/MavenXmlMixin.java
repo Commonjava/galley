@@ -26,7 +26,7 @@ public class MavenXmlMixin<T extends ProjectRef>
     public MavenXmlMixin( final MavenXmlView<T> mixin, final String... pathPatterns )
     {
         this.mixin = mixin;
-        this.subPaths = new HashSet<>( Arrays.asList( pathPatterns ) );
+        this.subPaths = new HashSet<String>( Arrays.asList( pathPatterns ) );
     }
 
     public boolean matches( final String path )

@@ -59,7 +59,7 @@ public class MavenPomReader
     public MavenPomView read( final ProjectVersionRef ref, final Transfer pom, final List<? extends Location> locations )
         throws GalleyMavenException
     {
-        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
+        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
 
         DocRef<ProjectVersionRef> dr = getDocRef( ref, pom, locations, false );
         stack.add( dr );
@@ -201,7 +201,7 @@ public class MavenPomReader
     public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations, final boolean cache )
         throws GalleyMavenException
     {
-        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
+        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
 
         ProjectVersionRef next = ref;
         do

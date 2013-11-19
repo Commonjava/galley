@@ -15,7 +15,7 @@ import org.commonjava.maven.galley.model.Location;
 public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 {
 
-    private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<>();
+    private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<DocCacheKey<T>, WeakReference<DocRef<T>>>();
 
     @Inject
     protected XMLInfrastructure xml;

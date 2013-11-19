@@ -19,7 +19,7 @@ public class VirtualResource
 
     public List<ConcreteResource> toConcreteResources()
     {
-        final List<ConcreteResource> result = new ArrayList<>();
+        final List<ConcreteResource> result = new ArrayList<ConcreteResource>();
         for ( final Location location : locations )
         {
             result.add( new ConcreteResource( location, getPath() ) );

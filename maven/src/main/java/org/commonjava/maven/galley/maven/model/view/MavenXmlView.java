@@ -36,7 +36,7 @@ public class MavenXmlView<T extends ProjectRef>
 
     protected StringSearchInterpolator ssi;
 
-    protected final List<MavenXmlMixin<T>> mixins = new ArrayList<>();
+    protected final List<MavenXmlMixin<T>> mixins = new ArrayList<MavenXmlMixin<T>>();
 
     protected final Set<String> localOnlyPaths;
 
@@ -47,7 +47,7 @@ public class MavenXmlView<T extends ProjectRef>
         this.stack = stack;
         this.xpath = xpath;
         this.xml = xml;
-        this.localOnlyPaths = new HashSet<>( Arrays.asList( localOnlyPaths ) );
+        this.localOnlyPaths = new HashSet<String>( Arrays.asList( localOnlyPaths ) );
     }
 
     public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final Set<String> localOnlyPaths )
@@ -135,7 +135,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
 
         final List<Node> nodes = resolveXPathToAggregatedNodeList( path, cachePath, maxAncestry );
-        final List<String> result = new ArrayList<>( nodes.size() );
+        final List<String> result = new ArrayList<String>( nodes.size() );
         for ( final Node node : nodes )
         {
             if ( node != null && node.getNodeType() == Node.TEXT_NODE )
@@ -229,7 +229,7 @@ public class MavenXmlView<T extends ProjectRef>
             }
 
             int ancestryDepth = 0;
-            final List<Node> result = new ArrayList<>();
+            final List<Node> result = new ArrayList<Node>();
             for ( final DocRef<T> dr : stack )
             {
                 if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
@@ -347,7 +347,7 @@ public class MavenXmlView<T extends ProjectRef>
 
         if ( nl != null && nl.getLength() > 0 )
         {
-            final List<Node> result = new ArrayList<>();
+            final List<Node> result = new ArrayList<Node>();
             for ( int i = 0; i < nl.getLength(); i++ )
             {
                 result.add( nl.item( i ) );
@@ -386,7 +386,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
 
         final List<Node> nodes = resolveXPathToNodeListFrom( root, path, true );
-        final List<String> result = new ArrayList<>( nodes.size() );
+        final List<String> result = new ArrayList<String>( nodes.size() );
         for ( final Node node : nodes )
         {
             if ( node != null && node.getNodeType() == Node.TEXT_NODE )
@@ -420,7 +420,7 @@ public class MavenXmlView<T extends ProjectRef>
         {
             final XPathExpression expression = xpath.getXPath( path, cachePath );
 
-            final List<Node> result = new ArrayList<>();
+            final List<Node> result = new ArrayList<Node>();
             final NodeList nl = (NodeList) expression.evaluate( root, XPathConstants.NODESET );
             if ( nl != null )
             {
@@ -488,7 +488,7 @@ public class MavenXmlView<T extends ProjectRef>
 
         private final MavenXmlView<T> view;
 
-        private final List<Object> feedback = new ArrayList<>();
+        private final List<Object> feedback = new ArrayList<Object>();
 
         private final String[] activeProfileIds;
 

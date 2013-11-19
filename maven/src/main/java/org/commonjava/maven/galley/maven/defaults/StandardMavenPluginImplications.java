@@ -18,14 +18,14 @@ public class StandardMavenPluginImplications
 
     static
     {
-        final Map<ProjectRef, Set<ProjectRef>> implied = new HashMap<>();
+        final Map<ProjectRef, Set<ProjectRef>> implied = new HashMap<ProjectRef, Set<ProjectRef>>();
 
         final String mavenPluginsGid = "org.apache.maven.plugins";
 
         final ProjectRef surefirePlugin = new ProjectRef( mavenPluginsGid, "maven-surefire-plugin" );
 
         final String surefireGid = "org.apache.maven.surefire";
-        final Set<ProjectRef> surefire = new HashSet<>();
+        final Set<ProjectRef> surefire = new HashSet<ProjectRef>();
         surefire.add( new ProjectRef( surefireGid, "surefire-junit4" ) );
         surefire.add( new ProjectRef( surefireGid, "surefire-junit47" ) );
         surefire.add( new ProjectRef( surefireGid, "surefire-junit3" ) );

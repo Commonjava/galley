@@ -148,7 +148,7 @@ public class ArtifactManagerImpl
             return Collections.emptyMap();
         }
 
-        final Map<TypeAndClassifier, ConcreteResource> result = new LinkedHashMap<>();
+        final Map<TypeAndClassifier, ConcreteResource> result = new LinkedHashMap<TypeAndClassifier, ConcreteResource>();
         final String prefix = String.format( "%s-%s", ref.getArtifactId(), ref.getVersionString() );
         for ( final ListingResult listingResult : listingResults )
         {
@@ -221,7 +221,7 @@ public class ArtifactManagerImpl
     private void resolveArtifactMappings( final ArtifactBatch batch )
         throws TransferException
     {
-        final Map<ArtifactRef, Resource> resources = new HashMap<>( batch.size() );
+        final Map<ArtifactRef, Resource> resources = new HashMap<ArtifactRef, Resource>( batch.size() );
         for ( final ArtifactRef artifact : batch )
         {
             final String path = formatArtifactPath( artifact, mapper );

@@ -8,8 +8,8 @@ import java.util.Set;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 
 @Named( "memory-galley-nfc" )
@@ -20,7 +20,7 @@ public class MemoryNotFoundCache
 
     //    private final Logger logger = new Logger( getClass() );
 
-    private final Map<Location, Set<String>> missing = new HashMap<>();
+    private final Map<Location, Set<String>> missing = new HashMap<Location, Set<String>>();
 
     @Override
     public void addMissing( final ConcreteResource resource )
@@ -29,7 +29,7 @@ public class MemoryNotFoundCache
         Set<String> missing = this.missing.get( resource.getLocation() );
         if ( missing == null )
         {
-            missing = new HashSet<>();
+            missing = new HashSet<String>();
             this.missing.put( resource.getLocation(), missing );
         }
 

@@ -30,7 +30,7 @@ public class UploadHandler
     @Inject
     private NotFoundCache nfc;
 
-    private final Map<Resource, Future<Boolean>> pending = new ConcurrentHashMap<>();
+    private final Map<Resource, Future<Boolean>> pending = new ConcurrentHashMap<Resource, Future<Boolean>>();
 
     @Inject
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )

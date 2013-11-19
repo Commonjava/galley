@@ -85,7 +85,16 @@ public class ZipPublish
         {
             closeQuietly( zos );
             closeQuietly( fos );
-            closeQuietly( zf );
+            if ( zf != null )
+            {
+                try
+                {
+                    zf.close();
+                }
+                catch ( final IOException e )
+                {
+                }
+            }
             closeQuietly( stream );
         }
 
@@ -147,8 +156,28 @@ public class ZipPublish
         {
             closeQuietly( zos );
             closeQuietly( fos );
-            closeQuietly( zfOut );
-            closeQuietly( zfIn );
+            if ( zfOut != null )
+            {
+                try
+                {
+                    zfOut.close();
+                }
+                catch ( final IOException e )
+                {
+                }
+            }
+
+            if ( zfIn != null )
+            {
+                try
+                {
+                    zfIn.close();
+                }
+                catch ( final IOException e )
+                {
+                }
+            }
+
             closeQuietly( stream );
         }
 

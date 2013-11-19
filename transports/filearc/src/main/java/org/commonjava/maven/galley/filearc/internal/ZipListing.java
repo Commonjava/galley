@@ -1,6 +1,5 @@
 package org.commonjava.maven.galley.filearc.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchiveFile;
 import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
 
@@ -13,8 +12,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class ZipListing
@@ -61,7 +60,7 @@ public class ZipListing
 
             final String path = resource.getPath();
             final int pathLen = path.length();
-            final TreeSet<String> filenames = new TreeSet<>();
+            final TreeSet<String> filenames = new TreeSet<String>();
             for ( final ZipEntry entry : Collections.list( zf.entries() ) )
             {
                 String name = entry.getName();
@@ -89,7 +88,16 @@ public class ZipListing
         }
         finally
         {
-            closeQuietly( zf );
+            if ( zf != null )
+            {
+                try
+                {
+                    zf.close();
+                }
+                catch ( final IOException e )
+                {
+                }
+            }
         }
 
         return null;

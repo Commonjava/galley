@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -180,7 +178,8 @@ public class TestCacheProvider
     {
         final File fromFile = getDetachedFile( from );
         final File toFile = getDetachedFile( to );
-        Files.createLink( Paths.get( fromFile.toURI() ), Paths.get( toFile.toURI() ) );
+        FileUtils.copyFile( fromFile, toFile );
+        //        Files.createLink( Paths.get( fromFile.toURI() ), Paths.get( toFile.toURI() ) );
     }
 
     @Override

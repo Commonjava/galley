@@ -9,8 +9,8 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 
@@ -29,13 +29,13 @@ public class TransportManagerImpl
 
     public TransportManagerImpl( final Transport... transports )
     {
-        this.transports = new ArrayList<>( Arrays.asList( transports ) );
+        this.transports = new ArrayList<Transport>( Arrays.asList( transports ) );
     }
 
     @PostConstruct
     protected void setup()
     {
-        final List<Transport> transports = new ArrayList<>();
+        final List<Transport> transports = new ArrayList<Transport>();
         if ( injected != null )
         {
             for ( final Transport transport : injected )

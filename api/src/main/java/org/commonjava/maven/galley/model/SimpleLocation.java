@@ -21,7 +21,7 @@ public class SimpleLocation
 
     private final int timeoutSeconds;
 
-    private final Map<String, Object> attributes = new HashMap<>();
+    private final Map<String, Object> attributes = new HashMap<String, Object>();
 
     private final String name;
 

@@ -95,7 +95,7 @@ public class XPathManager
         implements XPathFunctionResolver
     {
 
-        private static InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<>();
+        private static InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<MavenPomView>();
 
         public static void setPomView( final MavenPomView pom )
         {

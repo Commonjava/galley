@@ -43,7 +43,7 @@ public class ListingResult
 
     public ListingResult mergeWith( final ListingResult remoteResult )
     {
-        final TreeSet<String> merged = new TreeSet<>();
+        final TreeSet<String> merged = new TreeSet<String>();
         if ( !isEmpty() )
         {
             merged.addAll( Arrays.asList( listing ) );

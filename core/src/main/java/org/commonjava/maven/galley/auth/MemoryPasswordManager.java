@@ -15,7 +15,7 @@ public class MemoryPasswordManager
     implements PasswordManager
 {
 
-    private final Map<PasswordEntry, String> passwords = new HashMap<>();
+    private final Map<PasswordEntry, String> passwords = new HashMap<PasswordEntry, String>();
 
     public void setPasswordFor( final String password, final Location loc, final String type )
     {

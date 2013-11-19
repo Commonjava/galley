@@ -1,6 +1,5 @@
 package org.commonjava.maven.galley.filearc.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchiveFile;
 import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
 
@@ -78,7 +77,16 @@ public class ZipExistence
         }
         finally
         {
-            closeQuietly( zf );
+            if ( zf != null )
+            {
+                try
+                {
+                    zf.close();
+                }
+                catch ( final IOException e )
+                {
+                }
+            }
         }
 
         return false;

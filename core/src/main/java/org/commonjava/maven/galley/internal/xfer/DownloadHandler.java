@@ -29,7 +29,7 @@ public class DownloadHandler
     @Inject
     private NotFoundCache nfc;
 
-    private final Map<Transfer, Future<Transfer>> pending = new ConcurrentHashMap<>();
+    private final Map<Transfer, Future<Transfer>> pending = new ConcurrentHashMap<Transfer, Future<Transfer>>();
 
     @Inject
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )

@@ -5,8 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -27,6 +25,7 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
+import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.logging.Logger;
 
 @Named( "file-galley-cache" )
@@ -36,7 +35,7 @@ public class FileCacheProvider
 
     private final Logger logger = new Logger( getClass() );
 
-    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<>( 10000 );
+    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<ConcreteResource, Transfer>( 10000 );
 
     @Inject
     private FileCacheProviderConfig config;
@@ -181,7 +180,7 @@ public class FileCacheProvider
             return null;
         }
 
-        final List<String> list = new ArrayList<>( Arrays.asList( listing ) );
+        final List<String> list = new ArrayList<String>( Arrays.asList( listing ) );
         for ( final Iterator<String> it = list.iterator(); it.hasNext(); )
         {
             final String fname = it.next();
@@ -235,7 +234,8 @@ public class FileCacheProvider
                 final File fromFile = getDetachedFile( from );
                 final File toFile = getDetachedFile( to );
 
-                Files.createLink( Paths.get( fromFile.toURI() ), Paths.get( toFile.toURI() ) );
+                FileUtils.copyFile( fromFile, toFile );
+                //                Files.createLink( Paths.get( fromFile.toURI() ), Paths.get( toFile.toURI() ) );
             }
             else
             {
@@ -247,9 +247,9 @@ public class FileCacheProvider
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return Paths.get( config.getCacheBasedir()
-                                .getPath(), pathGenerator.getFilePath( resource ) )
-                    .toString();
+        return PathUtils.normalize( config.getCacheBasedir()
+                                          .getPath(), pathGenerator.getFilePath( resource ) )
+                        .toString();
     }
 
     @Override

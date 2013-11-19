@@ -34,9 +34,9 @@ public class TestHttpServer
 
     private final String baseResource;
 
-    private final Map<String, Integer> accessesByPath = new HashMap<>();
+    private final Map<String, Integer> accessesByPath = new HashMap<String, Integer>();
 
-    private final Map<String, String> errors = new HashMap<>();
+    private final Map<String, String> errors = new HashMap<String, String>();
 
     public TestHttpServer( final String baseResource )
     {
@@ -172,27 +172,22 @@ public class TestHttpServer
                                      .toUpperCase();
 
             logger.info( "Method: '%s'", method );
-            switch ( method )
+            if ( "GET".equals( method ) )
             {
-                case "GET":
-                {
-                    doGet( req, url );
-                    break;
-                }
-                case "HEAD":
-                {
-                    req.response()
-                       .setStatusCode( 200 )
-                       .end();
-                    break;
-                }
-                default:
-                {
-                    req.response()
-                       .setStatusCode( 400 )
-                       .setStatusMessage( "Method: " + method + " not supported by test fixture." )
-                       .end();
-                }
+                doGet( req, url );
+            }
+            else if ( "HEAD".equals( method ) )
+            {
+                req.response()
+                   .setStatusCode( 200 )
+                   .end();
+            }
+            else
+            {
+                req.response()
+                   .setStatusCode( 400 )
+                   .setStatusMessage( "Method: " + method + " not supported by test fixture." )
+                   .end();
             }
         }
     }

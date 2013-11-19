@@ -36,7 +36,7 @@ public class HttpTestFixture
 
     private final TestCacheProvider cache;
 
-    private final Map<PasswordEntry, String> passwords = new HashMap<>();
+    private final Map<PasswordEntry, String> passwords = new HashMap<PasswordEntry, String>();
 
     private final Http http;
 

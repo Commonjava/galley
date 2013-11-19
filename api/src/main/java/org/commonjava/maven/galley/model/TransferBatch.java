@@ -19,17 +19,17 @@ public class TransferBatch
 
     protected TransferBatch()
     {
-        this.resources = new HashSet<>();
+        this.resources = new HashSet<Resource>();
     }
 
     protected void setResources( final Set<? extends Resource> resources )
     {
-        this.resources = new HashSet<>( resources );
+        this.resources = new HashSet<Resource>( resources );
     }
 
     public TransferBatch( final Collection<? extends Resource> resources )
     {
-        this.resources = new HashSet<>( resources );
+        this.resources = new HashSet<Resource>( resources );
     }
 
     public Set<Resource> getResources()

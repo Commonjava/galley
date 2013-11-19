@@ -51,7 +51,7 @@ public class PluginView
     {
         if ( pluginDependencies == null )
         {
-            final List<PluginDependencyView> result = new ArrayList<>();
+            final List<PluginDependencyView> result = new ArrayList<PluginDependencyView>();
 
             final List<Node> nodes = getFirstNodesWithManagement( "dependencies/dependency" );
             if ( nodes != null )

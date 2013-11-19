@@ -89,7 +89,17 @@ public class ZipDownload
         finally
         {
             closeQuietly( in );
-            closeQuietly( zf );
+            if ( zf != null )
+            {
+                try
+                {
+                    zf.close();
+                }
+                catch ( final IOException e )
+                {
+                }
+            }
+
             closeQuietly( out );
         }
 

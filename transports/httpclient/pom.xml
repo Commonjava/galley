@@ -27,7 +27,25 @@
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
-
-
   </dependencies>
+  
+  <properties>
+    <maven.test.skip>true</maven.test.skip>
+  </properties>
+  
+  <profiles>
+    <profile>
+      <id>jdk7-tests-enabled</id>
+      <activation>
+        <property>
+          <name>java.specification.version</name>
+          <value>1.7</value>
+        </property>
+      </activation>
+      
+      <properties>
+        <maven.test.skip>false</maven.test.skip>
+      </properties>
+    </profile>
+  </profiles>
 </project>

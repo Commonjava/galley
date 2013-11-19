@@ -135,7 +135,7 @@ public class MavenElementView
             return;
         }
 
-        final List<String> xpaths = new ArrayList<>();
+        final List<String> xpaths = new ArrayList<String>();
 
         final String profileId = getProfileId();
         if ( profileId != null )
