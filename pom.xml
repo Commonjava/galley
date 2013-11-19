@@ -10,7 +10,7 @@
 
   <groupId>org.commonjava.maven.galley</groupId>
   <artifactId>galley</artifactId>
-  <version>0.3.2</version>
+  <version>0.3.3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Galley :: Parent</name>
@@ -33,46 +33,46 @@
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-api</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-maven</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-core</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-transport-filearc</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-transport-httpclient</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-cache-tck</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-test-harness-api</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       
       <dependency>
         <groupId>org.commonjava.maven.galley</groupId>
         <artifactId>galley-test-harness-core</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.3-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       
