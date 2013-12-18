@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.defaults;
+package org.commonjava.maven.galley.maven.internal.defaults;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.enterprise.inject.Alternative;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 
 @Alternative
 public class StandardMaven304PluginDefaults

@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.galley.model.Location;
 import org.w3c.dom.Document;
 
 public final class DocRef<T extends ProjectRef>
@@ -14,14 +13,14 @@ public final class DocRef<T extends ProjectRef>
 
     private final T ref;
 
-    private final Location location;
+    private final Object source;
 
     private final Map<String, Object> attributes = new HashMap<String, Object>();
 
-    public DocRef( final T ref, final Location location, final Document doc )
+    public DocRef( final T ref, final Object source, final Document doc )
     {
         this.ref = ref;
-        this.location = location;
+        this.source = source;
         this.doc = doc;
     }
 
@@ -35,9 +34,9 @@ public final class DocRef<T extends ProjectRef>
         return ref;
     }
 
-    public Location getLocation()
+    public Object getSource()
     {
-        return location;
+        return source;
     }
 
     public void setAttribute( final String key, final Object value )
@@ -54,7 +53,7 @@ public final class DocRef<T extends ProjectRef>
     @Override
     public String toString()
     {
-        return String.format( "DocRef [%s] (from: %s)", ref, location );
+        return String.format( "DocRef [%s] (from: %s)", ref, source );
     }
 
 }

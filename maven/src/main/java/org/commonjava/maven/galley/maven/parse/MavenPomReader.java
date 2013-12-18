@@ -11,13 +11,13 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
-import org.commonjava.maven.galley.maven.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.MavenXmlMixin;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.util.logging.Logger;
@@ -159,7 +159,8 @@ public class MavenPomReader
             }
 
             final Document doc = xml.parse( transfer );
-            dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation(), doc );
+            dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation()
+                                                             .toString(), doc );
 
             if ( cache )
             {

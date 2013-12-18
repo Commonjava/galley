@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.defaults;
+package org.commonjava.maven.galley.maven.spi.defaults;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 

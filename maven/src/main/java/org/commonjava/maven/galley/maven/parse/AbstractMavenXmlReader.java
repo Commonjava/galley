@@ -85,18 +85,18 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
     {
         private final T ref;
 
-        private final Location location;
+        private final Object source;
 
         private DocCacheKey( final T ref, final Location location )
         {
             this.ref = ref;
-            this.location = location;
+            this.source = location;
         }
 
         public DocCacheKey( final DocRef<T> dr )
         {
             this.ref = dr.getRef();
-            this.location = dr.getLocation();
+            this.source = dr.getSource();
         }
 
         @Override
@@ -104,7 +104,7 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ( ( location == null ) ? 0 : location.hashCode() );
+            result = prime * result + ( ( source == null ) ? 0 : source.hashCode() );
             result = prime * result + ( ( ref == null ) ? 0 : ref.hashCode() );
             return result;
         }
@@ -126,14 +126,14 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
             }
             @SuppressWarnings( "unchecked" )
             final DocCacheKey<T> other = (DocCacheKey<T>) obj;
-            if ( location == null )
+            if ( source == null )
             {
-                if ( other.location != null )
+                if ( other.source != null )
                 {
                     return false;
                 }
             }
-            else if ( !location.equals( other.location ) )
+            else if ( !source.equals( other.source ) )
             {
                 return false;
             }

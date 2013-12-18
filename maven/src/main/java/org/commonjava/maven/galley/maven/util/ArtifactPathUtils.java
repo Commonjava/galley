@@ -7,7 +7,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.maven.type.TypeMapper;
+import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
 import org.commonjava.maven.galley.model.TypeMapping;
 
 public final class ArtifactPathUtils

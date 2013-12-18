@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
-import org.commonjava.maven.galley.maven.defaults.MavenPluginImplications;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.util.logging.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

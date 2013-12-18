@@ -12,10 +12,10 @@ import javax.xml.xpath.XPathExpressionException;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
-import org.commonjava.maven.galley.maven.defaults.MavenPluginDefaults;
-import org.commonjava.maven.galley.maven.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.model.view.XPathManager.TLFunctionResolver;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 

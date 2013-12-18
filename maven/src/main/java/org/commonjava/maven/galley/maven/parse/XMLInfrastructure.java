@@ -332,6 +332,37 @@ public class XMLInfrastructure
         return doc;
     }
 
+    public ProjectVersionRef getProjectVersionRef( final Document doc )
+        throws GalleyMavenXMLException
+    {
+        final Element project = doc.getDocumentElement();
+
+        String gid = getChildText( "groupId", project );
+        final String aid = getChildText( "artifactId", project );
+        String ver = getChildText( "version", project );
+
+        if ( isEmpty( gid ) || isEmpty( ver ) )
+        {
+            final NodeList nl = project.getElementsByTagName( "parent" );
+            if ( nl == null || nl.getLength() < 1 )
+            {
+                logger.info( "No parent declaration." );
+                return null;
+            }
+
+            final Element parent = (Element) nl.item( 0 );
+            gid = getChildText( "groupId", parent );
+            ver = getChildText( "version", parent );
+        }
+
+        if ( isEmpty( gid ) || isEmpty( aid ) || isEmpty( ver ) )
+        {
+            throw new GalleyMavenXMLException( "Project GAV is invalid! (g=%s,  a=%s, v=%s)", gid, aid, ver );
+        }
+
+        return new ProjectVersionRef( gid, aid, ver );
+    }
+
     public ProjectVersionRef getParentRef( final Document doc )
         throws GalleyMavenXMLException
     {
@@ -365,8 +396,19 @@ public class XMLInfrastructure
             return null;
         }
 
-        return nl.item( 0 )
-                 .getTextContent();
+        Element elem = null;
+        for ( int i = 0; i < nl.getLength(); i++ )
+        {
+            final Element e = (Element) nl.item( i );
+            if ( e.getParentNode() == parent )
+            {
+                elem = e;
+                break;
+            }
+        }
+
+        return elem == null ? null : elem.getTextContent()
+                                         .trim();
     }
 
 }

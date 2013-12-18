@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.type;
+package org.commonjava.maven.galley.maven.spi.type;
 
 import java.util.Map;
 

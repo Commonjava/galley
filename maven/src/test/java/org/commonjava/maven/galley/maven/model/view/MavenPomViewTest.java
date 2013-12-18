@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.junit.Ignore;
+import org.commonjava.maven.galley.maven.parse.GalleyMavenXMLException;
 import org.junit.Test;
 
 public class MavenPomViewTest
@@ -127,7 +127,6 @@ public class MavenPomViewTest
     }
 
     @Test
-    @Ignore( "Need to fix PomPeek or implement underlying infra to support MavenPomReader!" )
     public void groupIdFailOverToParent()
         throws Exception
     {
@@ -140,8 +139,7 @@ public class MavenPomViewTest
         assertThat( pvr.getGroupId(), equalTo( "org.foo" ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
-    @Ignore( "Need to fix PomPeek or implement underlying infra to support MavenPomReader!" )
+    @Test( expected = GalleyMavenXMLException.class )
     public void artifactId_DOES_NOT_FailOverToParent()
         throws Exception
     {
@@ -193,6 +191,19 @@ public class MavenPomViewTest
         assertThat( ipdvs, notNullValue() );
         assertThat( ipdvs.size(), equalTo( 5 ) );
 
+    }
+
+    @Test
+    public void artifactIdWithWhitespace()
+        throws Exception
+    {
+        final MavenPomView pomView = loadPoms( "pom-with-whitespace-artifactId.xml" );
+
+        final String aid = pomView.getArtifactId();
+        final ProjectVersionRef pvr = pomView.asProjectVersionRef();
+
+        assertThat( aid, equalTo( "bar-project" ) );
+        assertThat( pvr.getArtifactId(), equalTo( "bar-project" ) );
     }
 
 }

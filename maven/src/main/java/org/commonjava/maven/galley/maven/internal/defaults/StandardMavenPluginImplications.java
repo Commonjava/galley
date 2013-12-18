@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.defaults;
+package org.commonjava.maven.galley.maven.internal.defaults;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
+import org.commonjava.maven.galley.maven.spi.defaults.AbstractMavenPluginImplications;
 
 // TODO: Flesh out the implied artifacts!!
 public class StandardMavenPluginImplications

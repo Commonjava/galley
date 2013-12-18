@@ -16,8 +16,8 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.galley.maven.defaults.StandardMaven304PluginDefaults;
-import org.commonjava.maven.galley.maven.defaults.StandardMavenPluginImplications;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.util.logging.Log4jUtil;
@@ -86,7 +86,8 @@ public abstract class AbstractMavenViewTest
         throws Exception
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
-        final ProjectVersionRef pvr = new ProjectVersionRef( "not.used", "project-ref", "1.0" );
+
+        ProjectVersionRef pvr = null;
         for ( final String pomName : pomNames )
         {
             final InputStream is = Thread.currentThread()
@@ -97,12 +98,17 @@ public abstract class AbstractMavenViewTest
                                                             .newDocumentBuilder()
                                                             .parse( is );
 
-            final DocRef<ProjectVersionRef> dr = new DocRef<ProjectVersionRef>( pvr, new SimpleLocation( "http://localhost:8080/" ), document );
+            final ProjectVersionRef ref = xml.getProjectVersionRef( document );
+            if ( pvr == null )
+            {
+                pvr = ref;
+            }
+
+            final DocRef<ProjectVersionRef> dr = new DocRef<ProjectVersionRef>( ref, new SimpleLocation( "http://localhost:8080/" ), document );
 
             stack.add( dr );
         }
 
-        // FIXME: The use of pvr here is probably going to lead to problems.
         return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ), xml );
     }
 

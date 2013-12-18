@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.defaults;
+package org.commonjava.maven.galley.maven.spi.defaults;
 
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;

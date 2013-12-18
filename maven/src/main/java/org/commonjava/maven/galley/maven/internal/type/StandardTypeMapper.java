@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.maven.type;
+package org.commonjava.maven.galley.maven.internal.type;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
 import org.commonjava.maven.galley.model.TypeMapping;
 
 @ApplicationScoped
