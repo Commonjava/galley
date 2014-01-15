@@ -20,15 +20,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 
 public interface TransferDecorator
 {
 
-    OutputStream decorateWrite( OutputStream stream, TransferOperation op )
+    OutputStream decorateWrite( OutputStream stream, Transfer transfer, TransferOperation op )
         throws IOException;
 
-    InputStream decorateRead( InputStream stream )
+    InputStream decorateRead( InputStream stream, Transfer transfer )
         throws IOException;
 
 }

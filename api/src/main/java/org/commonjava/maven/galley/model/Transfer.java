@@ -167,7 +167,7 @@ public final class Transfer
                 return null;
             }
 
-            stream = decorator.decorateRead( stream );
+            stream = decorator.decorateRead( stream, this );
             if ( fireEvents )
             {
                 fileEventManager.fire( new FileAccessEvent( this ) );
@@ -203,7 +203,7 @@ public final class Transfer
                 return null;
             }
 
-            stream = decorator.decorateWrite( new TransferUnlockingOutputStream( stream, this ), accessType );
+            stream = decorator.decorateWrite( new TransferUnlockingOutputStream( stream, this ), this, accessType );
             if ( fireEvents )
             {
                 fileEventManager.fire( new FileStorageEvent( accessType, this ) );
