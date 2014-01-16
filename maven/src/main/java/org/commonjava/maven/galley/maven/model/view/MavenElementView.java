@@ -225,7 +225,8 @@ public class MavenElementView
                 }
             }
 
-            val = e.getTextContent();
+            val = e.getTextContent()
+                   .trim();
         }
 
         //        logger.info( "Resolving expressions in: '%s'", val );

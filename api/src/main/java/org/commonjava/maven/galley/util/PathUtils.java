@@ -68,14 +68,17 @@ public final class PathUtils
                 continue;
             }
 
-            while ( part.charAt( 0 ) == '/' )
+            if ( idx > 0 )
             {
-                if ( part.length() < 2 )
+                while ( part.charAt( 0 ) == '/' )
                 {
-                    continue;
-                }
+                    if ( part.length() < 2 )
+                    {
+                        continue;
+                    }
 
-                part = part.substring( 1 );
+                    part = part.substring( 1 );
+                }
             }
 
             while ( part.charAt( part.length() - 1 ) == '/' )
