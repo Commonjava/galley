@@ -100,6 +100,11 @@ public final class PathUtils
             idx++;
         }
 
+        if ( path[path.length - 1].endsWith( "/" ) )
+        {
+            sb.append( "/" );
+        }
+
         return sb.toString();
     }
 
