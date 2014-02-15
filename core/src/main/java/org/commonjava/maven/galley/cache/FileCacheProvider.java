@@ -101,7 +101,18 @@ public class FileCacheProvider
         final Transfer txfr = getTransfer( resource );
         synchronized ( txfr )
         {
-            final File f = new File( getFilePath( resource ) );
+            final File altDir = resource.getLocation()
+                                        .getAttribute( CacheProvider.ATTR_ALT_STORAGE_LOCATION, File.class );
+
+            File f;
+            if ( altDir == null )
+            {
+                f = new File( getFilePath( resource ) );
+            }
+            else
+            {
+                f = new File( altDir, resource.getPath() );
+            }
 
             if ( !resource.isRoot() && f.exists() && !f.isDirectory() && resource.getTimeoutSeconds() > 0 )
             {
