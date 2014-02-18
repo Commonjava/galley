@@ -62,6 +62,16 @@ public class XMLInfrastructureTest
         assertThat( doc, notNullValue() );
     }
 
+    @Test
+    public void parsePOMWithoutXMLDeclaration()
+        throws Exception
+    {
+        // This is to handle the plexus POMs that have &oslash; in them.
+        final Document doc = loadDocument( "pom-without-xml-decl.xml" );
+
+        assertThat( doc, notNullValue() );
+    }
+
     private Document loadDocument( final String resource )
         throws Exception
     {

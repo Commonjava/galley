@@ -19,17 +19,17 @@ package org.commonjava.maven.galley.maven.parse;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.xml.parsers.DocumentBuilder;
@@ -38,12 +38,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -57,11 +59,27 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 @ApplicationScoped
 public class XMLInfrastructure
 {
+
+    private static final Set<String> XML_ENTITIES = new HashSet<String>()
+    {
+        {
+            add( "&quot;" );
+            add( "&amp;" );
+            add( "&apos;" );
+            add( "&lt;" );
+            add( "&gt;" );
+        }
+
+        private static final long serialVersionUID = 1L;
+    };
 
     private final Logger logger = new Logger( getClass() );
 
@@ -98,9 +116,21 @@ public class XMLInfrastructure
 
     public XMLInfrastructure()
     {
-        safeInputFactory = XMLInputFactory.newInstance();
-        safeInputFactory.setProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
-        safeInputFactory.setProperty( XMLInputFactory.IS_VALIDATING, false );
+        transformerFactory = TransformerFactory.newInstance();
+
+        if ( !transformerFactory.getClass()
+                                .getName()
+                                .contains( "redirected" ) )
+        {
+            safeInputFactory = XMLInputFactory.newInstance();
+            safeInputFactory.setProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
+            safeInputFactory.setProperty( XMLInputFactory.IS_VALIDATING, false );
+        }
+        else
+        {
+            logger.warn( "Somebody is playing games with the TransformerFactory...we cannot use it safely: %s", transformerFactory );
+            safeInputFactory = null;
+        }
 
         dbFactory = DocumentBuilderFactory.newInstance();
 
@@ -113,8 +143,6 @@ public class XMLInfrastructure
         dbFactory.setIgnoringComments( true );
         dbFactory.setExpandEntityReferences( false );
         dbFactory.setCoalescing( true );
-
-        transformerFactory = TransformerFactory.newInstance();
     }
 
     public Element createElement( final Element below, final String relativePath, final Map<String, String> leafElements )
@@ -178,6 +206,7 @@ public class XMLInfrastructure
     {
         try
         {
+
             return transformerFactory.newTransformer();
         }
         catch ( final TransformerConfigurationException e )
@@ -224,10 +253,10 @@ public class XMLInfrastructure
             throw new GalleyMavenXMLException( "Cannot parse null input stream from: %s.", docSource );
         }
 
-        byte[] xml;
+        String xml;
         try
         {
-            xml = IOUtils.toByteArray( stream );
+            xml = IOUtils.toString( stream );
         }
         catch ( final IOException e )
         {
@@ -237,7 +266,7 @@ public class XMLInfrastructure
         Document doc = null;
         try
         {
-            doc = newDocumentBuilder().parse( new ByteArrayInputStream( xml ) );
+            doc = newDocumentBuilder().parse( new InputSource( new StringReader( xml ) ) );
         }
         catch ( final GalleyMavenXMLException e )
         {
@@ -258,17 +287,33 @@ public class XMLInfrastructure
         return doc;
     }
 
-    private Document fallbackParseDocument( byte[] xml, final Object docSource, final Exception e )
+    private Document fallbackParseDocument( String xml, final Object docSource, final Exception e )
         throws GalleyMavenXMLException
     {
         logger.debug( "Failed to parse: %s. DOM error: %s. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...", e, docSource,
                       e.getMessage() );
         try
         {
-            xml = fixUglyXML( xml );
+            Source source;
 
-            final XMLEventReader eventReader = safeInputFactory.createXMLEventReader( new ByteArrayInputStream( xml ) );
-            final StAXSource source = new StAXSource( eventReader );
+            if ( safeInputFactory != null )
+            {
+                xml = repairXmlDeclaration( xml );
+
+                final XMLEventReader eventReader = safeInputFactory.createXMLEventReader( new StringReader( xml ) );
+                source = new StAXSource( eventReader );
+            }
+            else
+            {
+                // Deal with &oslash; and other undeclared entities...
+                xml = escapeNonXMLEntityRefs( xml );
+
+                final XMLReader reader = XMLReaderFactory.createXMLReader();
+                reader.setFeature( "http://xml.org/sax/features/validation", false );
+
+                source = new SAXSource( reader, new InputSource( new StringReader( xml ) ) );
+            }
+
             final DOMResult result = new DOMResult();
 
             final Transformer transformer = newTransformer();
@@ -278,7 +323,12 @@ public class XMLInfrastructure
         }
         catch ( final TransformerException e1 )
         {
-            throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
+            throw new GalleyMavenXMLException( "Failed to parse: %s. Transformer error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
+                                               e.getMessage() );
+        }
+        catch ( final SAXException e1 )
+        {
+            throw new GalleyMavenXMLException( "Failed to parse: %s. SAX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
                                                e.getMessage() );
         }
         catch ( final XMLStreamException e1 )
@@ -286,38 +336,38 @@ public class XMLInfrastructure
             throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
                                                e.getMessage() );
         }
-        catch ( final IOException e1 )
-        {
-            throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1, docSource, e1.getMessage(),
-                                               e.getMessage() );
-        }
     }
 
-    private byte[] fixUglyXML( final byte[] xml )
-        throws IOException
+    private String repairXmlDeclaration( final String xml )
     {
-        byte[] result = xml;
-
-        final BufferedReader br = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( result ) ) );
-        final String firstLine = br.readLine()
-                                   .trim();
-        if ( !firstLine.startsWith( "<?xml" ) )
+        if ( !xml.startsWith( "<?xml" ) )
         {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final PrintStream pw = new PrintStream( baos );
-            pw.println( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
-            pw.println();
-            pw.println( firstLine );
-            String line = null;
-            while ( ( line = br.readLine() ) != null )
-            {
-                pw.println( line );
-            }
-
-            result = baos.toByteArray();
+            return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xml;
         }
 
-        return result;
+        return xml;
+    }
+
+    private String escapeNonXMLEntityRefs( final String xml )
+    {
+        final Matcher m = Pattern.compile( "&([^\\s;]+;)" )
+                                 .matcher( xml );
+
+        final StringBuffer sb = new StringBuffer();
+        while ( m.find() )
+        {
+            String value = m.group();
+            if ( !XML_ENTITIES.contains( value ) )
+            {
+                value = "&amp;" + m.group( 1 );
+            }
+
+            m.appendReplacement( sb, value );
+        }
+
+        m.appendTail( sb );
+
+        return sb.toString();
     }
 
     public Document parse( final Transfer transfer )

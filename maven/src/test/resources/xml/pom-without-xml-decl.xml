@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.codehaus.plexus</groupId>
@@ -148,7 +147,7 @@
       </roles>
     </developer>
     <developer>
-      <name>Trygve Laugst&oslash;l</name>
+      <name>Trygve Laugst&amp;oslash;l</name>
       <id>trygvis</id>
       <email>trygvis@codehaus.org</email>
       <roles>
