@@ -33,14 +33,15 @@ import org.commonjava.maven.galley.maven.model.view.MavenMetadataView;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class MavenMetadataReader
     extends AbstractMavenXmlReader<ProjectRef>
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private ArtifactMetadataManager metadataManager;
@@ -87,7 +88,7 @@ public class MavenMetadataReader
         }
         catch ( final TransferException e )
         {
-            throw new GalleyMavenException( "Failed to resolve metadata for: %s from: %s. Reason: %s", e, ref, locations, e.getMessage() );
+            throw new GalleyMavenException( "Failed to resolve metadata for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
         }
 
         if ( transfers != null && !transfers.isEmpty() )
@@ -109,7 +110,7 @@ public class MavenMetadataReader
             }
         }
 
-        logger.info( "Got %d metadata documents for: %s", docs.size(), ref );
+        logger.info( "Got {} metadata documents for: {}", docs.size(), ref );
         return new MavenMetadataView( docs, xpath, xml );
     }
 

@@ -33,7 +33,7 @@ public class TLLocationCredentialsProvider
     implements CredentialsProvider
 {
 
-    //    private final Logger logger = new Logger( getClass() );
+    //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final ThreadLocal<Map<AuthScope, Credentials>> credentials = new ThreadLocal<Map<AuthScope, Credentials>>();
 
@@ -55,7 +55,7 @@ public class TLLocationCredentialsProvider
             for ( final HttpLocation location : locations )
             {
                 final AuthScope as = new AuthScope( location.getHost(), location.getPort() );
-                //                logger.info( "Storing repository def: %s under authscope: %s:%d", repository.getName(),
+                //                logger.info( "Storing repository def: {} under authscope: {}:{}", repository.getName(),
                 //                             repository.getHost(), repository.getPort() );
 
                 //TODO: Seems like multiple repos with same host/port could easily cause confusion if they're not configured the same way later on...
@@ -85,7 +85,7 @@ public class TLLocationCredentialsProvider
 
     public HttpLocation getLocation( final String host, final int port )
     {
-        //        logger.info( "Looking up repository def under authscope: %s:%d", host, port );
+        //        logger.info( "Looking up repository def under authscope: {}:{}", host, port );
 
         final Map<AuthScope, HttpLocation> repos = repositories.get();
         if ( repos == null )

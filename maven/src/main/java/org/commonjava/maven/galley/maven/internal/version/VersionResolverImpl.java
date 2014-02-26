@@ -41,7 +41,7 @@ public class VersionResolverImpl
     implements VersionResolver
 {
 
-    //    private final Logger logger = new Logger( getClass() );
+    //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private MavenMetadataReader metadataReader;
@@ -92,14 +92,14 @@ public class VersionResolverImpl
                     }
                     catch ( final InvalidVersionSpecificationException e )
                     {
-                        throw new TransferException( "Unparsable version spec found in metadata: '%s'. Reason: %s", e, latest, e.getMessage() );
+                        throw new TransferException( "Unparsable version spec found in metadata: '{}'. Reason: {}", e, latest, e.getMessage() );
                     }
                 }
             }
         }
         catch ( final GalleyMavenException e )
         {
-            throw new TransferException( "Failed to resolve/parse metadata for snapshot version of: %s. Reason: %s", e, ref, e.getMessage() );
+            throw new TransferException( "Failed to resolve/parse metadata for snapshot version of: {}. Reason: {}", e, ref, e.getMessage() );
         }
 
         return null;
@@ -132,10 +132,10 @@ public class VersionResolverImpl
         }
         catch ( final GalleyMavenException e )
         {
-            throw new TransferException( "Failed to resolve/parse metadata for variable version of: %s. Reason: %s", e, ref, e.getMessage() );
+            throw new TransferException( "Failed to resolve/parse metadata for variable version of: {}. Reason: {}", e, ref, e.getMessage() );
         }
 
-        //        logger.info( "%s: RAW versions found: %s", ref, new JoinString( ", ", allVersions ) );
+        //        logger.info( "{}: RAW versions found: {}", ref, new JoinString( ", ", allVersions ) );
         final LinkedList<SingleVersion> specs = new LinkedList<SingleVersion>();
         if ( allVersions != null && !allVersions.isEmpty() )
         {
@@ -158,12 +158,12 @@ public class VersionResolverImpl
                 }
                 catch ( final InvalidVersionSpecificationException e )
                 {
-                    throw new TransferException( "Unparsable version spec found in metadata: '%s'. Reason: %s", e, ver, e.getMessage() );
+                    throw new TransferException( "Unparsable version spec found in metadata: '{}'. Reason: {}", e, ver, e.getMessage() );
                 }
             }
         }
 
-        //        logger.info( "%s: Available versions are: %s", ref, new JoinString( ", ", specs ) );
+        //        logger.info( "{}: Available versions are: {}", ref, new JoinString( ", ", specs ) );
         if ( !specs.isEmpty() )
         {
             final VersionSpec spec = ref.getVersionSpec();
@@ -173,13 +173,13 @@ public class VersionResolverImpl
             do
             {
                 ver = specs.removeLast();
-                //                logger.info( "Checking whether %s is concrete...", ver );
+                //                logger.info( "Checking whether {} is concrete...", ver );
             }
             while ( !ver.isConcrete() || !spec.contains( ver ) );
 
             if ( ver != null )
             {
-                //                logger.info( "Selecting %s for %s", ver, ref );
+                //                logger.info( "Selecting {} for {}", ver, ref );
                 return ref.selectVersion( ver );
             }
         }

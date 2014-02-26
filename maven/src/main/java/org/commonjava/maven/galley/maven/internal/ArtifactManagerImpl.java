@@ -44,12 +44,13 @@ import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArtifactManagerImpl
     implements ArtifactManager
 {
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private TransferManager transferManager;
@@ -165,7 +166,7 @@ public class ArtifactManagerImpl
         }
 
         final Map<TypeAndClassifier, ConcreteResource> result = new LinkedHashMap<TypeAndClassifier, ConcreteResource>();
-        final String prefix = String.format( "%s-%s", ref.getArtifactId(), ref.getVersionString() );
+        final String prefix = String.format( "{}-{}", ref.getArtifactId(), ref.getVersionString() );
         for ( final ListingResult listingResult : listingResults )
         {
             //FIXME: snapshot handling.
@@ -184,7 +185,7 @@ public class ArtifactManagerImpl
                         final int extPos = remainder.indexOf( '.' );
                         if ( extPos < 2 )
                         {
-                            logger.info( "Listing found unparsable filename: '%s' from: %s. Skipping", fname, location );
+                            logger.info( "Listing found unparsable filename: '{}' from: {}. Skipping", fname, location );
                             continue;
                         }
 

@@ -28,15 +28,16 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpListing
     implements ListingJob
@@ -51,7 +52,7 @@ public class HttpListing
         }
     };
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private TransferException error;
 
@@ -81,7 +82,7 @@ public class HttpListing
         // this is used to bind credentials...
         final HttpLocation location = (HttpLocation) resource.getLocation();
 
-        //            logger.info( "Trying: %s", url );
+        //            logger.info( "Trying: {}", url );
         final HttpGet request = new HttpGet( url );
 
         http.bindCredentialsTo( location, request );
@@ -125,7 +126,7 @@ public class HttpListing
         }
         catch ( final IOException e )
         {
-            this.error = new TransferException( "Failed to parse directory listing HTML for: %s using JSoup. Reason: %s", e, url, e.getMessage() );
+            this.error = new TransferException( "Failed to parse directory listing HTML for: {} using JSoup. Reason: {}", e, url, e.getMessage() );
         }
         finally
         {
@@ -148,7 +149,7 @@ public class HttpListing
             final int sc = line.getStatusCode();
             if ( sc != HttpStatus.SC_OK )
             {
-                logger.warn( "%s : %s", line, url );
+                logger.warn( "{} : {}", line, url );
                 if ( sc == HttpStatus.SC_NOT_FOUND )
                 {
                     result = null;

@@ -35,13 +35,14 @@ import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class UploadHandler
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private NotFoundCache nfc;
@@ -68,10 +69,10 @@ public class UploadHandler
     {
         if ( !resource.allowsPublishing() )
         {
-            throw new TransferException( "Publishing not allowed in: %s", resource );
+            throw new TransferException( "Publishing not allowed in: {}", resource );
         }
 
-        logger.info( "PUBLISH %s", resource );
+        logger.info( "PUBLISH {}", resource );
 
         joinUpload( resource, timeoutSeconds );
 
@@ -106,19 +107,19 @@ public class UploadHandler
         }
         catch ( final InterruptedException e )
         {
-            throw new TransferException( "Interrupted publish: %s. Reason: %s", e, resource, e.getMessage() );
+            throw new TransferException( "Interrupted publish: {}. Reason: {}", e, resource, e.getMessage() );
         }
         catch ( final ExecutionException e )
         {
-            throw new TransferException( "Failed to publish: %s. Reason: %s", e, resource, e.getMessage() );
+            throw new TransferException( "Failed to publish: {}. Reason: {}", e, resource, e.getMessage() );
         }
         catch ( final TimeoutException e )
         {
-            throw new TransferException( "Timed-out publish: %s. Reason: %s", e, resource, e.getMessage() );
+            throw new TransferException( "Timed-out publish: {}. Reason: {}", e, resource, e.getMessage() );
         }
         finally
         {
-            //            logger.info( "Marking download complete: %s", url );
+            //            logger.info( "Marking download complete: {}", url );
             pending.remove( resource );
         }
     }
@@ -141,15 +142,15 @@ public class UploadHandler
             }
             catch ( final InterruptedException e )
             {
-                throw new TransferException( "Publish interrupted: %s", e, resource );
+                throw new TransferException( "Publish interrupted: {}", e, resource );
             }
             catch ( final ExecutionException e )
             {
-                throw new TransferException( "Publish failed: %s", e, resource );
+                throw new TransferException( "Publish failed: {}", e, resource );
             }
             catch ( final TimeoutException e )
             {
-                throw new TransferException( "Timeout on: %s", e, resource );
+                throw new TransferException( "Timeout on: {}", e, resource );
             }
         }
 

@@ -34,14 +34,14 @@ public class MemoryNotFoundCache
     implements NotFoundCache
 {
 
-    //    private final Logger logger = new Logger( getClass() );
+    //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Map<Location, Set<String>> missing = new HashMap<Location, Set<String>>();
 
     @Override
     public void addMissing( final ConcreteResource resource )
     {
-        //        logger.info( "Adding to NFC: %s", resource );
+        //        logger.info( "Adding to NFC: {}", resource );
         Set<String> missing = this.missing.get( resource.getLocation() );
         if ( missing == null )
         {
@@ -56,21 +56,21 @@ public class MemoryNotFoundCache
     public boolean isMissing( final ConcreteResource resource )
     {
         final Set<String> missing = this.missing.get( resource.getLocation() );
-        //        logger.info( "Checking NFC listing: %s for path: %s in: %s", missing, resource.getPath(), resource.getLocation() );
+        //        logger.info( "Checking NFC listing: {} for path: {} in: {}", missing, resource.getPath(), resource.getLocation() );
         return missing == null ? false : missing.contains( resource.getPath() );
     }
 
     @Override
     public void clearMissing( final Location location )
     {
-        //        logger.info( "Clearing from NFC: all in %s", location );
+        //        logger.info( "Clearing from NFC: all in {}", location );
         this.missing.remove( location );
     }
 
     @Override
     public void clearMissing( final ConcreteResource resource )
     {
-        //        logger.info( "Clearing from NFC: %s", resource );
+        //        logger.info( "Clearing from NFC: {}", resource );
         final Set<String> missing = this.missing.get( resource.getLocation() );
         if ( missing != null )
         {

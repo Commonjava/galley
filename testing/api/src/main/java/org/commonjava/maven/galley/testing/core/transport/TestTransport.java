@@ -38,7 +38,8 @@ import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
 import org.commonjava.maven.galley.testing.core.transport.job.TestExistence;
 import org.commonjava.maven.galley.testing.core.transport.job.TestListing;
 import org.commonjava.maven.galley.testing.core.transport.job.TestPublish;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stubbed out {@link Transport} implementation that allows pre-registering
@@ -54,7 +55,7 @@ import org.commonjava.util.logging.Logger;
 public class TestTransport
     implements Transport
 {
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Map<ConcreteResource, TestDownload> downloads = new HashMap<ConcreteResource, TestDownload>();
 
@@ -70,8 +71,8 @@ public class TestTransport
      */
     public void registerDownload( final ConcreteResource resource, final TestDownload job )
     {
-        new Logger( getClass() ).info( "Got transport: %s", this );
-        logger.info( "Registering download: %s with job: %s", resource, job );
+        logger.info( "Got transport: {}", this );
+        logger.info( "Registering download: {} with job: {}", resource, job );
         downloads.put( resource, job );
     }
 
@@ -81,7 +82,7 @@ public class TestTransport
      */
     public void registerPublish( final ConcreteResource resource, final TestPublish job )
     {
-        logger.info( "Registering publish: %s with job: %s", resource, job );
+        logger.info( "Registering publish: {} with job: {}", resource, job );
         publishes.put( resource, job );
     }
 
@@ -102,10 +103,10 @@ public class TestTransport
         throws TransferException
     {
         final TestDownload job = downloads.get( resource );
-        logger.info( "Download for: %s is: %s", resource, job );
+        logger.info( "Download for: {} is: {}", resource, job );
         if ( job == null )
         {
-            throw new TransferException( "No download registered for the endpoint: %s", resource );
+            throw new TransferException( "No download registered for the endpoint: {}", resource );
         }
 
         job.setTransfer( target );
@@ -127,7 +128,7 @@ public class TestTransport
         final TestPublish job = publishes.get( resource );
         if ( job == null )
         {
-            throw new TransferException( "No publish job registered for: %s", resource );
+            throw new TransferException( "No publish job registered for: {}", resource );
         }
 
         job.setContent( stream, length, contentType );
@@ -147,7 +148,7 @@ public class TestTransport
         final TestListing job = listings.get( resource );
         if ( job == null )
         {
-            throw new TransferException( "No listing job registered for: %s", resource );
+            throw new TransferException( "No listing job registered for: {}", resource );
         }
 
         return job;
@@ -160,7 +161,7 @@ public class TestTransport
         final TestExistence job = exists.get( resource );
         if ( job == null )
         {
-            throw new TransferException( "No existence job registered for: %s", resource );
+            throw new TransferException( "No existence job registered for: {}", resource );
         }
 
         return job;

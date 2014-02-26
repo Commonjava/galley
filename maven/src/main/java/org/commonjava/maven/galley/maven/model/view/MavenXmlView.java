@@ -33,7 +33,8 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -44,7 +45,7 @@ public class MavenXmlView<T extends ProjectRef>
 
     private static final String EXPRESSION_PATTERN = ".*\\$\\{.+\\}.*";
 
-    protected final Logger logger = new Logger( getClass() );
+    protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
     protected final List<DocRef<T>> stack;
 
@@ -136,7 +137,7 @@ public class MavenXmlView<T extends ProjectRef>
             final String raw = result.getTextContent()
                                      .trim();
 
-            //            logger.info( "Raw content of: '%s' is: '%s'", path, raw );
+            //            logger.info( "Raw content of: '{}' is: '{}'", path, raw );
             return resolveExpressions( raw, activeProfileIds );
         }
 
@@ -191,7 +192,7 @@ public class MavenXmlView<T extends ProjectRef>
                 }
 
                 result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
-                //                logger.info( "Value of '%s' at depth: %d is: %s", path, ancestryDepth, result );
+                //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
                 if ( result != null )
                 {
@@ -209,7 +210,7 @@ public class MavenXmlView<T extends ProjectRef>
                     {
                         result = mixin.getMixin()
                                       .resolveXPathToNode( path, true, maxAncestry );
-                        //                        logger.info( "Value of '%s' in mixin: %s is: '%s'", path, mixin );
+                        //                        logger.info( "Value of '{}' in mixin: {} is: '{}'", path, mixin );
                     }
 
                     if ( result != null )
@@ -221,7 +222,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
 
         return result;
@@ -287,7 +288,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
     }
 
@@ -344,7 +345,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
     }
 
@@ -358,7 +359,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
 
         if ( nl != null && nl.getLength() > 0 )
@@ -425,7 +426,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
     }
 
@@ -450,7 +451,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
     }
 
@@ -463,7 +464,7 @@ public class MavenXmlView<T extends ProjectRef>
     {
         if ( !containsExpression( value ) )
         {
-            //            logger.info( "No expressions in: '%s'", value );
+            //            logger.info( "No expressions in: '{}'", value );
             return value;
         }
 
@@ -479,7 +480,7 @@ public class MavenXmlView<T extends ProjectRef>
         try
         {
             String result = ssi.interpolate( value );
-            //            logger.info( "Resolved '%s' to '%s'", value, result );
+            //            logger.info( "Resolved '{}' to '{}'", value, result );
 
             if ( result == null || result.trim()
                                          .length() < 1 )
@@ -491,7 +492,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final InterpolationException e )
         {
-            logger.error( "Failed to resolve expressions in: '%s'. Reason: %s", e, value, e.getMessage() );
+            logger.error( "Failed to resolve expressions in: '{}'. Reason: {}", e, value, e.getMessage() );
             return value;
         }
     }
@@ -500,7 +501,7 @@ public class MavenXmlView<T extends ProjectRef>
         implements ValueSource
     {
 
-        //        private final Logger logger = new Logger( getClass() );
+        //        private final Logger logger = LoggerFactory.getLogger( getClass() );
 
         private final MavenXmlView<T> view;
 
@@ -533,12 +534,12 @@ public class MavenXmlView<T extends ProjectRef>
             try
             {
                 final String value = view.resolveMavenExpression( expr, activeProfileIds );
-                //                logger.info( "Value of: '%s' is: '%s'", expr, value );
+                //                logger.info( "Value of: '{}' is: '{}'", expr, value );
                 return value;
             }
             catch ( final GalleyMavenException e )
             {
-                feedback.add( String.format( "Error resolving maven expression: '%s'", expr ) );
+                feedback.add( String.format( "Error resolving maven expression: '{}'", expr ) );
                 feedback.add( e );
             }
 

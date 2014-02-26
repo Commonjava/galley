@@ -21,21 +21,12 @@ import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
 
-import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.util.logging.Log4jUtil;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
 public class XMLInfrastructureTest
 {
-
-    @BeforeClass
-    public static void startLogging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     protected String getBaseResource()
     {

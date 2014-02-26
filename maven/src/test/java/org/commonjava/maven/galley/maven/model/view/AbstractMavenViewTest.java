@@ -29,17 +29,15 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.log4j.Level;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.util.logging.Log4jUtil;
-import org.commonjava.util.logging.Logger;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -54,13 +52,7 @@ public abstract class AbstractMavenViewTest
 
     private XMLInfrastructure xml;
 
-    protected final Logger logger = new Logger( getClass() );
-
-    @BeforeClass
-    public static void logging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
+    protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Before
     public void setup()

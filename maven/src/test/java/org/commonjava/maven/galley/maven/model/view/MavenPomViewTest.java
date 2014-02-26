@@ -82,7 +82,7 @@ public class MavenPomViewTest
 
         final List<DependencyView> boms = pomView.getAllBOMs();
 
-        System.out.printf( "Found %d boms\n\n", boms.size() );
+        System.out.printf( "Found {} boms\n\n", boms.size() );
         for ( final DependencyView bom : boms )
         {
             System.out.println( bom.asProjectVersionRef() );

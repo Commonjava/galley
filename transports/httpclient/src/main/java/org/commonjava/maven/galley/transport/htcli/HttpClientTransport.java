@@ -124,7 +124,7 @@ public class HttpClientTransport
         }
         catch ( final MalformedURLException e )
         {
-            throw new TransferException( "Failed to parse base-URL for: %s", e, repository.getUri() );
+            throw new TransferException( "Failed to parse base-URL for: {}", e, repository.getUri() );
         }
     }
 
@@ -144,7 +144,7 @@ public class HttpClientTransport
         }
         catch ( final MalformedURLException e )
         {
-            throw new TransferException( "Failed to build URL for resource: %s. Reason: %s", e, resource, e.getMessage() );
+            throw new TransferException( "Failed to build URL for resource: {}. Reason: {}", e, resource, e.getMessage() );
         }
     }
 

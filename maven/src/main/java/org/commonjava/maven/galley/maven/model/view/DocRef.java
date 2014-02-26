@@ -69,7 +69,7 @@ public final class DocRef<T extends ProjectRef>
     @Override
     public String toString()
     {
-        return String.format( "DocRef [%s] (from: %s)", ref, source );
+        return String.format( "DocRef [{}] (from: {})", ref, source );
     }
 
 }

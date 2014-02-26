@@ -34,13 +34,14 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DownloadHandler
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private NotFoundCache nfc;
@@ -74,11 +75,11 @@ public class DownloadHandler
 
         if ( nfc.isMissing( resource ) )
         {
-            logger.info( "NFC: Already marked as missing: %s", resource );
+            logger.info( "NFC: Already marked as missing: {}", resource );
             return null;
         }
 
-        logger.info( "RETRIEVE %s", resource );
+        logger.info( "RETRIEVE {}", resource );
 
         //        if ( nfc.hasEntry( url ) )
         //        {
@@ -119,21 +120,21 @@ public class DownloadHandler
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( "Download interrupted: %s", e, target );
+                        throw new TransferException( "Download interrupted: {}", e, target );
                     }
                 }
                 catch ( final ExecutionException e )
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( "Download failed: %s", e, target );
+                        throw new TransferException( "Download failed: {}", e, target );
                     }
                 }
                 catch ( final TimeoutException e )
                 {
                     if ( !suppressFailures )
                     {
-                        throw new TransferException( "Timeout on: %s", e, target );
+                        throw new TransferException( "Timeout on: {}", e, target );
                     }
                 }
             }
@@ -166,7 +167,7 @@ public class DownloadHandler
 
             if ( job.getError() != null )
             {
-                logger.info( "NFC: Download error. Marking as missing: %s\nError was: %s", job.getError(), resource, job.getError()
+                logger.info( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(), resource, job.getError()
                                                                                                                         .getMessage() );
                 nfc.addMissing( resource );
 
@@ -177,7 +178,7 @@ public class DownloadHandler
             }
             else if ( downloaded == null || !downloaded.exists() )
             {
-                logger.info( "NFC: Download did not complete. Marking as missing: %s", resource );
+                logger.info( "NFC: Download did not complete. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
             }
 
@@ -187,26 +188,26 @@ public class DownloadHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Interrupted download: %s. Reason: %s", e, resource, e.getMessage() );
+                throw new TransferException( "Interrupted download: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
         catch ( final ExecutionException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed to download: %s. Reason: %s", e, resource, e.getMessage() );
+                throw new TransferException( "Failed to download: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
         catch ( final TimeoutException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: %s. Reason: %s", e, resource, e.getMessage() );
+                throw new TransferException( "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
         finally
         {
-            //            logger.info( "Marking download complete: %s", url );
+            //            logger.info( "Marking download complete: {}", url );
             pending.remove( target );
         }
 

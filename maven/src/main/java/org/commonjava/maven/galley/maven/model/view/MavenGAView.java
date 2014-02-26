@@ -79,14 +79,14 @@ public class MavenGAView
         }
         catch ( final IllegalArgumentException e )
         {
-            throw new GalleyMavenException( "Cannot render ProjectRef: %s:%s. Reason: %s", e, getGroupId(), getArtifactId(), e.getMessage() );
+            throw new GalleyMavenException( "Cannot render ProjectRef: {}:{}. Reason: {}", e, getGroupId(), getArtifactId(), e.getMessage() );
         }
     }
 
     @Override
     public String toString()
     {
-        return String.format( "%s [%s:%s]", getClass().getSimpleName(), getGroupId(), getArtifactId() );
+        return String.format( "{} [{}:{}]", getClass().getSimpleName(), getGroupId(), getArtifactId() );
     }
 
     public boolean isValid()

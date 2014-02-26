@@ -217,7 +217,7 @@ public class MavenPomView
                 {
                     TLFunctionResolver.setPomView( oldView );
                 }
-                //                logger.info( "Value of '%s' at depth: %d is: %s", path, ancestryDepth, result );
+                //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
                 if ( n != null )
                 {
@@ -239,7 +239,7 @@ public class MavenPomView
                 {
                     final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
                     result = mixinView.resolveXPathToElementView( path, true, maxAncestry );
-                    //                        logger.info( "Value of '%s' in mixin: %s is: '%s'", path, mixin );
+                    //                        logger.info( "Value of '{}' in mixin: {} is: '{}'", path, mixin );
                 }
 
                 if ( result != null )
@@ -250,7 +250,7 @@ public class MavenPomView
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
 
         return null;
@@ -473,7 +473,7 @@ public class MavenPomView
         }
         catch ( final XPathExpressionException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: %s. Reason: %s", e, path, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
     }
 

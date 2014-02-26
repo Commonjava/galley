@@ -36,7 +36,8 @@ import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 @ApplicationScoped
@@ -44,7 +45,7 @@ public class MavenPomReader
     extends AbstractMavenXmlReader<ProjectVersionRef>
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private ArtifactManager artifacts;
@@ -89,13 +90,13 @@ public class MavenPomReader
             }
             catch ( final TransferException e )
             {
-                throw new GalleyMavenException( "Failed to retrieve POM for: %s, %d levels deep in ancestry stack of: %s. Reason: %s", e, next,
+                throw new GalleyMavenException( "Failed to retrieve POM for: {}, {} levels deep in ancestry stack of: {}. Reason: {}", e, next,
                                                 stack.size(), ref, e.getMessage() );
             }
 
             if ( dr == null )
             {
-                throw new GalleyMavenException( "Cannot resolve %s, %d levels dep in the ancestry stack of: %s", next, stack.size(), ref );
+                throw new GalleyMavenException( "Cannot resolve {}, {} levels dep in the ancestry stack of: {}", next, stack.size(), ref );
             }
 
             stack.add( dr );
@@ -230,13 +231,13 @@ public class MavenPomReader
             }
             catch ( final TransferException e )
             {
-                throw new GalleyMavenException( "Failed to retrieve POM for: %s, %d levels deep in ancestry stack of: %s. Reason: %s", e, next,
+                throw new GalleyMavenException( "Failed to retrieve POM for: {}, {} levels deep in ancestry stack of: {}. Reason: {}", e, next,
                                                 stack.size(), ref, e.getMessage() );
             }
 
             if ( dr == null )
             {
-                throw new GalleyMavenException( "Cannot resolve %s, %d levels dep in the ancestry stack of: %s", next, stack.size(), ref );
+                throw new GalleyMavenException( "Cannot resolve {}, {} levels dep in the ancestry stack of: {}", next, stack.size(), ref );
             }
 
             stack.add( dr );
@@ -260,7 +261,7 @@ public class MavenPomReader
         for ( final DependencyView dv : md )
         {
             final ProjectVersionRef ref = dv.asProjectVersionRef();
-            logger.info( "Found BOM: %s for: %s", ref, view.getRef() );
+            logger.info( "Found BOM: {} for: {}", ref, view.getRef() );
 
             // This is a BOM, it's likely to be used in multiple locations...cache this.
             final MavenPomView imp = read( ref, locations, true );

@@ -166,11 +166,11 @@ public class XPathManager
             final String value = val.item( 0 )
                                     .getTextContent();
 
-            //            logger.info( "FUNC: resolving: '%s' with pom: %s", value, pom );
+            //            logger.info( "FUNC: resolving: '{}' with pom: {}", value, pom );
 
             final String result = pom.resolveExpressions( value );
 
-            //            logger.info( "FUNC: resolve result: '%s' with pom: %s", result, pom );
+            //            logger.info( "FUNC: resolve result: '{}' with pom: {}", result, pom );
 
             return result;
         }

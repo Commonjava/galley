@@ -229,13 +229,13 @@ public class DependencyView
         catch ( final IllegalArgumentException e )
         {
             final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render ArtifactRef: %s:%s:%s:%s%s. Reason: %s", e, getGroupId(), getArtifactId(), getVersion(),
+            throw new GalleyMavenException( "Cannot render ArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
                                             getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
             final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render ArtifactRef: %s:%s:%s:%s%s. Reason: %s", e, getGroupId(), getArtifactId(), getVersion(),
+            throw new GalleyMavenException( "Cannot render ArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
                                             getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
         }
     }
@@ -250,13 +250,13 @@ public class DependencyView
         catch ( final IllegalArgumentException e )
         {
             final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render VersionlessArtifactRef: %s:%s:%s%s. Reason: %s", e, getGroupId(), getArtifactId(),
+            throw new GalleyMavenException( "Cannot render VersionlessArtifactRef: {}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(),
                                             getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
             final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render VersionlessArtifactRef: %s:%s:%s%s. Reason: %s", e, getGroupId(), getArtifactId(),
+            throw new GalleyMavenException( "Cannot render VersionlessArtifactRef: {}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(),
                                             getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
         }
     }

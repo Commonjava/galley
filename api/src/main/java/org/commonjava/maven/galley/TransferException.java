@@ -52,7 +52,7 @@ public class TransferException
             {
                 try
                 {
-                    formatted = String.format( formatted, params );
+                    formatted = String.format( formatted.replaceAll( "\\{\\}", "%s" ), params );
                 }
                 catch ( final IllegalFormatException ife )
                 {

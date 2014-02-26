@@ -33,13 +33,14 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArtifactMetadataManagerImpl
     implements ArtifactMetadataManager
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private TransferManager transferManager;
@@ -282,7 +283,7 @@ public class ArtifactMetadataManagerImpl
         if ( selected == null )
         {
             logger.warn( "Cannot deploy. No valid deploy points in group." );
-            throw new TransferException( "No deployment locations available for: %s in: %s", virt.getPath(), virt.getLocations() );
+            throw new TransferException( "No deployment locations available for: {} in: {}", virt.getPath(), virt.getLocations() );
         }
 
         return transferManager.store( selected, stream );
@@ -311,7 +312,7 @@ public class ArtifactMetadataManagerImpl
         if ( selected == null )
         {
             logger.warn( "Cannot deploy. No valid deploy points in group." );
-            throw new TransferException( "No deployment locations available for: %s in: %s", virt.getPath(), virt.getLocations() );
+            throw new TransferException( "No deployment locations available for: {} in: {}", virt.getPath(), virt.getLocations() );
         }
 
         return transferManager.store( selected, stream );

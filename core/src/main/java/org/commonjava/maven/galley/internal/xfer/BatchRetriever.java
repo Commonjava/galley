@@ -26,13 +26,14 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.VirtualResource;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class BatchRetriever
     implements Runnable
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final TransferManagerImpl xfer;
 
@@ -78,7 +79,7 @@ public final class BatchRetriever
         }
 
         lastTry = resources.get( tries );
-        logger.info( "Try #%d: %s", tries, lastTry );
+        logger.info( "Try #{}: {}", tries, lastTry );
         try
         {
             transfer = xfer.retrieve( lastTry, suppressFailures );

@@ -41,7 +41,7 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.9.7</atlasVersion>
+    <atlasVersion>0.10.0-SNAPSHOT</atlasVersion>
   </properties>
 
   <dependencyManagement>
@@ -190,11 +190,11 @@
       <plugins>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
+<!--           <configuration>
             <source>1.6</source>
             <target>1.6</target>
           </configuration>
-        </plugin>
+ -->        </plugin>
       </plugins>
     </pluginManagement>
   </build>

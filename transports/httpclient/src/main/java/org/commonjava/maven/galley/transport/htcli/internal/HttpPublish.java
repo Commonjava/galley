@@ -31,13 +31,14 @@ import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.util.ContentTypeUtils;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class HttpPublish
     implements PublishJob
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final String url;
 
@@ -53,14 +54,13 @@ public final class HttpPublish
 
     private final String contentType;
 
-    public HttpPublish( final String url, final HttpLocation location, final InputStream stream, final long length,
-                        final Http http )
+    public HttpPublish( final String url, final HttpLocation location, final InputStream stream, final long length, final Http http )
     {
         this( url, location, stream, length, null, http );
     }
 
-    public HttpPublish( final String url, final HttpLocation location, final InputStream stream, final long length,
-                        final String contentType, final Http http )
+    public HttpPublish( final String url, final HttpLocation location, final InputStream stream, final long length, final String contentType,
+                        final Http http )
     {
         this.url = url;
         this.location = location;
@@ -73,7 +73,7 @@ public final class HttpPublish
     @Override
     public Boolean call()
     {
-        //            logger.info( "Trying: %s", url );
+        //            logger.info( "Trying: {}", url );
         final HttpPut request = new HttpPut( url );
         request.setEntity( new InputStreamEntity( stream, length, ContentType.create( contentType ) ) );
 
@@ -114,8 +114,8 @@ public final class HttpPublish
 
             if ( sc != HttpStatus.SC_OK && sc != HttpStatus.SC_CREATED )
             {
-                logger.warn( "%s : %s", line, url );
-                throw new TransferException( "HTTP request failed: %s", line );
+                logger.warn( "{} : {}", line, url );
+                throw new TransferException( "HTTP request failed: {}", line );
             }
             else
             {
@@ -124,11 +124,11 @@ public final class HttpPublish
         }
         catch ( final ClientProtocolException e )
         {
-            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
         }
         catch ( final IOException e )
         {
-            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
         }
     }
 

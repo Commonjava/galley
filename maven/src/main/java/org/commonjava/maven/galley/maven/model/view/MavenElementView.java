@@ -27,7 +27,7 @@ import org.w3c.dom.NodeList;
 public class MavenElementView
 {
 
-    //    private final Logger logger = new Logger( getClass() );
+    //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     protected final Element element;
 
@@ -85,7 +85,7 @@ public class MavenElementView
         throws GalleyMavenException
     {
         final String value = getValueFrom( named, element );
-        //        logger.info( "Value of path: '%s' local to: %s is: '%s'\nIn: %s", named, element, value, pomView.getRef() );
+        //        logger.info( "Value of path: '{}' local to: {} is: '{}'\nIn: {}", named, element, value, pomView.getRef() );
         if ( value == null )
         {
             final MavenElementView mgmt = getManagementElement();
@@ -124,7 +124,7 @@ public class MavenElementView
     protected List<Node> getFirstNodesWithManagement( final String path )
         throws GalleyMavenException
     {
-        //        logger.info( "Resolving '%s' from node: %s", path, this.element );
+        //        logger.info( "Resolving '{}' from node: {}", path, this.element );
         final List<Node> nodes = pomView.resolveXPathToNodeListFrom( this.element, path, true );
         if ( nodes == null || nodes.isEmpty() )
         {
@@ -168,7 +168,7 @@ public class MavenElementView
 
             final String xp = sb.toString();
             xpaths.add( xp );
-            //            logger.info( "Created management XPath template: '%s'", xp );
+            //            logger.info( "Created management XPath template: '{}'", xp );
         }
 
         final StringBuilder sb = new StringBuilder();
@@ -180,7 +180,7 @@ public class MavenElementView
 
         final String xp = sb.toString();
         xpaths.add( xp );
-        //        logger.info( "Created management XPath template: '%s'", xp );
+        //        logger.info( "Created management XPath template: '{}'", xp );
 
         managementXpaths = xpaths.toArray( new String[xpaths.size()] );
     }
@@ -229,7 +229,7 @@ public class MavenElementView
                    .trim();
         }
 
-        //        logger.info( "Resolving expressions in: '%s'", val );
+        //        logger.info( "Resolving expressions in: '{}'", val );
         return pomView.resolveExpressions( val );
     }
 

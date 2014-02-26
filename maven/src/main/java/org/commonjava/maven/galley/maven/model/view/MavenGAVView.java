@@ -20,7 +20,8 @@ import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 public class MavenGAVView
@@ -28,7 +29,7 @@ public class MavenGAVView
     implements ProjectVersionRefView
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private String version;
 
@@ -48,8 +49,8 @@ public class MavenGAVView
     {
         if ( version == null )
         {
-            //            final Logger logger = new Logger( getClass() );
-            //            logger.info( "Resolving version for: %s[%s:%s]\nIn: %s", getClass().getSimpleName(), getGroupId(), getArtifactId(), pomView.getRef() );
+            //            final Logger logger = LoggerFactory.getLogger( getClass() );
+            //            logger.info( "Resolving version for: {}[{}:{}]\nIn: {}", getClass().getSimpleName(), getGroupId(), getArtifactId(), pomView.getRef() );
             version = getValueWithManagement( V );
         }
 
@@ -66,7 +67,7 @@ public class MavenGAVView
         }
         catch ( final IllegalArgumentException e )
         {
-            throw new GalleyMavenException( "Cannot render ProjectVersionRef: %s:%s:%s. Reason: %s", e, getGroupId(), getArtifactId(), getVersion(),
+            throw new GalleyMavenException( "Cannot render ProjectVersionRef: {}:{}:{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
                                             e.getMessage() );
         }
     }
@@ -79,7 +80,7 @@ public class MavenGAVView
     @Override
     public String toString()
     {
-        return String.format( "%s [%s:%s:%s]", getClass().getSimpleName(), getGroupId(), getArtifactId(), version == null ? "unresolved" : version );
+        return String.format( "{} [{}:{}:{}]", getClass().getSimpleName(), getGroupId(), getArtifactId(), version == null ? "unresolved" : version );
     }
 
     @Override
@@ -91,7 +92,7 @@ public class MavenGAVView
         }
         catch ( final GalleyMavenException e )
         {
-            logger.warn( "Failed to lookup management element. Reason: %s", e, e.getMessage() );
+            logger.warn( "Failed to lookup management element. Reason: {}", e, e.getMessage() );
         }
 
         return false;

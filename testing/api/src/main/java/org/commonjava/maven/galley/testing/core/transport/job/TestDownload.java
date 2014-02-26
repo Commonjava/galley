@@ -25,13 +25,14 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestDownload
     implements DownloadJob
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final TransferException error;
 
@@ -84,7 +85,7 @@ public class TestDownload
         OutputStream stream = null;
         try
         {
-            logger.info( "Writing '%s' to: %s.", new String( data ), transfer.getDetachedFile() );
+            logger.info( "Writing '{}' to: {}.", new String( data ), transfer.getDetachedFile() );
             stream = transfer.openOutputStream( TransferOperation.DOWNLOAD );
             IOUtils.write( data, stream );
         }

@@ -36,12 +36,13 @@ import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.internal.LocationSSLSocketFactory;
 import org.commonjava.maven.galley.transport.htcli.internal.TLLocationCredentialsProvider;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpImpl
     implements Http
 {
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private LocationSSLSocketFactory socketFactory;
 
@@ -80,19 +81,19 @@ public class HttpImpl
         }
         catch ( final KeyManagementException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
         }
         catch ( final UnrecoverableKeyException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
         }
         catch ( final NoSuchAlgorithmException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
         }
         catch ( final KeyStoreException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e, e.getMessage() );
+            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
         }
 
         final DefaultHttpClient hc = new DefaultHttpClient( ccm );
@@ -116,7 +117,7 @@ public class HttpImpl
 
         if ( location.getProxyHost() != null )
         {
-            //            logger.info( "Using proxy: %s:%s for repository: %s", repository.getProxyHost(),
+            //            logger.info( "Using proxy: {}:{} for repository: {}", repository.getProxyHost(),
             //                         repository.getProxyPort() < 1 ? 80 : repository.getProxyPort(), repository.getName() );
 
             final int proxyPort = location.getProxyPort();

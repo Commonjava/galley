@@ -55,13 +55,14 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransferManagerImpl
     implements TransferManager
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private CacheProvider cacheProvider;
@@ -193,7 +194,7 @@ public class TransferManagerImpl
         {
             if ( !cached.isDirectory() )
             {
-                throw new TransferException( "Cannot list: %s. It does not appear to be a directory.", resource );
+                throw new TransferException( "Cannot list: {}. It does not appear to be a directory.", resource );
             }
             else
             {
@@ -229,12 +230,12 @@ public class TransferManagerImpl
         {
             if ( resource.getLocationUri() == null )
             {
-                logger.info( "NFC: No remote URI. Marking as missing: %s", resource );
+                logger.info( "NFC: No remote URI. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
                 return null;
             }
 
-            throw new TransferException( "No transports available to handle: %s with location type: %s", resource, resource.getLocation()
+            throw new TransferException( "No transports available to handle: {} with location type: {}", resource, resource.getLocation()
                                                                                                                            .getClass()
                                                                                                                            .getSimpleName() );
         }
@@ -341,12 +342,12 @@ public class TransferManagerImpl
 
             if ( target.exists() )
             {
-                logger.info( "DOWNLOADED: %s", resource );
+                logger.info( "DOWNLOADED: {}", resource );
                 return target;
             }
             else
             {
-                logger.info( "NOT DOWNLOADED: %s", resource );
+                logger.info( "NOT DOWNLOADED: {}", resource );
                 return null;
             }
         }
@@ -357,7 +358,7 @@ public class TransferManagerImpl
         }
         catch ( final IOException e )
         {
-            final TransferException error = new TransferException( "Failed to download: %s. Reason: %s", e, resource, e.getMessage() );
+            final TransferException error = new TransferException( "Failed to download: {}. Reason: {}", e, resource, e.getMessage() );
 
             fileEventManager.fire( new FileErrorEvent( target, error ) );
             throw error;
@@ -370,12 +371,12 @@ public class TransferManagerImpl
     {
         if ( !resource.allowsStoring() )
         {
-            throw new TransferException( "Storing not allowed in: %s", resource );
+            throw new TransferException( "Storing not allowed in: {}", resource );
         }
 
         final Transfer target = getCacheReference( resource );
 
-        logger.info( "STORE %s", target.getResource() );
+        logger.info( "STORE {}", target.getResource() );
 
         OutputStream out = null;
         try
@@ -385,7 +386,7 @@ public class TransferManagerImpl
         }
         catch ( final IOException e )
         {
-            throw new TransferException( "Failed to store: %s. Reason: %s", e, resource, e.getMessage() );
+            throw new TransferException( "Failed to store: {}. Reason: {}", e, resource, e.getMessage() );
         }
         finally
         {
@@ -448,7 +449,7 @@ public class TransferManagerImpl
             return false;
         }
 
-        logger.info( "DELETE %s", item.getResource() );
+        logger.info( "DELETE {}", item.getResource() );
 
         if ( item.isDirectory() )
         {
@@ -467,12 +468,12 @@ public class TransferManagerImpl
             {
                 if ( !item.delete() )
                 {
-                    throw new TransferException( "Failed to delete: %s.", item );
+                    throw new TransferException( "Failed to delete: {}.", item );
                 }
             }
             catch ( final IOException e )
             {
-                throw new TransferException( "Failed to delete stored location: %s. Reason: %s", e, item, e.getMessage() );
+                throw new TransferException( "Failed to delete stored location: {}. Reason: {}", e, item, e.getMessage() );
             }
         }
 
@@ -540,7 +541,7 @@ public class TransferManagerImpl
     private <T extends TransferBatch> T doBatch( final Set<Resource> resources, final T batch, final boolean suppressFailures )
         throws TransferException
     {
-        logger.info( "Attempting to batch-retrieve %d resources", resources.size() );
+        logger.info( "Attempting to batch-retrieve {} resources", resources.size() );
 
         final Set<BatchRetriever> retrievers = new HashSet<BatchRetriever>( resources.size() );
         for ( final Resource resource : resources )
@@ -554,7 +555,7 @@ public class TransferManagerImpl
         int tries = 1;
         while ( !retrievers.isEmpty() )
         {
-            logger.info( "Starting attempt #%d to retrieve batch (batch size is currently: %d)", tries, retrievers.size() );
+            logger.info( "Starting attempt #{} to retrieve batch (batch size is currently: {})", tries, retrievers.size() );
             final CountDownLatch latch = new CountDownLatch( resources.size() );
             for ( final BatchRetriever retriever : retrievers )
             {
@@ -568,7 +569,7 @@ public class TransferManagerImpl
             }
             catch ( final InterruptedException e )
             {
-                logger.error( "Failed to wait for batch retrieval attempts to complete: %s", e, e.getMessage() );
+                logger.error( "Failed to wait for batch retrieval attempts to complete: {}", e, e.getMessage() );
             }
 
             for ( final BatchRetriever retriever : new HashSet<BatchRetriever>( retrievers ) )
@@ -579,7 +580,7 @@ public class TransferManagerImpl
                 {
                     errors.put( resource, error );
                     retrievers.remove( retriever );
-                    logger.info( "ERROR: %s...%s", error, resource, error.getMessage() );
+                    logger.info( "ERROR: {}...{}", error, resource, error.getMessage() );
                     continue;
                 }
 
@@ -588,13 +589,13 @@ public class TransferManagerImpl
                 {
                     transfers.put( resource, transfer );
                     retrievers.remove( retriever );
-                    logger.info( "Completed: %s", resource );
+                    logger.info( "Completed: {}", resource );
                     continue;
                 }
 
                 if ( !retriever.hasMoreTries() )
                 {
-                    logger.info( "Not completed, but out of tries: %s", resource );
+                    logger.info( "Not completed, but out of tries: {}", resource );
                     retrievers.remove( retriever );
                 }
             }

@@ -34,7 +34,8 @@ import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LocationSSLSocketFactory
     extends SSLSocketFactory
@@ -42,14 +43,13 @@ public class LocationSSLSocketFactory
 
     // private final Map<Location, SSLSocketFactory> repoFactories = new WeakHashMap<Location, SSLSocketFactory>();
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final TLLocationCredentialsProvider credProvider;
 
     private final PasswordManager passwordManager;
 
-    public LocationSSLSocketFactory( final PasswordManager passwordManager,
-                                     final TLLocationCredentialsProvider credProvider )
+    public LocationSSLSocketFactory( final PasswordManager passwordManager, final TLLocationCredentialsProvider credProvider )
         throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException
     {
         super( (TrustStrategy) null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER );
@@ -66,7 +66,7 @@ public class LocationSSLSocketFactory
 
         if ( repo != null )
         {
-            //            logger.info( "Creating socket...using repository: %s", repo );
+            //            logger.info( "Creating socket...using repository: {}", repo );
             final SSLSocketFactory fac = getSSLFactory( repo );
             if ( fac != null )
             {
@@ -89,7 +89,7 @@ public class LocationSSLSocketFactory
     private synchronized SSLSocketFactory getSSLFactory( final HttpLocation loc )
         throws IOException
     {
-        //        logger.info( "Finding SSLSocketFactory for repo: %s", repo.getKey() );
+        //        logger.info( "Finding SSLSocketFactory for repo: {}", repo.getKey() );
 
         SSLSocketFactory factory = null; // repoFactories.get( repo );
         if ( factory == null )
@@ -98,14 +98,12 @@ public class LocationSSLSocketFactory
             KeyStore ts = null;
 
             final String kcPem = loc.getKeyCertPem();
-            final String kcPass =
-                passwordManager.getPassword( new PasswordEntry( loc, PasswordEntry.KEY_PASSWORD ) );
+            final String kcPass = passwordManager.getPassword( new PasswordEntry( loc, PasswordEntry.KEY_PASSWORD ) );
             if ( kcPem != null )
             {
                 if ( kcPass == null || kcPass.length() < 1 )
                 {
-                    logger.error( "Invalid configuration. Location: %s cannot have an empty key password!",
-                                  loc.getUri() );
+                    logger.error( "Invalid configuration. Location: {} cannot have an empty key password!", loc.getUri() );
                     throw new IOException( "Location: " + loc.getUri() + " is misconfigured!" );
                 }
 
@@ -132,32 +130,28 @@ public class LocationSSLSocketFactory
                 }
                 catch ( final CertificateException e )
                 {
-                    logger.error( "Invalid configuration. Location: %s has an invalid client certificate! Error: %s",
-                                  e, loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Location: {} has an invalid client certificate! Error: {}", e, loc.getUri(), e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final KeyStoreException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", e,
-                                  loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", e, loc.getUri(), e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final NoSuchAlgorithmException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", e,
-                                  loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", e, loc.getUri(), e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final InvalidKeySpecException e )
                 {
-                    logger.error( "Invalid configuration. Invalid client key for repository: %s. Error: %s", e,
-                                  loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Invalid client key for repository: {}. Error: {}", e, loc.getUri(), e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
             }
 
             final String sPem = loc.getServerCertPem();
-            //            logger.info( "Server certificate PEM:\n%s", sPem );
+            //            logger.info( "Server certificate PEM:\n{}", sPem );
             if ( sPem != null )
             {
                 try
@@ -182,20 +176,17 @@ public class LocationSSLSocketFactory
                 }
                 catch ( final CertificateException e )
                 {
-                    logger.error( "Invalid configuration. Location: %s has an invalid server certificate! Error: %s",
-                                  e, loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Location: {} has an invalid server certificate! Error: {}", e, loc.getUri(), e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final KeyStoreException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", e,
-                                  loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", e, loc.getUri(), e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final NoSuchAlgorithmException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", e,
-                                  loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", e, loc.getUri(), e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
             }
@@ -205,33 +196,32 @@ public class LocationSSLSocketFactory
                 try
                 {
                     factory =
-                        new SSLSocketFactory( SSLSocketFactory.TLS, ks, kcPass, ts, null, null,
-                                              SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER );
+                        new SSLSocketFactory( SSLSocketFactory.TLS, ks, kcPass, ts, null, null, SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER );
 
                     // repoFactories.put( repo, factory );
                 }
                 catch ( final KeyManagementException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: %s. Error: %s",
-                                  e, loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}", e, loc.getUri(),
+                                  e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final UnrecoverableKeyException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: %s. Error: %s",
-                                  e, loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}", e, loc.getUri(),
+                                  e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final NoSuchAlgorithmException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: %s. Error: %s",
-                                  e, loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}", e, loc.getUri(),
+                                  e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final KeyStoreException e )
                 {
-                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: %s. Error: %s",
-                                  e, loc.getUri(), e.getMessage() );
+                    logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}", e, loc.getUri(),
+                                  e.getMessage() );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
             }
@@ -245,7 +235,7 @@ public class LocationSSLSocketFactory
     public Socket createLayeredSocket( final Socket socket, final String host, final int port, final boolean autoClose )
         throws IOException, UnknownHostException
     {
-        //        logger.info( "Creating LAYERED socket to: %s:%d...looking for repository definition in parameters...", host,
+        //        logger.info( "Creating LAYERED socket to: {}:{}...looking for repository definition in parameters...", host,
         //                     port );
 
         // FIXME: This is prone to confusion if multiple repos using the same host/port have different configs!!!
@@ -253,7 +243,7 @@ public class LocationSSLSocketFactory
 
         if ( repo != null )
         {
-            //            logger.info( "Creating socket...using repository: %s", repo );
+            //            logger.info( "Creating socket...using repository: {}", repo );
             final SSLSocketFactory fac = getSSLFactory( repo );
             if ( fac != null )
             {

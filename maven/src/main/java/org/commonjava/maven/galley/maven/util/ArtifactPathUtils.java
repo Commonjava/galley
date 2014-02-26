@@ -56,7 +56,7 @@ public final class ArtifactPathUtils
 
     public static String formatMetadataPath( final String groupId, final String filename )
     {
-        return String.format( "%s/%s", groupId.replace( '.', '/' ), filename == null ? DEFAULT_FILENAME : filename );
+        return String.format( "{}/{}", groupId.replace( '.', '/' ), filename == null ? DEFAULT_FILENAME : filename );
     }
 
     public static String formatArtifactPath( final ProjectVersionRef src, final TypeMapper mapper )
@@ -68,7 +68,7 @@ public final class ArtifactPathUtils
                         final ArtifactRef ref = (ArtifactRef) src;
                         final TypeMapping tm = mapper.lookup( ref.getTypeAndClassifier() );
                         
-                        return String.format( "%s/%s/%s/%s-%s%s.%s", 
+                        return String.format( "{}/{}/{}/{}-{}{}.{}", 
                                               ref.getGroupId().replace('.', '/'), 
                                               ref.getArtifactId(), 
                                               formatVersionDirectoryPart( ref ),
@@ -79,7 +79,7 @@ public final class ArtifactPathUtils
                     }
                     else
                     {
-                        return String.format( "%s/%s/%s/", 
+                        return String.format( "{}/{}/{}/", 
                                               src.getGroupId().replace('.', '/'), 
                                               src.getArtifactId(), 
                                               formatVersionDirectoryPart( src ) );
@@ -93,7 +93,7 @@ public final class ArtifactPathUtils
         final VersionSpec vs = ref.getVersionSpec();
         if ( !vs.isSingle() )
         {
-            throw new TransferException( "Cannot format version directory part for: '%s'. Version is compound.", ref );
+            throw new TransferException( "Cannot format version directory part for: '{}'. Version is compound.", ref );
         }
 
         if ( vs.isSnapshot() )
@@ -116,7 +116,7 @@ public final class ArtifactPathUtils
         final VersionSpec vs = ref.getVersionSpec();
         if ( !vs.isSingle() )
         {
-            throw new TransferException( "Cannot format version filename part for: '%s'. Version is compound.", ref );
+            throw new TransferException( "Cannot format version filename part for: '{}'. Version is compound.", ref );
         }
 
         return vs.renderStandard();

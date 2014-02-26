@@ -42,14 +42,15 @@ import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
 import org.commonjava.maven.galley.util.PathUtils;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named( "file-galley-cache" )
 public class FileCacheProvider
     implements CacheProvider
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<ConcreteResource, Transfer>( 10000 );
 
@@ -131,7 +132,7 @@ public class FileCacheProvider
 
                     try
                     {
-                        logger.info( "Deleting cached file: %s (moved to: %s)\n  due to timeout after: %s\n  elapsed: %s\n  original timeout in seconds: %s",
+                        logger.info( "Deleting cached file: {} (moved to: {})\n  due to timeout after: {}\n  elapsed: {}\n  original timeout in seconds: {}",
                                      f, mved, timeout, ( current - lastModified ), tos );
 
                         if ( mved.exists() )
@@ -141,7 +142,7 @@ public class FileCacheProvider
                     }
                     catch ( final IOException e )
                     {
-                        logger.error( "Failed to delete: %s.", e, f );
+                        logger.error( "Failed to delete: {}.", e, f );
                     }
                 }
             }

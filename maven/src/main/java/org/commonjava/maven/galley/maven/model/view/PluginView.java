@@ -32,7 +32,8 @@ import java.util.Set;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -40,7 +41,7 @@ public class PluginView
     extends MavenGAVView
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final MavenPluginDefaults pluginDefaults;
 
@@ -74,7 +75,7 @@ public class PluginView
             {
                 for ( final Node node : nodes )
                 {
-                    logger.info( "Adding plugin dependency for: %s", node.getNodeName() );
+                    logger.info( "Adding plugin dependency for: {}", node.getNodeName() );
                     result.add( new PluginDependencyView( pomView, this, (Element) node ) );
                 }
 

@@ -70,11 +70,11 @@ public class DependencyViewTest
     {
         final DependencyView dv = loadFirstDirectDependency( "simple-expression-dots.pom.xml" );
 
-        logger.info( "%s", dv.asProjectRef() );
-        logger.info( "%s", dv.asProjectVersionRef()
+        logger.info( "{}", dv.asProjectRef() );
+        logger.info( "{}", dv.asProjectVersionRef()
                              .getVersionSpec() );
-        logger.info( "%s", dv.asVersionlessArtifactRef() );
-        logger.info( "%s", dv.asArtifactRef()
+        logger.info( "{}", dv.asVersionlessArtifactRef() );
+        logger.info( "{}", dv.asArtifactRef()
                              .getVersionSpec() );
     }
 
@@ -84,11 +84,11 @@ public class DependencyViewTest
     {
         final DependencyView dv = loadFirstDirectDependency( "dep-expr-in-parent.pom.xml", "dep-expr-parent.pom.xml" );
 
-        logger.info( "%s", dv.asProjectRef() );
-        logger.info( "%s", dv.asProjectVersionRef()
+        logger.info( "{}", dv.asProjectRef() );
+        logger.info( "{}", dv.asProjectVersionRef()
                              .getVersionSpec() );
-        logger.info( "%s", dv.asVersionlessArtifactRef() );
-        logger.info( "%s", dv.asArtifactRef()
+        logger.info( "{}", dv.asVersionlessArtifactRef() );
+        logger.info( "{}", dv.asArtifactRef()
                              .getVersionSpec() );
     }
 
@@ -98,11 +98,11 @@ public class DependencyViewTest
     {
         final DependencyView dv = loadFirstManagedDependency( "managed-dep-expr-in-parent.pom.xml", "dep-expr-parent.pom.xml" );
 
-        logger.info( "%s", dv.asProjectRef() );
-        logger.info( "%s", dv.asProjectVersionRef()
+        logger.info( "{}", dv.asProjectRef() );
+        logger.info( "{}", dv.asProjectVersionRef()
                              .getVersionSpec() );
-        logger.info( "%s", dv.asVersionlessArtifactRef() );
-        logger.info( "%s", dv.asArtifactRef()
+        logger.info( "{}", dv.asVersionlessArtifactRef() );
+        logger.info( "{}", dv.asArtifactRef()
                              .getVersionSpec() );
     }
 
@@ -117,11 +117,11 @@ public class DependencyViewTest
 
         logger.info( dv.asProjectVersionRef()
                        .toString() );
-        //        logger.info( "%s", dv.asProjectRef() );
-        //        logger.info( "%s", dv.asProjectVersionRef()
+        //        logger.info( "{}", dv.asProjectRef() );
+        //        logger.info( "{}", dv.asProjectVersionRef()
         //                             .getVersionSpec() );
-        //        logger.info( "%s", dv.asVersionlessArtifactRef() );
-        //        logger.info( "%s", dv.asArtifactRef()
+        //        logger.info( "{}", dv.asVersionlessArtifactRef() );
+        //        logger.info( "{}", dv.asArtifactRef()
         //                             .getVersionSpec() );
     }
 
@@ -136,11 +136,11 @@ public class DependencyViewTest
 
         logger.info( dv.asProjectVersionRef()
                        .toString() );
-        //        logger.info( "%s", dv.asProjectRef() );
-        //        logger.info( "%s", dv.asProjectVersionRef()
+        //        logger.info( "{}", dv.asProjectRef() );
+        //        logger.info( "{}", dv.asProjectVersionRef()
         //                             .getVersionSpec() );
-        //        logger.info( "%s", dv.asVersionlessArtifactRef() );
-        //        logger.info( "%s", dv.asArtifactRef()
+        //        logger.info( "{}", dv.asVersionlessArtifactRef() );
+        //        logger.info( "{}", dv.asArtifactRef()
         //                             .getVersionSpec() );
     }
 

@@ -27,7 +27,8 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.buffer.Buffer;
@@ -42,7 +43,7 @@ public class TestHttpServer
 
     private static Random rand = new Random();
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final int port;
 
@@ -63,7 +64,7 @@ public class TestHttpServer
         for ( int i = 0; i < TRIES; i++ )
         {
             final int p = Math.abs( rand.nextInt() ) % 2000 + 8000;
-            logger.info( "Trying port: %s", p );
+            logger.info( "Trying port: {}", p );
             try
             {
                 ss = new ServerSocket( p );
@@ -72,7 +73,7 @@ public class TestHttpServer
             }
             catch ( final IOException e )
             {
-                logger.error( "Port %s failed. Reason: %s", e, p, e.getMessage() );
+                logger.error( "Port {} failed. Reason: {}", e, p, e.getMessage() );
             }
             finally
             {
@@ -112,12 +113,12 @@ public class TestHttpServer
 
     public String formatUrl( final String subpath )
     {
-        return String.format( "http://localhost:%d/%s/%s", port, baseResource, subpath );
+        return String.format( "http://localhost:%s/%s/%s", port, baseResource, subpath );
     }
 
     public String getBaseUri()
     {
-        return String.format( "http://localhost:%d/%s", port, baseResource );
+        return String.format( "http://localhost:%s/%s", port, baseResource );
     }
 
     public String getUrlPath( final String url )
@@ -159,7 +160,7 @@ public class TestHttpServer
         if ( errors.containsKey( wholePath ) )
         {
             final String error = errors.get( wholePath );
-            logger.error( "Returning registered error: %s", error );
+            logger.error( "Returning registered error: {}", error );
             req.response()
                .setStatusCode( 500 )
                .setStatusMessage( error )
@@ -167,13 +168,13 @@ public class TestHttpServer
             return;
         }
 
-        logger.info( "Looking for classpath resource: '%s'", path );
+        logger.info( "Looking for classpath resource: '{}'", path );
 
         final URL url = Thread.currentThread()
                               .getContextClassLoader()
                               .getResource( path );
 
-        logger.info( "Classpath URL is: '%s'", url );
+        logger.info( "Classpath URL is: '{}'", url );
 
         if ( url == null )
         {
@@ -187,7 +188,7 @@ public class TestHttpServer
             final String method = req.method()
                                      .toUpperCase();
 
-            logger.info( "Method: '%s'", method );
+            logger.info( "Method: '{}'", method );
             if ( "GET".equals( method ) )
             {
                 doGet( req, url );
@@ -220,14 +221,14 @@ public class TestHttpServer
 
             final int len = baos.toByteArray().length;
             final Buffer buf = new Buffer( baos.toByteArray() );
-            logger.info( "Send: %d bytes", len );
+            logger.info( "Send: {} bytes", len );
             req.response()
                .putHeader( "Content-Length", Integer.toString( len ) )
                .end( buf );
         }
         catch ( final IOException e )
         {
-            logger.error( "Failed to stream content for: %s. Reason: %s", e, url, e.getMessage() );
+            logger.error( "Failed to stream content for: {}. Reason: {}", e, url, e.getMessage() );
             req.response()
                .setStatusCode( 500 )
                .setStatusMessage( "FAIL: " + e.getMessage() )

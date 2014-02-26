@@ -22,7 +22,6 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Level;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
@@ -33,7 +32,6 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
-import org.commonjava.util.logging.Log4jUtil;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -57,11 +55,6 @@ public class HttpTestFixture
     private final Http http;
 
     private final String baseResource;
-
-    static
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     public HttpTestFixture( final String baseResource )
     {

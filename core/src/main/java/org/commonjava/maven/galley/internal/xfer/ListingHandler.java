@@ -27,13 +27,14 @@ import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ListingHandler
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private NotFoundCache nfc;
@@ -52,7 +53,7 @@ public class ListingHandler
     {
         if ( nfc.isMissing( resource ) )
         {
-            logger.info( "NFC: Already marked as missing: %s", resource );
+            logger.info( "NFC: Already marked as missing: {}", resource );
             return null;
         }
 
@@ -61,7 +62,7 @@ public class ListingHandler
             return null;
         }
 
-        logger.info( "LIST %s", resource );
+        logger.info( "LIST {}", resource );
 
         final ListingJob job = transport.createListingJob( resource, timeoutSeconds );
 
@@ -72,7 +73,7 @@ public class ListingHandler
 
             if ( job.getError() != null )
             {
-                logger.info( "NFC: Download error. Marking as missing: %s", resource );
+                logger.info( "NFC: Download error. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
 
                 if ( !suppressFailures )
@@ -82,7 +83,7 @@ public class ListingHandler
             }
             else if ( result == null )
             {
-                logger.info( "NFC: Download did not complete. Marking as missing: %s", resource );
+                logger.info( "NFC: Download did not complete. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
             }
 
@@ -92,14 +93,14 @@ public class ListingHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: %s. Reason: %s", e, resource, e.getMessage() );
+                throw new TransferException( "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
         catch ( final Exception e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed listing: %s. Reason: %s", e, resource, e.getMessage() );
+                throw new TransferException( "Failed listing: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
 

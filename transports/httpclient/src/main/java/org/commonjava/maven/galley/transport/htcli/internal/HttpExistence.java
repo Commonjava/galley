@@ -27,13 +27,14 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class HttpExistence
     implements ExistenceJob
 {
 
-    private final Logger logger = new Logger( getClass() );
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final String url;
 
@@ -92,10 +93,10 @@ public final class HttpExistence
             final int sc = line.getStatusCode();
             if ( sc != HttpStatus.SC_OK )
             {
-                logger.warn( "%s : %s", line, url );
+                logger.warn( "{} : {}", line, url );
                 if ( sc != HttpStatus.SC_NOT_FOUND )
                 {
-                    throw new TransferException( "HTTP request failed: %s", line );
+                    throw new TransferException( "HTTP request failed: {}", line );
                 }
             }
             else
@@ -105,11 +106,11 @@ public final class HttpExistence
         }
         catch ( final ClientProtocolException e )
         {
-            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
         }
         catch ( final IOException e )
         {
-            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
         }
 
         return result;
