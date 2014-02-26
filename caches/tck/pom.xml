@@ -34,14 +34,14 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <scope>compile</scope>
+      <groupId>org.commonjava.maven.atlas</groupId>
+      <artifactId>atlas-identities</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>logging</artifactId>
+          <groupId>org.commonjava.util</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 </project>

@@ -27,13 +27,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.log4j.Level;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.commonjava.util.logging.Log4jUtil;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public abstract class CacheProviderTCK
@@ -41,12 +38,6 @@ public abstract class CacheProviderTCK
 
     protected abstract CacheProvider getCacheProvider()
         throws Exception;
-
-    @BeforeClass
-    public static void setupLogging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     @Test
     public void writeAndVerifyDirectory()

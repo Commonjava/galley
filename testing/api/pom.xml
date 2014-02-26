@@ -50,11 +50,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.util</groupId>
-      <artifactId>cdi-tools</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.commonjava.cdi.util</groupId>
       <artifactId>weft</artifactId>
     </dependency>

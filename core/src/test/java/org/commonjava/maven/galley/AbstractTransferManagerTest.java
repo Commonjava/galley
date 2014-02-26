@@ -25,16 +25,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Level;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
-import org.commonjava.util.logging.Log4jUtil;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public abstract class AbstractTransferManagerTest
@@ -48,12 +45,6 @@ public abstract class AbstractTransferManagerTest
 
     protected abstract CacheProvider getCacheProvider()
         throws Exception;
-
-    @BeforeClass
-    public static void setupLogging()
-    {
-        Log4jUtil.configure( Level.DEBUG );
-    }
 
     /**
      * Test that cached content will be used...if not, this test will fail, as 

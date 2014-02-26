@@ -101,7 +101,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>7</version>
+        <version>8-SNAPSHOT</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -120,18 +120,6 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.10</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>1.6.1</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>1.2.12</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -175,24 +163,16 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.util</groupId>
-      <artifactId>logging</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.commonjava.maven.atlas</groupId>
       <artifactId>atlas-identities</artifactId>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-    </dependency>
-    <dependency>
       <groupId>javax.enterprise</groupId>
       <artifactId>cdi-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
     </dependency>
   </dependencies>
   
