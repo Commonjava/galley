@@ -342,12 +342,12 @@ public class TransferManagerImpl
 
             if ( target.exists() )
             {
-                logger.info( "DOWNLOADED: {}", resource );
+                logger.debug( "DOWNLOADED: {}", resource );
                 return target;
             }
             else
             {
-                logger.info( "NOT DOWNLOADED: {}", resource );
+                logger.debug( "NOT DOWNLOADED: {}", resource );
                 return null;
             }
         }
