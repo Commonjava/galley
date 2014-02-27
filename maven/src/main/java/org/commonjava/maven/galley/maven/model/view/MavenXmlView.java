@@ -539,7 +539,7 @@ public class MavenXmlView<T extends ProjectRef>
             }
             catch ( final GalleyMavenException e )
             {
-                feedback.add( String.format( "Error resolving maven expression: '{}'", expr ) );
+                feedback.add( String.format( "Error resolving maven expression: '%s'", expr ) );
                 feedback.add( e );
             }
 

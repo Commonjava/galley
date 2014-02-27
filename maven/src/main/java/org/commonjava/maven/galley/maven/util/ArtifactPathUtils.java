@@ -56,7 +56,7 @@ public final class ArtifactPathUtils
 
     public static String formatMetadataPath( final String groupId, final String filename )
     {
-        return String.format( "{}/{}", groupId.replace( '.', '/' ), filename == null ? DEFAULT_FILENAME : filename );
+        return String.format( "%s/%s", groupId.replace( '.', '/' ), filename == null ? DEFAULT_FILENAME : filename );
     }
 
     public static String formatArtifactPath( final ProjectVersionRef src, final TypeMapper mapper )
@@ -68,7 +68,7 @@ public final class ArtifactPathUtils
                         final ArtifactRef ref = (ArtifactRef) src;
                         final TypeMapping tm = mapper.lookup( ref.getTypeAndClassifier() );
                         
-                        return String.format( "{}/{}/{}/{}-{}{}.{}", 
+                        return String.format( "%s/%s/%s/%s-%s%s.%s", 
                                               ref.getGroupId().replace('.', '/'), 
                                               ref.getArtifactId(), 
                                               formatVersionDirectoryPart( ref ),
@@ -79,7 +79,7 @@ public final class ArtifactPathUtils
                     }
                     else
                     {
-                        return String.format( "{}/{}/{}/", 
+                        return String.format( "%s/%s/%s/", 
                                               src.getGroupId().replace('.', '/'), 
                                               src.getArtifactId(), 
                                               formatVersionDirectoryPart( src ) );

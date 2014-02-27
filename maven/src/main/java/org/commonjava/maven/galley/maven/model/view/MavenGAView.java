@@ -86,7 +86,7 @@ public class MavenGAView
     @Override
     public String toString()
     {
-        return String.format( "{} [{}:{}]", getClass().getSimpleName(), getGroupId(), getArtifactId() );
+        return String.format( "%s [%s:%s]", getClass().getSimpleName(), getGroupId(), getArtifactId() );
     }
 
     public boolean isValid()

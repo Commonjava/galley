@@ -80,7 +80,7 @@ public class MavenGAVView
     @Override
     public String toString()
     {
-        return String.format( "{} [{}:{}:{}]", getClass().getSimpleName(), getGroupId(), getArtifactId(), version == null ? "unresolved" : version );
+        return String.format( "%s [%s:%s:%s]", getClass().getSimpleName(), getGroupId(), getArtifactId(), version == null ? "unresolved" : version );
     }
 
     @Override

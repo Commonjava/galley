@@ -166,7 +166,7 @@ public class ArtifactManagerImpl
         }
 
         final Map<TypeAndClassifier, ConcreteResource> result = new LinkedHashMap<TypeAndClassifier, ConcreteResource>();
-        final String prefix = String.format( "{}-{}", ref.getArtifactId(), ref.getVersionString() );
+        final String prefix = String.format( "%s-%s", ref.getArtifactId(), ref.getVersionString() );
         for ( final ListingResult listingResult : listingResults )
         {
             //FIXME: snapshot handling.
