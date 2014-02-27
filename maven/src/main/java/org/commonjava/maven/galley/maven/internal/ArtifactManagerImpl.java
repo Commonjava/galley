@@ -185,7 +185,7 @@ public class ArtifactManagerImpl
                         final int extPos = remainder.indexOf( '.' );
                         if ( extPos < 2 )
                         {
-                            logger.info( "Listing found unparsable filename: '{}' from: {}. Skipping", fname, location );
+                            logger.warn( "Listing found unparsable filename: '{}' from: {}. Skipping", fname, location );
                             continue;
                         }
 

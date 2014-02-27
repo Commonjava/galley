@@ -52,7 +52,7 @@ public class ExistenceHandler
     {
         if ( nfc.isMissing( resource ) )
         {
-            logger.info( "NFC: Already marked as missing: {}", resource );
+            logger.debug( "NFC: Already marked as missing: {}", resource );
             return false;
         }
 
@@ -61,7 +61,7 @@ public class ExistenceHandler
             return false;
         }
 
-        logger.info( "EXISTS {}", resource );
+        logger.debug( "EXISTS {}", resource );
 
         final ExistenceJob job = transport.createExistenceJob( resource, timeoutSeconds );
 
@@ -72,7 +72,7 @@ public class ExistenceHandler
 
             if ( job.getError() != null )
             {
-                logger.info( "NFC: Download error. Marking as missing: {}", resource );
+                logger.debug( "NFC: Download error. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
 
                 if ( !suppressFailures )
@@ -82,12 +82,12 @@ public class ExistenceHandler
             }
             else if ( result == null )
             {
-                logger.info( "NFC: Download did not complete. Marking as missing: {}", resource );
+                logger.debug( "NFC: Download did not complete. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
             }
             else if ( !result )
             {
-                logger.info( "NFC: Existence check returned false. Marking as missing: {}", resource );
+                logger.debug( "NFC: Existence check returned false. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
             }
 

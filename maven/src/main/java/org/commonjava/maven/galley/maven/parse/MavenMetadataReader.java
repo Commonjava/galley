@@ -110,7 +110,7 @@ public class MavenMetadataReader
             }
         }
 
-        logger.info( "Got {} metadata documents for: {}", docs.size(), ref );
+        logger.debug( "Got {} metadata documents for: {}", docs.size(), ref );
         return new MavenMetadataView( docs, xpath, xml );
     }
 

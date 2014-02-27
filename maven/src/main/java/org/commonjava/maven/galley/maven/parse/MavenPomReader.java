@@ -114,7 +114,14 @@ public class MavenPomReader
 
     public void logStructure( final MavenPomView view )
     {
-        logger.info( printStructure( view ) );
+        logger.debug( "{}", new Object()
+        {
+            @Override
+            public String toString()
+            {
+                return printStructure( view );
+            }
+        } );
     }
 
     private String printStructure( final MavenPomView view )
@@ -261,7 +268,7 @@ public class MavenPomReader
         for ( final DependencyView dv : md )
         {
             final ProjectVersionRef ref = dv.asProjectVersionRef();
-            logger.info( "Found BOM: {} for: {}", ref, view.getRef() );
+            logger.debug( "Found BOM: {} for: {}", ref, view.getRef() );
 
             // This is a BOM, it's likely to be used in multiple locations...cache this.
             final MavenPomView imp = read( ref, locations, true );

@@ -413,7 +413,7 @@ public class XMLInfrastructure
             final NodeList nl = project.getElementsByTagName( "parent" );
             if ( nl == null || nl.getLength() < 1 )
             {
-                logger.info( "No parent declaration." );
+                logger.debug( "No parent declaration." );
                 return null;
             }
 
@@ -437,7 +437,7 @@ public class XMLInfrastructure
         final NodeList nl = project.getElementsByTagName( "parent" );
         if ( nl == null || nl.getLength() < 1 )
         {
-            logger.info( "No parent declaration." );
+            logger.debug( "No parent declaration." );
             return null;
         }
 
@@ -459,7 +459,7 @@ public class XMLInfrastructure
         final NodeList nl = parent.getElementsByTagName( name );
         if ( nl == null || nl.getLength() < 1 )
         {
-            logger.info( "No element: {} in: {}", name, parent.getNodeName() );
+            logger.debug( "No element: {} in: {}", name, parent.getNodeName() );
             return null;
         }
 

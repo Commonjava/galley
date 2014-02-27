@@ -230,7 +230,7 @@ public class TransferManagerImpl
         {
             if ( resource.getLocationUri() == null )
             {
-                logger.info( "NFC: No remote URI. Marking as missing: {}", resource );
+                logger.debug( "NFC: No remote URI. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
                 return null;
             }
@@ -555,7 +555,7 @@ public class TransferManagerImpl
         int tries = 1;
         while ( !retrievers.isEmpty() )
         {
-            logger.info( "Starting attempt #{} to retrieve batch (batch size is currently: {})", tries, retrievers.size() );
+            logger.debug( "Starting attempt #{} to retrieve batch (batch size is currently: {})", tries, retrievers.size() );
             final CountDownLatch latch = new CountDownLatch( resources.size() );
             for ( final BatchRetriever retriever : retrievers )
             {
@@ -580,7 +580,7 @@ public class TransferManagerImpl
                 {
                     errors.put( resource, error );
                     retrievers.remove( retriever );
-                    logger.info( "ERROR: {}...{}", error, resource, error.getMessage() );
+                    logger.warn( "ERROR: {}...{}", error, resource, error.getMessage() );
                     continue;
                 }
 
@@ -589,13 +589,13 @@ public class TransferManagerImpl
                 {
                     transfers.put( resource, transfer );
                     retrievers.remove( retriever );
-                    logger.info( "Completed: {}", resource );
+                    logger.debug( "Completed: {}", resource );
                     continue;
                 }
 
                 if ( !retriever.hasMoreTries() )
                 {
-                    logger.info( "Not completed, but out of tries: {}", resource );
+                    logger.debug( "Not completed, but out of tries: {}", resource );
                     retrievers.remove( retriever );
                 }
             }

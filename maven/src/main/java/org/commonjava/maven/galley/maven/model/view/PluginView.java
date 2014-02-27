@@ -75,7 +75,7 @@ public class PluginView
             {
                 for ( final Node node : nodes )
                 {
-                    logger.info( "Adding plugin dependency for: {}", node.getNodeName() );
+                    logger.debug( "Adding plugin dependency for: {}", node.getNodeName() );
                     result.add( new PluginDependencyView( pomView, this, (Element) node ) );
                 }
 

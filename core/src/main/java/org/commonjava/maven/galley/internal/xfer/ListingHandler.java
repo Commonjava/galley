@@ -53,7 +53,7 @@ public class ListingHandler
     {
         if ( nfc.isMissing( resource ) )
         {
-            logger.info( "NFC: Already marked as missing: {}", resource );
+            logger.debug( "NFC: Already marked as missing: {}", resource );
             return null;
         }
 
@@ -62,7 +62,7 @@ public class ListingHandler
             return null;
         }
 
-        logger.info( "LIST {}", resource );
+        logger.debug( "LIST {}", resource );
 
         final ListingJob job = transport.createListingJob( resource, timeoutSeconds );
 
@@ -73,7 +73,7 @@ public class ListingHandler
 
             if ( job.getError() != null )
             {
-                logger.info( "NFC: Download error. Marking as missing: {}", resource );
+                logger.debug( "NFC: Download error. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
 
                 if ( !suppressFailures )
@@ -83,7 +83,7 @@ public class ListingHandler
             }
             else if ( result == null )
             {
-                logger.info( "NFC: Download did not complete. Marking as missing: {}", resource );
+                logger.debug( "NFC: Download did not complete. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
             }
 

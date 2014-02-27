@@ -72,7 +72,7 @@ public class UploadHandler
             throw new TransferException( "Publishing not allowed in: {}", resource );
         }
 
-        logger.info( "PUBLISH {}", resource );
+        logger.debug( "PUBLISH {}", resource );
 
         joinUpload( resource, timeoutSeconds );
 

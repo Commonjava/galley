@@ -79,7 +79,7 @@ public final class BatchRetriever
         }
 
         lastTry = resources.get( tries );
-        logger.info( "Try #{}: {}", tries, lastTry );
+        logger.debug( "Try #{}: {}", tries, lastTry );
         try
         {
             transfer = xfer.retrieve( lastTry, suppressFailures );

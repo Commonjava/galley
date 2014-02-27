@@ -75,11 +75,11 @@ public class DownloadHandler
 
         if ( nfc.isMissing( resource ) )
         {
-            logger.info( "NFC: Already marked as missing: {}", resource );
+            logger.debug( "NFC: Already marked as missing: {}", resource );
             return null;
         }
 
-        logger.info( "RETRIEVE {}", resource );
+        logger.debug( "RETRIEVE {}", resource );
 
         //        if ( nfc.hasEntry( url ) )
         //        {
@@ -167,8 +167,8 @@ public class DownloadHandler
 
             if ( job.getError() != null )
             {
-                logger.info( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(), resource, job.getError()
-                                                                                                                        .getMessage() );
+                logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(), resource, job.getError()
+                                                                                                                         .getMessage() );
                 nfc.addMissing( resource );
 
                 if ( !suppressFailures )
@@ -178,7 +178,7 @@ public class DownloadHandler
             }
             else if ( downloaded == null || !downloaded.exists() )
             {
-                logger.info( "NFC: Download did not complete. Marking as missing: {}", resource );
+                logger.debug( "NFC: Download did not complete. Marking as missing: {}", resource );
                 nfc.addMissing( resource );
             }
 
