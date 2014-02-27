@@ -149,7 +149,7 @@ public class HttpListing
             final int sc = line.getStatusCode();
             if ( sc != HttpStatus.SC_OK )
             {
-                logger.warn( "{} : {}", line, url );
+                logger.debug( "{} : {}", line, url );
                 if ( sc == HttpStatus.SC_NOT_FOUND )
                 {
                     result = null;

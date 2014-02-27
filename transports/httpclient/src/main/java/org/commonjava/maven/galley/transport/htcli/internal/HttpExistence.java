@@ -93,7 +93,7 @@ public final class HttpExistence
             final int sc = line.getStatusCode();
             if ( sc != HttpStatus.SC_OK )
             {
-                logger.warn( "{} : {}", line, url );
+                logger.debug( "{} : {}", line, url );
                 if ( sc != HttpStatus.SC_NOT_FOUND )
                 {
                     throw new TransferException( "HTTP request failed: {}", line );
