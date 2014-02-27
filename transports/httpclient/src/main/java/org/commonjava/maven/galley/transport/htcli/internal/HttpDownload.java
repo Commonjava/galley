@@ -140,9 +140,9 @@ public final class HttpDownload
             {
                 EntityUtils.consume( response.getEntity() );
 
-                logger.warn( "{} : {}", line, url );
                 if ( sc == HttpStatus.SC_NOT_FOUND )
                 {
+                    logger.debug( "{} : {}", line, url );
                     return null;
                 }
                 else
