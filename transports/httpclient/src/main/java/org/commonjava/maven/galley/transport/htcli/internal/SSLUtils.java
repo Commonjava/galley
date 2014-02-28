@@ -164,11 +164,7 @@ public final class SSLUtils
         BufferedReader reader = null;
         try
         {
-            reader =
-                new BufferedReader(
-                                    new InputStreamReader(
-                                                           new ByteArrayInputStream(
-                                                                                     content.getBytes( Charset.forName( "UTF-8" ) ) ) ) );
+            reader = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( content.getBytes( Charset.forName( "UTF-8" ) ) ) ) );
             String line = null;
             while ( ( line = reader.readLine() ) != null )
             {

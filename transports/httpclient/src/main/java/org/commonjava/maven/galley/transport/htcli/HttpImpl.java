@@ -32,6 +32,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpProtocolParams;
+import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.internal.LocationSSLSocketFactory;
 import org.commonjava.maven.galley.transport.htcli.internal.TLLocationCredentialsProvider;
@@ -81,19 +82,19 @@ public class HttpImpl
         }
         catch ( final KeyManagementException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
         }
         catch ( final UnrecoverableKeyException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
         }
         catch ( final NoSuchAlgorithmException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
         }
         catch ( final KeyStoreException e )
         {
-            logger.error( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e, e.getMessage() );
+            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
         }
 
         final DefaultHttpClient hc = new DefaultHttpClient( ccm );

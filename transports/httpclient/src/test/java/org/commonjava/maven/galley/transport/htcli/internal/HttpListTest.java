@@ -23,8 +23,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
-import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
 import org.junit.Rule;

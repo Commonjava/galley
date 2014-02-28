@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
 import org.commonjava.maven.galley.internal.xfer.BatchRetriever;
@@ -569,7 +570,7 @@ public class TransferManagerImpl
             }
             catch ( final InterruptedException e )
             {
-                logger.error( "Failed to wait for batch retrieval attempts to complete: {}", e, e.getMessage() );
+                logger.error( "{}", e, new StringFormat( "Failed to wait for batch retrieval attempts to complete: {}", e.getMessage() ) );
             }
 
             for ( final BatchRetriever retriever : new HashSet<BatchRetriever>( retrievers ) )

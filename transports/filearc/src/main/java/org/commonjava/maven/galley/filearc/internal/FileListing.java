@@ -19,8 +19,8 @@ package org.commonjava.maven.galley.filearc.internal;
 import java.io.File;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class FileListing
