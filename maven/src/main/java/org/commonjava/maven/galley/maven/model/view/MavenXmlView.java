@@ -30,7 +30,6 @@ import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.StringSearchInterpolator;
 import org.codehaus.plexus.interpolation.ValueSource;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
@@ -493,7 +492,7 @@ public class MavenXmlView<T extends ProjectRef>
         }
         catch ( final InterpolationException e )
         {
-            logger.error( "{}", e, new StringFormat( "Failed to resolve expressions in: '{}'. Reason: {}", value, e.getMessage() ) );
+            logger.error( String.format( "Failed to resolve expressions in: '%s'. Reason: %s", value, e.getMessage() ), e );
             return value;
         }
     }

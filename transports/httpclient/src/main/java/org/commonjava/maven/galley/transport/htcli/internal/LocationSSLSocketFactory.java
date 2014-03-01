@@ -30,7 +30,6 @@ import java.security.spec.InvalidKeySpecException;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.params.HttpParams;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -131,22 +130,22 @@ public class LocationSSLSocketFactory
                 }
                 catch ( final CertificateException e )
                 {
-                    logger.error( "{}", e, new StringFormat( "Invalid configuration. Location: {} has an invalid client certificate! Error: {}", loc.getUri(), e.getMessage() ) );
+                    logger.error( String.format( "Invalid configuration. Location: %s has an invalid client certificate! Error: %s", loc.getUri(), e.getMessage() ), e );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final KeyStoreException e )
                 {
-                    logger.error( "{}", e, new StringFormat( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", loc.getUri(), e.getMessage() ) );
+                    logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", loc.getUri(), e.getMessage() ), e );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final NoSuchAlgorithmException e )
                 {
-                    logger.error( "{}", e, new StringFormat( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", loc.getUri(), e.getMessage() ) );
+                    logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", loc.getUri(), e.getMessage() ), e );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final InvalidKeySpecException e )
                 {
-                    logger.error( "{}", e, new StringFormat( "Invalid configuration. Invalid client key for repository: {}. Error: {}", loc.getUri(), e.getMessage() ) );
+                    logger.error( String.format( "Invalid configuration. Invalid client key for repository: %s. Error: %s", loc.getUri(), e.getMessage() ), e );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
             }
@@ -177,17 +176,17 @@ public class LocationSSLSocketFactory
                 }
                 catch ( final CertificateException e )
                 {
-                    logger.error( "{}", e, new StringFormat( "Invalid configuration. Location: {} has an invalid server certificate! Error: {}", loc.getUri(), e.getMessage() ) );
+                    logger.error( String.format( "Invalid configuration. Location: %s has an invalid server certificate! Error: %s", loc.getUri(), e.getMessage() ), e );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final KeyStoreException e )
                 {
-                    logger.error( "{}", e, new StringFormat( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", loc.getUri(), e.getMessage() ) );
+                    logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", loc.getUri(), e.getMessage() ), e );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
                 catch ( final NoSuchAlgorithmException e )
                 {
-                    logger.error( "{}", e, new StringFormat( "Invalid configuration. Cannot initialize keystore for repository: {}. Error: {}", loc.getUri(), e.getMessage() ) );
+                    logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s", loc.getUri(), e.getMessage() ), e );
                     throw new IOException( "Failed to initialize SSL connection for repository: " + loc.getUri() );
                 }
             }

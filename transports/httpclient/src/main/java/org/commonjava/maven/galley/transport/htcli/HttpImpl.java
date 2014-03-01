@@ -32,7 +32,6 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpProtocolParams;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.internal.LocationSSLSocketFactory;
 import org.commonjava.maven.galley.transport.htcli.internal.TLLocationCredentialsProvider;
@@ -82,19 +81,19 @@ public class HttpImpl
         }
         catch ( final KeyManagementException e )
         {
-            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
         }
         catch ( final UnrecoverableKeyException e )
         {
-            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
         }
         catch ( final NoSuchAlgorithmException e )
         {
-            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
         }
         catch ( final KeyStoreException e )
         {
-            logger.error( "{}", e, new StringFormat( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: {}", e.getMessage() ) );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
         }
 
         final DefaultHttpClient hc = new DefaultHttpClient( ccm );

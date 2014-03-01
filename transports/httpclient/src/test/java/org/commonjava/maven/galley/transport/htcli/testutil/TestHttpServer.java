@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vertx.java.core.Handler;
@@ -74,7 +73,7 @@ public class TestHttpServer
             }
             catch ( final IOException e )
             {
-                logger.error( "{}", e, new StringFormat( "Port {} failed. Reason: {}", p, e.getMessage() ) );
+                logger.error( String.format( "Port %s failed. Reason: %s", p, e.getMessage() ), e );
             }
             finally
             {
@@ -229,7 +228,7 @@ public class TestHttpServer
         }
         catch ( final IOException e )
         {
-            logger.error( "{}", e, new StringFormat( "Failed to stream content for: {}. Reason: {}", url, e.getMessage() ) );
+            logger.error( String.format( "Failed to stream content for: %s. Reason: %s", url, e.getMessage() ), e );
             req.response()
                .setStatusCode( 500 )
                .setStatusMessage( "FAIL: " + e.getMessage() )

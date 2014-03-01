@@ -33,7 +33,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.io.FileUtils;
-import org.commonjava.maven.atlas.ident.util.StringFormat;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -143,7 +142,7 @@ public class FileCacheProvider
                     }
                     catch ( final IOException e )
                     {
-                        logger.error( "{}", e, new StringFormat( "Failed to delete: {}.", f ) );
+                        logger.error( String.format( "Failed to delete: %s.", f ), e );
                     }
                 }
             }
