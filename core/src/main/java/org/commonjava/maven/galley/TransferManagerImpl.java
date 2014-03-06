@@ -202,6 +202,12 @@ public class TransferManagerImpl
             }
         }
 
+        if ( !resource.getLocation()
+                      .allowsDownloading() )
+        {
+            return cacheResult;
+        }
+
         final int timeoutSeconds = getTimeoutSeconds( resource );
         final ListingResult remoteResult = lister.list( resource, timeoutSeconds, getTransport( resource ), suppressFailures );
 
