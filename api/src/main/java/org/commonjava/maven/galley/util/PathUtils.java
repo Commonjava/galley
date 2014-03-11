@@ -53,7 +53,7 @@ public final class PathUtils
         int idx = 0;
         for ( String part : path )
         {
-            if ( part.length() < 1 || "/".equals( part ) )
+            if ( part == null || part.length() < 1 || "/".equals( part ) )
             {
                 continue;
             }

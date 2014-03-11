@@ -41,7 +41,7 @@ public class FileEvent
     @Override
     public String toString()
     {
-        return String.format( "%s [%s, transfer=%s]", getClass().getSimpleName(), getExtraInfo(), transfer );
+        return String.format( "%s [extra-info=%s, transfer=%s]", getClass().getSimpleName(), getExtraInfo(), transfer );
     }
 
 }

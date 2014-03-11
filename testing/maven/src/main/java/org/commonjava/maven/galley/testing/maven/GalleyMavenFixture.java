@@ -90,7 +90,7 @@ public class GalleyMavenFixture
 
         if ( metaReader == null )
         {
-            metaReader = new MavenMetadataReader( getXmlInfra(), getMetadata(), getXpathManager() );
+            metaReader = new MavenMetadataReader( getXmlInfra(), getLocations(), getMetadata(), getXpathManager() );
         }
 
         if ( versions == null )
@@ -125,7 +125,7 @@ public class GalleyMavenFixture
 
         if ( pomReader == null && artifacts != null )
         {
-            pomReader = new MavenPomReader( xmlInfra, artifacts, xpathManager, pluginDefaults, pluginImplications );
+            pomReader = new MavenPomReader( xmlInfra, getLocations(), artifacts, xpathManager, pluginDefaults, pluginImplications );
         }
     }
 

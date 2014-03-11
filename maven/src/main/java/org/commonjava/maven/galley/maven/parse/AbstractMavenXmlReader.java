@@ -17,6 +17,7 @@
 package org.commonjava.maven.galley.maven.parse;
 
 import java.lang.ref.WeakReference;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 
 public abstract class AbstractMavenXmlReader<T extends ProjectRef>
 {
@@ -36,13 +39,17 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
     @Inject
     protected XMLInfrastructure xml;
 
+    @Inject
+    protected LocationExpander locationExpander;
+
     protected AbstractMavenXmlReader()
     {
     }
 
-    protected AbstractMavenXmlReader( final XMLInfrastructure xml )
+    protected AbstractMavenXmlReader( final XMLInfrastructure xml, final LocationExpander locationExpander )
     {
         this.xml = xml;
+        this.locationExpander = locationExpander;
     }
 
     protected synchronized void cache( final DocRef<T> dr )
@@ -50,9 +57,10 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         cache.put( new DocCacheKey<T>( dr ), new WeakReference<DocRef<T>>( dr ) );
     }
 
-    protected synchronized DocRef<T> getFirstCached( final T ref, final List<? extends Location> locations )
+    protected synchronized DocRef<T> getFirstCached( final T ref, final Collection<? extends Location> locations )
+        throws TransferException
     {
-        for ( final Location location : locations )
+        for ( final Location location : locationExpander.expand( locations ) )
         {
             final DocCacheKey<ProjectRef> key = new DocCacheKey<ProjectRef>( ref, location );
             final WeakReference<DocRef<T>> reference = cache.get( key );

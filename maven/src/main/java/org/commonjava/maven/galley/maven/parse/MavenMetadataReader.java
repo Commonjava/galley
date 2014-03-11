@@ -33,6 +33,7 @@ import org.commonjava.maven.galley.maven.model.view.MavenMetadataView;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,9 +54,10 @@ public class MavenMetadataReader
     {
     }
 
-    public MavenMetadataReader( final XMLInfrastructure xml, final ArtifactMetadataManager metadataManager, final XPathManager xpath )
+    public MavenMetadataReader( final XMLInfrastructure xml, final LocationExpander locationExpander, final ArtifactMetadataManager metadataManager,
+                                final XPathManager xpath )
     {
-        super( xml );
+        super( xml, locationExpander );
         this.metadataManager = metadataManager;
         this.xpath = xpath;
     }
@@ -97,7 +99,35 @@ public class MavenMetadataReader
             {
                 final DocRef<ProjectRef> dr = new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer ) );
                 final int idx = locations.indexOf( transfer.getLocation() );
-                docs.set( idx, dr );
+
+                // FIXME: This is too clever by half...the if/then here is probably wrong.
+                // I'm assuming the index out of bounds problem comes from location expansion...
+                //
+                // java.lang.ArrayIndexOutOfBoundsException: -1
+                //                at java.util.ArrayList.elementData(ArrayList.java:371)
+                //                at java.util.ArrayList.set(ArrayList.java:399)
+                //                at org.commonjava.maven.galley.maven.parse.MavenMetadataReader.getMetadata(MavenMetadataReader.java:102)
+                //                at org.commonjava.maven.galley.maven.parse.MavenMetadataReader$Proxy$_$$_WeldClientProxy.getMetadata(Unknown Source)
+                //                at org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl.resolveMulti(VersionResolverImpl.java:115)
+                //                at org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl.resolveVariableVersions(VersionResolverImpl.java:65)
+                //                at org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl$Proxy$_$$_WeldClientProxy.resolveVariableVersions(Unknown Source)
+                //                at org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl.resolveVariableVersion(ArtifactManagerImpl.java:221)
+                //                at org.commonjava.aprox.depgraph.discover.AproxProjectGraphDiscoverer.resolveSpecificVersion(AproxProjectGraphDiscoverer.java:167)
+                //                at org.commonjava.aprox.depgraph.discover.AproxProjectGraphDiscoverer.discoverRelationships(AproxProjectGraphDiscoverer.java:99)
+                //                at org.commonjava.aprox.depgraph.discover.AproxProjectGraphDiscoverer$Proxy$_$$_WeldClientProxy.discoverRelationships(Unknown Source)
+                //                at org.commonjava.maven.cartographer.agg.DiscoveryRunnable.run(DiscoveryRunnable.java:80)
+                //                at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+                //                at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+                //                at java.lang.Thread.run(Thread.java:722)
+                //
+                if ( idx > -1 )
+                {
+                    docs.set( idx, dr );
+                }
+                else
+                {
+                    docs.add( dr );
+                }
             }
         }
 

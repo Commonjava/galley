@@ -36,6 +36,7 @@ import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -63,10 +64,10 @@ public class MavenPomReader
     {
     }
 
-    public MavenPomReader( final XMLInfrastructure xml, final ArtifactManager artifactManager, final XPathManager xpath,
-                           final MavenPluginDefaults pluginDefaults, final MavenPluginImplications pluginImplications )
+    public MavenPomReader( final XMLInfrastructure xml, final LocationExpander locationExpander, final ArtifactManager artifactManager,
+                           final XPathManager xpath, final MavenPluginDefaults pluginDefaults, final MavenPluginImplications pluginImplications )
     {
-        super( xml );
+        super( xml, locationExpander );
         this.artifacts = artifactManager;
         this.xpath = xpath;
         this.pluginDefaults = pluginDefaults;
@@ -78,7 +79,17 @@ public class MavenPomReader
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
 
-        DocRef<ProjectVersionRef> dr = getDocRef( ref, pom, locations, false );
+        DocRef<ProjectVersionRef> dr;
+        try
+        {
+            dr = getDocRef( ref, pom, false );
+        }
+        catch ( final TransferException e )
+        {
+            throw new GalleyMavenException( "Failed to retrieve POM for: {}, {} levels deep in ancestry stack of: {}. Reason: {}", e, ref,
+                                            stack.size(), ref, e.getMessage() );
+        }
+
         stack.add( dr );
 
         ProjectVersionRef next = xml.getParentRef( dr.getDoc() );
@@ -195,9 +206,8 @@ public class MavenPomReader
         return dr;
     }
 
-    private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final Transfer pom, final List<? extends Location> locations,
-                                                 final boolean cache )
-        throws GalleyMavenException
+    private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final Transfer pom, final boolean cache )
+        throws GalleyMavenException, TransferException
     {
         final Transfer transfer = pom;
 
