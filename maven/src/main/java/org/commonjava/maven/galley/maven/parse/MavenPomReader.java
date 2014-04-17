@@ -74,7 +74,8 @@ public class MavenPomReader
         this.pluginImplications = pluginImplications;
     }
 
-    public MavenPomView read( final ProjectVersionRef ref, final Transfer pom, final List<? extends Location> locations )
+    public MavenPomView read( final ProjectVersionRef ref, final Transfer pom, final List<? extends Location> locations,
+                              final String... activeProfileLocations )
         throws GalleyMavenException
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
@@ -115,7 +116,7 @@ public class MavenPomReader
             next = xml.getParentRef( dr.getDoc() );
         }
 
-        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, pluginImplications, xml );
+        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, pluginImplications, xml, activeProfileLocations );
         assembleImportedInformation( view, locations );
 
         logStructure( view );
@@ -227,13 +228,14 @@ public class MavenPomReader
         return dr;
     }
 
-    public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations )
+    public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations, final String... activeProfileIds )
         throws GalleyMavenException
     {
-        return read( ref, locations, false );
+        return read( ref, locations, false, activeProfileIds );
     }
 
-    public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations, final boolean cache )
+    public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations, final boolean cache,
+                              final String... activeProfileIds )
         throws GalleyMavenException
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
@@ -263,7 +265,7 @@ public class MavenPomReader
         }
         while ( next != null );
 
-        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, pluginImplications, xml );
+        final MavenPomView view = new MavenPomView( ref, stack, xpath, pluginDefaults, pluginImplications, xml, activeProfileIds );
         assembleImportedInformation( view, locations );
 
         logStructure( view );

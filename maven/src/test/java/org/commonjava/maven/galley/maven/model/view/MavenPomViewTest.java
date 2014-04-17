@@ -40,6 +40,28 @@ public class MavenPomViewTest
     }
 
     @Test
+    public void dependencyManagedByProfile()
+        throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-profile.xml" );
+
+        DependencyView dv = pomView.getAllDirectDependencies()
+                                   .get( 0 );
+
+        assertThat( dv.getVersion(), nullValue() );
+        assertThat( dv.getScope(), equalTo( DependencyScope.compile ) );
+
+        pomView = loadPoms( new String[] { "test" }, "pom-with-profile.xml" );
+
+        dv = pomView.getAllDirectDependencies()
+                    .get( 0 );
+
+        assertThat( dv.getVersion(), equalTo( "1.0" ) );
+        assertThat( dv.getScope(), equalTo( DependencyScope.test ) );
+
+    }
+
+    @Test
     public void dependencyManagedBySingleBOM()
         throws Exception
     {

@@ -19,16 +19,16 @@ package org.commonjava.maven.galley.maven.model.view;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
+import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
-import org.commonjava.maven.galley.maven.model.view.XPathManager.TLFunctionResolver;
+import org.commonjava.maven.galley.maven.parse.JXPathUtils;
+import org.commonjava.maven.galley.maven.parse.ResolveFunctions;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
@@ -45,12 +45,17 @@ public class MavenPomView
 
     private final MavenPluginImplications pluginImplications;
 
+    private final Set<String> activeProfileIds;
+
     public MavenPomView( final ProjectVersionRef ref, final List<DocRef<ProjectVersionRef>> stack, final XPathManager xpath,
-                         final MavenPluginDefaults pluginDefaults, final MavenPluginImplications pluginImplications, final XMLInfrastructure xml )
+                         final MavenPluginDefaults pluginDefaults, final MavenPluginImplications pluginImplications, final XMLInfrastructure xml,
+                         final String... activeProfileIds )
     {
         // define what xpaths are not inheritable...
         super( stack, xpath, xml, "/project/parent", "/project/artifactId" );
+
         this.pluginImplications = pluginImplications;
+        this.activeProfileIds = new HashSet<String>( Arrays.asList( activeProfileIds ) );
 
         if ( stack.isEmpty() )
         {
@@ -59,6 +64,11 @@ public class MavenPomView
 
         this.versionedRef = ref;
         this.pluginDefaults = pluginDefaults;
+    }
+
+    public Set<String> getActiveProfileIds()
+    {
+        return activeProfileIds;
     }
 
     @Override
@@ -97,17 +107,30 @@ public class MavenPomView
         return asProjectVersionRef().getVersionString();
     }
 
-    public String getProfileIdFor( final Node node )
+    public String getProfileIdFor( final Element element )
     {
-        return resolveXPathExpressionFrom( node, "ancestor::profile/id/text()" );
+        Node parent = element;
+        do
+        {
+            parent = parent.getParentNode();
+        }
+        while ( parent != null && !"profile".equals( parent.getNodeName() ) );
+
+        if ( parent == null )
+        {
+            return null;
+        }
+
+        return (String) JXPathUtils.newContext( parent )
+                                   .getValue( "id" );
     }
 
     public List<DependencyView> getAllDirectDependencies()
         throws GalleyMavenException
     {
-        final List<MavenElementView> depNodes =
-            resolveXPathToAggregatedElementViewList( "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]",
-                                                     true, -1 );
+        final String xp = "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]";
+        //        final String xp = "./project/dependencies/dependency";
+        final List<MavenElementView> depNodes = resolveXPathToAggregatedElementViewList( xp, true, -1 );
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenElementView node : depNodes )
         {
@@ -183,74 +206,65 @@ public class MavenPomView
     public MavenElementView resolveXPathToElementView( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
-        try
+        int maxAncestry = maxDepth;
+        for ( final String pathPrefix : localOnlyPaths )
         {
-            final XPathExpression expression = xpath.getXPath( path, cachePath );
-
-            int maxAncestry = maxDepth;
-            for ( final String pathPrefix : localOnlyPaths )
+            if ( path.startsWith( pathPrefix ) )
             {
-                if ( path.startsWith( pathPrefix ) )
-                {
-                    maxAncestry = 0;
-                    break;
-                }
+                maxAncestry = 0;
+                break;
+            }
+        }
+
+        int ancestryDepth = 0;
+        Element n = null;
+        for ( final DocRef<ProjectVersionRef> dr : stack )
+        {
+            if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
+            {
+                break;
             }
 
-            int ancestryDepth = 0;
-            Element n = null;
-            for ( final DocRef<ProjectVersionRef> dr : stack )
+            final MavenPomView oldView = ResolveFunctions.getPomView();
+            try
             {
-                if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
-                {
-                    break;
-                }
-
-                final MavenPomView oldView = TLFunctionResolver.getPomView();
-                try
-                {
-                    TLFunctionResolver.setPomView( this );
-
-                    n = (Element) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
-                }
-                finally
-                {
-                    TLFunctionResolver.setPomView( oldView );
-                }
-                //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
-
-                if ( n != null )
-                {
-                    break;
-                }
-
-                ancestryDepth++;
+                ResolveFunctions.setPomView( this );
+                n = (Element) dr.getDocContext()
+                                .selectSingleNode( path );
             }
+            finally
+            {
+                ResolveFunctions.setPomView( oldView );
+            }
+            //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
             if ( n != null )
             {
-                return new MavenElementView( this, n );
+                break;
             }
 
-            MavenElementView result = null;
-            for ( final MavenXmlMixin<ProjectVersionRef> mixin : mixins )
-            {
-                if ( mixin.matches( path ) )
-                {
-                    final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
-                    result = mixinView.resolveXPathToElementView( path, true, maxAncestry );
-                    //                        logger.info( "Value of '{}' in mixin: {} is: '{}'", path, mixin );
-                }
-
-                if ( result != null )
-                {
-                    return result;
-                }
-            }
+            ancestryDepth++;
         }
-        catch ( final XPathExpressionException e )
+
+        if ( n != null )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
+            return new MavenElementView( this, n );
+        }
+
+        MavenElementView result = null;
+        for ( final MavenXmlMixin<ProjectVersionRef> mixin : mixins )
+        {
+            if ( mixin.matches( path ) )
+            {
+                final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
+                result = mixinView.resolveXPathToElementView( path, true, maxAncestry );
+                //                        logger.info( "Value of '{}' in mixin: {} is: '{}'", path, mixin );
+            }
+
+            if ( result != null )
+            {
+                return result;
+            }
         }
 
         return null;
@@ -416,65 +430,56 @@ public class MavenPomView
     public synchronized List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
-        try
+        int maxAncestry = maxDepth;
+        for ( final String pathPrefix : localOnlyPaths )
         {
-            final XPathExpression expression = xpath.getXPath( path, cachePath );
-
-            int maxAncestry = maxDepth;
-            for ( final String pathPrefix : localOnlyPaths )
+            if ( path.startsWith( pathPrefix ) )
             {
-                if ( path.startsWith( pathPrefix ) )
-                {
-                    maxAncestry = 0;
-                    break;
-                }
+                maxAncestry = 0;
+                break;
             }
-
-            int ancestryDepth = 0;
-            final List<MavenElementView> result = new ArrayList<MavenElementView>();
-            for ( final DocRef<ProjectVersionRef> dr : stack )
-            {
-                if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
-                {
-                    break;
-                }
-
-                final List<Node> nodes = getLocalNodeList( expression, dr.getDoc(), path );
-                if ( nodes != null )
-                {
-                    for ( final Node node : nodes )
-                    {
-                        result.add( new MavenElementView( this, (Element) node ) );
-                    }
-                }
-
-                ancestryDepth++;
-            }
-
-            for ( final MavenXmlMixin<ProjectVersionRef> mixin : mixins )
-            {
-                if ( !mixin.matches( path ) )
-                {
-                    continue;
-                }
-
-                final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
-                final List<MavenElementView> nodes = mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry );
-                if ( nodes != null )
-                {
-                    for ( final MavenElementView node : nodes )
-                    {
-                        result.add( node );
-                    }
-                }
-            }
-
-            return result;
         }
-        catch ( final XPathExpressionException e )
+
+        int ancestryDepth = 0;
+        final List<MavenElementView> result = new ArrayList<MavenElementView>();
+        for ( final DocRef<ProjectVersionRef> dr : stack )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
+            if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
+            {
+                break;
+            }
+
+            final List<Node> nodes = getLocalNodeList( dr.getDocContext(), path );
+            if ( nodes != null )
+            {
+                for ( final Node node : nodes )
+                {
+                    result.add( new MavenElementView( this, (Element) node ) );
+                }
+            }
+
+            ancestryDepth++;
         }
+
+        for ( final MavenXmlMixin<ProjectVersionRef> mixin : mixins )
+        {
+            if ( !mixin.matches( path ) )
+            {
+                continue;
+            }
+
+            final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
+            final List<MavenElementView> nodes = mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry );
+            if ( nodes != null )
+            {
+                for ( final MavenElementView node : nodes )
+                {
+                    result.add( node );
+                }
+            }
+        }
+
+        return result;
     }
 
 }

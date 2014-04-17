@@ -19,13 +19,17 @@ package org.commonjava.maven.galley.maven.model.view;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.jxpath.JXPathContext;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.galley.maven.parse.JXPathUtils;
 import org.w3c.dom.Document;
 
 public final class DocRef<T extends ProjectRef>
 {
 
     private final Document doc;
+
+    private JXPathContext docContext;
 
     private final T ref;
 
@@ -38,11 +42,25 @@ public final class DocRef<T extends ProjectRef>
         this.ref = ref;
         this.source = source;
         this.doc = doc;
+
+        // ugly, but prevents need to prefix all xpath segments...
+        this.doc.getDocumentElement()
+                .removeAttribute( "xmlns" );
     }
 
     public Document getDoc()
     {
         return doc;
+    }
+
+    public JXPathContext getDocContext()
+    {
+        if ( docContext == null )
+        {
+            docContext = JXPathUtils.newContext( doc );
+        }
+
+        return docContext;
     }
 
     public T getRef()

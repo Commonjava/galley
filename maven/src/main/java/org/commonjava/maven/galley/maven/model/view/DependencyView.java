@@ -72,7 +72,7 @@ public class DependencyView
     public boolean isManaged()
         throws GalleyMavenException
     {
-        return pomView.resolveXPathToNodeFrom( element, "ancestor::dependencyManagement", true ) != null;
+        return pomView.resolveXPathToNodeFrom( elementContext, "ancestor::dependencyManagement", true ) != null;
     }
 
     public synchronized String getClassifier()

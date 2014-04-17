@@ -60,7 +60,7 @@ public class PluginView
     public boolean isManaged()
         throws GalleyMavenException
     {
-        return pomView.resolveXPathToNodeFrom( element, "ancestor::pluginManagement", true ) != null;
+        return pomView.resolveXPathToNodeFrom( elementContext, "ancestor::pluginManagement", true ) != null;
     }
 
     public synchronized List<PluginDependencyView> getLocalPluginDependencies()

@@ -22,10 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-
+import org.apache.commons.jxpath.JXPathContext;
 import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.StringSearchInterpolator;
 import org.codehaus.plexus.interpolation.ValueSource;
@@ -35,21 +32,21 @@ import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class MavenXmlView<T extends ProjectRef>
 {
 
     private static final String EXPRESSION_PATTERN = ".*\\$\\{.+\\}.*";
 
+    private static final String TEXT_SUFFIX = "/text()";
+
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
     protected final List<DocRef<T>> stack;
 
-    protected final XPathManager xpath;
+    //    protected final XPathManager xpath;
 
     protected StringSearchInterpolator ssi;
 
@@ -62,7 +59,7 @@ public class MavenXmlView<T extends ProjectRef>
     public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final String... localOnlyPaths )
     {
         this.stack = stack;
-        this.xpath = xpath;
+        //        this.xpath = xpath;
         this.xml = xml;
         this.localOnlyPaths = new HashSet<String>( Arrays.asList( localOnlyPaths ) );
     }
@@ -70,7 +67,7 @@ public class MavenXmlView<T extends ProjectRef>
     public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final Set<String> localOnlyPaths )
     {
         this.stack = stack;
-        this.xpath = xpath;
+        //        this.xpath = xpath;
         this.xml = xml;
         this.localOnlyPaths = localOnlyPaths;
     }
@@ -103,7 +100,7 @@ public class MavenXmlView<T extends ProjectRef>
         String value = resolveXPathExpression( expr, true, -1 );
         if ( value == null )
         {
-            value = resolveXPathExpression( "//properties/" + expression, true, -1 );
+            value = resolveXPathExpression( "/project/properties/" + expression, true, -1 );
         }
 
         for ( int i = 0; value == null && activeProfileIds != null && i < activeProfileIds.length; i++ )
@@ -115,28 +112,13 @@ public class MavenXmlView<T extends ProjectRef>
         return value;
     }
 
-    public String resolveXPathExpression( String path, final boolean cachePath, final int maxAncestry, final String... activeProfileIds )
+    public String resolveXPathExpression( final String path, final boolean cachePath, final int maxAncestry, final String... activeProfileIds )
     {
-        if ( !path.endsWith( "/text()" ) )
-        {
-            path += "/text()";
-        }
+        final String p = trimTextSuffix( path );
 
-        Node result = null;
-        try
+        final String raw = resolveXPathToRawString( p, cachePath, maxAncestry );
+        if ( raw != null )
         {
-            result = resolveXPathToNode( path, cachePath, maxAncestry );
-        }
-        catch ( final GalleyMavenRuntimeException e )
-        {
-            // TODO: We don't want to spit this out, but is there another more appropriate action than ignoring it?
-        }
-
-        if ( result != null && result.getNodeType() == Node.TEXT_NODE )
-        {
-            final String raw = result.getTextContent()
-                                     .trim();
-
             //            logger.info( "Raw content of: '{}' is: '{}'", path, raw );
             return resolveExpressions( raw, activeProfileIds );
         }
@@ -144,14 +126,22 @@ public class MavenXmlView<T extends ProjectRef>
         return null;
     }
 
-    public List<String> resolveXPathExpressionToAggregatedList( String path, final boolean cachePath, final int maxAncestry )
+    private String trimTextSuffix( final String path )
     {
-        if ( !path.endsWith( "/text()" ) )
+        String p = path;
+        if ( p.endsWith( TEXT_SUFFIX ) )
         {
-            path += "/text()";
+            p = p.substring( 0, p.length() - TEXT_SUFFIX.length() );
         }
 
-        final List<Node> nodes = resolveXPathToAggregatedNodeList( path, cachePath, maxAncestry );
+        return p;
+    }
+
+    public List<String> resolveXPathExpressionToAggregatedList( final String path, final boolean cachePath, final int maxAncestry )
+    {
+        final String p = trimTextSuffix( path );
+
+        final List<Node> nodes = resolveXPathToAggregatedNodeList( p, cachePath, maxAncestry );
         final List<String> result = new ArrayList<String>( nodes.size() );
         for ( final Node node : nodes )
         {
@@ -165,65 +155,136 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    public Node resolveXPathToNode( final String path, final boolean cachePath, final int maxDepth )
+    public String resolveXPathToRawString( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
-        Node result = null;
-        try
-        {
-            final XPathExpression expression = xpath.getXPath( path, cachePath );
+        String result = null;
+        //        try
+        //        {
+        //            final XPathExpression expression = xpath.getXPath( path, cachePath );
 
-            int maxAncestry = maxDepth;
-            for ( final String pathPrefix : localOnlyPaths )
+        int maxAncestry = maxDepth;
+        for ( final String pathPrefix : localOnlyPaths )
+        {
+            if ( path.startsWith( pathPrefix ) )
             {
-                if ( path.startsWith( pathPrefix ) )
-                {
-                    maxAncestry = 0;
-                    break;
-                }
+                maxAncestry = 0;
+                break;
+            }
+        }
+
+        //        logger.info( "Resolving: {}", path );
+
+        int ancestryDepth = 0;
+        for ( final DocRef<T> dr : stack )
+        {
+            if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
+            {
+                break;
             }
 
-            int ancestryDepth = 0;
-            for ( final DocRef<T> dr : stack )
-            {
-                if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
-                {
-                    break;
-                }
+            result = (String) dr.getDocContext()
+                                .getValue( path );
+            //                result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
+            //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
-                result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
-                //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
+            if ( result != null )
+            {
+                break;
+            }
+
+            ancestryDepth++;
+        }
+
+        if ( result == null )
+        {
+            for ( final MavenXmlMixin<T> mixin : mixins )
+            {
+                if ( mixin.matches( path ) )
+                {
+                    result = mixin.getMixin()
+                                  .resolveXPathToRawString( path, true, maxAncestry );
+                    //                        logger.info( "Value of '{}' in mixin: {} is: '{}'", path, mixin );
+                }
 
                 if ( result != null )
                 {
                     break;
                 }
+            }
+        }
+        //        }
+        //        catch ( final XPathExpressionException e )
+        //        {
+        //            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
+        //        }
 
-                ancestryDepth++;
+        return result;
+    }
+
+    public Node resolveXPathToNode( final String path, final boolean cachePath, final int maxDepth )
+        throws GalleyMavenRuntimeException
+    {
+        Node result = null;
+        //        try
+        //        {
+        //            final XPathExpression expression = xpath.getXPath( path, cachePath );
+
+        int maxAncestry = maxDepth;
+        for ( final String pathPrefix : localOnlyPaths )
+        {
+            if ( path.startsWith( pathPrefix ) )
+            {
+                maxAncestry = 0;
+                break;
+            }
+        }
+
+        //        logger.info( "Resolving: {}", path );
+
+        int ancestryDepth = 0;
+        for ( final DocRef<T> dr : stack )
+        {
+            if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
+            {
+                break;
             }
 
-            if ( result == null )
-            {
-                for ( final MavenXmlMixin<T> mixin : mixins )
-                {
-                    if ( mixin.matches( path ) )
-                    {
-                        result = mixin.getMixin()
-                                      .resolveXPathToNode( path, true, maxAncestry );
-                        //                        logger.info( "Value of '{}' in mixin: {} is: '{}'", path, mixin );
-                    }
+            result = (Node) dr.getDocContext()
+                              .selectSingleNode( path );
+            //                result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
+            //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
-                    if ( result != null )
-                    {
-                        break;
-                    }
+            if ( result != null )
+            {
+                break;
+            }
+
+            ancestryDepth++;
+        }
+
+        if ( result == null )
+        {
+            for ( final MavenXmlMixin<T> mixin : mixins )
+            {
+                if ( mixin.matches( path ) )
+                {
+                    result = mixin.getMixin()
+                                  .resolveXPathToNode( path, true, maxAncestry );
+                    //                        logger.info( "Value of '{}' in mixin: {} is: '{}'", path, mixin );
+                }
+
+                if ( result != null )
+                {
+                    break;
                 }
             }
         }
-        catch ( final XPathExpressionException e )
-        {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
-        }
+        //        }
+        //        catch ( final XPathExpressionException e )
+        //        {
+        //            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
+        //        }
 
         return result;
     }
@@ -231,160 +292,127 @@ public class MavenXmlView<T extends ProjectRef>
     public synchronized List<Node> resolveXPathToAggregatedNodeList( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
-        try
+        int maxAncestry = maxDepth;
+        for ( final String pathPrefix : localOnlyPaths )
         {
-            final XPathExpression expression = xpath.getXPath( path, cachePath );
-
-            int maxAncestry = maxDepth;
-            for ( final String pathPrefix : localOnlyPaths )
+            if ( path.startsWith( pathPrefix ) )
             {
-                if ( path.startsWith( pathPrefix ) )
-                {
-                    maxAncestry = 0;
-                    break;
-                }
+                maxAncestry = 0;
+                break;
             }
-
-            int ancestryDepth = 0;
-            final List<Node> result = new ArrayList<Node>();
-            for ( final DocRef<T> dr : stack )
-            {
-                if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
-                {
-                    break;
-                }
-
-                final List<Node> nodes = getLocalNodeList( expression, dr.getDoc(), path );
-                if ( nodes != null )
-                {
-                    for ( final Node node : nodes )
-                    {
-                        result.add( node );
-                    }
-                }
-
-                ancestryDepth++;
-            }
-
-            for ( final MavenXmlMixin<T> mixin : mixins )
-            {
-                if ( !mixin.matches( path ) )
-                {
-                    continue;
-                }
-
-                final List<Node> nodes = mixin.getMixin()
-                                              .resolveXPathToAggregatedNodeList( path, cachePath, maxAncestry );
-                if ( nodes != null )
-                {
-                    for ( final Node node : nodes )
-                    {
-                        result.add( node );
-                    }
-                }
-            }
-
-            return result;
         }
-        catch ( final XPathExpressionException e )
+
+        int ancestryDepth = 0;
+        final List<Node> result = new ArrayList<Node>();
+        for ( final DocRef<T> dr : stack )
         {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
+            if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
+            {
+                break;
+            }
+
+            final List<Node> nodes = getLocalNodeList( dr.getDocContext(), path );
+            if ( nodes != null )
+            {
+                for ( final Node node : nodes )
+                {
+                    result.add( node );
+                }
+            }
+
+            ancestryDepth++;
         }
+
+        for ( final MavenXmlMixin<T> mixin : mixins )
+        {
+            if ( !mixin.matches( path ) )
+            {
+                continue;
+            }
+
+            final List<Node> nodes = mixin.getMixin()
+                                          .resolveXPathToAggregatedNodeList( path, cachePath, maxAncestry );
+            if ( nodes != null )
+            {
+                for ( final Node node : nodes )
+                {
+                    result.add( node );
+                }
+            }
+        }
+
+        return result;
     }
 
     public synchronized List<Node> resolveXPathToFirstNodeList( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
-        try
+        int maxAncestry = maxDepth;
+        for ( final String pathPrefix : localOnlyPaths )
         {
-            final XPathExpression expression = xpath.getXPath( path, cachePath );
-
-            int maxAncestry = maxDepth;
-            for ( final String pathPrefix : localOnlyPaths )
+            if ( path.startsWith( pathPrefix ) )
             {
-                if ( path.startsWith( pathPrefix ) )
-                {
-                    maxAncestry = 0;
-                    break;
-                }
+                maxAncestry = 0;
+                break;
             }
-
-            int ancestryDepth = 0;
-            for ( final DocRef<T> dr : stack )
-            {
-                if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
-                {
-                    break;
-                }
-
-                final List<Node> result = getLocalNodeList( expression, dr.getDoc(), path );
-                if ( result != null )
-                {
-                    return result;
-                }
-
-                ancestryDepth++;
-            }
-
-            for ( final MavenXmlMixin<T> mixin : mixins )
-            {
-                if ( !mixin.matches( path ) )
-                {
-                    continue;
-                }
-
-                final List<Node> result = mixin.getMixin()
-                                               .resolveXPathToFirstNodeList( path, cachePath, maxAncestry );
-                if ( result != null )
-                {
-                    return result;
-                }
-            }
-
-            return null;
-        }
-        catch ( final XPathExpressionException e )
-        {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
-        }
-    }
-
-    protected List<Node> getLocalNodeList( final XPathExpression expression, final Document doc, final String path )
-        throws GalleyMavenRuntimeException
-    {
-        NodeList nl;
-        try
-        {
-            nl = (NodeList) expression.evaluate( doc, XPathConstants.NODESET );
-        }
-        catch ( final XPathExpressionException e )
-        {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
         }
 
-        if ( nl != null && nl.getLength() > 0 )
+        int ancestryDepth = 0;
+        for ( final DocRef<T> dr : stack )
         {
-            final List<Node> result = new ArrayList<Node>();
-            for ( int i = 0; i < nl.getLength(); i++ )
+            if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
             {
-                result.add( nl.item( i ) );
+                break;
             }
 
-            // we're not aggregating, so return the result.
-            return result;
+            final List<Node> result = getLocalNodeList( dr.getDocContext(), path );
+            if ( result != null )
+            {
+                return result;
+            }
+
+            ancestryDepth++;
+        }
+
+        for ( final MavenXmlMixin<T> mixin : mixins )
+        {
+            if ( !mixin.matches( path ) )
+            {
+                continue;
+            }
+
+            final List<Node> result = mixin.getMixin()
+                                           .resolveXPathToFirstNodeList( path, cachePath, maxAncestry );
+            if ( result != null )
+            {
+                return result;
+            }
         }
 
         return null;
     }
 
-    public String resolveXPathExpressionFrom( final Node root, String path )
+    protected List<Node> getLocalNodeList( final JXPathContext context, final String path )
+        throws GalleyMavenRuntimeException
     {
-        if ( !path.endsWith( "/text()" ) )
+        final List<Node> result = new ArrayList<Node>();
+        final List<?> iter = context.selectNodes( path );
+        if ( iter != null )
         {
-            path += "/text()";
+            for ( final Object obj : iter )
+            {
+                result.add( (Node) obj );
+            }
         }
 
-        final Node result = resolveXPathToNodeFrom( root, path, true );
+        return result;
+    }
+
+    protected String resolveXPathExpressionFrom( final JXPathContext context, final String path )
+    {
+        final String p = trimTextSuffix( path );
+
+        final Node result = resolveXPathToNodeFrom( context, p, true );
         if ( result != null && result.getNodeType() == Node.TEXT_NODE )
         {
             return resolveExpressions( result.getTextContent()
@@ -394,15 +422,12 @@ public class MavenXmlView<T extends ProjectRef>
         return null;
     }
 
-    public List<String> resolveXPathExpressionToListFrom( final Node root, String path )
+    protected List<String> resolveXPathExpressionToListFrom( final JXPathContext context, final String path )
         throws GalleyMavenException
     {
-        if ( !path.endsWith( "/text()" ) )
-        {
-            path += "/text()";
-        }
+        final String p = trimTextSuffix( path );
 
-        final List<Node> nodes = resolveXPathToNodeListFrom( root, path, true );
+        final List<Node> nodes = resolveXPathToNodeListFrom( context, p, true );
         final List<String> result = new ArrayList<String>( nodes.size() );
         for ( final Node node : nodes )
         {
@@ -416,43 +441,25 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    public synchronized Node resolveXPathToNodeFrom( final Node root, final String path, final boolean cachePath )
+    protected synchronized Node resolveXPathToNodeFrom( final JXPathContext context, final String path, final boolean cachePath )
     {
-        try
-        {
-            final XPathExpression expression = xpath.getXPath( path, cachePath );
-
-            return (Node) expression.evaluate( root, XPathConstants.NODE );
-        }
-        catch ( final XPathExpressionException e )
-        {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
-        }
+        return (Node) context.selectSingleNode( path );
     }
 
-    public synchronized List<Node> resolveXPathToNodeListFrom( final Node root, final String path, final boolean cachePath )
+    public synchronized List<Node> resolveXPathToNodeListFrom( final JXPathContext context, final String path, final boolean cachePath )
         throws GalleyMavenRuntimeException
     {
-        try
+        final List<Node> result = new ArrayList<Node>();
+        final List<?> iter = context.selectNodes( path );
+        if ( iter != null )
         {
-            final XPathExpression expression = xpath.getXPath( path, cachePath );
-
-            final List<Node> result = new ArrayList<Node>();
-            final NodeList nl = (NodeList) expression.evaluate( root, XPathConstants.NODESET );
-            if ( nl != null )
+            for ( final Object obj : iter )
             {
-                for ( int i = 0; i < nl.getLength(); i++ )
-                {
-                    result.add( nl.item( i ) );
-                }
+                result.add( (Node) obj );
             }
+        }
 
-            return result;
-        }
-        catch ( final XPathExpressionException e )
-        {
-            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
-        }
+        return result;
     }
 
     public boolean containsExpression( final String value )

@@ -16,6 +16,8 @@
  ******************************************************************************/
 package org.commonjava.maven.galley.maven.model.view;
 
+import static org.junit.Assert.fail;
+
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -77,8 +79,13 @@ public abstract class AbstractMavenViewTest
     {
         final MavenPomView mpv = loadPoms( pomNames );
 
-        return mpv.getAllDirectDependencies()
-                  .get( 0 );
+        final List<DependencyView> deps = mpv.getAllDirectDependencies();
+        if ( deps == null )
+        {
+            fail( "No direct dependencies were retrieved!" );
+        }
+
+        return deps.get( 0 );
     }
 
     protected DependencyView loadFirstManagedDependency( final String... pomNames )
@@ -86,11 +93,22 @@ public abstract class AbstractMavenViewTest
     {
         final MavenPomView mpv = loadPoms( pomNames );
 
-        return mpv.getAllManagedDependencies()
-                  .get( 0 );
+        final List<DependencyView> deps = mpv.getAllManagedDependencies();
+        if ( deps == null )
+        {
+            fail( "No direct dependencies were retrieved!" );
+        }
+
+        return deps.get( 0 );
     }
 
     protected MavenPomView loadPoms( final String... pomNames )
+        throws Exception
+    {
+        return loadPoms( new String[] {}, pomNames );
+    }
+
+    protected MavenPomView loadPoms( final String[] activeProfileIds, final String... pomNames )
         throws Exception
     {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
@@ -117,7 +135,8 @@ public abstract class AbstractMavenViewTest
             stack.add( dr );
         }
 
-        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ), xml );
+        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ), xml,
+                                 activeProfileIds );
     }
 
     protected MavenXmlView<ProjectRef> loadDocs( final Set<String> localOnlyPaths, final String... docNames )
