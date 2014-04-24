@@ -32,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -212,11 +213,24 @@ public class XMLInfrastructure
 
     public String toXML( final Node node )
     {
+    	return toXML( node, true );
+    }
+    
+    public String toXML( final Node node, boolean printXmlDeclaration )
+    {
         String result = null;
         try
         {
             final StringWriter sw = new StringWriter();
+            
             final Transformer transformer = transformerFactory.newTransformer();
+            
+            transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, printXmlDeclaration ? "no" : "yes" );
+            transformer.setOutputProperty( OutputKeys.METHOD, "xml" );
+            transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+            transformer.setOutputProperty( OutputKeys.ENCODING, "UTF-8" );
+            transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
+            
             final DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
 
             transformer.transform( new DOMSource( docBuilder.newDocument()

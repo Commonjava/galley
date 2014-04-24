@@ -18,6 +18,7 @@ import java.io.InputStream;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.junit.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 public class XMLInfrastructureTest
 {
@@ -25,6 +26,18 @@ public class XMLInfrastructureTest
     protected String getBaseResource()
     {
         return "xml/";
+    }
+
+    @Test
+    public void parsePOMThenDumpParentNodeBackToXML()
+        throws Exception
+    {
+        final Document doc = loadDocument( "pom-with-parent.xml" );
+        Node parent = doc.getDocumentElement().getElementsByTagName("parent").item(0);
+        
+        String xml = new XMLInfrastructure().toXML(parent, false);
+        System.out.println( xml );
+        assertThat( xml, notNullValue() );
     }
 
     @Test
