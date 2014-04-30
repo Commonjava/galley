@@ -24,6 +24,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.jxpath.JXPathContext;
+import org.codehaus.plexus.interpolation.InterpolationException;
+import org.codehaus.plexus.interpolation.StringSearchInterpolator;
+import org.codehaus.plexus.interpolation.ValueSource;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
@@ -39,6 +43,10 @@ public class MavenPomView
     extends MavenXmlView<ProjectVersionRef>
 {
 
+    private static final String EXPRESSION_PATTERN = ".*\\$\\{.+\\}.*";
+
+    private static final String TEXT_SUFFIX = "/text()";
+
     private final ProjectVersionRef versionedRef;
 
     private final MavenPluginDefaults pluginDefaults;
@@ -47,8 +55,9 @@ public class MavenPomView
 
     private final Set<String> activeProfileIds;
 
-    public MavenPomView( final ProjectVersionRef ref, final List<DocRef<ProjectVersionRef>> stack, final XPathManager xpath,
-                         final MavenPluginDefaults pluginDefaults, final MavenPluginImplications pluginImplications, final XMLInfrastructure xml,
+    public MavenPomView( final ProjectVersionRef ref, final List<DocRef<ProjectVersionRef>> stack,
+                         final XPathManager xpath, final MavenPluginDefaults pluginDefaults,
+                         final MavenPluginImplications pluginImplications, final XMLInfrastructure xml,
                          final String... activeProfileIds )
     {
         // define what xpaths are not inheritable...
@@ -71,17 +80,49 @@ public class MavenPomView
         return activeProfileIds;
     }
 
-    @Override
     public String resolveMavenExpression( final String expression, final String... activeProfileIds )
         throws GalleyMavenException
     {
-        String expr = expression;
-        if ( expr.startsWith( "pom." ) )
+        String expr = expression.replace( '.', '/' );
+        if ( expr.startsWith( "pom" ) )
         {
-            expr = "project." + expr.substring( 4 );
+            expr = "/project/" + expr.substring( 4 );
         }
 
-        return super.resolveMavenExpression( expr, activeProfileIds );
+        if ( !expr.startsWith( "/" ) )
+        {
+            expr = "/" + expr;
+        }
+
+        if ( !expr.startsWith( "/project" ) )
+        {
+            expr = "/project" + expr;
+        }
+
+        String value = resolveXPathExpression( expr, true, -1 );
+        if ( value == null )
+        {
+            final List<Node> propertyNodes = resolveXPathToAggregatedNodeList( "/project/properties/*", true, -1 );
+            for ( final Node propertyNode : propertyNodes )
+            {
+                if ( expression.equals( propertyNode.getNodeName() ) )
+                {
+                    value = propertyNode.getTextContent()
+                                        .trim();
+                    break;
+                }
+            }
+        }
+
+        for ( int i = 0; value == null && activeProfileIds != null && i < activeProfileIds.length; i++ )
+        {
+            final String profileId = activeProfileIds[i];
+            value =
+                resolveXPathExpression( "//profile[id/text()=\"" + profileId + "\"]/properties/" + expression, true,
+                                        -1, activeProfileIds );
+        }
+
+        return value;
     }
 
     public synchronized ProjectVersionRef asProjectVersionRef()
@@ -128,7 +169,8 @@ public class MavenPomView
     public List<DependencyView> getAllDirectDependencies()
         throws GalleyMavenException
     {
-        final String xp = "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]";
+        final String xp =
+            "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]";
         //        final String xp = "./project/dependencies/dependency";
         final List<MavenElementView> depNodes = resolveXPathToAggregatedElementViewList( xp, true, -1 );
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
@@ -143,7 +185,8 @@ public class MavenPomView
     public List<DependencyView> getAllManagedDependencies()
         throws GalleyMavenException
     {
-        final List<MavenElementView> depNodes = resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency", true, -1 );
+        final List<MavenElementView> depNodes =
+            resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency", true, -1 );
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenElementView node : depNodes )
         {
@@ -296,7 +339,8 @@ public class MavenPomView
     public List<ExtensionView> getBuildExtensions()
         throws GalleyMavenException
     {
-        final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//extension", true, -1 );
+        final List<MavenElementView> list =
+            resolveXPathToAggregatedElementViewList( "/project//extensions/extension", true, -1 );
         final List<ExtensionView> result = new ArrayList<ExtensionView>( list.size() );
         for ( final MavenElementView node : list )
         {
@@ -350,7 +394,8 @@ public class MavenPomView
     public List<PluginView> getAllBuildPlugins()
         throws GalleyMavenException
     {
-        final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//build/plugins/plugin", true, -1 );
+        final List<MavenElementView> list =
+            resolveXPathToAggregatedElementViewList( "/project//build/plugins/plugin", true, -1 );
         final List<PluginView> result = new ArrayList<PluginView>( list.size() );
         for ( final MavenElementView node : list )
         {
@@ -368,7 +413,8 @@ public class MavenPomView
     public List<PluginView> getAllManagedBuildPlugins()
         throws GalleyMavenException
     {
-        final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
+        final List<MavenElementView> list =
+            resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
         final List<PluginView> result = new ArrayList<PluginView>( list.size() );
         for ( final MavenElementView node : list )
         {
@@ -386,7 +432,8 @@ public class MavenPomView
     public List<ProjectVersionRefView> getProjectVersionRefs( final String path )
         throws GalleyMavenException
     {
-        final List<MavenElementView> list = resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
+        final List<MavenElementView> list =
+            resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
         final List<ProjectVersionRefView> result = new ArrayList<ProjectVersionRefView>( list.size() );
         for ( final MavenElementView node : list )
         {
@@ -427,7 +474,9 @@ public class MavenPomView
         return result;
     }
 
-    public synchronized List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path, final boolean cachePath, final int maxDepth )
+    public synchronized List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path,
+                                                                                        final boolean cachePath,
+                                                                                        final int maxDepth )
         throws GalleyMavenRuntimeException
     {
         int maxAncestry = maxDepth;
@@ -469,7 +518,8 @@ public class MavenPomView
             }
 
             final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
-            final List<MavenElementView> nodes = mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry );
+            final List<MavenElementView> nodes =
+                mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry );
             if ( nodes != null )
             {
                 for ( final MavenElementView node : nodes )
@@ -480,6 +530,178 @@ public class MavenPomView
         }
 
         return result;
+    }
+
+    protected String resolveXPathExpressionFrom( final JXPathContext context, final String path )
+    {
+        final String p = trimTextSuffix( path );
+
+        final Node result = resolveXPathToNodeFrom( context, p, true );
+        if ( result != null && result.getNodeType() == Node.TEXT_NODE )
+        {
+            return resolveExpressions( result.getTextContent()
+                                             .trim() );
+        }
+
+        return null;
+    }
+
+    protected List<String> resolveXPathExpressionToListFrom( final JXPathContext context, final String path )
+        throws GalleyMavenException
+    {
+        final String p = trimTextSuffix( path );
+
+        final List<Node> nodes = resolveXPathToNodeListFrom( context, p, true );
+        final List<String> result = new ArrayList<String>( nodes.size() );
+        for ( final Node node : nodes )
+        {
+            if ( node != null && node.getNodeType() == Node.TEXT_NODE )
+            {
+                result.add( resolveExpressions( node.getTextContent()
+                                                    .trim() ) );
+            }
+        }
+
+        return result;
+    }
+
+    public String resolveXPathExpression( final String path, final boolean cachePath, final int maxAncestry,
+                                          final String... activeProfileIds )
+    {
+        final String p = trimTextSuffix( path );
+
+        final String raw = resolveXPathToRawString( p, cachePath, maxAncestry );
+        if ( raw != null )
+        {
+            //            logger.info( "Raw content of: '{}' is: '{}'", path, raw );
+            return resolveExpressions( raw, activeProfileIds );
+        }
+
+        return null;
+    }
+
+    private String trimTextSuffix( final String path )
+    {
+        String p = path;
+        if ( p.endsWith( TEXT_SUFFIX ) )
+        {
+            p = p.substring( 0, p.length() - TEXT_SUFFIX.length() );
+        }
+
+        return p;
+    }
+
+    public List<String> resolveXPathExpressionToAggregatedList( final String path, final boolean cachePath,
+                                                                final int maxAncestry )
+    {
+        final String p = trimTextSuffix( path );
+
+        final List<Node> nodes = resolveXPathToAggregatedNodeList( p, cachePath, maxAncestry );
+        final List<String> result = new ArrayList<String>( nodes.size() );
+        for ( final Node node : nodes )
+        {
+            if ( node != null && node.getNodeType() == Node.TEXT_NODE )
+            {
+                result.add( resolveExpressions( node.getTextContent()
+                                                    .trim() ) );
+            }
+        }
+
+        return result;
+    }
+
+    public boolean containsExpression( final String value )
+    {
+        return value != null && value.matches( EXPRESSION_PATTERN );
+    }
+
+    public String resolveExpressions( final String value, final String... activeProfileIds )
+    {
+        if ( !containsExpression( value ) )
+        {
+            //            logger.info( "No expressions in: '{}'", value );
+            return value;
+        }
+
+        synchronized ( this )
+        {
+            if ( ssi == null )
+            {
+                ssi = new StringSearchInterpolator();
+                ssi.addValueSource( new MavenPomViewVS( this, activeProfileIds ) );
+            }
+        }
+
+        try
+        {
+            String result = ssi.interpolate( value );
+            //            logger.info( "Resolved '{}' to '{}'", value, result );
+
+            if ( result == null || result.trim()
+                                         .length() < 1 )
+            {
+                result = value;
+            }
+
+            return result;
+        }
+        catch ( final InterpolationException e )
+        {
+            logger.error( String.format( "Failed to resolve expressions in: '%s'. Reason: %s", value, e.getMessage() ),
+                          e );
+            return value;
+        }
+    }
+
+    private static final class MavenPomViewVS
+        implements ValueSource
+    {
+
+        //        private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+        private final MavenPomView view;
+
+        private final List<Object> feedback = new ArrayList<Object>();
+
+        private final String[] activeProfileIds;
+
+        public MavenPomViewVS( final MavenPomView view, final String[] activeProfileIds )
+        {
+            this.view = view;
+            this.activeProfileIds = activeProfileIds;
+        }
+
+        @Override
+        public void clearFeedback()
+        {
+            feedback.clear();
+        }
+
+        @SuppressWarnings( "rawtypes" )
+        @Override
+        public List getFeedback()
+        {
+            return feedback;
+        }
+
+        @Override
+        public Object getValue( final String expr )
+        {
+            try
+            {
+                final String value = view.resolveMavenExpression( expr, activeProfileIds );
+                //                logger.info( "Value of: '{}' is: '{}'", expr, value );
+                return value;
+            }
+            catch ( final GalleyMavenException e )
+            {
+                feedback.add( String.format( "Error resolving maven expression: '%s'", expr ) );
+                feedback.add( e );
+            }
+
+            return null;
+        }
+
     }
 
 }

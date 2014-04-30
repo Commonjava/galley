@@ -34,13 +34,13 @@ public class MavenMetadataView
     public String resolveSingleValue( final String path )
         throws GalleyMavenException
     {
-        return resolveXPathExpression( path, true, -1 );
+        return resolveXPathToRawString( path, true, -1 );
     }
 
     public List<String> resolveValues( final String path )
         throws GalleyMavenException
     {
-        return resolveXPathExpressionToAggregatedList( path, true, -1 );
+        return resolveXPathToAggregatedStringList( path, true, -1 );
     }
 
 }

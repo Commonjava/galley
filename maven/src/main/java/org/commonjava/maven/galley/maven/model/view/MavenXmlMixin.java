@@ -68,10 +68,10 @@ public class MavenXmlMixin<T extends ProjectRef>
         return mixin;
     }
 
-    public String resolveXPathExpression( final String path )
+    public String resolveXPathToRawString( final String path )
         throws GalleyMavenException
     {
-        return mixin.resolveXPathExpression( path, true, -1 );
+        return mixin.resolveXPathToRawString( path, true, -1 );
     }
 
     public Node resolveXPathToNode( final String path )

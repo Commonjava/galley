@@ -23,11 +23,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.jxpath.JXPathContext;
-import org.codehaus.plexus.interpolation.InterpolationException;
+import org.apache.commons.jxpath.JXPathException;
+import org.apache.commons.jxpath.JXPathInvalidSyntaxException;
 import org.codehaus.plexus.interpolation.StringSearchInterpolator;
-import org.codehaus.plexus.interpolation.ValueSource;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.slf4j.Logger;
@@ -37,10 +36,6 @@ import org.w3c.dom.Node;
 
 public class MavenXmlView<T extends ProjectRef>
 {
-
-    private static final String EXPRESSION_PATTERN = ".*\\$\\{.+\\}.*";
-
-    private static final String TEXT_SUFFIX = "/text()";
 
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -83,78 +78,6 @@ public class MavenXmlView<T extends ProjectRef>
         return stack;
     }
 
-    public String resolveMavenExpression( final String expression, final String... activeProfileIds )
-        throws GalleyMavenException
-    {
-        String expr = expression.replace( '.', '/' );
-        if ( !expr.startsWith( "/" ) )
-        {
-            expr = "/" + expr;
-        }
-
-        if ( !expr.startsWith( "/project" ) )
-        {
-            expr = "/project" + expr;
-        }
-
-        String value = resolveXPathExpression( expr, true, -1 );
-        if ( value == null )
-        {
-            value = resolveXPathExpression( "/project/properties/" + expression, true, -1 );
-        }
-
-        for ( int i = 0; value == null && activeProfileIds != null && i < activeProfileIds.length; i++ )
-        {
-            final String profileId = activeProfileIds[i];
-            value = resolveXPathExpression( "//profile[id/text()=\"" + profileId + "\"]/properties/" + expression, true, -1, activeProfileIds );
-        }
-
-        return value;
-    }
-
-    public String resolveXPathExpression( final String path, final boolean cachePath, final int maxAncestry, final String... activeProfileIds )
-    {
-        final String p = trimTextSuffix( path );
-
-        final String raw = resolveXPathToRawString( p, cachePath, maxAncestry );
-        if ( raw != null )
-        {
-            //            logger.info( "Raw content of: '{}' is: '{}'", path, raw );
-            return resolveExpressions( raw, activeProfileIds );
-        }
-
-        return null;
-    }
-
-    private String trimTextSuffix( final String path )
-    {
-        String p = path;
-        if ( p.endsWith( TEXT_SUFFIX ) )
-        {
-            p = p.substring( 0, p.length() - TEXT_SUFFIX.length() );
-        }
-
-        return p;
-    }
-
-    public List<String> resolveXPathExpressionToAggregatedList( final String path, final boolean cachePath, final int maxAncestry )
-    {
-        final String p = trimTextSuffix( path );
-
-        final List<Node> nodes = resolveXPathToAggregatedNodeList( p, cachePath, maxAncestry );
-        final List<String> result = new ArrayList<String>( nodes.size() );
-        for ( final Node node : nodes )
-        {
-            if ( node != null && node.getNodeType() == Node.TEXT_NODE )
-            {
-                result.add( resolveExpressions( node.getTextContent()
-                                                    .trim() ) );
-            }
-        }
-
-        return result;
-    }
-
     public String resolveXPathToRawString( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
@@ -183,8 +106,24 @@ public class MavenXmlView<T extends ProjectRef>
                 break;
             }
 
-            result = (String) dr.getDocContext()
+            try
+            {
+                result = (String) dr.getDocContext()
                                 .getValue( path );
+            }
+            catch ( final JXPathInvalidSyntaxException e )
+            {
+                logger.debug( "[ABORT XPath] Error resolving '{}' from '{}': {}", e, path, dr.getSource(),
+                              e.getMessage() );
+                return null;
+            }
+            catch ( final JXPathException e )
+            {
+                logger.debug( "[SKIP XPath-Doc] Error resolving '{}' from '{}': {}", e, path, dr.getSource(),
+                             e.getMessage() );
+                continue;
+            }
+
             //                result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
             //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
@@ -408,33 +347,17 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    protected String resolveXPathExpressionFrom( final JXPathContext context, final String path )
+    public List<String> resolveXPathToAggregatedStringList( final String path, final boolean cachePath,
+                                                            final int maxAncestry )
     {
-        final String p = trimTextSuffix( path );
-
-        final Node result = resolveXPathToNodeFrom( context, p, true );
-        if ( result != null && result.getNodeType() == Node.TEXT_NODE )
-        {
-            return resolveExpressions( result.getTextContent()
-                                             .trim() );
-        }
-
-        return null;
-    }
-
-    protected List<String> resolveXPathExpressionToListFrom( final JXPathContext context, final String path )
-        throws GalleyMavenException
-    {
-        final String p = trimTextSuffix( path );
-
-        final List<Node> nodes = resolveXPathToNodeListFrom( context, p, true );
+        final List<Node> nodes = resolveXPathToAggregatedNodeList( path, cachePath, maxAncestry );
         final List<String> result = new ArrayList<String>( nodes.size() );
         for ( final Node node : nodes )
         {
             if ( node != null && node.getNodeType() == Node.TEXT_NODE )
             {
-                result.add( resolveExpressions( node.getTextContent()
-                                                    .trim() ) );
+                result.add( node.getTextContent()
+                                .trim() );
             }
         }
 
@@ -460,99 +383,6 @@ public class MavenXmlView<T extends ProjectRef>
         }
 
         return result;
-    }
-
-    public boolean containsExpression( final String value )
-    {
-        return value != null && value.matches( EXPRESSION_PATTERN );
-    }
-
-    public String resolveExpressions( final String value, final String... activeProfileIds )
-    {
-        if ( !containsExpression( value ) )
-        {
-            //            logger.info( "No expressions in: '{}'", value );
-            return value;
-        }
-
-        synchronized ( this )
-        {
-            if ( ssi == null )
-            {
-                ssi = new StringSearchInterpolator();
-                ssi.addValueSource( new MavenPomViewVS<T>( this, activeProfileIds ) );
-            }
-        }
-
-        try
-        {
-            String result = ssi.interpolate( value );
-            //            logger.info( "Resolved '{}' to '{}'", value, result );
-
-            if ( result == null || result.trim()
-                                         .length() < 1 )
-            {
-                result = value;
-            }
-
-            return result;
-        }
-        catch ( final InterpolationException e )
-        {
-            logger.error( String.format( "Failed to resolve expressions in: '%s'. Reason: %s", value, e.getMessage() ), e );
-            return value;
-        }
-    }
-
-    private static final class MavenPomViewVS<T extends ProjectRef>
-        implements ValueSource
-    {
-
-        //        private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-        private final MavenXmlView<T> view;
-
-        private final List<Object> feedback = new ArrayList<Object>();
-
-        private final String[] activeProfileIds;
-
-        public MavenPomViewVS( final MavenXmlView<T> view, final String[] activeProfileIds )
-        {
-            this.view = view;
-            this.activeProfileIds = activeProfileIds;
-        }
-
-        @Override
-        public void clearFeedback()
-        {
-            feedback.clear();
-        }
-
-        @SuppressWarnings( "rawtypes" )
-        @Override
-        public List getFeedback()
-        {
-            return feedback;
-        }
-
-        @Override
-        public Object getValue( final String expr )
-        {
-            try
-            {
-                final String value = view.resolveMavenExpression( expr, activeProfileIds );
-                //                logger.info( "Value of: '{}' is: '{}'", expr, value );
-                return value;
-            }
-            catch ( final GalleyMavenException e )
-            {
-                feedback.add( String.format( "Error resolving maven expression: '%s'", expr ) );
-                feedback.add( e );
-            }
-
-            return null;
-        }
-
     }
 
     public List<MavenXmlMixin<T>> getMixins()

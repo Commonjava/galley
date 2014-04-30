@@ -1,0 +1,11 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.foo</groupId>
+  <artifactId>bar</artifactId>
+  <version>1</version>
+  
+  <properties>
+    <my.1.version>1.0</my.1.version>
+  </properties>
+  
+</project>

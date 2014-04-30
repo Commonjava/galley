@@ -40,6 +40,18 @@ public class MavenPomViewTest
     }
 
     @Test
+    public void resolveExpressionReferencingPropertyWithNumericDottedPart()
+        throws Exception
+    {
+        final String expr = "${my.1.version}";
+        final MavenPomView pom = loadPoms( "pom-with-property.xml" );
+
+        final String value = pom.resolveExpressions( expr );
+
+        assertThat( value, equalTo( "1.0" ) );
+    }
+
+    @Test
     public void dependencyManagedByProfile()
         throws Exception
     {
