@@ -160,8 +160,11 @@ public class DependencyViewTest
     {
         final MavenPomView pomView = loadPoms( "managed-depless-child.pom.xml", "managed-bom-parent.pom.xml" );
         final List<DependencyView> managed = pomView.getAllManagedDependencies();
-        assertThat( managed.size(), equalTo( 1 ) );
-        final DependencyView dv = managed.get( 0 );
+        assertThat( managed.size(), equalTo( 0 ) );
+
+        final List<DependencyView> boms = pomView.getAllBOMs();
+        assertThat( boms.size(), equalTo( 1 ) );
+        final DependencyView dv = boms.get( 0 );
         assertThat( dv.getScope(), equalTo( DependencyScope._import ) );
     }
 

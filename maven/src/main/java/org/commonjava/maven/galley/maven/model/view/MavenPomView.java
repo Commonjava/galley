@@ -180,7 +180,8 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenElementView> depNodes =
-            resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency", true, -1 );
+            resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[not(scope/text()=\"import\")]",
+                                                     true, -1 );
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenElementView node : depNodes )
         {
