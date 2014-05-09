@@ -85,9 +85,9 @@ public final class HttpExistence
                                               .execute( request );
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
+            logger.debug( "HEAD {} : {}", line, url );
             if ( sc != HttpStatus.SC_OK )
             {
-                logger.debug( "{} : {}", line, url );
                 if ( sc != HttpStatus.SC_NOT_FOUND )
                 {
                     throw new TransferException( "HTTP request failed: {}", line );

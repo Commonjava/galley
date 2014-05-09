@@ -92,7 +92,8 @@ public final class HttpDownload
         return error;
     }
 
-    private void writeTarget( final Transfer target, final HttpGet request, final HttpResponse response, final String url, final Location repository )
+    private void writeTarget( final Transfer target, final HttpGet request, final HttpResponse response,
+                              final String url, final Location repository )
         throws TransferException
     {
         OutputStream out = null;
@@ -111,7 +112,8 @@ public final class HttpDownload
             catch ( final IOException e )
             {
                 request.abort();
-                throw new TransferException( "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}", e, target, url, e.getMessage() );
+                throw new TransferException( "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
+                                             e, target, url, e.getMessage() );
             }
             finally
             {
@@ -130,11 +132,11 @@ public final class HttpDownload
                                               .execute( request );
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
+            logger.debug( "GET {} : {}", line, url );
             if ( sc != HttpStatus.SC_OK )
             {
                 EntityUtils.consume( response.getEntity() );
 
-                logger.debug( "{} : {}", line, url );
                 if ( sc == HttpStatus.SC_NOT_FOUND )
                 {
                     return null;

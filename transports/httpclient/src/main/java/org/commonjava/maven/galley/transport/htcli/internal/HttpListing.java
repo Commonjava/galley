@@ -120,7 +120,9 @@ public class HttpListing
         }
         catch ( final IOException e )
         {
-            this.error = new TransferException( "Failed to parse directory listing HTML for: {} using JSoup. Reason: {}", e, url, e.getMessage() );
+            this.error =
+                new TransferException( "Failed to parse directory listing HTML for: {} using JSoup. Reason: {}", e,
+                                       url, e.getMessage() );
         }
         finally
         {
@@ -141,9 +143,9 @@ public class HttpListing
                                               .execute( request );
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
+            logger.debug( "GET {} : {}", line, url );
             if ( sc != HttpStatus.SC_OK )
             {
-                logger.debug( "{} : {}", line, url );
                 if ( sc == HttpStatus.SC_NOT_FOUND )
                 {
                     result = null;
