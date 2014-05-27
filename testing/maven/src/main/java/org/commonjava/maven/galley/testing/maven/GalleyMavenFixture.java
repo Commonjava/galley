@@ -69,6 +69,7 @@ public class GalleyMavenFixture
     }
 
     public void initMissingComponents()
+        throws Exception
     {
         api.initMissingComponents();
 
@@ -94,7 +95,8 @@ public class GalleyMavenFixture
 
         if ( artifacts == null )
         {
-            this.artifacts = new ArtifactManagerImpl( api.getTransfers(), api.getLocations(), getMapper(), getVersions() );
+            this.artifacts =
+                new ArtifactManagerImpl( api.getTransfers(), api.getLocations(), getMapper(), getVersions() );
         }
 
         if ( pluginDefaults == null )
@@ -119,7 +121,9 @@ public class GalleyMavenFixture
 
         if ( pomReader == null && artifacts != null )
         {
-            pomReader = new MavenPomReader( xmlInfra, getLocations(), artifacts, xpathManager, pluginDefaults, pluginImplications );
+            pomReader =
+                new MavenPomReader( xmlInfra, getLocations(), artifacts, xpathManager, pluginDefaults,
+                                    pluginImplications );
         }
     }
 
