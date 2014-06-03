@@ -10,18 +10,23 @@
  ******************************************************************************/
 package org.commonjava.maven.galley.model;
 
+import static org.commonjava.maven.galley.util.PathUtils.ROOT;
+import static org.commonjava.maven.galley.util.PathUtils.normalize;
+import static org.commonjava.maven.galley.util.PathUtils.parentPath;
+
 import java.util.Map;
 
 public class ConcreteResource
-    extends AbstractResource
     implements Resource
 {
 
     final Location location;
 
+    final String path;
+
     public ConcreteResource( final Location location, final String... path )
     {
-        super( path );
+        this.path = normalize( path );
         this.location = location;
     }
 
@@ -175,9 +180,28 @@ public class ConcreteResource
         return location.setAttribute( key, value );
     }
 
-    @Override
-    protected Resource newDerivedResource( final String... path )
+    public boolean isRoot()
     {
-        return new ConcreteResource( location, path );
+        return path == ROOT || ROOT.equals( path );
+    }
+
+    public Resource getParent()
+    {
+        if ( isRoot() )
+        {
+            return null;
+        }
+
+        return new ConcreteResource( location, parentPath( path ) );
+    }
+
+    public Resource getChild( final String file )
+    {
+        return new ConcreteResource( location, normalize( path, file ) );
+    }
+
+    public String getPath()
+    {
+        return path;
     }
 }

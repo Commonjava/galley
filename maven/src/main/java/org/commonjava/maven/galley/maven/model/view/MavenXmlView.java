@@ -45,7 +45,8 @@ public class MavenXmlView<T extends ProjectRef>
 
     protected final XMLInfrastructure xml;
 
-    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final String... localOnlyPaths )
+    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml,
+                         final String... localOnlyPaths )
     {
         this.stack = stack;
         //        this.xpath = xpath;
@@ -53,7 +54,8 @@ public class MavenXmlView<T extends ProjectRef>
         this.localOnlyPaths = new HashSet<String>( Arrays.asList( localOnlyPaths ) );
     }
 
-    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml, final Set<String> localOnlyPaths )
+    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml,
+                         final Set<String> localOnlyPaths )
     {
         this.stack = stack;
         //        this.xpath = xpath;
@@ -103,7 +105,7 @@ public class MavenXmlView<T extends ProjectRef>
             try
             {
                 result = (String) dr.getDocContext()
-                                .getValue( path );
+                                    .getValue( path );
             }
             catch ( final JXPathInvalidSyntaxException e )
             {
@@ -114,7 +116,7 @@ public class MavenXmlView<T extends ProjectRef>
             catch ( final JXPathException e )
             {
                 logger.debug( "[SKIP XPath-Doc] Error resolving '{}' from '{}': {}", e, path, dr.getSource(),
-                             e.getMessage() );
+                              e.getMessage() );
                 continue;
             }
 
@@ -222,7 +224,8 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    public synchronized List<Node> resolveXPathToAggregatedNodeList( final String path, final boolean cachePath, final int maxDepth )
+    public synchronized List<Node> resolveXPathToAggregatedNodeList( final String path, final boolean cachePath,
+                                                                     final int maxDepth )
         throws GalleyMavenRuntimeException
     {
         int maxAncestry = maxDepth;
@@ -277,7 +280,8 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
-    public synchronized List<Node> resolveXPathToFirstNodeList( final String path, final boolean cachePath, final int maxDepth )
+    public synchronized List<Node> resolveXPathToFirstNodeList( final String path, final boolean cachePath,
+                                                                final int maxDepth )
         throws GalleyMavenRuntimeException
     {
         int maxAncestry = maxDepth;
@@ -348,22 +352,27 @@ public class MavenXmlView<T extends ProjectRef>
         final List<String> result = new ArrayList<String>( nodes.size() );
         for ( final Node node : nodes )
         {
-            if ( node != null && node.getNodeType() == Node.TEXT_NODE )
+            if ( node != null )
             {
-                result.add( node.getTextContent()
-                                .trim() );
+                final String txt = node.getTextContent();
+                if ( txt != null )
+                {
+                    result.add( txt.trim() );
+                }
             }
         }
 
         return result;
     }
 
-    protected synchronized Node resolveXPathToNodeFrom( final JXPathContext context, final String path, final boolean cachePath )
+    protected synchronized Node resolveXPathToNodeFrom( final JXPathContext context, final String path,
+                                                        final boolean cachePath )
     {
         return (Node) context.selectSingleNode( path );
     }
 
-    public synchronized List<Node> resolveXPathToNodeListFrom( final JXPathContext context, final String path, final boolean cachePath )
+    public synchronized List<Node> resolveXPathToNodeListFrom( final JXPathContext context, final String path,
+                                                               final boolean cachePath )
         throws GalleyMavenRuntimeException
     {
         final List<Node> result = new ArrayList<Node>();

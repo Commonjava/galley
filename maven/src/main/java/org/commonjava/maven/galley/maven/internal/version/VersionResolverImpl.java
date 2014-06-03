@@ -12,30 +12,40 @@ package org.commonjava.maven.galley.maven.internal.version;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.atlas.ident.version.VersionUtils;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
+import org.commonjava.maven.galley.maven.model.ProjectVersionRefLocation;
 import org.commonjava.maven.galley.maven.model.view.MavenMetadataView;
 import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
+import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;
+import org.commonjava.maven.galley.maven.version.VersionSelectionStrategy;
 import org.commonjava.maven.galley.model.Location;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class VersionResolverImpl
     implements VersionResolver
 {
 
-    //    private final Logger logger = LoggerFactory.getLogger( getClass() );
+    private static final String SNAP_VERSION_XPATH = "/metadata/versioning/snapshotVersions/snapshotVersion[1]/value";
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Inject
     private MavenMetadataReader metadataReader;
@@ -50,17 +60,27 @@ public class VersionResolverImpl
     }
 
     @Override
-    public ProjectVersionRef resolveVariableVersions( final List<? extends Location> locations, final ProjectVersionRef ref )
+    public ProjectVersionRef resolveVariableVersions( final List<? extends Location> locations,
+                                                      final ProjectVersionRef ref )
+        throws TransferException
+    {
+        return resolveFirstMatchVariableVersion( locations, ref, LatestVersionSelectionStrategy.INSTANCE );
+    }
+
+    @Override
+    public ProjectVersionRef resolveLatestVariableVersion( final List<? extends Location> locations,
+                                                           final ProjectVersionRef ref,
+                                                           final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
         if ( !ref.getVersionSpec()
                  .isSingle() )
         {
-            return resolveMulti( locations, ref );
+            return resolveLatestMultiRef( locations, ref, selectionStrategy );
         }
         else if ( ref.isSnapshot() )
         {
-            return resolveSnapshot( locations, ref );
+            return resolveLatestSnapshotRef( locations, ref, selectionStrategy );
         }
         else
         {
@@ -68,116 +88,523 @@ public class VersionResolverImpl
         }
     }
 
-    private ProjectVersionRef resolveSnapshot( final List<? extends Location> locations, final ProjectVersionRef ref )
+    @Override
+    public ProjectVersionRef resolveFirstMatchVariableVersion( final List<? extends Location> locations,
+                                                               final ProjectVersionRef ref,
+                                                               final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
-        try
+        if ( !ref.getVersionSpec()
+                 .isSingle() )
         {
-            final MavenMetadataView metadata = metadataReader.getMetadata( ref, locations );
-
-            if ( metadata != null )
-            {
-                final String latest = metadata.resolveSingleValue( "/metadata/versioning/latest" );
-                if ( latest != null )
-                {
-                    try
-                    {
-                        return ref.selectVersion( VersionUtils.createSingleVersion( latest ) );
-                    }
-                    catch ( final InvalidVersionSpecificationException e )
-                    {
-                        throw new TransferException( "Unparsable version spec found in metadata: '{}'. Reason: {}", e, latest, e.getMessage() );
-                    }
-                }
-            }
+            return resolveFirstMultiRef( locations, ref, selectionStrategy );
         }
-        catch ( final GalleyMavenException e )
+        else if ( ref.isSnapshot() )
         {
-            throw new TransferException( "Failed to resolve/parse metadata for snapshot version of: {}. Reason: {}", e, ref, e.getMessage() );
+            return resolveFirstSnapshotRef( locations, ref, selectionStrategy );
+        }
+        else
+        {
+            return ref;
+        }
+    }
+
+    @Override
+    public ProjectVersionRefLocation resolveLatestVariableVersionLocation( final List<? extends Location> locations,
+                                                                           final ProjectVersionRef ref,
+                                                                           final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        if ( !ref.getVersionSpec()
+                 .isSingle() )
+        {
+            return resolveLatestMultiRefWithLocation( locations, ref, selectionStrategy );
+        }
+        else if ( ref.isSnapshot() )
+        {
+            return resolveLatestSnapshotRefWithLocation( locations, ref, selectionStrategy );
         }
 
         return null;
     }
 
-    // TODO: pluggable selection strategy!
-    private ProjectVersionRef resolveMulti( final List<? extends Location> locations, final ProjectVersionRef ref )
+    @Override
+    public ProjectVersionRefLocation resolveFirstMatchVariableVersionLocation( final List<? extends Location> locations,
+                                                                               final ProjectVersionRef ref,
+                                                                               final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
-        final List<String> allVersions = new ArrayList<String>();
-        try
+        if ( !ref.getVersionSpec()
+                 .isSingle() )
         {
-            final MavenMetadataView metadata = metadataReader.getMetadata( ref.asProjectRef(), locations );
+            return resolveFirstMultiRefWithLocation( locations, ref, selectionStrategy );
+        }
+        else if ( ref.isSnapshot() )
+        {
+            return resolveFirstSnapshotRefWithLocation( locations, ref, selectionStrategy );
+        }
 
-            if ( metadata != null )
+        return null;
+    }
+
+    @Override
+    public List<ProjectVersionRefLocation> resolveAllVariableVersionLocations( final List<? extends Location> locations,
+                                                                               final ArtifactRef ref,
+                                                                               final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        if ( !ref.getVersionSpec()
+                 .isSingle() )
+        {
+            return resolveAllMultiRefsWithLocations( locations, ref, selectionStrategy );
+        }
+        else if ( ref.isSnapshot() )
+        {
+            return resolveAllSnapshotRefsWithLocations( locations, ref, selectionStrategy );
+        }
+
+        return Collections.emptyList();
+    }
+
+    private ProjectVersionRef resolveLatestSnapshotRef( final List<? extends Location> locations,
+                                                        final ProjectVersionRef ref,
+                                                        final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final ProjectVersionRefLocation result =
+            resolveLatestSnapshotRefWithLocation( locations, ref, selectionStrategy );
+
+        return result == null ? null : result.getRef();
+    }
+
+    private ProjectVersionRefLocation resolveLatestSnapshotRefWithLocation( final List<? extends Location> locations,
+                                                                            final ProjectVersionRef ref,
+                                                                            final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        for ( final Location location : locations )
+        {
+            try
             {
-                final List<String> versions = metadata.resolveValues( "/metadata/versioning/versions/version" );
+                final MavenMetadataView metadata =
+                    metadataReader.getMetadata( ref, Collections.singletonList( location ) );
 
-                if ( versions != null )
+                if ( metadata != null )
                 {
-                    for ( final String version : versions )
+                    addSnapshotFrom( metadata, location, ref, available );
+                }
+            }
+            catch ( final GalleyMavenException e )
+            {
+                debug( "Failed to resolve/parse metadata for snapshot version of: %s from: %s.", e, ref, location );
+            }
+        }
+
+        if ( available.isEmpty() )
+        {
+            return null;
+        }
+
+        final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+        Collections.sort( versions );
+
+        final SingleVersion selected = selectionStrategy.select( versions );
+        if ( selected == null )
+        {
+            return null;
+        }
+
+        return new ProjectVersionRefLocation( ref.selectVersion( selected ), available.get( selected ) );
+    }
+
+    private ProjectVersionRef resolveFirstSnapshotRef( final List<? extends Location> locations,
+                                                       final ProjectVersionRef ref,
+                                                       final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final ProjectVersionRefLocation result =
+            resolveFirstSnapshotRefWithLocation( locations, ref, selectionStrategy );
+
+        return result == null ? null : result.getRef();
+    }
+
+    private ProjectVersionRefLocation resolveFirstSnapshotRefWithLocation( final List<? extends Location> locations,
+                                                                           final ProjectVersionRef ref,
+                                                                           final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        nextLoc: for ( final Location location : locations )
+        {
+            final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+            try
+            {
+                final MavenMetadataView metadata =
+                    metadataReader.getMetadata( ref, Collections.singletonList( location ) );
+
+                if ( metadata != null )
+                {
+                    addSnapshotFrom( metadata, location, ref, available );
+                }
+            }
+            catch ( final GalleyMavenException e )
+            {
+                debug( "Failed to resolve/parse metadata for snapshot version of: %s from: %s.", e, ref, location );
+            }
+
+            if ( !available.isEmpty() )
+            {
+                final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+                Collections.sort( versions );
+
+                final SingleVersion selected = selectionStrategy.select( versions );
+                if ( selected == null )
+                {
+                    continue nextLoc;
+                }
+
+                return new ProjectVersionRefLocation( ref.selectVersion( selected ), available.get( selected ) );
+            }
+        }
+
+        return null;
+    }
+
+    private void addSnapshotFrom( final MavenMetadataView metadata, final Location location,
+                                  final ProjectVersionRef ref, final Map<SingleVersion, Location> available )
+        throws GalleyMavenException
+    {
+        final String version = metadata.resolveSingleValue( SNAP_VERSION_XPATH );
+        logger.debug( "Latest snapshot version in metadata is: {}", version );
+
+        if ( version != null )
+        {
+            try
+            {
+                final SingleVersion ver = VersionUtils.createSingleVersion( version );
+                if ( !available.containsKey( ver ) )
+                {
+                    logger.debug( "Found candidate snapshot: {}", ver );
+                    available.put( ver, location );
+                }
+            }
+            catch ( final InvalidVersionSpecificationException e )
+            {
+                debug( "Unparsable version spec found in metadata: '%s' for: %s from: %s", e, version, ref, location );
+            }
+        }
+    }
+
+    private ProjectVersionRef resolveLatestMultiRef( final List<? extends Location> locations,
+                                                     final ProjectVersionRef ref,
+                                                     final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final ProjectVersionRefLocation result = resolveLatestMultiRefWithLocation( locations, ref, selectionStrategy );
+        return result == null ? null : result.getRef();
+    }
+
+    private ProjectVersionRefLocation resolveLatestMultiRefWithLocation( final List<? extends Location> locations,
+                                                                         final ProjectVersionRef ref,
+                                                                         final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        for ( final Location location : locations )
+        {
+            try
+            {
+                final MavenMetadataView metadata =
+                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ) );
+
+                if ( metadata != null )
+                {
+                    final List<String> versions = metadata.resolveValues( "/metadata/versioning/versions/version" );
+
+                    if ( versions != null )
                     {
-                        if ( !allVersions.contains( version ) )
+                        for ( final String version : versions )
                         {
-                            allVersions.add( version );
+                            try
+                            {
+                                final SingleVersion spec = VersionUtils.createSingleVersion( version );
+                                if ( !available.containsKey( spec ) )
+                                {
+                                    available.put( spec, location );
+                                }
+                            }
+                            catch ( final InvalidVersionSpecificationException e )
+                            {
+                                debug( "Unparsable version spec found in metadata: '%s' for: %s from: %s.", e, version,
+                                       ref, location );
+                            }
                         }
                     }
                 }
             }
-        }
-        catch ( final GalleyMavenException e )
-        {
-            throw new TransferException( "Failed to resolve/parse metadata for variable version of: {}. Reason: {}", e, ref, e.getMessage() );
-        }
-
-        //        logger.info( "{}: RAW versions found: {}", ref, new JoinString( ", ", allVersions ) );
-        final LinkedList<SingleVersion> specs = new LinkedList<SingleVersion>();
-        if ( allVersions != null && !allVersions.isEmpty() )
-        {
-            for ( String ver : allVersions )
+            catch ( final GalleyMavenException e )
             {
-                if ( ver == null )
-                {
-                    continue;
-                }
-
-                ver = ver.trim();
-                if ( ver.length() < 1 )
-                {
-                    continue;
-                }
-
-                try
-                {
-                    specs.add( VersionUtils.createSingleVersion( ver ) );
-                }
-                catch ( final InvalidVersionSpecificationException e )
-                {
-                    throw new TransferException( "Unparsable version spec found in metadata: '{}'. Reason: {}", e, ver, e.getMessage() );
-                }
+                debug( "Failed to resolve/parse metadata for variable version of: '%s' from: %s.", e, ref, location );
             }
         }
 
-        //        logger.info( "{}: Available versions are: {}", ref, new JoinString( ", ", specs ) );
-        if ( !specs.isEmpty() )
+        if ( !available.isEmpty() )
         {
             final VersionSpec spec = ref.getVersionSpec();
 
-            Collections.sort( specs );
-            SingleVersion ver = null;
-            do
+            final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+            Collections.sort( versions );
+            while ( !versions.isEmpty() )
             {
-                ver = specs.removeLast();
-                //                logger.info( "Checking whether {} is concrete...", ver );
-            }
-            while ( !ver.isConcrete() || !spec.contains( ver ) );
+                final SingleVersion selected = selectionStrategy.select( versions );
+                if ( selected == null )
+                {
+                    return null;
+                }
 
-            if ( ver != null )
-            {
-                //                logger.info( "Selecting {} for {}", ver, ref );
-                return ref.selectVersion( ver );
+                versions.remove( selected );
+                if ( selected.isConcrete() && spec.contains( selected ) )
+                {
+                    return new ProjectVersionRefLocation( ref.selectVersion( selected ), available.get( selected ) );
+                }
             }
         }
 
         return null;
     }
+
+    private ProjectVersionRef resolveFirstMultiRef( final List<? extends Location> locations,
+                                                    final ProjectVersionRef ref,
+                                                    final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final ProjectVersionRefLocation result = resolveFirstMultiRefWithLocation( locations, ref, selectionStrategy );
+        return result == null ? null : result.getRef();
+    }
+
+    private ProjectVersionRefLocation resolveFirstMultiRefWithLocation( final List<? extends Location> locations,
+                                                                        final ProjectVersionRef ref,
+                                                                        final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        nextLoc: for ( final Location location : locations )
+        {
+            final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+            try
+            {
+                final MavenMetadataView metadata =
+                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ) );
+
+                if ( metadata != null )
+                {
+                    final List<String> versions = metadata.resolveValues( "/metadata/versioning/versions/version" );
+
+                    if ( versions != null )
+                    {
+                        for ( final String version : versions )
+                        {
+                            try
+                            {
+                                final SingleVersion spec = VersionUtils.createSingleVersion( version );
+                                if ( !available.containsKey( spec ) )
+                                {
+                                    available.put( spec, location );
+                                }
+                            }
+                            catch ( final InvalidVersionSpecificationException e )
+                            {
+                                debug( "Unparsable version spec found in metadata: '%s' for: %s from: %s.", e, version,
+                                       ref, location );
+                            }
+                        }
+                    }
+                }
+            }
+            catch ( final GalleyMavenException e )
+            {
+                debug( "Failed to resolve/parse metadata for variable version of: '%s' from: %s.", e, ref, location );
+            }
+
+            if ( !available.isEmpty() )
+            {
+                final VersionSpec spec = ref.getVersionSpec();
+
+                final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+                Collections.sort( versions );
+                while ( !versions.isEmpty() )
+                {
+                    final SingleVersion selected = selectionStrategy.select( versions );
+                    if ( selected == null )
+                    {
+                        continue nextLoc;
+                    }
+
+                    versions.remove( selected );
+                    if ( selected.isConcrete() && spec.contains( selected ) )
+                    {
+                        return new ProjectVersionRefLocation( ref.selectVersion( selected ), available.get( selected ) );
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void debug( final String message, final Throwable e, final Object... params )
+    {
+        final String format = message.replaceAll( "\\{\\}", "%s" ) + "\n%s\n  %s";
+        final Object[] p = new Object[params.length + 2];
+        System.arraycopy( params, 0, p, 0, params.length );
+        p[p.length - 2] = e.getMessage();
+        p[p.length - 1] = new JoinString( "\n  ", e.getStackTrace() );
+
+        logger.debug( "{}", new Object()
+        {
+            @Override
+            public String toString()
+            {
+                return String.format( format, p );
+            }
+        } );
+    }
+
+    private List<ProjectVersionRefLocation> resolveAllMultiRefsWithLocations( final List<? extends Location> locations,
+                                                                              final ProjectVersionRef ref,
+                                                                              final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        for ( final Location location : locations )
+        {
+            try
+            {
+                final MavenMetadataView metadata =
+                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ) );
+
+                if ( metadata != null )
+                {
+                    final List<String> versions = metadata.resolveValues( "/metadata/versioning/versions/version" );
+
+                    if ( versions != null )
+                    {
+                        for ( final String version : versions )
+                        {
+                            try
+                            {
+                                final SingleVersion spec = VersionUtils.createSingleVersion( version );
+                                if ( !available.containsKey( spec ) )
+                                {
+                                    available.put( spec, location );
+                                }
+                            }
+                            catch ( final InvalidVersionSpecificationException e )
+                            {
+                                debug( "Unparsable version spec found in metadata: '%s' for: %s from: %s.", e, version,
+                                       ref, location );
+                            }
+                        }
+                    }
+                }
+            }
+            catch ( final GalleyMavenException e )
+            {
+                debug( "Failed to resolve/parse metadata for variable version of: '%s' from: %s.", e, ref, location );
+            }
+        }
+
+        if ( !available.isEmpty() )
+        {
+            final List<ProjectVersionRefLocation> result = new ArrayList<ProjectVersionRefLocation>();
+
+            final VersionSpec spec = ref.getVersionSpec();
+
+            final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+            Collections.sort( versions );
+            while ( !versions.isEmpty() )
+            {
+                final SingleVersion selected = selectionStrategy.select( versions );
+                if ( selected != null )
+                {
+                    versions.remove( selected );
+                    if ( selected.isConcrete() && spec.contains( selected ) )
+                    {
+                        result.add( new ProjectVersionRefLocation( ref.selectVersion( selected ),
+                                                                   available.get( selected ) ) );
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        return Collections.<ProjectVersionRefLocation> emptyList();
+    }
+
+    private List<ProjectVersionRefLocation> resolveAllSnapshotRefsWithLocations( final List<? extends Location> locations,
+                                                                                 final ProjectVersionRef ref,
+                                                                                 final VersionSelectionStrategy selectionStrategy )
+        throws TransferException
+    {
+        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        for ( final Location location : locations )
+        {
+            try
+            {
+                final MavenMetadataView metadata =
+                    metadataReader.getMetadata( ref, Collections.singletonList( location ) );
+
+                if ( metadata != null )
+                {
+                    final String latest = metadata.resolveSingleValue( "/metadata/versioning/latest" );
+                    if ( latest != null )
+                    {
+                        try
+                        {
+                            final SingleVersion ver = VersionUtils.createSingleVersion( latest );
+                            if ( ver.isSnapshot() )
+                            {
+                                if ( !available.containsKey( ver ) )
+                                {
+                                    available.put( ver, location );
+                                }
+                            }
+                        }
+                        catch ( final InvalidVersionSpecificationException e )
+                        {
+                            debug( "Unparsable version spec found in metadata: '%s' for: %s from: %s", e, latest, ref,
+                                   location );
+                        }
+                    }
+                }
+            }
+            catch ( final GalleyMavenException e )
+            {
+                debug( "Failed to resolve/parse metadata for snapshot version of: %s from: %s.", e, ref, location );
+            }
+        }
+
+        if ( !available.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+
+        final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+        Collections.sort( versions );
+
+        final List<ProjectVersionRefLocation> result = new ArrayList<ProjectVersionRefLocation>();
+
+        while ( !versions.isEmpty() )
+        {
+            final SingleVersion selected = selectionStrategy.select( versions );
+            if ( selected != null )
+            {
+                versions.remove( selected );
+                result.add( new ProjectVersionRefLocation( ref.selectVersion( selected ), available.get( selected ) ) );
+            }
+        }
+
+        return result;
+    }
+
 }

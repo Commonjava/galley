@@ -11,44 +11,42 @@
 package org.commonjava.maven.galley.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 public class VirtualResource
-    extends AbstractResource
     implements Resource, Iterable<ConcreteResource>
 {
 
-    private final List<? extends Location> locations;
+    private final List<ConcreteResource> resources;
 
     public VirtualResource( final List<? extends Location> locations, final String... path )
     {
-        super( path );
-        this.locations = locations;
-    }
-
-    public List<ConcreteResource> toConcreteResources()
-    {
-        final List<ConcreteResource> result = new ArrayList<ConcreteResource>();
+        final List<ConcreteResource> resources = new ArrayList<ConcreteResource>();
         for ( final Location location : locations )
         {
-            result.add( new ConcreteResource( location, getPath() ) );
+            resources.add( new ConcreteResource( location, path ) );
         }
-
-        return result;
+        this.resources = resources;
     }
 
-    public List<? extends Location> getLocations()
+    public VirtualResource( final List<ConcreteResource> resources )
     {
-        return locations;
+        this.resources = resources;
+    }
+
+    public VirtualResource( final ConcreteResource... resources )
+    {
+        this.resources = Arrays.asList( resources );
     }
 
     @Override
     public boolean allowsDownloading()
     {
-        for ( final Location location : locations )
+        for ( final ConcreteResource resource : resources )
         {
-            if ( location.allowsDownloading() )
+            if ( resource.allowsDownloading() )
             {
                 return true;
             }
@@ -60,9 +58,9 @@ public class VirtualResource
     @Override
     public boolean allowsPublishing()
     {
-        for ( final Location location : locations )
+        for ( final ConcreteResource resource : resources )
         {
-            if ( location.allowsPublishing() )
+            if ( resource.allowsPublishing() )
             {
                 return true;
             }
@@ -74,9 +72,9 @@ public class VirtualResource
     @Override
     public boolean allowsStoring()
     {
-        for ( final Location location : locations )
+        for ( final ConcreteResource resource : resources )
         {
-            if ( location.allowsStoring() )
+            if ( resource.allowsStoring() )
             {
                 return true;
             }
@@ -88,9 +86,9 @@ public class VirtualResource
     @Override
     public boolean allowsSnapshots()
     {
-        for ( final Location location : locations )
+        for ( final ConcreteResource resource : resources )
         {
-            if ( location.allowsSnapshots() )
+            if ( resource.allowsSnapshots() )
             {
                 return true;
             }
@@ -102,9 +100,9 @@ public class VirtualResource
     @Override
     public boolean allowsReleases()
     {
-        for ( final Location location : locations )
+        for ( final ConcreteResource resource : resources )
         {
-            if ( location.allowsReleases() )
+            if ( resource.allowsReleases() )
             {
                 return true;
             }
@@ -114,15 +112,14 @@ public class VirtualResource
     }
 
     @Override
-    protected Resource newDerivedResource( final String... path )
-    {
-        return new VirtualResource( locations, path );
-    }
-
-    @Override
     public Iterator<ConcreteResource> iterator()
     {
-        return toConcreteResources().iterator();
+        return resources.iterator();
+    }
+
+    public List<ConcreteResource> toConcreteResources()
+    {
+        return resources;
     }
 
 }

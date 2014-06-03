@@ -19,6 +19,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -48,8 +49,8 @@ public class MavenMetadataReader
     {
     }
 
-    public MavenMetadataReader( final XMLInfrastructure xml, final LocationExpander locationExpander, final ArtifactMetadataManager metadataManager,
-                                final XPathManager xpath )
+    public MavenMetadataReader( final XMLInfrastructure xml, final LocationExpander locationExpander,
+                                final ArtifactMetadataManager metadataManager, final XPathManager xpath )
     {
         super( xml, locationExpander );
         this.metadataManager = metadataManager;
@@ -84,14 +85,18 @@ public class MavenMetadataReader
         }
         catch ( final TransferException e )
         {
-            throw new GalleyMavenException( "Failed to resolve metadata for: {} from: {}. Reason: {}", e, ref, locations, e.getMessage() );
+            throw new GalleyMavenException( "Failed to resolve metadata for: {} from: {}. Reason: {}", e, ref,
+                                            locations, e.getMessage() );
         }
+
+        logger.debug( "Resolved {} transfers:\n  {}", transfers.size(), new JoinString( "\n  ", transfers ) );
 
         if ( transfers != null && !transfers.isEmpty() )
         {
             for ( final Transfer transfer : transfers )
             {
-                final DocRef<ProjectRef> dr = new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer ) );
+                final DocRef<ProjectRef> dr =
+                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer ) );
                 final int idx = locations.indexOf( transfer.getLocation() );
 
                 // FIXME: This is too clever by half...the if/then here is probably wrong.

@@ -92,7 +92,8 @@ public class XMLInfrastructure
 
             {
                 put( "org.apache.xml.dtm.DTMManager", "org.apache.xml.dtm.ref.DTMManagerDefault" );
-                put( "com.sun.org.apache.xml.internal.dtm.DTMManager", "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault" );
+                put( "com.sun.org.apache.xml.internal.dtm.DTMManager",
+                     "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault" );
             }
 
             private static final long serialVersionUID = 1L;
@@ -124,7 +125,8 @@ public class XMLInfrastructure
         }
         else
         {
-            logger.warn( "Somebody is playing games with the TransformerFactory...we cannot use it safely: {}", transformerFactory );
+            logger.warn( "Somebody is playing games with the TransformerFactory...we cannot use it safely: {}",
+                         transformerFactory );
             safeInputFactory = null;
         }
 
@@ -213,24 +215,24 @@ public class XMLInfrastructure
 
     public String toXML( final Node node )
     {
-    	return toXML( node, true );
+        return toXML( node, true );
     }
-    
-    public String toXML( final Node node, boolean printXmlDeclaration )
+
+    public String toXML( final Node node, final boolean printXmlDeclaration )
     {
         String result = null;
         try
         {
             final StringWriter sw = new StringWriter();
-            
+
             final Transformer transformer = transformerFactory.newTransformer();
-            
+
             transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, printXmlDeclaration ? "no" : "yes" );
             transformer.setOutputProperty( OutputKeys.METHOD, "xml" );
             transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
             transformer.setOutputProperty( OutputKeys.ENCODING, "UTF-8" );
             transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", "2" );
-            
+
             final DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
 
             transformer.transform( new DOMSource( docBuilder.newDocument()
@@ -272,6 +274,8 @@ public class XMLInfrastructure
             throw new GalleyMavenXMLException( "Failed to read raw data from XML stream: {}", e, e.getMessage() );
         }
 
+        logger.debug( "Parsing:\n\n{}\n\n", xml );
+
         Document doc = null;
         try
         {
@@ -299,8 +303,8 @@ public class XMLInfrastructure
     private Document fallbackParseDocument( String xml, final Object docSource, final Exception e )
         throws GalleyMavenXMLException
     {
-        logger.debug( "Failed to parse: {}. DOM error: {}. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...", e, docSource,
-                      e.getMessage() );
+        logger.debug( "Failed to parse: {}. DOM error: {}. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...",
+                      e, docSource, e.getMessage() );
         try
         {
             Source source;
@@ -332,18 +336,18 @@ public class XMLInfrastructure
         }
         catch ( final TransformerException e1 )
         {
-            throw new GalleyMavenXMLException( "Failed to parse: {}. Transformer error: {}.\nOriginal DOM error: {}", e1, docSource, e1.getMessage(),
-                                               e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to parse: {}. Transformer error: {}.\nOriginal DOM error: {}",
+                                               e1, docSource, e1.getMessage(), e.getMessage() );
         }
         catch ( final SAXException e1 )
         {
-            throw new GalleyMavenXMLException( "Failed to parse: {}. SAX error: {}.\nOriginal DOM error: {}", e1, docSource, e1.getMessage(),
-                                               e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to parse: {}. SAX error: {}.\nOriginal DOM error: {}", e1,
+                                               docSource, e1.getMessage(), e.getMessage() );
         }
         catch ( final XMLStreamException e1 )
         {
-            throw new GalleyMavenXMLException( "Failed to parse: {}. STaX error: {}.\nOriginal DOM error: {}", e1, docSource, e1.getMessage(),
-                                               e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to parse: {}. STaX error: {}.\nOriginal DOM error: {}", e1,
+                                               docSource, e1.getMessage(), e.getMessage() );
         }
     }
 
@@ -456,7 +460,8 @@ public class XMLInfrastructure
 
         if ( isEmpty( gid ) || isEmpty( aid ) || isEmpty( ver ) )
         {
-            throw new GalleyMavenXMLException( "Project parent is present but invalid! (g={},  a={}, v={})", gid, aid, ver );
+            throw new GalleyMavenXMLException( "Project parent is present but invalid! (g={},  a={}, v={})", gid, aid,
+                                               ver );
         }
 
         return new ProjectVersionRef( gid, aid, ver );

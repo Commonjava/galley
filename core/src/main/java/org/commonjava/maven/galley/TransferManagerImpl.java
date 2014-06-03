@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
 import org.commonjava.maven.galley.internal.xfer.BatchRetriever;
@@ -278,7 +279,7 @@ public class TransferManagerImpl
             }
             catch ( final TransferException e )
             {
-                logger.warn( "Failed to retrieve: {}. {} more tries. (Reason: {})", res, ( virt.getLocations()
+                logger.warn( "Failed to retrieve: {}. {} more tries. (Reason: {})", res, ( virt.toConcreteResources()
                                                                                                .size() - tries ),
                              e.getMessage() );
                 lastError = e;
@@ -557,7 +558,8 @@ public class TransferManagerImpl
                                                  final boolean suppressFailures )
         throws TransferException
     {
-        logger.info( "Attempting to batch-retrieve {} resources", resources.size() );
+        logger.info( "Attempting to batch-retrieve {} resources:\n  {}", resources.size(), new JoinString( "\n  ",
+                                                                                                           resources ) );
 
         final Set<BatchRetriever> retrievers = new HashSet<BatchRetriever>( resources.size() );
         for ( final Resource resource : resources )

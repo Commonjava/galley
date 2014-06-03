@@ -111,7 +111,8 @@ public class ArtifactMetadataManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final String groupId, final String filename )
         throws TransferException
     {
-        return transferManager.deleteAll( new VirtualResource( expander.expand( locations ), formatMetadataPath( groupId, filename ) ) );
+        return transferManager.deleteAll( new VirtualResource( expander.expand( locations ),
+                                                               formatMetadataPath( groupId, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -131,7 +132,8 @@ public class ArtifactMetadataManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final ProjectRef ref, final String filename )
         throws TransferException
     {
-        return transferManager.deleteAll( new VirtualResource( expander.expand( locations ), formatMetadataPath( ref, filename ) ) );
+        return transferManager.deleteAll( new VirtualResource( expander.expand( locations ),
+                                                               formatMetadataPath( ref, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -151,7 +153,8 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieve( final Location location, final String groupId, final String filename )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( location ), formatMetadataPath( groupId, filename ) ) );
+        return transferManager.retrieveFirst( new VirtualResource( expander.expand( location ),
+                                                                   formatMetadataPath( groupId, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -171,7 +174,8 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieve( final Location location, final ProjectRef ref, final String filename )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( location ), formatMetadataPath( ref, filename ) ) );
+        return transferManager.retrieveFirst( new VirtualResource( expander.expand( location ),
+                                                                   formatMetadataPath( ref, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -188,10 +192,12 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, java.lang.String, java.lang.String)
      */
     @Override
-    public List<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId, final String filename )
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final String groupId,
+                                       final String filename )
         throws TransferException
     {
-        return transferManager.retrieveAll( new VirtualResource( expander.expand( locations ), formatMetadataPath( groupId, filename ) ) );
+        return transferManager.retrieveAll( new VirtualResource( expander.expand( locations ),
+                                                                 formatMetadataPath( groupId, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -208,10 +214,12 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
-    public List<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref, final String filename )
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref,
+                                       final String filename )
         throws TransferException
     {
-        return transferManager.retrieveAll( new VirtualResource( expander.expand( locations ), formatMetadataPath( ref, filename ) ) );
+        return transferManager.retrieveAll( new VirtualResource( expander.expand( locations ),
+                                                                 formatMetadataPath( ref, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -231,7 +239,8 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final String groupId, final String filename )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( locations ), formatMetadataPath( groupId, filename ) ) );
+        return transferManager.retrieveFirst( new VirtualResource( expander.expand( locations ),
+                                                                   formatMetadataPath( groupId, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -251,7 +260,8 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final ProjectRef ref, final String filename )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( locations ), formatMetadataPath( ref, filename ) ) );
+        return transferManager.retrieveFirst( new VirtualResource( expander.expand( locations ),
+                                                                   formatMetadataPath( ref, filename ) ) );
     }
 
     /* (non-Javadoc)
@@ -268,16 +278,18 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, java.lang.String, java.lang.String, java.io.InputStream)
      */
     @Override
-    public Transfer store( final Location location, final String groupId, final String filename, final InputStream stream )
+    public Transfer store( final Location location, final String groupId, final String filename,
+                           final InputStream stream )
         throws TransferException
     {
-        final VirtualResource virt = new VirtualResource( expander.expand( location ), formatMetadataPath( groupId, filename ) );
+        final VirtualResource virt =
+            new VirtualResource( expander.expand( location ), formatMetadataPath( groupId, filename ) );
         final ConcreteResource selected = ArtifactRules.selectStorageResource( virt );
 
         if ( selected == null )
         {
             logger.warn( "Cannot deploy. No valid deploy points in group." );
-            throw new TransferException( "No deployment locations available for: {} in: {}", virt.getPath(), virt.getLocations() );
+            throw new TransferException( "No deployment locations available for: {}", virt.toConcreteResources() );
         }
 
         return transferManager.store( selected, stream );
@@ -297,16 +309,18 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream)
      */
     @Override
-    public Transfer store( final Location location, final ProjectRef ref, final String filename, final InputStream stream )
+    public Transfer store( final Location location, final ProjectRef ref, final String filename,
+                           final InputStream stream )
         throws TransferException
     {
-        final VirtualResource virt = new VirtualResource( expander.expand( location ), formatMetadataPath( ref, filename ) );
+        final VirtualResource virt =
+            new VirtualResource( expander.expand( location ), formatMetadataPath( ref, filename ) );
         final ConcreteResource selected = ArtifactRules.selectStorageResource( virt );
 
         if ( selected == null )
         {
             logger.warn( "Cannot deploy. No valid deploy points in group." );
-            throw new TransferException( "No deployment locations available for: {} in: {}", virt.getPath(), virt.getLocations() );
+            throw new TransferException( "No deployment locations available for: {}", virt.toConcreteResources() );
         }
 
         return transferManager.store( selected, stream );
@@ -326,11 +340,12 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
-    public boolean publish( final Location location, final String groupId, final String filename, final InputStream stream, final long length,
-                            final String contentType )
+    public boolean publish( final Location location, final String groupId, final String filename,
+                            final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
-        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( groupId, filename ) ), stream, length, contentType );
+        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( groupId, filename ) ),
+                                        stream, length, contentType );
     }
 
     /* (non-Javadoc)
@@ -347,11 +362,12 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
-    public boolean publish( final Location location, final ProjectRef ref, final String filename, final InputStream stream, final long length,
-                            final String contentType )
+    public boolean publish( final Location location, final ProjectRef ref, final String filename,
+                            final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
-        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( ref, filename ) ), stream, length, contentType );
+        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( ref, filename ) ), stream,
+                                        length, contentType );
     }
 
 }
