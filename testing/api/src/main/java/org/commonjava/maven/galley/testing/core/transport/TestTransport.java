@@ -93,7 +93,8 @@ public class TestTransport
     // Transport implementation...
 
     @Override
-    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
+                                          final int timeoutSeconds )
         throws TransferException
     {
         final TestDownload job = downloads.get( resource );
@@ -108,15 +109,16 @@ public class TestTransport
     }
 
     @Override
-    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final int timeoutSeconds )
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length,
+                                        final int timeoutSeconds )
         throws TransferException
     {
         return createPublishJob( resource, stream, length, null, timeoutSeconds );
     }
 
     @Override
-    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final String contentType,
-                                        final int timeoutSeconds )
+    public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length,
+                                        final String contentType, final int timeoutSeconds )
         throws TransferException
     {
         final TestPublish job = publishes.get( resource );
@@ -159,6 +161,14 @@ public class TestTransport
         }
 
         return job;
+    }
+
+    public void clear()
+    {
+        downloads.clear();
+        publishes.clear();
+        listings.clear();
+        exists.clear();
     }
 
 }

@@ -41,5 +41,10 @@
       <groupId>commons-jxpath</groupId>
       <artifactId>commons-jxpath</artifactId>
     </dependency>
+    <dependency>
+    	<groupId>org.commonjava.maven.galley</groupId>
+    	<artifactId>galley-test-harness-core</artifactId>
+    	<scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

@@ -64,26 +64,29 @@ public class ApiFixture
             locations = new NoOpLocationExpander();
         }
 
+        if ( decorator == null )
+        {
+            decorator = new NoOpTransferDecorator();
+        }
+
+        if ( events == null )
+        {
+            events = new NoOpFileEventManager();
+        }
+
+        if ( cache == null )
+        {
+            cache = new TestCacheProvider( temp.newFolder( "cache" ), events, decorator );
+        }
+
         if ( transport == null )
         {
             transport = new TestTransport();
         }
 
-        if ( decorator == null )
-        {
-            decorator = new NoOpTransferDecorator();
-        }
         if ( nfc == null )
         {
             nfc = new NoOpNotFoundCache();
-        }
-        if ( events == null )
-        {
-            events = new NoOpFileEventManager();
-        }
-        if ( cache == null )
-        {
-            cache = new TestCacheProvider( temp.newFolder( "cache" ), events, decorator );
         }
     }
 
@@ -99,6 +102,7 @@ public class ApiFixture
     public void after()
     {
         temp.delete();
+        getTransport().clear();
         super.after();
     }
 
