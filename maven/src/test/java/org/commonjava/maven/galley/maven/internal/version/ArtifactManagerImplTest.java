@@ -23,7 +23,7 @@ public class ArtifactManagerImplTest
 
     private static final Location LOCATION = new SimpleLocation( URI );
 
-    private static final String BASE = "artifact-manager/";
+    private static final String ROOT = "artifact-manager/";
 
     @Rule
     public TestFixture fixture = new TestFixture();
@@ -38,8 +38,9 @@ public class ArtifactManagerImplTest
     public void resolveSnapshot_FirstMatch_SingletonLocationList_SingletonSnapshotList_LatestVersionStrategy()
         throws Exception
     {
-        final String testResource = "single-snapshot.xml";
-        final String testPomResource = "single-snapshot-pom.xml";
+        final String base = "single-snapshot/";
+        final String testResource = base + "single-snapshot.xml";
+        final String testPomResource = base + "single-snapshot-pom.xml";
 
         final ProjectVersionRef ref = new ProjectVersionRef( "org.group", "artifact", "1.0-SNAPSHOT" );
         final ConcreteResource metadataResource = new ConcreteResource( LOCATION, fixture.snapshotMetadataPath( ref ) );
@@ -48,10 +49,10 @@ public class ArtifactManagerImplTest
                                                                 .asPomArtifact() ) );
 
         fixture.getTransport()
-               .registerDownload( metadataResource, new TestDownload( BASE + testResource ) );
+               .registerDownload( metadataResource, new TestDownload( ROOT + testResource ) );
 
         fixture.getTransport()
-               .registerDownload( pomResource, new TestDownload( BASE + testPomResource ) );
+               .registerDownload( pomResource, new TestDownload( ROOT + testPomResource ) );
 
         final Transfer retrieved = fixture.getArtifactManager()
                                           .retrieve( LOCATION, ref.asPomArtifact() );
@@ -71,8 +72,9 @@ public class ArtifactManagerImplTest
     public void resolveSnapshot_FirstMatch_SingletonLocationList_TwoSnapshotList_LatestVersionStrategy()
         throws Exception
     {
-        final String testResource = "two-snapshots.xml";
-        final String testPomResource = "two-snapshots-pom.xml";
+        final String base = "2-snapshots-1-location/";
+        final String testResource = base + "two-snapshots.xml";
+        final String testPomResource = base + "two-snapshots-pom.xml";
 
         final ProjectVersionRef ref = new ProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
         final ConcreteResource metadataResource = new ConcreteResource( LOCATION, fixture.snapshotMetadataPath( ref ) );
@@ -81,10 +83,10 @@ public class ArtifactManagerImplTest
                                                                 .asPomArtifact() ) );
 
         fixture.getTransport()
-               .registerDownload( metadataResource, new TestDownload( BASE + testResource ) );
+               .registerDownload( metadataResource, new TestDownload( ROOT + testResource ) );
 
         fixture.getTransport()
-               .registerDownload( pomResource, new TestDownload( BASE + testPomResource ) );
+               .registerDownload( pomResource, new TestDownload( ROOT + testPomResource ) );
 
         final Transfer retrieved = fixture.getArtifactManager()
                                           .retrieve( LOCATION, ref.asPomArtifact() );
