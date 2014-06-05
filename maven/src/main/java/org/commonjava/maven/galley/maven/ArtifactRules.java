@@ -12,8 +12,8 @@ package org.commonjava.maven.galley.maven;
 
 import java.util.Collection;
 
+import org.commonjava.maven.atlas.ident.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.maven.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.VirtualResource;
@@ -33,12 +33,14 @@ public final class ArtifactRules
         {
             if ( !resource.allowsSnapshots() )
             {
-                throw new TransferException( "Cannot store snapshot in non-snapshot location: %s", resource.getLocationUri() );
+                throw new TransferException( "Cannot store snapshot in non-snapshot location: %s",
+                                             resource.getLocationUri() );
             }
         }
         else if ( !resource.allowsReleases() )
         {
-            throw new TransferException( "Cannot store release in snapshot-only location: %s", resource.getLocationUri() );
+            throw new TransferException( "Cannot store release in snapshot-only location: %s",
+                                         resource.getLocationUri() );
         }
     }
 
