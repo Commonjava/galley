@@ -23,6 +23,7 @@ import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
+//FIXME: Find a better way than using threadlocals!
 public class TLLocationCredentialsProvider
     implements CredentialsProvider
 {
@@ -31,7 +32,8 @@ public class TLLocationCredentialsProvider
 
     private final ThreadLocal<Map<AuthScope, Credentials>> credentials = new ThreadLocal<Map<AuthScope, Credentials>>();
 
-    private final ThreadLocal<Map<AuthScope, HttpLocation>> repositories = new ThreadLocal<Map<AuthScope, HttpLocation>>();
+    private final ThreadLocal<Map<AuthScope, HttpLocation>> repositories =
+        new ThreadLocal<Map<AuthScope, HttpLocation>>();
 
     private final PasswordManager passwordManager;
 
@@ -60,14 +62,18 @@ public class TLLocationCredentialsProvider
                     creds.put( as,
                                new UsernamePasswordCredentials(
                                                                 location.getUser(),
-                                                                passwordManager.getPassword( new PasswordEntry( location, PasswordEntry.USER_PASSWORD ) ) ) );
+                                                                passwordManager.getPassword( new PasswordEntry(
+                                                                                                                location,
+                                                                                                                PasswordEntry.USER_PASSWORD ) ) ) );
                 }
 
                 if ( location.getProxyHost() != null && location.getProxyUser() != null )
                 {
                     creds.put( new AuthScope( location.getProxyHost(), location.getProxyPort() ),
-                               new UsernamePasswordCredentials( location.getProxyUser(),
-                                                                passwordManager.getPassword( new PasswordEntry( location,
+                               new UsernamePasswordCredentials(
+                                                                location.getProxyUser(),
+                                                                passwordManager.getPassword( new PasswordEntry(
+                                                                                                                location,
                                                                                                                 PasswordEntry.PROXY_PASSWORD ) ) ) );
                 }
             }

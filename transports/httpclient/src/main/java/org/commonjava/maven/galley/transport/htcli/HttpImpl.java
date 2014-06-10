@@ -20,6 +20,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -46,6 +47,8 @@ public class HttpImpl
 
     private final PasswordManager passwords;
 
+    private ClientConnectionManager connectionManager;
+
     public HttpImpl( final PasswordManager passwords )
     {
         this( passwords, 20 );
@@ -57,12 +60,23 @@ public class HttpImpl
         setup();
     }
 
+    public HttpImpl( final PasswordManager passwordManager, final ClientConnectionManager connectionManager )
+    {
+        passwords = passwordManager;
+        this.connectionManager = connectionManager;
+        setup();
+    }
+
     protected void setup()
     {
-        final PoolingClientConnectionManager ccm = new PoolingClientConnectionManager();
+        final ClientConnectionManager connMgr = connectionManager;
+        if ( connMgr == null )
+        {
+            final PoolingClientConnectionManager ccm = new PoolingClientConnectionManager();
 
-        // TODO: Make this configurable
-        ccm.setMaxTotal( 20 );
+            // TODO: Make this configurable
+            ccm.setMaxTotal( 20 );
+        }
 
         credProvider = new TLLocationCredentialsProvider( passwords );
 
@@ -70,27 +84,31 @@ public class HttpImpl
         {
             socketFactory = new LocationSSLSocketFactory( passwords, credProvider );
 
-            final SchemeRegistry registry = ccm.getSchemeRegistry();
+            final SchemeRegistry registry = connMgr.getSchemeRegistry();
             registry.register( new Scheme( "https", 443, socketFactory ) );
         }
         catch ( final KeyManagementException e )
         {
-            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
+                                         e.getMessage() ), e );
         }
         catch ( final UnrecoverableKeyException e )
         {
-            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
+                                         e.getMessage() ), e );
         }
         catch ( final NoSuchAlgorithmException e )
         {
-            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
+                                         e.getMessage() ), e );
         }
         catch ( final KeyStoreException e )
         {
-            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s", e.getMessage() ), e );
+            logger.error( String.format( "Failed to setup SSLSocketFactory. SSL mutual authentication will not be available!\nError: %s",
+                                         e.getMessage() ), e );
         }
 
-        final DefaultHttpClient hc = new DefaultHttpClient( ccm );
+        final DefaultHttpClient hc = new DefaultHttpClient( connMgr );
         hc.setCredentialsProvider( credProvider );
 
         HttpProtocolParams.setVersion( hc.getParams(), HttpVersion.HTTP_1_1 );
