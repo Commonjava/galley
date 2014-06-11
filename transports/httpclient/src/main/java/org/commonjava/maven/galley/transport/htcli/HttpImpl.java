@@ -69,13 +69,14 @@ public class HttpImpl
 
     protected void setup()
     {
-        final ClientConnectionManager connMgr = connectionManager;
+        ClientConnectionManager connMgr = connectionManager;
         if ( connMgr == null )
         {
             final PoolingClientConnectionManager ccm = new PoolingClientConnectionManager();
 
             // TODO: Make this configurable
             ccm.setMaxTotal( 20 );
+            connMgr = ccm;
         }
 
         credProvider = new TLLocationCredentialsProvider( passwords );
