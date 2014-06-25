@@ -109,7 +109,6 @@ public class FileCacheProvider
                 f = new File( altDir, resource.getPath() );
             }
 
-            logger.info( "Storing: {} to: {}", resource, f );
             if ( !resource.isRoot() && f.exists() && !f.isDirectory() && resource.getTimeoutSeconds() > 0 )
             {
                 final long current = System.currentTimeMillis();
