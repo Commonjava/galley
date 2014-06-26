@@ -140,6 +140,10 @@ public final class Transfer
     public void touch()
     {
         waitForUnlock();
+        if ( decorator != null )
+        {
+            decorator.decorateTouch(this);
+        }
         fileEventManager.fire( new FileAccessEvent( this ) );
     }
 
@@ -161,7 +165,7 @@ public final class Transfer
                 return null;
             }
 
-            stream = decorator.decorateRead( stream, this );
+            stream = decorator == null ? stream : decorator.decorateRead( stream, this );
             if ( fireEvents )
             {
                 fileEventManager.fire( new FileAccessEvent( this ) );
@@ -197,7 +201,10 @@ public final class Transfer
                 return null;
             }
 
-            stream = decorator.decorateWrite( new TransferUnlockingOutputStream( stream, this ), this, accessType );
+            stream =
+                decorator == null ? stream
+                                : decorator.decorateWrite( new TransferUnlockingOutputStream( stream, this ), this,
+                                                           accessType );
             if ( fireEvents )
             {
                 fileEventManager.fire( new FileStorageEvent( accessType, this ) );
@@ -218,6 +225,10 @@ public final class Transfer
     public boolean exists()
     {
         waitForUnlock();
+        if ( decorator != null )
+        {
+            decorator.decorateExists(this);
+        }
         return provider.exists( resource );
     }
 
@@ -228,6 +239,10 @@ public final class Transfer
         locked = true;
         try
         {
+            if ( decorator != null )
+            {
+                decorator.decorateCopyFrom(f, this);
+            }
             provider.copy( f.getResource(), resource );
         }
         finally
@@ -253,6 +268,11 @@ public final class Transfer
         waitForUnlock();
         try
         {
+            if ( decorator != null )
+            {
+                decorator.decorateDelete( this );
+            }
+
             final boolean deleted = provider.delete( resource );
             if ( deleted && fireEvents )
             {
@@ -272,8 +292,14 @@ public final class Transfer
     }
 
     public String[] list()
+        throws IOException
     {
-        return provider.list( resource );
+        String[] listing = provider.list( resource );
+        if ( decorator != null )
+        {
+            listing = decorator.decorateListing( this, listing );
+        }
+        return listing;
     }
 
     public File getDetachedFile()
@@ -293,6 +319,10 @@ public final class Transfer
     public void mkdirs()
         throws IOException
     {
+        if ( decorator != null )
+        {
+            decorator.decorateMkdirs(this);
+        }
         provider.mkdirs( resource );
     }
 
@@ -300,6 +330,10 @@ public final class Transfer
         throws IOException
     {
         waitForUnlock();
+        if ( decorator != null )
+        {
+            decorator.decorateCreateFile(this);
+        }
         provider.createFile( resource );
     }
 

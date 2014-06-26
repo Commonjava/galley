@@ -63,6 +63,16 @@ public abstract class AbstractChecksumGenerator
         FileUtils.write( checksumFile, encodeHexString( digester.digest() ) );
     }
 
+    public final void delete()
+        throws IOException
+    {
+        final File checksumFile = getChecksumFile( transfer );
+        if ( checksumFile.exists() )
+        {
+            FileUtils.forceDelete( checksumFile );
+        }
+    }
+
     private final File getChecksumFile( final Transfer transfer )
     {
         final File f = transfer.getDetachedFile();

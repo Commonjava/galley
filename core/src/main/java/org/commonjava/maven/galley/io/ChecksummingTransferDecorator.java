@@ -8,14 +8,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.commonjava.maven.galley.io.checksum.AbstractChecksumGenerator;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGeneratorFactory;
 import org.commonjava.maven.galley.io.checksum.ChecksummingOutputStream;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 public final class ChecksummingTransferDecorator
-    implements TransferDecorator
+    extends AbstractTransferDecorator
 {
 
     private final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories;
@@ -60,5 +60,16 @@ public final class ChecksummingTransferDecorator
         throws IOException
     {
         return stream;
+    }
+
+    @Override
+    public void decorateDelete( final Transfer transfer )
+        throws IOException
+    {
+        for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
+        {
+            final AbstractChecksumGenerator generator = factory.createGenerator( transfer );
+            generator.delete();
+        }
     }
 }

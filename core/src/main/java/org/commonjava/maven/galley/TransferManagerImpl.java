@@ -195,7 +195,14 @@ public class TransferManagerImpl
             }
             else
             {
-                cacheResult = new ListingResult( resource, cached.list() );
+                try
+                {
+                    cacheResult = new ListingResult( resource, cached.list() );
+                }
+                catch ( final IOException e )
+                {
+                    throw new TransferException( "Listing failed: {}. Reason: {}", e, resource, e.getMessage() );
+                }
             }
         }
 
@@ -466,7 +473,17 @@ public class TransferManagerImpl
 
         if ( item.isDirectory() )
         {
-            final String[] listing = item.list();
+            String[] listing;
+            try
+            {
+                listing = item.list();
+            }
+            catch ( final IOException e )
+            {
+                throw new TransferException( "Delete failed: {}. Reason: cannot list directory due to: {}", e, item,
+                                             e.getMessage() );
+            }
+
             for ( final String sub : listing )
             {
                 if ( !doDelete( item.getChild( sub ) ) )

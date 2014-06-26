@@ -26,4 +26,23 @@ public interface TransferDecorator
     InputStream decorateRead( InputStream stream, Transfer transfer )
         throws IOException;
 
+    void decorateTouch( Transfer transfer );
+
+    void decorateExists( Transfer transfer );
+
+    void decorateCopyFrom( Transfer from, Transfer transfer )
+        throws IOException;
+
+    void decorateDelete( Transfer transfer )
+        throws IOException;
+
+    String[] decorateListing( Transfer transfer, String[] listing )
+        throws IOException;
+
+    void decorateMkdirs( Transfer transfer )
+        throws IOException;
+
+    void decorateCreateFile( Transfer transfer )
+        throws IOException;
+
 }
