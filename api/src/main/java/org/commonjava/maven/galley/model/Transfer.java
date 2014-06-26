@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 
 import org.commonjava.maven.galley.event.FileAccessEvent;
 import org.commonjava.maven.galley.event.FileDeletionEvent;
@@ -24,8 +25,10 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.TransferUnlockingOutputStream;
 
-public final class Transfer
+public final class Transfer implements Serializable
 {
+
+    private static final long serialVersionUID = -7790172053350083052L;
 
     private final ConcreteResource resource;
 
