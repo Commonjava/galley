@@ -197,7 +197,23 @@ public class TransferManagerImpl
             {
                 try
                 {
-                    cacheResult = new ListingResult( resource, cached.list() );
+                    // This is fairly stupid, but we need to append '/' to the end of directories in the listing so content processors can figure
+                    // out what to do with them.
+                    final String[] fnames = cached.list();
+                    int idx = 0;
+                    for ( final String fname : fnames )
+                    {
+                        final ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+                        final Transfer childRef = getCacheReference( child );
+                        if ( childRef.isDirectory() )
+                        {
+                            fnames[idx] = fname + "/";
+                        }
+
+                        idx++;
+                    }
+
+                    cacheResult = new ListingResult( resource, fnames );
                 }
                 catch ( final IOException e )
                 {
