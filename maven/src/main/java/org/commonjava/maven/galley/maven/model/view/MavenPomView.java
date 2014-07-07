@@ -191,6 +191,21 @@ public class MavenPomView
         return depViews;
     }
 
+    public List<DependencyView> getAllManagedDependenciesNoImports()
+        throws GalleyMavenException
+    {
+        final List<MavenElementView> depNodes =
+            resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[not(scope/text()=\"import\")]",
+                                                     true, -1, false );
+        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
+        for ( final MavenElementView node : depNodes )
+        {
+            depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
+        }
+
+        return depViews;
+    }
+
     public List<DependencyView> getAllBOMs()
         throws GalleyMavenException
     {
@@ -469,9 +484,17 @@ public class MavenPomView
         return result;
     }
 
+    public List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path,
+                                                                           final boolean cachePath,
+                                                                           final int maxDepth )
+    {
+        return resolveXPathToAggregatedElementViewList( path, cachePath, maxDepth, true );
+    }
+
     public synchronized List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path,
                                                                                         final boolean cachePath,
-                                                                                        final int maxDepth )
+                                                                                        final int maxDepth, 
+                                                                                        final boolean includeMixins )
         throws GalleyMavenRuntimeException
     {
         int maxAncestry = maxDepth;
@@ -505,21 +528,24 @@ public class MavenPomView
             ancestryDepth++;
         }
 
-        for ( final MavenXmlMixin<ProjectVersionRef> mixin : mixins )
+        if ( includeMixins )
         {
-            if ( !mixin.matches( path ) )
+            for ( final MavenXmlMixin<ProjectVersionRef> mixin : mixins )
             {
-                continue;
-            }
-
-            final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
-            final List<MavenElementView> nodes =
-                mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry );
-            if ( nodes != null )
-            {
-                for ( final MavenElementView node : nodes )
+                if ( !mixin.matches( path ) )
                 {
-                    result.add( node );
+                    continue;
+                }
+                
+                final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
+                final List<MavenElementView> nodes =
+                        mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry, includeMixins );
+                if ( nodes != null )
+                {
+                    for ( final MavenElementView node : nodes )
+                    {
+                        result.add( node );
+                    }
                 }
             }
         }
