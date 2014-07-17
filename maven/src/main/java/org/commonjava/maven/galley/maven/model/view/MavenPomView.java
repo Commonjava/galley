@@ -176,6 +176,12 @@ public class MavenPomView
         return depViews;
     }
 
+    /**
+     * Reads all managed dependencies from this pom. It means all from pom 
+     * itself, from its parents and also from imported BOM poms.
+     * 
+     * @return list of read dependencies
+     */
     public List<DependencyView> getAllManagedDependencies()
         throws GalleyMavenException
     {
@@ -191,8 +197,13 @@ public class MavenPomView
         return depViews;
     }
 
-    public List<DependencyView> getAllManagedDependenciesNoImports()
-        throws GalleyMavenException
+    /**
+     * Reads managed dependencies specified in this pom itself and its parents. 
+     * It omits managed dependencies specified in imported BOM poms.
+     * 
+     * @return list of read dependencies
+     */
+    public List<DependencyView> getManagedDependenciesNoImports()
     {
         final List<MavenElementView> depNodes =
             resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[not(scope/text()=\"import\")]",
