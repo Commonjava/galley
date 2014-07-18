@@ -195,7 +195,7 @@ public class XMLInfrastructure
         }
         catch ( final ParserConfigurationException e )
         {
-            throw new GalleyMavenXMLException( "Failed to create DocumentBuilder: {}", e, e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to create DocumentBuilder: %s", e, e.getMessage() );
         }
     }
 
@@ -209,7 +209,7 @@ public class XMLInfrastructure
         }
         catch ( final TransformerConfigurationException e )
         {
-            throw new GalleyMavenXMLException( "Failed to create Transformer: {}", e, e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to create Transformer: %s", e, e.getMessage() );
         }
     }
 
@@ -235,22 +235,32 @@ public class XMLInfrastructure
 
             final DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
 
-            transformer.transform( new DOMSource( docBuilder.newDocument()
-                                                            .importNode( node, true ) ), new StreamResult( sw ) );
+            Node doc;
+            if ( node instanceof Document )
+            {
+                doc = node;
+            }
+            else
+            {
+                doc = docBuilder.newDocument()
+                                .importNode( node, true );
+            }
+
+            transformer.transform( new DOMSource( doc ), new StreamResult( sw ) );
 
             result = sw.toString();
         }
         catch ( final TransformerException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to render to XML: {}. Reason: {}", e, node, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
         }
         catch ( final DOMException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to render to XML: {}. Reason: {}", e, node, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
         }
         catch ( final ParserConfigurationException e )
         {
-            throw new GalleyMavenRuntimeException( "Failed to render to XML: {}. Reason: {}", e, node, e.getMessage() );
+            throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
         }
 
         return result;
@@ -261,7 +271,7 @@ public class XMLInfrastructure
     {
         if ( stream == null )
         {
-            throw new GalleyMavenXMLException( "Cannot parse null input stream from: {}.", docSource );
+            throw new GalleyMavenXMLException( "Cannot parse null input stream from: %s.", docSource );
         }
 
         String xml;
@@ -271,7 +281,7 @@ public class XMLInfrastructure
         }
         catch ( final IOException e )
         {
-            throw new GalleyMavenXMLException( "Failed to read raw data from XML stream: {}", e, e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to read raw data from XML stream: %s", e, e.getMessage() );
         }
 
         logger.debug( "Parsing:\n\n{}\n\n", xml );
@@ -336,17 +346,17 @@ public class XMLInfrastructure
         }
         catch ( final TransformerException e1 )
         {
-            throw new GalleyMavenXMLException( "Failed to parse: {}. Transformer error: {}.\nOriginal DOM error: {}",
+            throw new GalleyMavenXMLException( "Failed to parse: %s. Transformer error: %s.\nOriginal DOM error: %s",
                                                e1, docSource, e1.getMessage(), e.getMessage() );
         }
         catch ( final SAXException e1 )
         {
-            throw new GalleyMavenXMLException( "Failed to parse: {}. SAX error: {}.\nOriginal DOM error: {}", e1,
+            throw new GalleyMavenXMLException( "Failed to parse: %s. SAX error: %s.\nOriginal DOM error: %s", e1,
                                                docSource, e1.getMessage(), e.getMessage() );
         }
         catch ( final XMLStreamException e1 )
         {
-            throw new GalleyMavenXMLException( "Failed to parse: {}. STaX error: {}.\nOriginal DOM error: {}", e1,
+            throw new GalleyMavenXMLException( "Failed to parse: %s. STaX error: %s.\nOriginal DOM error: %s", e1,
                                                docSource, e1.getMessage(), e.getMessage() );
         }
     }
@@ -401,7 +411,7 @@ public class XMLInfrastructure
         }
         catch ( final IOException e )
         {
-            throw new GalleyMavenXMLException( "Failed to read: {}. Reason: {}", e, transfer, e.getMessage() );
+            throw new GalleyMavenXMLException( "Failed to read: %s. Reason: %s", e, transfer, e.getMessage() );
         }
         finally
         {
@@ -436,7 +446,7 @@ public class XMLInfrastructure
 
         if ( isEmpty( gid ) || isEmpty( aid ) || isEmpty( ver ) )
         {
-            throw new GalleyMavenXMLException( "Project GAV is invalid! (g={},  a={}, v={})", gid, aid, ver );
+            throw new GalleyMavenXMLException( "Project GAV is invalid! (g=%s,  a=%s, v=%s)", gid, aid, ver );
         }
 
         return new ProjectVersionRef( gid, aid, ver );
@@ -460,7 +470,7 @@ public class XMLInfrastructure
 
         if ( isEmpty( gid ) || isEmpty( aid ) || isEmpty( ver ) )
         {
-            throw new GalleyMavenXMLException( "Project parent is present but invalid! (g={},  a={}, v={})", gid, aid,
+            throw new GalleyMavenXMLException( "Project parent is present but invalid! (g=%s,  a=%s, v=%s)", gid, aid,
                                                ver );
         }
 
