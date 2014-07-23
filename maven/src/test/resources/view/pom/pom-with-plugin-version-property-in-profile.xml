@@ -1,0 +1,30 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.foo</groupId>
+  <artifactId>bar</artifactId>
+  <version>1</version>
+
+  <properties>
+    <testPluginVersion>1.0</testPluginVersion>
+  </properties>      
+
+  <profiles>
+    <profile>
+      <id>test</id>
+
+      <properties>
+        <testPluginVersion>2.0</testPluginVersion>
+      </properties>      
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>dep.group</groupId>
+            <artifactId>dep-artifact</artifactId>
+            <version>${testPluginVersion}</version>
+          </plugin>>
+        </plugins>>
+      </build>>
+    </profile>
+  </profiles>
+
+</project>
