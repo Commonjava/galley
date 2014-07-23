@@ -94,6 +94,15 @@ public class MavenPomView
         }
 
         String value = resolveXPathExpression( expr, true, -1 );
+
+        for ( int i = 0; value == null && activeProfileIds != null && i < activeProfileIds.length; i++ )
+        {
+            final String profileId = activeProfileIds[i];
+            value =
+                resolveXPathExpression( "//profile[id/text()=\"" + profileId + "\"]/properties/" + expression, true,
+                                        -1, activeProfileIds );
+        }
+
         if ( value == null )
         {
             final List<Node> propertyNodes = resolveXPathToAggregatedNodeList( "/project/properties/*", true, -1 );
@@ -106,14 +115,6 @@ public class MavenPomView
                     break;
                 }
             }
-        }
-
-        for ( int i = 0; value == null && activeProfileIds != null && i < activeProfileIds.length; i++ )
-        {
-            final String profileId = activeProfileIds[i];
-            value =
-                resolveXPathExpression( "//profile[id/text()=\"" + profileId + "\"]/properties/" + expression, true,
-                                        -1, activeProfileIds );
         }
 
         return value;
