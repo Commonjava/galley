@@ -67,6 +67,24 @@ public class MavenPomViewTest
 
     }
 
+    /**
+     * Checks if plugin version specified as version property in a profile gets
+     * resolved correctly. There is also global version property with different
+     * value so it also checks if the profile value takes preference.
+     */
+    @Test
+    public void pluginWithVersionPropertyInProfile()
+        throws Exception
+    {
+        MavenPomView pomView = loadPoms( new String[] { "test" },
+                                         "pom-with-plugin-version-property-in-profile.xml" );
+
+        PluginView pv = pomView.getAllBuildPlugins()
+                               .get( 0 );
+
+        assertThat( pv.getVersion(), equalTo( "2.0" ) );
+    }
+
     @Test
     public void dependencyManagedBySingleBOM()
         throws Exception

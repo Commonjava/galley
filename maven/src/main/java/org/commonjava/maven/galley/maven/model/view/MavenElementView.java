@@ -230,7 +230,14 @@ public class MavenElementView
         //
 
         //        logger.info( "Resolving expressions in: '{}'", val );
-        return pomView.resolveExpressions( val );
+        if ( getProfileId() == null )
+        {
+            return pomView.resolveExpressions( val );
+        }
+        else
+        {
+            return pomView.resolveExpressions( val, getProfileId() );
+        }
     }
 
     protected Node getNode( final String path )
