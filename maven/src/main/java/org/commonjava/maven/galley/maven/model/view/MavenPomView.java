@@ -207,7 +207,7 @@ public class MavenPomView
     public List<DependencyView> getAllManagedDependencies()
         throws GalleyMavenException
     {
-        final List<DependencyView> raw = getAllManagedDependenciesWithOverlaps();
+        final List<DependencyView> raw = getAllManagedDependenciesUnfiltered();
         final List<DependencyView> depViews = new ArrayList<DependencyView>( raw.size() );
         final Set<VersionlessArtifactRef> seen = new HashSet<>();
         for ( final DependencyView dv : raw )
