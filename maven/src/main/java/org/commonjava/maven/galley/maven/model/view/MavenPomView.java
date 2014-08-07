@@ -23,6 +23,7 @@ import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.StringSearchInterpolator;
 import org.codehaus.plexus.interpolation.ValueSource;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.JXPathUtils;
@@ -179,12 +180,11 @@ public class MavenPomView
 
     /**
      * Reads all managed dependencies from this pom. It means all from pom 
-     * itself, from its parents and also from imported BOM poms.
+     * itself, from its parents and also from imported BOM poms. This method will even include colliding dependency declarations, or overlaps.
      * 
      * @return list of read dependencies
      */
-    public List<DependencyView> getAllManagedDependencies()
-        throws GalleyMavenException
+    public List<DependencyView> getAllManagedDependenciesUnfiltered()
     {
         final List<MavenElementView> depNodes =
             resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[not(scope/text()=\"import\")]",
@@ -193,6 +193,31 @@ public class MavenPomView
         for ( final MavenElementView node : depNodes )
         {
             depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
+        }
+
+        return depViews;
+    }
+
+    /**
+     * Reads all managed dependencies from this pom. It means all from pom 
+     * itself, from its parents and also from imported BOM poms. This method will eliminate overlapping, or colliding, dependency declarations.
+     * 
+     * @return list of read dependencies
+     */
+    public List<DependencyView> getAllManagedDependencies()
+        throws GalleyMavenException
+    {
+        final List<DependencyView> raw = getAllManagedDependenciesWithOverlaps();
+        final List<DependencyView> depViews = new ArrayList<DependencyView>( raw.size() );
+        final Set<VersionlessArtifactRef> seen = new HashSet<>();
+        for ( final DependencyView dv : raw )
+        {
+            final VersionlessArtifactRef var = dv.asVersionlessArtifactRef();
+            if ( !seen.contains( var ) )
+            {
+                depViews.add( dv );
+                seen.add( var );
+            }
         }
 
         return depViews;
@@ -496,8 +521,7 @@ public class MavenPomView
         return result;
     }
 
-    public List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path,
-                                                                           final boolean cachePath,
+    public List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path, final boolean cachePath,
                                                                            final int maxDepth )
     {
         return resolveXPathToAggregatedElementViewList( path, cachePath, maxDepth, true );
@@ -505,7 +529,7 @@ public class MavenPomView
 
     public synchronized List<MavenElementView> resolveXPathToAggregatedElementViewList( final String path,
                                                                                         final boolean cachePath,
-                                                                                        final int maxDepth, 
+                                                                                        final int maxDepth,
                                                                                         final boolean includeMixins )
         throws GalleyMavenRuntimeException
     {
@@ -548,10 +572,10 @@ public class MavenPomView
                 {
                     continue;
                 }
-                
+
                 final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
                 final List<MavenElementView> nodes =
-                        mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry, includeMixins );
+                    mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry, includeMixins );
                 if ( nodes != null )
                 {
                     for ( final MavenElementView node : nodes )

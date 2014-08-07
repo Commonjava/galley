@@ -13,9 +13,12 @@ package org.commonjava.maven.galley.maven.model.view;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
+import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.junit.Test;
 
 public class DependencyViewTest
@@ -251,6 +254,38 @@ public class DependencyViewTest
 
         assertThat( dv.getScope(), equalTo( DependencyScope.compile ) );
 
+    }
+
+    @Test
+    public void managedDependency_FirstBOMWins()
+        throws Exception
+    {
+        final DependencyView dv =
+            loadFirstDirectDependency( "child-with-two-boms.xml", "bom-with-first-version.xml",
+                                       "bom-with-second-version.xml" );
+
+        logger.info( dv.asProjectVersionRef()
+                       .toString() );
+
+        assertThat( dv.getVersion(), equalTo( "1.1" ) );
+    }
+
+    @Test
+    public void getAllManagedDependencies_FirstBOMWinsOnConflict()
+        throws Exception
+    {
+        final List<DependencyView> dvs =
+            loadAllManagedDependencies( "child-with-two-boms.xml", "bom-with-first-version.xml",
+                                        "bom-with-second-version.xml" );
+
+        final Set<VersionlessArtifactRef> seen = new HashSet<>();
+        for ( final DependencyView dependencyView : dvs )
+        {
+            final VersionlessArtifactRef var = dependencyView.asVersionlessArtifactRef();
+            logger.info( var + ": " + dependencyView.asArtifactRef() );
+            assertThat( "Collision NOT resolved: " + var, seen.contains( var ), equalTo( false ) );
+            seen.add( var );
+        }
     }
 
 }

@@ -96,6 +96,20 @@ public abstract class AbstractMavenViewTest
         return deps.get( 0 );
     }
 
+    protected List<DependencyView> loadAllManagedDependencies( final String... pomNames )
+        throws Exception
+    {
+        final MavenPomView mpv = loadPoms( pomNames );
+
+        final List<DependencyView> deps = mpv.getAllManagedDependencies();
+        if ( deps == null )
+        {
+            fail( "No direct dependencies were retrieved!" );
+        }
+
+        return deps;
+    }
+
     protected MavenPomView loadPoms( final String... pomNames )
         throws Exception
     {
@@ -124,13 +138,14 @@ public abstract class AbstractMavenViewTest
                 pvr = ref;
             }
 
-            final DocRef<ProjectVersionRef> dr = new DocRef<ProjectVersionRef>( ref, new SimpleLocation( "http://localhost:8080/" ), document );
+            final DocRef<ProjectVersionRef> dr =
+                new DocRef<ProjectVersionRef>( ref, new SimpleLocation( "http://localhost:8080/" ), document );
 
             stack.add( dr );
         }
 
-        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(), new StandardMavenPluginImplications( xml ), xml,
-                                 activeProfileIds );
+        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(),
+                                 new StandardMavenPluginImplications( xml ), xml, activeProfileIds );
     }
 
     protected MavenXmlView<ProjectRef> loadDocs( final Set<String> localOnlyPaths, final String... docNames )
@@ -148,7 +163,8 @@ public abstract class AbstractMavenViewTest
                                                             .newDocumentBuilder()
                                                             .parse( is );
 
-            final DocRef<ProjectRef> dr = new DocRef<ProjectRef>( pr, new SimpleLocation( "http://localhost:8080/" ), document );
+            final DocRef<ProjectRef> dr =
+                new DocRef<ProjectRef>( pr, new SimpleLocation( "http://localhost:8080/" ), document );
 
             stack.add( dr );
         }
