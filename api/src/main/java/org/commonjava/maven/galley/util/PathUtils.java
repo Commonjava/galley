@@ -45,11 +45,11 @@ public final class PathUtils
 
         final StringBuilder sb = new StringBuilder();
         int idx = 0;
-        for ( String part : path )
+        parts: for ( String part : path )
         {
             if ( part == null || part.length() < 1 || "/".equals( part ) )
             {
-                continue;
+                continue parts;
             }
 
             if ( idx == 0 && part.startsWith( "file:" ) )
@@ -59,7 +59,7 @@ public final class PathUtils
                     sb.append( part.substring( 5 ) );
                 }
 
-                continue;
+                continue parts;
             }
 
             if ( idx > 0 )
@@ -68,7 +68,7 @@ public final class PathUtils
                 {
                     if ( part.length() < 2 )
                     {
-                        continue;
+                        continue parts;
                     }
 
                     part = part.substring( 1 );
@@ -79,7 +79,7 @@ public final class PathUtils
             {
                 if ( part.length() < 2 )
                 {
-                    continue;
+                    continue parts;
                 }
 
                 part = part.substring( 0, part.length() - 1 );
