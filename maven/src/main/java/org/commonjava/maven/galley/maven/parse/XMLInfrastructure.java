@@ -143,9 +143,24 @@ public class XMLInfrastructure
         dbFactory.setCoalescing( true );
     }
 
-    public Element createElement( final Element below, final String relativePath, final Map<String, String> leafElements )
+    public Element createElement( final Node in, final String relativePath, final Map<String, String> leafElements )
     {
-        final Document doc = below.getOwnerDocument();
+        final Document doc;
+        final Element below;
+        if ( in instanceof Document )
+        {
+            doc = (Document) in;
+            below = doc.getDocumentElement();
+        }
+        else if ( in instanceof Element )
+        {
+            below = (Element) in;
+            doc = below.getOwnerDocument();
+        }
+        else
+        {
+            throw new IllegalArgumentException( "Cannot create nodes/content under a node of type: " + in );
+        }
 
         Element insertionPoint = below;
         if ( relativePath.length() > 0 && !"/".equals( relativePath ) )
