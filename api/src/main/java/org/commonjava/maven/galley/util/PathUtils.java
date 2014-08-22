@@ -24,7 +24,7 @@ public final class PathUtils
     public static String[] parentPath( final String path )
     {
         final String[] parts = path.split( "/" );
-        if ( parts.length == 1 )
+        if ( parts.length < 2 )
         {
             return ROOT_ARRY;
         }

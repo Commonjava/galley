@@ -96,7 +96,13 @@ public class TestCacheProvider
     @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
-        return getDetachedFile( resource ).isDirectory();
+        return !getDetachedFile( resource ).isFile();
+    }
+
+    @Override
+    public boolean isFile( final ConcreteResource resource )
+    {
+        return getDetachedFile( resource ).isFile();
     }
 
     @Override

@@ -109,6 +109,11 @@ public class FileCacheProvider
                 f = new File( altDir, resource.getPath() );
             }
 
+            if ( resource.isRoot() && !f.isDirectory() )
+            {
+                f.mkdirs();
+            }
+
             if ( !resource.isRoot() && f.exists() && !f.isDirectory() && resource.getTimeoutSeconds() > 0 )
             {
                 final long current = System.currentTimeMillis();
@@ -148,7 +153,13 @@ public class FileCacheProvider
     @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
-        return getDetachedFile( resource ).isDirectory();
+        return !getDetachedFile( resource ).isFile();
+    }
+
+    @Override
+    public boolean isFile( final ConcreteResource resource )
+    {
+        return getDetachedFile( resource ).isFile();
     }
 
     @Override

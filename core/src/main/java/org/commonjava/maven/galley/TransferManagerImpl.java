@@ -220,7 +220,7 @@ public class TransferManagerImpl
         ListingResult cacheResult = null;
         if ( cached.exists() )
         {
-            if ( !cached.isDirectory() )
+            if ( cached.isFile() )
             {
                 throw new TransferException( "Cannot list: {}. It does not appear to be a directory.", resource );
             }
@@ -241,7 +241,7 @@ public class TransferManagerImpl
 
                         final ConcreteResource child = (ConcreteResource) resource.getChild( fname );
                         final Transfer childRef = getCacheReference( child );
-                        if ( childRef.isDirectory() )
+                        if ( !childRef.isFile() )
                         {
                             fnames[idx] = fname + "/";
                         }
@@ -266,7 +266,7 @@ public class TransferManagerImpl
 
         final int timeoutSeconds = getTimeoutSeconds( resource );
         final ListingResult remoteResult =
-            lister.list( resource, cached, timeoutSeconds, getTransport( resource ), suppressFailures );
+            lister.list( resource, cachedListing, timeoutSeconds, getTransport( resource ), suppressFailures );
 
         ListingResult result;
         if ( cacheResult != null && remoteResult != null )

@@ -42,6 +42,8 @@ public interface CacheProvider
 
     boolean isDirectory( ConcreteResource resource );
 
+    boolean isFile( ConcreteResource resource );
+
     InputStream openInputStream( ConcreteResource resource )
         throws IOException;
 

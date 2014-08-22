@@ -101,6 +101,11 @@ public final class Transfer
         return provider.isDirectory( resource );
     }
 
+    public boolean isFile()
+    {
+        return provider.isFile( resource );
+    }
+
     public Location getLocation()
     {
         return resource.getLocation();

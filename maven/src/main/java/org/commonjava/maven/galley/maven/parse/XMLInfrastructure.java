@@ -163,7 +163,7 @@ public class XMLInfrastructure
         }
 
         Element insertionPoint = below;
-        if ( relativePath.length() > 0 && !"/".equals( relativePath ) )
+        if ( relativePath != null && relativePath.length() > 0 && !"/".equals( relativePath ) )
         {
             final String[] intermediates = relativePath.split( "/" );
 
