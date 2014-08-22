@@ -16,9 +16,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
 import org.junit.Rule;
@@ -85,12 +88,16 @@ public class HttpListTest
     public void simpleCentralListing()
         throws Exception
     {
-        final String fname = "central-btm/index.html";
+        final String dir = "central-btm/";
+        final String fname = dir + "index.html";
+        final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
-        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing =
+            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -98,15 +105,42 @@ public class HttpListTest
     }
 
     @Test
-    public void simpleCentralListing_Missing()
+    public void simpleCentralListing_WriteListingFile()
         throws Exception
     {
-        final String fname = "central-missing/index.html";
+        final String dir = "central-btm/";
+        final String fname = dir + "index.html";
+        final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
-        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
+        final HttpListing listing =
+            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+        final ListingResult result = listing.call();
+
+        assertThat( listing.getError(), nullValue() );
+        assertTrue( Arrays.equals( centralbtm, result.getListing() ) );
+        
+        final List<String> lines = IOUtils.readLines( transfer.openInputStream() );
+        assertTrue( "Listing file written incorrectly!", lines.equals( Arrays.asList( centralbtm ) ) );
+    }
+
+    @Test
+    public void simpleCentralListing_Missing()
+        throws Exception
+    {
+        final String dir = "central-missing/";
+        final String fname = dir + "index.html";
+        final String listingFname = dir + ".listing.txt";
+
+        final String url = fixture.formatUrl( fname );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
+
+        final HttpListing listing =
+            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );
@@ -117,14 +151,19 @@ public class HttpListTest
     public void simpleCentralListing_Error()
         throws Exception
     {
-        final String fname = "central-error/index.html";
+        final String dir = "central-error/";
+        final String fname = dir + "index.html";
+        final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
 
         fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
 
-        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
+
+        final HttpListing listing =
+            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );
@@ -138,11 +177,16 @@ public class HttpListTest
     public void simpleNexusListing()
         throws Exception
     {
-        final String fname = "nexus-switchyard/index.html";
+        final String dir = "nexus-switchyard/";
+        final String fname = dir + "index.html";
+        final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
-        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
+
+        final HttpListing listing =
+            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -153,11 +197,16 @@ public class HttpListTest
     public void simpleNexusListing_Missing()
         throws Exception
     {
-        final String fname = "nexus-missing/index.html";
+        final String dir = "nexus-missing/";
+        final String fname = dir + "index.html";
+        final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
-        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
+
+        final HttpListing listing =
+            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -168,14 +217,19 @@ public class HttpListTest
     public void simpleNexusListing_Error()
         throws Exception
     {
-        final String fname = "nexus-error/index.html";
+        final String dir = "nexus-error/";
+        final String fname = dir + "index.html";
+        final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
 
         fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
 
-        final HttpListing listing = new HttpListing( url, new ConcreteResource( location, fname ), 10, fixture.getHttp() );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
+
+        final HttpListing listing =
+            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );

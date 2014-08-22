@@ -10,8 +10,12 @@
  ******************************************************************************/
 package org.commonjava.maven.galley.transport.htcli.internal;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.lang.StringUtils.join;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,6 +28,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -56,10 +62,14 @@ public class HttpListing
 
     private final String url;
 
-    public HttpListing( final String url, final ConcreteResource resource, final int timeoutSeconds, final Http http )
+    private final Transfer target;
+
+    public HttpListing( final String url, final ConcreteResource resource, final int timeoutSeconds,
+                        final Transfer target, final Http http )
     {
         this.url = url;
         this.resource = resource;
+        this.target = target;
         this.http = http;
     }
 
@@ -92,6 +102,7 @@ public class HttpListing
         // the dependency is: org.jsoup:jsoup:1.7.2
 
         ListingResult result = null;
+        OutputStream stream = null;
         try
         {
             final InputStream in = executeGet( request, url );
@@ -111,6 +122,9 @@ public class HttpListing
                     }
                 }
 
+                stream = target.openOutputStream( TransferOperation.DOWNLOAD );
+                stream.write( join( al, "\n" ).getBytes( "UTF-8" ) );
+
                 result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
             }
         }
@@ -126,6 +140,7 @@ public class HttpListing
         }
         finally
         {
+            closeQuietly( stream );
             cleanup( location, request );
         }
 

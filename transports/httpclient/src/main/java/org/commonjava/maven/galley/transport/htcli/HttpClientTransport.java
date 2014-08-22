@@ -102,11 +102,12 @@ public class HttpClientTransport
     }
 
     @Override
-    public ListingJob createListingJob( final ConcreteResource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
         return new HttpListing( getUrl( resource ), new ConcreteResource( getHttpLocation( resource.getLocation() ), resource.getPath() ),
-                                timeoutSeconds, http );
+ timeoutSeconds, target,
+                                http );
     }
 
     private HttpLocation getHttpLocation( final Location repository )

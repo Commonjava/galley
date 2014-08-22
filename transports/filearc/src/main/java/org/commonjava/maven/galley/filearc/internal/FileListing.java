@@ -10,11 +10,18 @@
  ******************************************************************************/
 package org.commonjava.maven.galley.filearc.internal;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.lang.StringUtils.join;
+
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class FileListing
@@ -27,10 +34,13 @@ public class FileListing
 
     private final ConcreteResource resource;
 
-    public FileListing( final ConcreteResource resource, final File src )
+    private final Transfer target;
+
+    public FileListing( final ConcreteResource resource, final File src, final Transfer target )
     {
         this.resource = resource;
         this.src = src;
+        this.target = target;
     }
 
     @Override
@@ -44,7 +54,23 @@ public class FileListing
     {
         if ( src.canRead() && src.isDirectory() )
         {
-            return new ListingResult( resource, src.list() );
+            final String[] raw = src.list();
+            OutputStream stream = null;
+            try
+            {
+                stream = target.openOutputStream( TransferOperation.DOWNLOAD );
+                stream.write( join( raw, "\n" ).getBytes( "UTF-8" ) );
+
+                return new ListingResult( resource, raw );
+            }
+            catch ( final IOException e )
+            {
+                error = new TransferException( "Failed to write listing to: %s. Reason: %s", e, target, e.getMessage() );
+            }
+            finally
+            {
+                closeQuietly( stream );
+            }
         }
 
         return null;

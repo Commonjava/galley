@@ -23,7 +23,7 @@ public interface Transport
     /**
      * @return NEVER NULL
      */
-    ListingJob createListingJob( ConcreteResource resource, int timeoutSeconds )
+    ListingJob createListingJob( ConcreteResource resource, Transfer target, int timeoutSeconds )
         throws TransferException;
 
     /**

@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -42,7 +43,8 @@ public class ListingHandler
         this.nfc = nfc;
     }
 
-    public ListingResult list( final ConcreteResource resource, final int timeoutSeconds, final Transport transport, final boolean suppressFailures )
+    public ListingResult list( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
+                               final Transport transport, final boolean suppressFailures )
         throws TransferException
     {
         if ( nfc.isMissing( resource ) )
@@ -58,7 +60,7 @@ public class ListingHandler
 
         logger.debug( "LIST {}", resource );
 
-        final ListingJob job = transport.createListingJob( resource, timeoutSeconds );
+        final ListingJob job = transport.createListingJob( resource, target, timeoutSeconds );
 
         // TODO: execute this stuff in a thread just like downloads/publishes. Requires cache storage...
         try

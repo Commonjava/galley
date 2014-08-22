@@ -101,11 +101,11 @@ public class FileTransport
     }
 
     @Override
-    public ListingJob createListingJob( final ConcreteResource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
         final File src = getFile( resource );
-        return new FileListing( resource, src );
+        return new FileListing( resource, src, target );
     }
 
     @Override

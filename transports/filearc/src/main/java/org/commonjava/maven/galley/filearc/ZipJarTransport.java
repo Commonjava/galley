@@ -65,10 +65,10 @@ public class ZipJarTransport
     }
 
     @Override
-    public ListingJob createListingJob( final ConcreteResource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
-        return new ZipListing( resource );
+        return new ZipListing( resource, target );
     }
 
     @Override

@@ -10,11 +10,14 @@
  ******************************************************************************/
 package org.commonjava.maven.galley.filearc.internal;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchiveFile;
 import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.TreeSet;
 import java.util.jar.JarFile;
@@ -24,6 +27,8 @@ import java.util.zip.ZipFile;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class ZipListing
@@ -34,9 +39,12 @@ public class ZipListing
 
     private final ConcreteResource resource;
 
-    public ZipListing( final ConcreteResource resource )
+    private final Transfer target;
+
+    public ZipListing( final ConcreteResource resource, final Transfer target )
     {
         this.resource = resource;
+        this.target = target;
     }
 
     @Override
@@ -56,6 +64,8 @@ public class ZipListing
 
         final boolean isJar = isJar( resource.getLocationUri() );
 
+        final TreeSet<String> filenames = new TreeSet<String>();
+
         ZipFile zf = null;
         try
         {
@@ -70,7 +80,6 @@ public class ZipListing
 
             final String path = resource.getPath();
             final int pathLen = path.length();
-            final TreeSet<String> filenames = new TreeSet<String>();
             for ( final ZipEntry entry : Collections.list( zf.entries() ) )
             {
                 String name = entry.getName();
@@ -90,7 +99,6 @@ public class ZipListing
                 }
             }
 
-            return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
         }
         catch ( final IOException e )
         {
@@ -107,6 +115,26 @@ public class ZipListing
                 catch ( final IOException e )
                 {
                 }
+            }
+        }
+
+        if ( !filenames.isEmpty() )
+        {
+            OutputStream stream = null;
+            try
+            {
+                stream = target.openOutputStream( TransferOperation.DOWNLOAD );
+                stream.write( join( filenames, "\n" ).getBytes( "UTF-8" ) );
+
+                return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
+            }
+            catch ( final IOException e )
+            {
+                error = new TransferException( "Failed to write listing to: %s. Reason: %s", e, target, e.getMessage() );
+            }
+            finally
+            {
+                closeQuietly( stream );
             }
         }
 

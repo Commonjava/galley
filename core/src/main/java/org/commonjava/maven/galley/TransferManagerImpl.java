@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 
+import org.apache.commons.io.IOUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.galley.event.FileErrorEvent;
@@ -56,6 +57,15 @@ import org.slf4j.LoggerFactory;
 public class TransferManagerImpl
     implements TransferManager
 {
+
+    private static final Set<String> BANNED_LISTING_NAMES = Collections.unmodifiableSet( new HashSet<String>()
+    {
+        {
+            add( ".listing.txt" );
+        }
+
+        private static final long serialVersionUID = 1L;
+    } );
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -185,6 +195,27 @@ public class TransferManagerImpl
     private ListingResult doList( final ConcreteResource resource, final boolean suppressFailures )
         throws TransferException
     {
+        final Transfer cachedListing = getCacheReference( (ConcreteResource) resource.getChild( ".listing.txt" ) );
+        if ( cachedListing.exists() )
+        {
+            InputStream stream = null;
+            try
+            {
+                stream = cachedListing.openInputStream();
+                final List<String> filenames = IOUtils.readLines( stream, "UTF-8" );
+                return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
+            }
+            catch ( final IOException e )
+            {
+                throw new TransferException( "Failed to read listing from cached file: %s. Reason: %s", e,
+                                             cachedListing, e.getMessage() );
+            }
+            finally
+            {
+                closeQuietly( stream );
+            }
+        }
+
         final Transfer cached = getCacheReference( resource );
         ListingResult cacheResult = null;
         if ( cached.exists() )
@@ -203,6 +234,11 @@ public class TransferManagerImpl
                     int idx = 0;
                     for ( final String fname : fnames )
                     {
+                        if ( BANNED_LISTING_NAMES.contains( fname ) )
+                        {
+                            continue;
+                        }
+
                         final ConcreteResource child = (ConcreteResource) resource.getChild( fname );
                         final Transfer childRef = getCacheReference( child );
                         if ( childRef.isDirectory() )
@@ -230,7 +266,7 @@ public class TransferManagerImpl
 
         final int timeoutSeconds = getTimeoutSeconds( resource );
         final ListingResult remoteResult =
-            lister.list( resource, timeoutSeconds, getTransport( resource ), suppressFailures );
+            lister.list( resource, cached, timeoutSeconds, getTransport( resource ), suppressFailures );
 
         ListingResult result;
         if ( cacheResult != null && remoteResult != null )

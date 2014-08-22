@@ -138,7 +138,7 @@ public class TestTransport
     }
 
     @Override
-    public ListingJob createListingJob( final ConcreteResource resource, final int timeoutSeconds )
+    public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
         final TestListing job = listings.get( resource );
