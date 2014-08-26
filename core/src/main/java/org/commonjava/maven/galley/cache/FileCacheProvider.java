@@ -153,13 +153,15 @@ public class FileCacheProvider
     @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
-        return !getDetachedFile( resource ).isFile();
+        final File f = getDetachedFile( resource );
+        return f.isDirectory();
     }
 
     @Override
     public boolean isFile( final ConcreteResource resource )
     {
-        return getDetachedFile( resource ).isFile();
+        final File f = getDetachedFile( resource );
+        return f.isFile();
     }
 
     @Override
