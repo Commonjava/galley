@@ -66,7 +66,7 @@ public class DependencyView
     public boolean isManaged()
         throws GalleyMavenException
     {
-        return pomView.resolveXPathToNodeFrom( elementContext, "ancestor::dependencyManagement", true ) != null;
+        return xmlView.resolveXPathToNodeFrom( elementContext, "ancestor::dependencyManagement", true ) != null;
     }
 
     public synchronized String getClassifier()
@@ -129,7 +129,7 @@ public class DependencyView
                 final Set<ProjectRefView> exclusions = new HashSet<ProjectRefView>();
                 for ( final Node node : nodes )
                 {
-                    exclusions.add( new MavenGAView( pomView, (Element) node ) );
+                    exclusions.add( new MavenGAView( xmlView, (Element) node ) );
                 }
 
                 this.exclusions = exclusions;

@@ -365,6 +365,26 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    public List<String> resolveXPathToAggregatedStringListFrom( final JXPathContext context, final String path,
+                                                                final boolean cachePath )
+    {
+        final List<Node> nodes = resolveXPathToNodeListFrom( context, path, cachePath );
+        final List<String> result = new ArrayList<String>( nodes.size() );
+        for ( final Node node : nodes )
+        {
+            if ( node != null )
+            {
+                final String txt = node.getTextContent();
+                if ( txt != null )
+                {
+                    result.add( txt.trim() );
+                }
+            }
+        }
+
+        return result;
+    }
+
     protected synchronized Node resolveXPathToNodeFrom( final JXPathContext context, final String path,
                                                         final boolean cachePath )
     {

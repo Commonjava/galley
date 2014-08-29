@@ -15,39 +15,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.jxpath.JXPathContext;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
-import org.commonjava.maven.galley.maven.parse.JXPathUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class MavenElementView
+public class MavenPomElementView
+    extends AbstractMavenElementView<MavenPomView>
 {
 
     //    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    protected final Element element;
-
-    protected final JXPathContext elementContext;
-
-    protected final MavenPomView pomView;
 
     private final String managementXpathFragment;
 
     private String[] managementXpaths;
 
-    private MavenElementView managementElement;
+    private MavenPomElementView managementElement;
 
-    public MavenElementView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
+    public MavenPomElementView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
     {
-        this.pomView = pomView;
-        this.element = element;
+        super( pomView, element );
         this.managementXpathFragment = managementXpathFragment;
-
-        this.elementContext = JXPathUtils.newContext( element );
     }
 
-    public MavenElementView( final MavenPomView pomView, final Element element )
+    public MavenPomElementView( final MavenPomView pomView, final Element element )
     {
         this( pomView, element, null );
     }
@@ -62,22 +52,17 @@ public class MavenElementView
 
     protected boolean containsExpression( final String value )
     {
-        return pomView.containsExpression( value );
-    }
-
-    public Element getElement()
-    {
-        return element;
+        return xmlView.containsExpression( value );
     }
 
     public MavenPomView getPomView()
     {
-        return pomView;
+        return xmlView;
     }
 
     public String getProfileId()
     {
-        return pomView.getProfileIdFor( element );
+        return xmlView.getProfileIdFor( element );
     }
 
     protected String getValueWithManagement( final String named )
@@ -87,7 +72,7 @@ public class MavenElementView
         //        logger.info( "Value of path: '{}' local to: {} is: '{}'\nIn: {}", named, element, value, pomView.getRef() );
         if ( value == null )
         {
-            final MavenElementView mgmt = getManagementElement();
+            final MavenPomElementView mgmt = getManagementElement();
             if ( mgmt != null )
             {
                 return mgmt.getValue( named );
@@ -97,7 +82,7 @@ public class MavenElementView
         return value;
     }
 
-    private synchronized MavenElementView getManagementElement()
+    private synchronized MavenPomElementView getManagementElement()
         throws GalleyMavenException
     {
         if ( managementElement == null )
@@ -107,7 +92,7 @@ public class MavenElementView
             {
                 for ( final String xpath : managementXpaths )
                 {
-                    final MavenElementView e = pomView.resolveXPathToElementView( xpath, false, -1 );
+                    final MavenPomElementView e = xmlView.resolveXPathToElementView( xpath, false, -1 );
                     if ( e != null )
                     {
                         managementElement = e;
@@ -124,10 +109,10 @@ public class MavenElementView
         throws GalleyMavenException
     {
         //        logger.info( "Resolving '{}' from node: {}", path, this.element );
-        final List<Node> nodes = pomView.resolveXPathToNodeListFrom( elementContext, path, true );
+        final List<Node> nodes = xmlView.resolveXPathToNodeListFrom( elementContext, path, true );
         if ( nodes == null || nodes.isEmpty() )
         {
-            final MavenElementView managedElement = getManagementElement();
+            final MavenPomElementView managedElement = getManagementElement();
             if ( managedElement != null )
             {
                 return managedElement.getFirstNodesWithManagement( path );
@@ -152,7 +137,7 @@ public class MavenElementView
 
         final List<String> xpaths = new ArrayList<String>();
 
-        final Set<String> activeProfiles = new HashSet<String>( pomView.getActiveProfileIds() );
+        final Set<String> activeProfiles = new HashSet<String>( xmlView.getActiveProfileIds() );
         activeProfiles.add( getProfileId() );
 
         for ( final String profileId : activeProfiles )
@@ -189,84 +174,18 @@ public class MavenElementView
         managementXpaths = xpaths.toArray( new String[xpaths.size()] );
     }
 
+    @Override
     protected String getValue( final String path )
     {
-        String val;
-        //                if ( path.contains( "(\\/\\/|\\[" ) )
-        //                {
-        final Element e = (Element) pomView.resolveXPathToNodeFrom( elementContext, path, false );
-
-        if ( e == null )
-        {
-            return null;
-        }
-
-        val = e.getTextContent()
-               .trim();
-        //                }
-        //        else
-        //        {
-        //            final String[] parts = path.split( "/" );
-        //            Element e = element;
-        //            NodeList nl;
-        //            for ( final String part : parts )
-        //            {
-        //                nl = element.getElementsByTagName( part );
-        //                if ( nl == null || nl.getLength() < 1 )
-        //                {
-        //                    return null;
-        //                }
-        //
-        //                e = (Element) nl.item( 0 );
-        //                if ( e == null )
-        //                {
-        //                    return null;
-        //                }
-        //            }
-        //
-        //            val = e.getTextContent()
-        //                   .trim();
-        //        }
-        //
-
-        //        logger.info( "Resolving expressions in: '{}'", val );
+        final String val = super.getValue( path );
         if ( getProfileId() == null )
         {
-            return pomView.resolveExpressions( val );
+            return xmlView.resolveExpressions( val );
         }
         else
         {
-            return pomView.resolveExpressions( val, getProfileId() );
+            return xmlView.resolveExpressions( val, getProfileId() );
         }
-    }
-
-    protected Node getNode( final String path )
-    {
-        return (Node) elementContext.selectSingleNode( path );
-        //        final String[] names = path.split( "/" );
-        //        Element e = element;
-        //        for ( final String named : names )
-        //        {
-        //            if ( e == null )
-        //            {
-        //                break;
-        //            }
-        //
-        //            final NodeList matches = e.getElementsByTagName( named );
-        //            if ( matches == null || matches.getLength() < 1 )
-        //            {
-        //                return null;
-        //            }
-        //
-        //            e = (Element) matches.item( 0 );
-        //        }
-        //
-        //        return e;
-    }
-
-    public String toXML()
-    {
-        return pomView.toXML( element );
     }
 
 }

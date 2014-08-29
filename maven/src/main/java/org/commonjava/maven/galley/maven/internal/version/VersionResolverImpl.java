@@ -29,7 +29,7 @@ import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.ProjectVersionRefLocation;
-import org.commonjava.maven.galley.maven.model.view.MavenMetadataView;
+import org.commonjava.maven.galley.maven.model.view.meta.MavenMetadataView;
 import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;

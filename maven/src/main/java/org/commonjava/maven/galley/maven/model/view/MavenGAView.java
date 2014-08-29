@@ -18,7 +18,7 @@ import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 
 public class MavenGAView
-    extends MavenElementView
+    extends MavenPomElementView
     implements ProjectRefView
 {
 

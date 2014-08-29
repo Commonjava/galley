@@ -36,7 +36,7 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.13.5</atlasVersion>
+    <atlasVersion>0.13.6-SNAPSHOT</atlasVersion>
   </properties>
 
   <dependencyManagement>

@@ -24,8 +24,8 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
-import org.commonjava.maven.galley.maven.model.view.MavenMetadataView;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
+import org.commonjava.maven.galley.maven.model.view.meta.MavenMetadataView;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
@@ -140,6 +140,38 @@ public class MavenMetadataReader
         }
 
         logger.debug( "Got {} metadata documents for: {}", docs.size(), ref );
+        return new MavenMetadataView( docs, xpath, xml );
+    }
+
+    public MavenMetadataView readMetadata( final ProjectRef ref, final List<Transfer> transfers )
+        throws GalleyMavenException
+    {
+        final List<DocRef<ProjectRef>> docs = new ArrayList<DocRef<ProjectRef>>( transfers.size() );
+
+        if ( transfers != null && !transfers.isEmpty() )
+        {
+            for ( final Transfer transfer : transfers )
+            {
+                if ( transfer == null )
+                {
+                    continue;
+                }
+
+                final DocRef<ProjectRef> dr =
+                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer ) );
+
+                if ( dr != null )
+                {
+                    docs.add( dr );
+                }
+            }
+        }
+
+        if ( docs.isEmpty() )
+        {
+            return null;
+        }
+
         return new MavenMetadataView( docs, xpath, xml );
     }
 

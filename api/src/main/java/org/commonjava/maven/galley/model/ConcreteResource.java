@@ -68,7 +68,7 @@ public class ConcreteResource
         {
             return false;
         }
-        if ( getClass() != obj.getClass() )
+        if ( !( obj instanceof ConcreteResource ) )
         {
             return false;
         }
