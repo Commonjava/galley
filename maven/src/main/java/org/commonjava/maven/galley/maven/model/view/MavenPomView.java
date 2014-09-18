@@ -209,7 +209,7 @@ public class MavenPomView
     {
         final List<DependencyView> raw = getAllManagedDependenciesUnfiltered();
         final List<DependencyView> depViews = new ArrayList<DependencyView>( raw.size() );
-        final Set<VersionlessArtifactRef> seen = new HashSet<>();
+        final Set<VersionlessArtifactRef> seen = new HashSet<VersionlessArtifactRef>();
         for ( final DependencyView dv : raw )
         {
             final VersionlessArtifactRef var = dv.asVersionlessArtifactRef();

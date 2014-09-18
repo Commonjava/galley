@@ -278,7 +278,7 @@ public class DependencyViewTest
             loadAllManagedDependencies( "child-with-two-boms.xml", "bom-with-first-version.xml",
                                         "bom-with-second-version.xml" );
 
-        final Set<VersionlessArtifactRef> seen = new HashSet<>();
+        final Set<VersionlessArtifactRef> seen = new HashSet<VersionlessArtifactRef>();
         for ( final DependencyView dependencyView : dvs )
         {
             final VersionlessArtifactRef var = dependencyView.asVersionlessArtifactRef();

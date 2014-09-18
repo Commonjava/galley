@@ -26,7 +26,7 @@ public final class ChecksummingOutputStream
     {
         super( stream );
         this.transfer = transfer;
-        checksums = new HashSet<>();
+        checksums = new HashSet<AbstractChecksumGenerator>();
         for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
         {
             checksums.add( factory.createGenerator( transfer ) );

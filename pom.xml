@@ -36,7 +36,7 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.13.6-SNAPSHOT</atlasVersion>
+    <atlasVersion>0.13.6</atlasVersion>
   </properties>
 
   <dependencyManagement>
@@ -96,7 +96,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>9</version>
+        <version>12</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -190,11 +190,11 @@
       <plugins>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-<!--           <configuration>
+          <configuration>
             <source>1.6</source>
             <target>1.6</target>
           </configuration>
- -->        </plugin>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
