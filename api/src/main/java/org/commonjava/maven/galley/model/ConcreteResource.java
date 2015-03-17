@@ -16,7 +16,7 @@ import static org.commonjava.maven.galley.util.PathUtils.parentPath;
 
 import java.util.Map;
 
-public class ConcreteResource
+public class ConcreteResource extends Attributes
     implements Resource
 {
 
@@ -155,16 +155,7 @@ public class ConcreteResource
         return location.getName();
     }
 
-    public int getTimeoutSeconds()
-    {
-        return location.getTimeoutSeconds();
-    }
-
-    public Map<String, Object> getAttributes()
-    {
-        return location.getAttributes();
-    }
-
+    @Override
     public <T> T getAttribute( final String key, final Class<T> type )
     {
         return location.getAttribute( key, type );

@@ -10,19 +10,8 @@
  ******************************************************************************/
 package org.commonjava.maven.galley.model;
 
-import java.util.Map;
-
 public interface Location
 {
-
-    String CONNECTION_TIMEOUT_SECONDS = "connection-timeout";
-
-    int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 30;
-
-    int DEFAULT_CACHE_TIMEOUT_SECONDS = 86400;
-
-    int MIN_CACHE_TIMEOUT_SECONDS = 3600;
-
     boolean allowsDownloading();
 
     boolean allowsPublishing();
@@ -37,8 +26,6 @@ public interface Location
 
     String getName();
 
-    int getTimeoutSeconds();
-
     /**
      * Reminder that equality checks are important here!
      */
@@ -50,8 +37,6 @@ public interface Location
      */
     @Override
     int hashCode();
-
-    Map<String, Object> getAttributes();
 
     <T> T getAttribute( String key, Class<T> type );
 
