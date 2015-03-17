@@ -13,7 +13,7 @@ package org.commonjava.maven.galley.model;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SimpleLocation
+public class SimpleLocation extends Attributes
     implements Location
 {
 
@@ -29,8 +29,6 @@ public class SimpleLocation
 
     private final String uri;
 
-    private final int timeoutSeconds;
-
     private final Map<String, Object> attributes = new HashMap<String, Object>();
 
     private final String name;
@@ -45,7 +43,7 @@ public class SimpleLocation
         this.allowStoring = allowsStoring;
         this.allowPublishing = allowPublishing;
         this.allowDownloading = allowDownloading;
-        this.timeoutSeconds = timeoutSeconds;
+        setAttribute(CONNECTION_TIMEOUT_SECONDS, timeoutSeconds);
     }
 
     public SimpleLocation( final String name, final String uri )
@@ -57,7 +55,6 @@ public class SimpleLocation
         this.allowStoring = true;
         this.allowDownloading = true;
         this.allowPublishing = false;
-        this.timeoutSeconds = -1;
     }
 
     public SimpleLocation( final String uri )
@@ -69,7 +66,6 @@ public class SimpleLocation
         this.allowStoring = true;
         this.allowDownloading = true;
         this.allowPublishing = false;
-        this.timeoutSeconds = -1;
     }
 
     @Override
@@ -115,12 +111,6 @@ public class SimpleLocation
     }
 
     @Override
-    public int getTimeoutSeconds()
-    {
-        return timeoutSeconds;
-    }
-
-    @Override
     public int hashCode()
     {
         final int prime = 31;
@@ -157,12 +147,6 @@ public class SimpleLocation
             return false;
         }
         return true;
-    }
-
-    @Override
-    public Map<String, Object> getAttributes()
-    {
-        return attributes;
     }
 
     @Override

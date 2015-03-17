@@ -12,14 +12,14 @@ package org.commonjava.maven.galley.transport.htcli.internal.model;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
 
+import org.commonjava.maven.galley.model.Attributes;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.conf.ProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
-public class WrapperHttpLocation
+public class WrapperHttpLocation extends Attributes
     implements HttpLocation
 {
 
@@ -53,12 +53,6 @@ public class WrapperHttpLocation
     public String getUri()
     {
         return delegate.getUri();
-    }
-
-    @Override
-    public int getTimeoutSeconds()
-    {
-        return delegate.getTimeoutSeconds();
     }
 
     @Override
@@ -132,12 +126,6 @@ public class WrapperHttpLocation
     public int hashCode()
     {
         return delegate.hashCode();
-    }
-
-    @Override
-    public Map<String, Object> getAttributes()
-    {
-        return delegate.getAttributes();
     }
 
     @Override

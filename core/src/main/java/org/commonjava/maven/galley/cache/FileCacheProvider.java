@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.io.FileUtils;
+import org.commonjava.maven.galley.model.Attributes;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -96,8 +97,7 @@ public class FileCacheProvider
         final Transfer txfr = getTransfer( resource );
         synchronized ( txfr )
         {
-            final String altDir = resource.getLocation()
-                                          .getAttribute( CacheProvider.ATTR_ALT_STORAGE_LOCATION, String.class );
+            final String altDir = resource.getAltStorageLocation();
 
             File f;
             if ( altDir == null )
@@ -119,7 +119,7 @@ public class FileCacheProvider
                 final long current = System.currentTimeMillis();
                 final long lastModified = f.lastModified();
                 final int tos =
-                    resource.getTimeoutSeconds() < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
+                    resource.getTimeoutSeconds() < Attributes.MIN_CACHE_TIMEOUT_SECONDS ? Attributes.MIN_CACHE_TIMEOUT_SECONDS
                                     : resource.getTimeoutSeconds();
 
                 final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );

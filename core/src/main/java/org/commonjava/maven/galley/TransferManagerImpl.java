@@ -10,24 +10,6 @@
  ******************************************************************************/
 package org.commonjava.maven.galley;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.copy;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-
-import javax.inject.Inject;
-
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.ident.util.JoinString;
@@ -53,6 +35,23 @@ import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.io.IOUtils.copy;
 
 public class TransferManagerImpl
     implements TransferManager
@@ -165,7 +164,7 @@ public class TransferManagerImpl
             return true;
         }
 
-        return exister.exists( resource, getTimeoutSeconds( resource ), getTransport( resource ), suppressFailures );
+        return exister.exists( resource, resource.getTimeoutSeconds(), getTransport( resource ), suppressFailures );
     }
 
     @Override
@@ -264,7 +263,7 @@ public class TransferManagerImpl
             return cacheResult;
         }
 
-        final int timeoutSeconds = getTimeoutSeconds( resource );
+        final int timeoutSeconds = resource.getTimeoutSeconds();
         final ListingResult remoteResult =
             lister.list( resource, cachedListing, timeoutSeconds, getTransport( resource ), suppressFailures );
 
@@ -403,7 +402,7 @@ public class TransferManagerImpl
             }
 
             final Transfer retrieved =
-                downloader.download( resource, target, getTimeoutSeconds( resource ), getTransport( resource ),
+                downloader.download( resource, target, resource.getTimeoutSeconds(), getTransport( resource ),
                                      suppressFailures );
 
             if ( retrieved != null && retrieved.exists() && !target.equals( retrieved ) )
@@ -570,7 +569,7 @@ public class TransferManagerImpl
     public boolean publish( final ConcreteResource resource, final InputStream stream, final long length )
         throws TransferException
     {
-        return publish( resource, stream, length, null );
+        return publish(resource, stream, length, null);
     }
 
     /* (non-Javadoc)
@@ -581,19 +580,8 @@ public class TransferManagerImpl
                             final String contentType )
         throws TransferException
     {
-        return uploader.upload( resource, stream, length, contentType, getTimeoutSeconds( resource ),
+        return uploader.upload( resource, stream, length, contentType, resource.getTimeoutSeconds(),
                                 getTransport( resource ) );
-    }
-
-    private int getTimeoutSeconds( final ConcreteResource resource )
-    {
-        Integer timeoutSeconds = resource.getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class );
-        if ( timeoutSeconds == null )
-        {
-            timeoutSeconds = Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS;
-        }
-
-        return timeoutSeconds;
     }
 
     @Override
