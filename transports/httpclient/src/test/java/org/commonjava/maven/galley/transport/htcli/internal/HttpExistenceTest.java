@@ -36,7 +36,7 @@ public class HttpExistenceTest
         final String fname = "simple-retrieval.html";
 
         final String baseUri = fixture.getBaseUri();
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final String url = fixture.formatUrl( fname );
 
         final HttpExistence dl = new HttpExistence( url, location, fixture.getHttp() );
@@ -62,7 +62,7 @@ public class HttpExistenceTest
         final String fname = "simple-missing.html";
 
         final String baseUri = fixture.getBaseUri();
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final String url = fixture.formatUrl( fname );
 
         final HttpExistence dl = new HttpExistence( url, location, fixture.getHttp() );
@@ -87,7 +87,7 @@ public class HttpExistenceTest
         final String fname = "simple-error.html";
 
         final String baseUri = fixture.getBaseUri();
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final String url = fixture.formatUrl( fname );
 
         final String error = "Test Error.";

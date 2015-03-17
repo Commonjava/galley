@@ -14,8 +14,6 @@ import static org.commonjava.maven.galley.util.PathUtils.ROOT;
 import static org.commonjava.maven.galley.util.PathUtils.normalize;
 import static org.commonjava.maven.galley.util.PathUtils.parentPath;
 
-import java.util.Map;
-
 public class ConcreteResource
     implements Resource
 {
@@ -153,31 +151,6 @@ public class ConcreteResource
     public String getLocationName()
     {
         return location.getName();
-    }
-
-    public int getTimeoutSeconds()
-    {
-        return location.getTimeoutSeconds();
-    }
-
-    public Map<String, Object> getAttributes()
-    {
-        return location.getAttributes();
-    }
-
-    public <T> T getAttribute( final String key, final Class<T> type )
-    {
-        return location.getAttribute( key, type );
-    }
-
-    public Object removeAttribute( final String key )
-    {
-        return location.removeAttribute( key );
-    }
-
-    public Object setAttribute( final String key, final Object value )
-    {
-        return location.setAttribute( key, value );
     }
 
     public boolean isRoot()

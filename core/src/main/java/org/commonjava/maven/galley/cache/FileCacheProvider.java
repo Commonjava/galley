@@ -97,7 +97,7 @@ public class FileCacheProvider
         synchronized ( txfr )
         {
             final String altDir = resource.getLocation()
-                                          .getAttribute( CacheProvider.ATTR_ALT_STORAGE_LOCATION, String.class );
+                                          .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
 
             File f;
             if ( altDir == null )
@@ -114,13 +114,18 @@ public class FileCacheProvider
                 f.mkdirs();
             }
 
-            if ( !resource.isRoot() && f.exists() && !f.isDirectory() && resource.getTimeoutSeconds() > 0 )
+            // TODO: configurable default timeout
+            final int timeoutSeconds = resource.getLocation()
+                        .getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class,
+                                       Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS );
+
+            if ( !resource.isRoot() && f.exists() && !f.isDirectory() && timeoutSeconds > 0 )
             {
                 final long current = System.currentTimeMillis();
                 final long lastModified = f.lastModified();
                 final int tos =
-                    resource.getTimeoutSeconds() < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
-                                    : resource.getTimeoutSeconds();
+                    timeoutSeconds < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
+                                    : timeoutSeconds;
 
                 final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
 

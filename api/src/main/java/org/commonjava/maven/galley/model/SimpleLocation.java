@@ -29,14 +29,13 @@ public class SimpleLocation
 
     private final String uri;
 
-    private final int timeoutSeconds;
-
     private final Map<String, Object> attributes = new HashMap<String, Object>();
 
     private final String name;
 
     public SimpleLocation( final String name, final String uri, final boolean allowSnapshots, final boolean allowReleases,
-                           final boolean allowsStoring, final boolean allowPublishing, final boolean allowDownloading, final int timeoutSeconds )
+ final boolean allowsStoring, final boolean allowPublishing,
+                           final boolean allowDownloading )
     {
         this.name = name;
         this.uri = uri;
@@ -45,7 +44,6 @@ public class SimpleLocation
         this.allowStoring = allowsStoring;
         this.allowPublishing = allowPublishing;
         this.allowDownloading = allowDownloading;
-        this.timeoutSeconds = timeoutSeconds;
     }
 
     public SimpleLocation( final String name, final String uri )
@@ -57,7 +55,6 @@ public class SimpleLocation
         this.allowStoring = true;
         this.allowDownloading = true;
         this.allowPublishing = false;
-        this.timeoutSeconds = -1;
     }
 
     public SimpleLocation( final String uri )
@@ -69,7 +66,6 @@ public class SimpleLocation
         this.allowStoring = true;
         this.allowDownloading = true;
         this.allowPublishing = false;
-        this.timeoutSeconds = -1;
     }
 
     @Override
@@ -112,12 +108,6 @@ public class SimpleLocation
     public String getName()
     {
         return name;
-    }
-
-    @Override
-    public int getTimeoutSeconds()
-    {
-        return timeoutSeconds;
     }
 
     @Override
@@ -168,13 +158,21 @@ public class SimpleLocation
     @Override
     public <T> T getAttribute( final String key, final Class<T> type )
     {
+        return getAttribute( key, type, null );
+    }
+
+    @Override
+    public <T> T getAttribute( final String key, final Class<T> type, final T defaultValue )
+    {
         final Object value = attributes.get( key );
         if ( value != null )
         {
             return type.cast( value );
         }
-
-        return null;
+        else
+        {
+            return defaultValue;
+        }
     }
 
     @Override

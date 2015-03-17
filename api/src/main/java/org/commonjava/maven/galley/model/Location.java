@@ -17,6 +17,8 @@ public interface Location
 
     String CONNECTION_TIMEOUT_SECONDS = "connection-timeout";
 
+    String ATTR_ALT_STORAGE_LOCATION = "alt-storage-location";
+
     int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 30;
 
     int DEFAULT_CACHE_TIMEOUT_SECONDS = 86400;
@@ -37,8 +39,6 @@ public interface Location
 
     String getName();
 
-    int getTimeoutSeconds();
-
     /**
      * Reminder that equality checks are important here!
      */
@@ -54,6 +54,8 @@ public interface Location
     Map<String, Object> getAttributes();
 
     <T> T getAttribute( String key, Class<T> type );
+
+    <T> T getAttribute( String key, Class<T> type, T defaultValue );
 
     Object removeAttribute( String key );
 

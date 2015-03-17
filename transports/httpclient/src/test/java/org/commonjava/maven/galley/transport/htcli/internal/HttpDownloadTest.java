@@ -38,7 +38,7 @@ public class HttpDownloadTest
         final String fname = "simple-retrieval.html";
 
         final String baseUri = fixture.getBaseUri();
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
@@ -68,7 +68,7 @@ public class HttpDownloadTest
         final String fname = "simple-missing.html";
 
         final String baseUri = fixture.getBaseUri();
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
@@ -97,7 +97,7 @@ public class HttpDownloadTest
         final String fname = "simple-error.html";
 
         final String baseUri = fixture.getBaseUri();
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 

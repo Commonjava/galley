@@ -587,13 +587,9 @@ public class TransferManagerImpl
 
     private int getTimeoutSeconds( final ConcreteResource resource )
     {
-        Integer timeoutSeconds = resource.getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class );
-        if ( timeoutSeconds == null )
-        {
-            timeoutSeconds = Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS;
-        }
-
-        return timeoutSeconds;
+        return resource.getLocation()
+                       .getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class,
+                                      Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS );
     }
 
     @Override

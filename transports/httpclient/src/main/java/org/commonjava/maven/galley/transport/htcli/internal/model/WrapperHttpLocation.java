@@ -56,12 +56,6 @@ public class WrapperHttpLocation
     }
 
     @Override
-    public int getTimeoutSeconds()
-    {
-        return delegate.getTimeoutSeconds();
-    }
-
-    @Override
     public String getKeyCertPem()
     {
         return null;
@@ -144,6 +138,12 @@ public class WrapperHttpLocation
     public <T> T getAttribute( final String key, final Class<T> type )
     {
         return delegate.getAttribute( key, type );
+    }
+
+    @Override
+    public <T> T getAttribute( final String key, final Class<T> type, final T defaultValue )
+    {
+        return delegate.getAttribute( key, type, defaultValue );
     }
 
     @Override

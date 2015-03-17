@@ -93,7 +93,7 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
@@ -113,7 +113,7 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
@@ -136,7 +136,7 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
@@ -156,7 +156,7 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
 
         fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
 
@@ -182,7 +182,7 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
@@ -202,7 +202,7 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
@@ -222,7 +222,7 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, 5, null );
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
 
         fixture.registerException( fixture.getUrlPath( url ), "Test Error" );
 
