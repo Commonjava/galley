@@ -23,8 +23,6 @@ import org.commonjava.maven.galley.model.Transfer;
 
 public interface CacheProvider
 {
-    String ATTR_ALT_STORAGE_LOCATION = "alt-storage-location";
-
     String SUFFIX_TO_DELETE = ".to-delete";
 
     String SUFFIX_TO_DOWNLOAD = ".to-download";
