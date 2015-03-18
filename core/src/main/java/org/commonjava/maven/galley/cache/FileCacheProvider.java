@@ -116,8 +116,8 @@ public class FileCacheProvider
 
             // TODO: configurable default timeout
             final int timeoutSeconds = resource.getLocation()
-                        .getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class,
-                                       Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS );
+                        .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
+                                       Location.DEFAULT_CACHE_TIMEOUT_SECONDS );
 
             if ( !resource.isRoot() && f.exists() && !f.isDirectory() && timeoutSeconds > 0 )
             {

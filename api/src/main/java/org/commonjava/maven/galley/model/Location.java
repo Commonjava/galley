@@ -17,6 +17,8 @@ public interface Location
 
     String CONNECTION_TIMEOUT_SECONDS = "connection-timeout";
 
+    String CACHE_TIMEOUT_SECONDS = "cache-timeout";
+
     String ATTR_ALT_STORAGE_LOCATION = "alt-storage-location";
 
     int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 30;
