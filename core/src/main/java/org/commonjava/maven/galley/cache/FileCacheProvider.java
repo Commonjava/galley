@@ -194,7 +194,9 @@ public class FileCacheProvider
     @Override
     public boolean exists( final ConcreteResource resource )
     {
-        return getDetachedFile( resource ).exists();
+        final File f = getDetachedFile( resource );
+        //        logger.info( "Checking for existence of cache file: {}", f );
+        return f.exists();
     }
 
     @Override

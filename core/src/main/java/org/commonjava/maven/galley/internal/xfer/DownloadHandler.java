@@ -67,6 +67,14 @@ public class DownloadHandler
             return null;
         }
 
+        if ( transport == null )
+        {
+            throw new TransferException( "No transports available to handle: {} with location type: {}", resource,
+                                         resource.getLocation()
+                                                 .getClass()
+                                                 .getSimpleName() );
+        }
+
         if ( nfc.isMissing( resource ) )
         {
             logger.debug( "NFC: Already marked as missing: {}", resource );

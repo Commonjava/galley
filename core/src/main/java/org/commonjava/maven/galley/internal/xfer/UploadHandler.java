@@ -66,6 +66,14 @@ public class UploadHandler
             throw new TransferException( "Publishing not allowed in: {}", resource );
         }
 
+        if ( transport == null )
+        {
+            throw new TransferException( "No transports available to handle: {} with location type: {}", resource,
+                                         resource.getLocation()
+                                                 .getClass()
+                                                 .getSimpleName() );
+        }
+
         logger.debug( "PUBLISH {}", resource );
 
         joinUpload( resource, timeoutSeconds );

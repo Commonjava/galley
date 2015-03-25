@@ -55,6 +55,10 @@ public class ListingHandler
 
         if ( transport == null )
         {
+            logger.warn( "No transports available to handle: {} with location type: {}", resource,
+                         resource.getLocation()
+                                 .getClass()
+                                 .getSimpleName() );
             return null;
         }
 

@@ -69,6 +69,10 @@ public class HttpExistenceTest
         final Boolean result = dl.call();
 
         final TransferException error = dl.getError();
+        //        if ( error != null )
+        //        {
+        //            error.printStackTrace();
+        //        }
         assertThat( error, nullValue() );
 
         assertThat( result, notNullValue() );

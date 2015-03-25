@@ -297,11 +297,6 @@ public class TransferManagerImpl
                 nfc.addMissing( resource );
                 return null;
             }
-
-            throw new TransferException( "No transports available to handle: {} with location type: {}", resource,
-                                         resource.getLocation()
-                                                 .getClass()
-                                                 .getSimpleName() );
         }
 
         return transport;
@@ -381,6 +376,8 @@ public class TransferManagerImpl
     public Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures )
         throws TransferException
     {
+        //        logger.info( "Attempting to resolve: {}", resource );
+
         // TODO: Handle the case where storage isn't allowed? 
         // NOTE: This would expand the notion out from simply: 
         //    "don't allow storing new stuff"
@@ -394,6 +391,7 @@ public class TransferManagerImpl
 
             if ( target.exists() )
             {
+                logger.info( "Using cached copy of: {}", target );
                 return target;
             }
 
