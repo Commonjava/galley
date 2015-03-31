@@ -186,7 +186,6 @@ public final class Transfer
 
     public boolean exists()
     {
-        provider.waitForWriteUnlock( resource );
         if ( decorator != null )
         {
             decorator.decorateExists( this );

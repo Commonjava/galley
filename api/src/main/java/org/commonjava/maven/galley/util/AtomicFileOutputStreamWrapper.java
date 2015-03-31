@@ -19,11 +19,24 @@ public class AtomicFileOutputStreamWrapper
     extends OutputStream
 {
 
+    public static abstract class AtomicStreamCallbacks
+    {
+        public void beforeClose()
+        {
+        }
+
+        public void afterClose()
+        {
+        }
+    }
+
     private final OutputStream stream;
 
     private final File downloadFile;
 
     private final File targetFile;
+
+    private final AtomicStreamCallbacks callbacks;
 
     public AtomicFileOutputStreamWrapper( final File targetFile, final File downloadFile, final OutputStream stream )
         throws FileNotFoundException
@@ -31,6 +44,17 @@ public class AtomicFileOutputStreamWrapper
         this.targetFile = targetFile;
         this.downloadFile = downloadFile;
         this.stream = stream;
+        callbacks = null;
+    }
+
+    public AtomicFileOutputStreamWrapper( final File targetFile, final File downloadFile, final OutputStream stream,
+                                          final AtomicStreamCallbacks callbacks )
+        throws FileNotFoundException
+    {
+        this.targetFile = targetFile;
+        this.downloadFile = downloadFile;
+        this.stream = stream;
+        this.callbacks = callbacks;
     }
 
     @Override
@@ -44,8 +68,18 @@ public class AtomicFileOutputStreamWrapper
     public void close()
         throws IOException
     {
+        if ( callbacks != null )
+        {
+            callbacks.beforeClose();
+        }
+
         stream.close();
         downloadFile.renameTo( targetFile );
+
+        if ( callbacks != null )
+        {
+            callbacks.afterClose();
+        }
     }
 
     @Override
