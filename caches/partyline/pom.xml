@@ -14,24 +14,18 @@
   
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
-    <artifactId>galley</artifactId>
+    <artifactId>galley-caches</artifactId>
     <version>0.6.11-SNAPSHOT</version>
   </parent>
   
-  <artifactId>galley-caches</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>galley-cache-partyline</artifactId>
   
-  <name>Galley :: Caches :: Parent</name>
-  
-  <modules>
-    <module>partyline</module>
-    <module>tck</module>
-  </modules>
+  <name>Galley :: Caches :: PartyLine</name>
   
   <dependencies>
     <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-api</artifactId>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>partyline</artifactId>
     </dependency>
   </dependencies>
 </project>

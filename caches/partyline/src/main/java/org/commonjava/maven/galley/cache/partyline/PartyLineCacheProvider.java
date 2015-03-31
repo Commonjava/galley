@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Red Hat, Inc..
+ * Copyright (c) 2015 Red Hat, Inc..
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
@@ -8,11 +8,9 @@
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.commonjava.maven.galley.cache;
+package org.commonjava.maven.galley.cache.partyline;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -37,20 +36,23 @@ import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
 import org.commonjava.maven.galley.util.PathUtils;
+import org.commonjava.util.partyline.JoinableFileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named( "file-galley-cache" )
-public class FileCacheProvider
+@Named( "partyline-galley-cache" )
+public class PartyLineCacheProvider
     implements CacheProvider
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<ConcreteResource, Transfer>( 10000 );
+    
+    private final JoinableFileManager fileManager = new JoinableFileManager();
 
     @Inject
-    private FileCacheProviderConfig config;
+    private PartyLineCacheProviderConfig config;
 
     @Inject
     private PathGenerator pathGenerator;
@@ -61,22 +63,20 @@ public class FileCacheProvider
     @Inject
     private TransferDecorator transferDecorator;
 
-    private final SimpleLockingSupport lockingSupport = new SimpleLockingSupport();
-
-    protected FileCacheProvider()
+    protected PartyLineCacheProvider()
     {
     }
 
-    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
+    public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
                               final TransferDecorator transferDecorator, final boolean aliasLinking )
     {
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
-        this.config = new FileCacheProviderConfig( cacheBasedir ).withAliasLinking( aliasLinking );
+        this.config = new PartyLineCacheProviderConfig( cacheBasedir ).withAliasLinking( aliasLinking );
     }
 
-    public FileCacheProvider( final FileCacheProviderConfig config, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
+    public PartyLineCacheProvider( final PartyLineCacheProviderConfig config, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
                               final TransferDecorator transferDecorator )
     {
         this.config = config;
@@ -85,7 +85,7 @@ public class FileCacheProvider
         this.transferDecorator = transferDecorator;
     }
 
-    public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
+    public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
                               final TransferDecorator transferDecorator )
     {
         this( cacheBasedir, pathGenerator, fileEventManager, transferDecorator, true );
@@ -176,7 +176,7 @@ public class FileCacheProvider
     public InputStream openInputStream( final ConcreteResource resource )
         throws IOException
     {
-        return new FileInputStream( getDetachedFile( resource ) );
+        return fileManager.openInputStream( getDetachedFile( resource ) );
     }
 
     @Override
@@ -192,7 +192,7 @@ public class FileCacheProvider
         }
 
         final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_DOWNLOAD );
-        final FileOutputStream stream = new FileOutputStream( downloadFile );
+        final OutputStream stream = fileManager.openOutputStream( downloadFile );
 
         return new AtomicFileOutputStreamWrapper( targetFile, downloadFile, stream );
     }
@@ -209,7 +209,25 @@ public class FileCacheProvider
     public void copy( final ConcreteResource from, final ConcreteResource to )
         throws IOException
     {
-        FileUtils.copyFile( getDetachedFile( from ), getDetachedFile( to ) );
+        copy( getDetachedFile( from ), getDetachedFile( to ) );
+    }
+
+    private void copy( final File from, final File to )
+        throws IOException
+    {
+        InputStream in = null;
+        OutputStream out = null;
+        try
+        {
+            in = fileManager.openInputStream( from );
+            out = fileManager.openOutputStream( to );
+            IOUtils.copy( in, out );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( in );
+            IOUtils.closeQuietly( out );
+        }
     }
 
     @Override
@@ -277,18 +295,7 @@ public class FileCacheProvider
 
         if ( fromKey != null && toKey != null && !fromKey.equals( toKey ) && fromPath != null && toPath != null && !fromPath.equals( toPath ) )
         {
-            if ( config.isAliasLinking() )
-            {
-                final File fromFile = getDetachedFile( from );
-                final File toFile = getDetachedFile( to );
-
-                FileUtils.copyFile( fromFile, toFile );
-                //                Files.createLink( Paths.get( fromFile.toURI() ), Paths.get( toFile.toURI() ) );
-            }
-            else
-            {
-                copy( from, to );
-            }
+            copy( from, to );
         }
     }
 
@@ -334,49 +341,49 @@ public class FileCacheProvider
     @Override
     public boolean isReadLocked( final ConcreteResource resource )
     {
-        return lockingSupport.isLocked( resource );
+        return fileManager.isReadLocked( getDetachedFile( resource ) );
     }
 
     @Override
     public boolean isWriteLocked( final ConcreteResource resource )
     {
-        return lockingSupport.isLocked( resource );
+        return fileManager.isWriteLocked( getDetachedFile( resource ) );
     }
 
     @Override
     public void unlockRead( final ConcreteResource resource )
     {
-        lockingSupport.unlock( resource );
+//        fileManager.unlock( getDetachedFile( resource ) );
     }
 
     @Override
     public void unlockWrite( final ConcreteResource resource )
     {
-        lockingSupport.unlock( resource );
+//        fileManager.unlock( getDetachedFile( resource ) );
     }
 
     @Override
     public void lockRead( final ConcreteResource resource )
     {
-        lockingSupport.lock( resource );
+//        fileManager.lock( getDetachedFile( resource ) );
     }
 
     @Override
     public void lockWrite( final ConcreteResource resource )
     {
-        lockingSupport.lock( resource );
+//        fileManager.lock( getDetachedFile( resource ) );
     }
 
     @Override
     public void waitForWriteUnlock( final ConcreteResource resource )
     {
-        lockingSupport.waitForUnlock( resource );
+        fileManager.waitForWriteUnlock( getDetachedFile( resource ) );
     }
 
     @Override
     public void waitForReadUnlock( final ConcreteResource resource )
     {
-        lockingSupport.waitForUnlock( resource );
+        fileManager.waitForReadUnlock( getDetachedFile( resource ) );
     }
 
 }

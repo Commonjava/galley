@@ -88,6 +88,12 @@
       </dependency>
       
       <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>partyline</artifactId>
+        <version>1.1-SNAPSHOT</version>
+      </dependency>
+      
+      <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-identities</artifactId>
         <version>${atlasVersion}</version>
