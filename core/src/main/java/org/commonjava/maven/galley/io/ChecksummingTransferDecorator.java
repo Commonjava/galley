@@ -22,17 +22,21 @@ public final class ChecksummingTransferDecorator
 
     private final Set<TransferOperation> ops;
 
-    public ChecksummingTransferDecorator( final Set<TransferOperation> ops,
+    private final Set<String> ignoredFileEndings;
+
+    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, final Set<String> ignoredFileEndings,
                                           final AbstractChecksumGeneratorFactory<?>... checksumFactories )
     {
         this.ops = ops;
+        this.ignoredFileEndings = ignoredFileEndings;
         this.checksumFactories = new HashSet<AbstractChecksumGeneratorFactory<?>>( Arrays.asList( checksumFactories ) );
     }
 
-    public ChecksummingTransferDecorator( final Set<TransferOperation> ops,
+    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, final Set<String> ignoredFileEndings,
                                           final Collection<AbstractChecksumGeneratorFactory<?>> checksumFactories )
     {
         this.ops = ops;
+        this.ignoredFileEndings = ignoredFileEndings;
         if ( checksumFactories instanceof Set )
         {
             this.checksumFactories = (Set<AbstractChecksumGeneratorFactory<?>>) checksumFactories;
@@ -49,7 +53,28 @@ public final class ChecksummingTransferDecorator
     {
         if ( ops.contains( op ) )
         {
-            return new ChecksummingOutputStream( checksumFactories, stream, transfer );
+            if ( ignoredFileEndings == null || ignoredFileEndings.isEmpty() )
+            {
+                return new ChecksummingOutputStream( checksumFactories, stream, transfer );
+            }
+            else
+            {
+                final String path = transfer.getPath();
+                boolean ignored = false;
+                for ( final String ending : ignoredFileEndings )
+                {
+                    if ( path.endsWith( ending ) )
+                    {
+                        ignored = true;
+                        break;
+                    }
+                }
+
+                if ( !ignored )
+                {
+                    return new ChecksummingOutputStream( checksumFactories, stream, transfer );
+                }
+            }
         }
 
         return stream;
@@ -66,10 +91,37 @@ public final class ChecksummingTransferDecorator
     public void decorateDelete( final Transfer transfer )
         throws IOException
     {
-        for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
+        boolean delete = false;
+        if ( ignoredFileEndings == null || ignoredFileEndings.isEmpty() )
         {
-            final AbstractChecksumGenerator generator = factory.createGenerator( transfer );
-            generator.delete();
+            delete = true;
+        }
+        else
+        {
+            final String path = transfer.getPath();
+            boolean ignored = false;
+            for ( final String ending : ignoredFileEndings )
+            {
+                if ( path.endsWith( ending ) )
+                {
+                    ignored = true;
+                    break;
+                }
+            }
+
+            if ( !ignored )
+            {
+                delete = true;
+            }
+        }
+
+        if ( delete )
+        {
+            for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
+            {
+                final AbstractChecksumGenerator generator = factory.createGenerator( transfer );
+                generator.delete();
+            }
         }
     }
 }

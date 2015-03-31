@@ -39,7 +39,7 @@ public final class ChecksummingOutputStream
     {
         super.close();
 
-        logger.info( "Wrote main file: {}. Now, writing checksums.", transfer.getDetachedFile() );
+        logger.info( "Wrote: {} in: {}. Now, writing checksums.", transfer.getPath(), transfer.getLocation() );
         for ( final AbstractChecksumGenerator checksum : checksums )
         {
             checksum.write();

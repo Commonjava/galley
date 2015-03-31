@@ -75,4 +75,24 @@ public interface CacheProvider
 
     void clearTransferCache();
 
+    long length( ConcreteResource resource );
+
+    long lastModified( ConcreteResource resource );
+
+    boolean isReadLocked( ConcreteResource resource );
+
+    boolean isWriteLocked( ConcreteResource resource );
+
+    void unlockRead( ConcreteResource resource );
+
+    void unlockWrite( ConcreteResource resource );
+
+    void lockRead( ConcreteResource resource );
+
+    void lockWrite( ConcreteResource resource );
+
+    void waitForWriteUnlock( ConcreteResource resource );
+
+    void waitForReadUnlock( ConcreteResource resource );
+
 }

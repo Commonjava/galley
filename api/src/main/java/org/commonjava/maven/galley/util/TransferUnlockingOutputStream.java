@@ -14,18 +14,18 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.Transfer.TransferUnlocker;
 
 public class TransferUnlockingOutputStream
     extends FilterOutputStream
 {
 
-    private final Transfer transfer;
+    private final TransferUnlocker unlocker;
 
-    public TransferUnlockingOutputStream( final OutputStream out, final Transfer transfer )
+    public TransferUnlockingOutputStream( final OutputStream out, final TransferUnlocker unlocker )
     {
         super( out );
-        this.transfer = transfer;
+        this.unlocker = unlocker;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class TransferUnlockingOutputStream
         throws IOException
     {
         super.close();
-        transfer.unlock();
+        unlocker.unlock();
     }
 
 }

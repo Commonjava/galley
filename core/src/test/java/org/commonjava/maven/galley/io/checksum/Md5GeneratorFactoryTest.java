@@ -3,11 +3,11 @@ package org.commonjava.maven.galley.io.checksum;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.io.File;
+import java.io.InputStream;
 import java.security.MessageDigest;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.io.checksum.Md5GeneratorFactory.Md5Generator;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -43,8 +43,6 @@ public class Md5GeneratorFactoryTest
             fixture.getCache()
                    .getTransfer( new ConcreteResource( new SimpleLocation( "test:uri" ), "my-path.txt" ) );
 
-        final File target = txfr.getDetachedFile();
-
         final Md5GeneratorFactory factory = new Md5GeneratorFactory();
 
         final Md5Generator generator = factory.newGenerator( txfr );
@@ -57,8 +55,19 @@ public class Md5GeneratorFactoryTest
         final byte[] digest = md.digest();
         final String digestHex = Hex.encodeHexString( digest );
 
-        final File targetMd5 = new File( target.getParentFile(), target.getName() + ".md5" );
-        final String resultHex = FileUtils.readFileToString( targetMd5 );
+        final Transfer md5Txfr = txfr.getSiblingMeta( ".md5" );
+        InputStream in = null;
+        String resultHex = null;
+        try
+        {
+            in = md5Txfr.openInputStream();
+
+            resultHex = IOUtils.toString( in );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( in );
+        }
 
         assertThat( resultHex, equalTo( digestHex ) );
     }

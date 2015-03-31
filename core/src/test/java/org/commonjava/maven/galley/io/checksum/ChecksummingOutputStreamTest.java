@@ -4,13 +4,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Collections;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -67,10 +66,19 @@ public class ChecksummingOutputStreamTest
         final byte[] digest = md.digest();
         final String digestHex = Hex.encodeHexString( digest );
 
-        final File target = txfr.getDetachedFile();
-        final File targetMd5 = new File( target.getParentFile(), target.getName() + ".md5" );
+        final Transfer md5Txfr = txfr.getSiblingMeta( ".md5" );
+        InputStream in = null;
+        String resultHex = null;
+        try
+        {
+            in = md5Txfr.openInputStream();
 
-        final String resultHex = FileUtils.readFileToString( targetMd5 );
+            resultHex = IOUtils.toString( in );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( in );
+        }
 
         assertThat( resultHex, equalTo( digestHex ) );
     }

@@ -60,6 +60,8 @@ public class FileCacheProvider
     @Inject
     private TransferDecorator transferDecorator;
 
+    private final SimpleLockingSupport lockingSupport = new SimpleLockingSupport();
+
     protected FileCacheProvider()
     {
     }
@@ -311,6 +313,66 @@ public class FileCacheProvider
     public void clearTransferCache()
     {
         transferCache.clear();
+    }
+
+    @Override
+    public long length( final ConcreteResource resource )
+    {
+        return getDetachedFile( resource ).length();
+    }
+
+    @Override
+    public long lastModified( final ConcreteResource resource )
+    {
+        return getDetachedFile( resource ).lastModified();
+    }
+
+    @Override
+    public boolean isReadLocked( final ConcreteResource resource )
+    {
+        return lockingSupport.isLocked( resource );
+    }
+
+    @Override
+    public boolean isWriteLocked( final ConcreteResource resource )
+    {
+        return lockingSupport.isLocked( resource );
+    }
+
+    @Override
+    public void unlockRead( final ConcreteResource resource )
+    {
+        lockingSupport.unlock( resource );
+    }
+
+    @Override
+    public void unlockWrite( final ConcreteResource resource )
+    {
+        lockingSupport.unlock( resource );
+    }
+
+    @Override
+    public void lockRead( final ConcreteResource resource )
+    {
+        lockingSupport.lock( resource );
+    }
+
+    @Override
+    public void lockWrite( final ConcreteResource resource )
+    {
+        lockingSupport.lock( resource );
+    }
+
+    @Override
+    public void waitForWriteUnlock( final ConcreteResource resource )
+    {
+        lockingSupport.waitForUnlock( resource );
+    }
+
+    @Override
+    public void waitForReadUnlock( final ConcreteResource resource )
+    {
+        lockingSupport.waitForUnlock( resource );
     }
 
 }

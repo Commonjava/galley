@@ -35,10 +35,8 @@ public final class Transfer
 
     private final FileEventManager fileEventManager;
 
-    private boolean locked = false;
-
-    public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager, final TransferDecorator decorator,
-                     final String... path )
+    public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager,
+                     final TransferDecorator decorator, final String... path )
     {
         this.resource = new ConcreteResource( loc, path );
         this.fileEventManager = fileEventManager;
@@ -46,54 +44,13 @@ public final class Transfer
         this.provider = provider;
     }
 
-    public Transfer( final ConcreteResource resource, final CacheProvider provider, final FileEventManager fileEventManager,
-                     final TransferDecorator decorator )
+    public Transfer( final ConcreteResource resource, final CacheProvider provider,
+                     final FileEventManager fileEventManager, final TransferDecorator decorator )
     {
         this.resource = resource;
         this.fileEventManager = fileEventManager;
         this.decorator = decorator;
         this.provider = provider;
-    }
-
-    public boolean isLocked()
-    {
-        return locked;
-    }
-
-    public synchronized void unlock()
-    {
-        locked = false;
-        notifyAll();
-    }
-
-    public synchronized void waitForUnlock()
-    {
-        if ( locked )
-        {
-            try
-            {
-                wait();
-            }
-            catch ( final InterruptedException e )
-            {
-                // TODO
-            }
-        }
-    }
-
-    public synchronized void waitForUnlock( final long millis )
-    {
-        if ( locked )
-        {
-            try
-            {
-                wait( millis );
-            }
-            catch ( final InterruptedException e )
-            {
-                // TODO
-            }
-        }
     }
 
     public boolean isDirectory()
@@ -144,10 +101,10 @@ public final class Transfer
 
     public void touch()
     {
-        waitForUnlock();
+        provider.waitForWriteUnlock( resource );
         if ( decorator != null )
         {
-            decorator.decorateTouch(this);
+            decorator.decorateTouch( this );
         }
         fileEventManager.fire( new FileAccessEvent( this ) );
     }
@@ -161,7 +118,7 @@ public final class Transfer
     public InputStream openInputStream( final boolean fireEvents )
         throws IOException
     {
-        waitForUnlock();
+        provider.waitForReadUnlock( resource );
         try
         {
             InputStream stream = provider.openInputStream( resource );
@@ -196,20 +153,20 @@ public final class Transfer
     public OutputStream openOutputStream( final TransferOperation accessType, final boolean fireEvents )
         throws IOException
     {
-        waitForUnlock();
+        provider.waitForWriteUnlock( resource );
         try
         {
-            locked = true;
+            provider.lockWrite( resource );
             OutputStream stream = provider.openOutputStream( resource );
             if ( stream == null )
             {
                 return null;
             }
 
-            stream =
-                decorator == null ? stream
-                                : decorator.decorateWrite( new TransferUnlockingOutputStream( stream, this ), this,
-                                                           accessType );
+            final TransferUnlocker unlocker = new TransferUnlocker( resource, provider );
+            stream = new TransferUnlockingOutputStream( stream, unlocker );
+            stream = decorator == null ? stream : decorator.decorateWrite( stream, this, accessType );
+
             if ( fireEvents )
             {
                 fileEventManager.fire( new FileStorageEvent( accessType, this ) );
@@ -229,10 +186,10 @@ public final class Transfer
 
     public boolean exists()
     {
-        waitForUnlock();
+        provider.waitForWriteUnlock( resource );
         if ( decorator != null )
         {
-            decorator.decorateExists(this);
+            decorator.decorateExists( this );
         }
         return provider.exists( resource );
     }
@@ -240,19 +197,19 @@ public final class Transfer
     public void copyFrom( final Transfer f )
         throws IOException
     {
-        waitForUnlock();
-        locked = true;
+        provider.waitForWriteUnlock( resource );
+        provider.lockWrite( resource );
         try
         {
             if ( decorator != null )
             {
-                decorator.decorateCopyFrom(f, this);
+                decorator.decorateCopyFrom( f, this );
             }
             provider.copy( f.getResource(), resource );
         }
         finally
         {
-            unlock();
+            provider.unlockWrite( resource );
         }
     }
 
@@ -270,7 +227,7 @@ public final class Transfer
     public boolean delete( final boolean fireEvents )
         throws IOException
     {
-        waitForUnlock();
+        provider.waitForWriteUnlock( resource );
         try
         {
             if ( decorator != null )
@@ -307,26 +264,26 @@ public final class Transfer
         return listing;
     }
 
-    public File getDetachedFile()
-    {
-        waitForUnlock();
-        locked = true;
-        try
-        {
-            return provider.getDetachedFile( resource );
-        }
-        finally
-        {
-            unlock();
-        }
-    }
+    //    public File getDetachedFile()
+    //    {
+    //        provider.waitForWriteUnlock( resource );
+    //        provider.lockWrite( resource );
+    //        try
+    //        {
+    //            return provider.getDetachedFile( resource );
+    //        }
+    //        finally
+    //        {
+    //            provider.unlockWrite( resource );
+    //        }
+    //    }
 
     public void mkdirs()
         throws IOException
     {
         if ( decorator != null )
         {
-            decorator.decorateMkdirs(this);
+            decorator.decorateMkdirs( this );
         }
         provider.mkdirs( resource );
     }
@@ -334,12 +291,51 @@ public final class Transfer
     public void createFile()
         throws IOException
     {
-        waitForUnlock();
+        provider.waitForWriteUnlock( resource );
         if ( decorator != null )
         {
-            decorator.decorateCreateFile(this);
+            decorator.decorateCreateFile( this );
         }
         provider.createFile( resource );
+    }
+
+    public long length()
+    {
+        return provider.length( resource );
+    }
+
+    public long lastModified()
+    {
+        return provider.lastModified( resource );
+    }
+
+    public Transfer getSibling( final String named )
+    {
+        return getParent().getChild( named );
+    }
+
+    public Transfer getSiblingMeta( final String extension )
+    {
+        final String named = new File( resource.getPath() ).getName() + extension;
+        return getParent().getChild( named );
+    }
+
+    public static final class TransferUnlocker
+    {
+        private final CacheProvider provider;
+
+        private final ConcreteResource resource;
+
+        private TransferUnlocker( final ConcreteResource resource, final CacheProvider provider )
+        {
+            this.resource = resource;
+            this.provider = provider;
+        }
+
+        public void unlock()
+        {
+            provider.unlockWrite( resource );
+        }
     }
 
 }

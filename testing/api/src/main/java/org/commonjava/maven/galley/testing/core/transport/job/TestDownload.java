@@ -79,7 +79,7 @@ public class TestDownload
         OutputStream stream = null;
         try
         {
-            logger.info( "Writing '{}' to: {}.", new String( data ), transfer.getDetachedFile() );
+            logger.info( "Writing '{}' to: {}.", new String( data ), transfer );
             stream = transfer.openOutputStream( TransferOperation.DOWNLOAD );
             IOUtils.write( data, stream );
         }

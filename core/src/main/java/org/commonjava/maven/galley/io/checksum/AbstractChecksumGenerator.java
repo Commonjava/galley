@@ -2,13 +2,14 @@ package org.commonjava.maven.galley.io.checksum;
 
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,32 +52,34 @@ public abstract class AbstractChecksumGenerator
     public final void write()
         throws IOException
     {
-        final File checksumFile = getChecksumFile( transfer );
+        final Transfer checksumFile = getChecksumFile( transfer );
         logger.info( "Writing {} file: {}", checksumExtension, checksumFile );
 
-        final File dir = checksumFile.getParentFile();
-        if ( dir != null && !dir.exists() && !dir.mkdirs() )
+        PrintStream out = null;
+        try
         {
-            throw new IOException( "Cannot create directory: " + dir );
+            out = new PrintStream( checksumFile.openOutputStream( TransferOperation.GENERATE ) );
+            out.print( encodeHexString( digester.digest() ) );
         }
-
-        FileUtils.write( checksumFile, encodeHexString( digester.digest() ) );
+        finally
+        {
+            IOUtils.closeQuietly( out );
+        }
     }
 
     public final void delete()
         throws IOException
     {
-        final File checksumFile = getChecksumFile( transfer );
+        final Transfer checksumFile = getChecksumFile( transfer );
         if ( checksumFile.exists() )
         {
-            FileUtils.forceDelete( checksumFile );
+            checksumFile.delete();
         }
     }
 
-    private final File getChecksumFile( final Transfer transfer )
+    private final Transfer getChecksumFile( final Transfer transfer )
     {
-        final File f = transfer.getDetachedFile();
-        return new File( f.getParentFile(), f.getName() + checksumExtension );
+        return transfer.getSiblingMeta( checksumExtension );
     }
 
 }
