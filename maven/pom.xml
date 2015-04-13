@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
     <artifactId>galley</artifactId>
-    <version>0.6.11-SNAPSHOT</version>
+    <version>0.7</version>
   </parent>
   
   <artifactId>galley-maven</artifactId>
