@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
     <artifactId>galley-transports</artifactId>
-    <version>0.7</version>
+    <version>0.8-SNAPSHOT</version>
   </parent>
   
   <artifactId>galley-transport-filearc</artifactId>
