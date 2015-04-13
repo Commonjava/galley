@@ -36,7 +36,8 @@
   </scm>
   
   <properties>
-    <atlasVersion>0.13.6</atlasVersion>
+    <atlasVersion>0.13.8</atlasVersion>
+    <partylineVersion>1.1</partylineVersion>
   </properties>
 
   <dependencyManagement>
@@ -95,7 +96,7 @@
       <dependency>
         <groupId>org.commonjava.util</groupId>
         <artifactId>partyline</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>${partylineVersion}</version>
       </dependency>
       
       <dependency>
