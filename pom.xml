@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (C) 2012 Red Hat, Inc. (jdcasey@commonjava.org)
+    Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@
 
   <name>Galley :: Parent</name>
   <description>Transport mechanism for files, artifacts, and metadata</description>
+  <inceptionYear>2013</inceptionYear>
   
   <url>http://github.com/jdcasey/galley</url>
   
