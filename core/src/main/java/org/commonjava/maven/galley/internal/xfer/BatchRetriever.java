@@ -72,15 +72,16 @@ public final class BatchRetriever
     @Override
     public void run()
     {
-        if ( !hasMoreTries() )
-        {
-            return;
-        }
-
-        lastTry = resources.get( tries );
-        logger.debug( "Try #{}: {}", tries, lastTry );
         try
         {
+            if ( !hasMoreTries() )
+            {
+                return;
+            }
+
+            lastTry = resources.get( tries );
+            logger.debug( "Try #{}: {}", tries, lastTry );
+
             transfer = xfer.retrieve( lastTry, suppressFailures );
         }
         catch ( final TransferException e )

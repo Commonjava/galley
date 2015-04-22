@@ -22,12 +22,16 @@ import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferBatch;
+import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
@@ -44,6 +48,27 @@ public abstract class AbstractTransferManagerTest
 
     protected abstract CacheProvider getCacheProvider()
         throws Exception;
+
+    /**
+     * Addresses Issue #27 (https://github.com/Commonjava/galley/issues/27). Batches with virtual resources
+     * that contain zero concrete resources should count down the latch when they return immediately, but 
+     * instead are causing the countdown latch that watches the batch of transfers to hang.
+     */
+    @Test( timeout = 2000 )
+    public void batchRetrieve_returnEmptyResultIfVirtualResourceIsEmpty()
+        throws Exception
+    {
+        final VirtualResource vr = new VirtualResource( Collections.<Location> emptyList(), "/path/to/nowhere" );
+        final TransferBatch batch =
+            getTransferManagerImpl().batchRetrieve( new TransferBatch( Collections.<Resource> singleton( vr ) ) );
+        assertThat( batch, notNullValue() );
+
+        assertThat( batch.getErrors()
+                         .isEmpty(), equalTo( true ) );
+
+        assertThat( batch.getTransfers()
+                         .isEmpty(), equalTo( true ) );
+    }
 
     /**
      * Test that cached content will be used...if not, this test will fail, as 
