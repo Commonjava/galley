@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -650,14 +651,27 @@ public class TransferManagerImpl
                 executor.execute( retriever );
             }
 
-            try
+            while ( latch.getCount() > 0 )
             {
-                latch.await();
-            }
-            catch ( final InterruptedException e )
-            {
-                logger.error( String.format( "Failed to wait for batch retrieval attempts to complete: %s",
-                                             e.getMessage() ), e );
+                try
+                {
+                    latch.await( 2, TimeUnit.SECONDS );
+
+                    if ( latch.getCount() > 0 )
+                    {
+                        logger.info( "Waiting for {} more transfers in batch to complete.", latch.getCount() );
+                        for ( final BatchRetriever retriever : retrievers )
+                        {
+                            logger.info( "Batch waiting on {}", retriever.getLastTry() );
+                        }
+                    }
+                }
+                catch ( final InterruptedException e )
+                {
+                    logger.error( String.format( "Failed to wait for batch retrieval attempts to complete: %s",
+                                                 e.getMessage() ), e );
+                    break;
+                }
             }
 
             for ( final BatchRetriever retriever : new HashSet<BatchRetriever>( retrievers ) )
