@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.io.checksum;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -71,14 +72,17 @@ public abstract class AbstractChecksumGenerator
         logger.info( "Writing {} file: {}", checksumExtension, checksumFile );
 
         PrintStream out = null;
+        OutputStream stream = null;
         try
         {
-            out = new PrintStream( checksumFile.openOutputStream( TransferOperation.GENERATE ) );
+            stream = checksumFile.openOutputStream( TransferOperation.GENERATE );
+            out = new PrintStream( stream );
             out.print( encodeHexString( digester.digest() ) );
         }
         finally
         {
             IOUtils.closeQuietly( out );
+            IOUtils.closeQuietly( stream );
         }
     }
 

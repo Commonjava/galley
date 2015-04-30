@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -82,6 +84,7 @@ public class PartyLineCacheProvider
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.config = new PartyLineCacheProviderConfig( cacheBasedir ).withAliasLinking( aliasLinking );
+        startReportingDaemon();
     }
 
     public PartyLineCacheProvider( final PartyLineCacheProviderConfig config, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
@@ -91,12 +94,25 @@ public class PartyLineCacheProvider
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
+        startReportingDaemon();
     }
 
     public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
                               final TransferDecorator transferDecorator )
     {
         this( cacheBasedir, pathGenerator, fileEventManager, transferDecorator, true );
+    }
+
+    @PostConstruct
+    public void startReportingDaemon()
+    {
+        fileManager.startReporting();
+    }
+
+    @PreDestroy
+    public void stopReportingDaemon()
+    {
+        fileManager.stopReporting();
     }
 
     @Override
@@ -199,16 +215,18 @@ public class PartyLineCacheProvider
             throw new IOException( "Cannot create directory: " + dir );
         }
 
-        final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_DOWNLOAD );
+        final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_WRITE );
         final OutputStream stream = fileManager.openOutputStream( downloadFile );
 
         return new AtomicFileOutputStreamWrapper( targetFile, downloadFile, stream, new AtomicStreamCallbacks()
         {
+            @Override
             public void beforeClose()
             {
                 fileManager.lock( targetFile );
             }
 
+            @Override
             public void afterClose()
             {
                 fileManager.unlock( targetFile );
@@ -403,6 +421,12 @@ public class PartyLineCacheProvider
     public void waitForReadUnlock( final ConcreteResource resource )
     {
         fileManager.waitForReadUnlock( getDetachedFile( resource ) );
+    }
+
+    @Override
+    public void cleanupCurrentThread()
+    {
+        fileManager.cleanupCurrentThread();
     }
 
 }

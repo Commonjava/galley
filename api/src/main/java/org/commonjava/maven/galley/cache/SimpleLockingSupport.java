@@ -15,15 +15,22 @@
  */
 package org.commonjava.maven.galley.cache;
 
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
 
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleLockingSupport
 {
 
-    private final Set<ConcreteResource> lock = new HashSet<ConcreteResource>();
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+    private final Map<ConcreteResource, WeakReference<Thread>> lock =
+        new HashMap<ConcreteResource, WeakReference<Thread>>();
 
     public void waitForUnlock( final ConcreteResource resource )
     {
@@ -45,7 +52,7 @@ public class SimpleLockingSupport
 
     public boolean isLocked( final ConcreteResource resource )
     {
-        return lock.contains( resource );
+        return lock.containsKey( resource );
     }
 
     public void unlock( final ConcreteResource resource )
@@ -61,8 +68,44 @@ public class SimpleLockingSupport
     {
         synchronized ( lock )
         {
-            lock.add( resource );
+            lock.put( resource, new WeakReference<Thread>( Thread.currentThread() ) );
             lock.notifyAll();
+        }
+    }
+
+    public synchronized void cleanupCurrentThread()
+    {
+        final long id = Thread.currentThread()
+                              .getId();
+        for ( final ConcreteResource res : new HashSet<ConcreteResource>( lock.keySet() ) )
+        {
+            final WeakReference<Thread> ref = lock.get( res );
+            if ( ref != null )
+            {
+                boolean rm = false;
+                if ( ref.get() == null )
+                {
+                    logger.debug( "Cleaning up lock: {} for thread: {}", res, Thread.currentThread()
+                                                                                    .getName() );
+                    rm = true;
+                }
+                else if ( ref.get()
+                             .getId() == id )
+                {
+                    logger.debug( "Cleaning up lock: {} for thread: {}", res, Thread.currentThread()
+                                                                                    .getName() );
+                    rm = true;
+                }
+
+                if ( rm )
+                {
+                    synchronized ( lock )
+                    {
+                        lock.remove( res );
+                        lock.notifyAll();
+                    }
+                }
+            }
         }
     }
 
