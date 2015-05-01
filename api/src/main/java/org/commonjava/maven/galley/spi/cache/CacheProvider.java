@@ -30,18 +30,20 @@ public interface CacheProvider
 {
     String SUFFIX_TO_DELETE = ".to-delete";
 
-    String SUFFIX_TO_DOWNLOAD = ".to-download";
+    String SUFFIX_TO_WRITE = ".to-write";
 
     Set<String> HIDDEN_SUFFIXES = Collections.unmodifiableSet( new HashSet<String>()
     {
         {
             add( SUFFIX_TO_DELETE );
-            add( SUFFIX_TO_DOWNLOAD );
+            add( SUFFIX_TO_WRITE );
         }
 
         private static final long serialVersionUID = 1L;
 
     } );
+
+    void cleanupCurrentThread();
 
     boolean isDirectory( ConcreteResource resource );
 

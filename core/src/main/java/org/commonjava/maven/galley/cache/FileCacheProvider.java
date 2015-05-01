@@ -198,7 +198,7 @@ public class FileCacheProvider
             throw new IOException( "Cannot create directory: " + dir );
         }
 
-        final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_DOWNLOAD );
+        final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_WRITE );
         final FileOutputStream stream = new FileOutputStream( downloadFile );
 
         return new AtomicFileOutputStreamWrapper( targetFile, downloadFile, stream );
@@ -384,6 +384,12 @@ public class FileCacheProvider
     public void waitForReadUnlock( final ConcreteResource resource )
     {
         lockingSupport.waitForUnlock( resource );
+    }
+
+    @Override
+    public void cleanupCurrentThread()
+    {
+        lockingSupport.cleanupCurrentThread();
     }
 
 }

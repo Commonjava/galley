@@ -17,11 +17,15 @@ package org.commonjava.maven.galley.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AtomicFileOutputStreamWrapper
-    extends OutputStream
+    extends FilterOutputStream
 {
 
     public static abstract class AtomicStreamCallbacks
@@ -35,7 +39,7 @@ public class AtomicFileOutputStreamWrapper
         }
     }
 
-    private final OutputStream stream;
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final File downloadFile;
 
@@ -46,9 +50,9 @@ public class AtomicFileOutputStreamWrapper
     public AtomicFileOutputStreamWrapper( final File targetFile, final File downloadFile, final OutputStream stream )
         throws FileNotFoundException
     {
+        super( stream );
         this.targetFile = targetFile;
         this.downloadFile = downloadFile;
-        this.stream = stream;
         callbacks = null;
     }
 
@@ -56,17 +60,10 @@ public class AtomicFileOutputStreamWrapper
                                           final AtomicStreamCallbacks callbacks )
         throws FileNotFoundException
     {
+        super( stream );
         this.targetFile = targetFile;
         this.downloadFile = downloadFile;
-        this.stream = stream;
         this.callbacks = callbacks;
-    }
-
-    @Override
-    public void write( final int b )
-        throws IOException
-    {
-        stream.write( b );
     }
 
     @Override
@@ -78,34 +75,26 @@ public class AtomicFileOutputStreamWrapper
             callbacks.beforeClose();
         }
 
-        stream.close();
-        downloadFile.renameTo( targetFile );
-
-        if ( callbacks != null )
+        try
         {
-            callbacks.afterClose();
+            super.close();
         }
-    }
+        finally
+        {
+            try
+            {
+                downloadFile.renameTo( targetFile );
+            }
+            catch ( final Exception e )
+            {
+                logger.error( String.format( "Failed to rename: %s to: %s", downloadFile, targetFile ), e );
+            }
 
-    @Override
-    public void write( final byte[] b )
-        throws IOException
-    {
-        stream.write( b );
-    }
-
-    @Override
-    public void write( final byte[] b, final int off, final int len )
-        throws IOException
-    {
-        stream.write( b, off, len );
-    }
-
-    @Override
-    public void flush()
-        throws IOException
-    {
-        stream.flush();
+            if ( callbacks != null )
+            {
+                callbacks.afterClose();
+            }
+        }
     }
 
 }

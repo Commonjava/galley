@@ -50,10 +50,13 @@ public final class BatchRetriever
 
     private final boolean suppressFailures;
 
+    private final Resource rootResource;
+
     public BatchRetriever( final TransferManagerImpl xfer, final Resource resource, final boolean suppressFailures )
     {
         this.xfer = xfer;
         this.suppressFailures = suppressFailures;
+        this.rootResource = resource;
         if ( resource instanceof ConcreteResource )
         {
             resources = Collections.singletonList( (ConcreteResource) resource );
@@ -76,11 +79,12 @@ public final class BatchRetriever
         {
             if ( !hasMoreTries() )
             {
+                logger.debug( "Out of tries for: {}. Last try was: {}. Returning.", rootResource, lastTry );
                 return;
             }
 
             lastTry = resources.get( tries );
-            logger.debug( "Try #{}: {}", tries, lastTry );
+            logger.debug( "Try #{} in {}: {}", tries, rootResource, lastTry );
 
             transfer = xfer.retrieve( lastTry, suppressFailures );
         }
@@ -90,6 +94,7 @@ public final class BatchRetriever
         }
         finally
         {
+            logger.debug( "Try #{} finishing up for: {}. Last try was: {}", tries, rootResource, lastTry );
             tries++;
             latch.countDown();
         }
@@ -113,6 +118,52 @@ public final class BatchRetriever
     public Transfer getTransfer()
     {
         return transfer;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( rootResource == null ) ? 0 : rootResource.hashCode() );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final BatchRetriever other = (BatchRetriever) obj;
+        if ( rootResource == null )
+        {
+            if ( other.rootResource != null )
+            {
+                return false;
+            }
+        }
+        else if ( !rootResource.equals( other.rootResource ) )
+        {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format( "BatchRetriever [executed tries=%s, lastTry=%s, rootResource=%s]", tries, lastTry,
+                              rootResource );
     }
 
 }

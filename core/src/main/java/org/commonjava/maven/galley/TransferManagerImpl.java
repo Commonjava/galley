@@ -397,12 +397,13 @@ public class TransferManagerImpl
 
             if ( target.exists() )
             {
-                logger.info( "Using cached copy of: {}", target );
+                logger.debug( "Using cached copy of: {}", target );
                 return target;
             }
 
             if ( !resource.allowsDownloading() )
             {
+                logger.debug( "Download not allowed for: {}. Returning null transfer.", resource );
                 return null;
             }
 
@@ -644,7 +645,7 @@ public class TransferManagerImpl
         {
             logger.debug( "Starting attempt #{} to retrieve batch (batch size is currently: {})", tries,
                           retrievers.size() );
-            final CountDownLatch latch = new CountDownLatch( resources.size() );
+            final CountDownLatch latch = new CountDownLatch( retrievers.size() );
             for ( final BatchRetriever retriever : retrievers )
             {
                 retriever.setLatch( latch );

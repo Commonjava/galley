@@ -277,4 +277,10 @@ public class TestCacheProvider
         lockingSupport.waitForUnlock( resource );
     }
 
+    @Override
+    public void cleanupCurrentThread()
+    {
+        lockingSupport.cleanupCurrentThread();
+    }
+
 }
