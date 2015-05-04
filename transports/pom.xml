@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
     <artifactId>galley</artifactId>
-    <version>0.8</version>
+    <version>0.8.1-SNAPSHOT</version>
   </parent>
   
   <artifactId>galley-transports</artifactId>
