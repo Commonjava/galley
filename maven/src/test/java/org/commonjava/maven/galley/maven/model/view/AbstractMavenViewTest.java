@@ -174,7 +174,8 @@ public abstract class AbstractMavenViewTest
             stack.add( dr );
         }
 
-        return new MavenXmlView<ProjectRef>( stack, xpath, xml, localOnlyPaths );
+        return new MavenXmlView<ProjectRef>( stack, xpath, xml,
+                                             localOnlyPaths.toArray( new String[localOnlyPaths.size()] ) );
     }
 
     protected void dump( final Node node )
