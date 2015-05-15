@@ -25,6 +25,8 @@ public class RepositoryView
 
     private String name;
 
+    private String id;
+
     public RepositoryView( final MavenPomView xmlView, final Element element )
     {
         super( xmlView, element );
@@ -48,6 +50,16 @@ public class RepositoryView
         }
 
         return name;
+    }
+
+    public String getId()
+    {
+        if ( id == null )
+        {
+            id = getValue( "id/text()" );
+        }
+
+        return id;
     }
 
 }

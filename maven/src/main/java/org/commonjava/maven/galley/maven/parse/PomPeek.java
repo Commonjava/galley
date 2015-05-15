@@ -21,6 +21,7 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.join;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -105,25 +106,46 @@ public class PomPeek
 
     private final boolean captureModules;
 
+    private final InputStream stream;
+
     public PomPeek( final File pom, final boolean captureModules )
     {
         this.pom = pom;
         this.transfer = null;
+        this.stream = null;
         this.captureModules = captureModules;
-        parseCoordElements();
-
-        if ( !createCoordinateInfo() )
-        {
-            logger.warn( "Could not peek at POM coordinate for: " + pom
-                + "This POM will NOT be available as an ancestor to other models during effective-model building." );
-        }
+        init();
     }
 
     public PomPeek( final Transfer transfer, final boolean captureModules )
     {
         this.pom = null;
         this.transfer = transfer;
+        this.stream = null;
         this.captureModules = captureModules;
+        init();
+    }
+
+    public PomPeek( final String content, final boolean captureModules )
+    {
+        this.pom = null;
+        this.transfer = null;
+        this.stream = new ByteArrayInputStream( content.getBytes() );
+        this.captureModules = captureModules;
+        init();
+    }
+
+    public PomPeek( final InputStream stream, final boolean captureModules )
+    {
+        this.pom = null;
+        this.transfer = null;
+        this.stream = stream;
+        this.captureModules = captureModules;
+        init();
+    }
+
+    private void init()
+    {
         parseCoordElements();
 
         if ( !createCoordinateInfo() )
@@ -168,9 +190,13 @@ public class PomPeek
             {
                 in = new FileInputStream( pom );
             }
-            else
+            else if ( transfer != null )
             {
                 in = transfer.openInputStream( false );
+            }
+            else
+            {
+                in = stream;
             }
 
             xml = XMLInputFactory.newFactory()
