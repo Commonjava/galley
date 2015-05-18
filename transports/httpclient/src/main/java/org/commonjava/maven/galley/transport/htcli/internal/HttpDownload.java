@@ -110,9 +110,11 @@ public final class HttpDownload
                 final HttpEntity entity = response.getEntity();
 
                 in = entity.getContent();
-                out = target.openOutputStream( TransferOperation.DOWNLOAD, false );
+                out = target.openOutputStream( TransferOperation.DOWNLOAD );
                 copy( in, out );
+                logger.info( "Ensuring all HTTP data is consumed..." );
                 EntityUtils.consume( entity );
+                logger.info( "All HTTP data was consumed." );
             }
             catch ( final IOException e )
             {
@@ -123,6 +125,8 @@ public final class HttpDownload
             finally
             {
                 closeQuietly( in );
+
+                logger.info( "Closing output stream: {}", out );
                 closeQuietly( out );
             }
         }

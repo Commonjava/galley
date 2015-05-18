@@ -27,7 +27,8 @@ import org.commonjava.maven.galley.event.FileStorageEvent;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.commonjava.maven.galley.util.TransferUnlockingOutputStream;
+import org.commonjava.maven.galley.util.TransferInputStream;
+import org.commonjava.maven.galley.util.TransferOutputStream;
 
 public final class Transfer
 {
@@ -132,11 +133,12 @@ public final class Transfer
                 return null;
             }
 
-            stream = decorator == null ? stream : decorator.decorateRead( stream, this );
             if ( fireEvents )
             {
-                fileEventManager.fire( new FileAccessEvent( this ) );
+                stream = new TransferInputStream( stream, new FileAccessEvent( this ), fileEventManager );
             }
+
+            stream = decorator == null ? stream : decorator.decorateRead( stream, this );
             return stream;
         }
         catch ( final IOException e )
@@ -169,13 +171,18 @@ public final class Transfer
             }
 
             final TransferUnlocker unlocker = new TransferUnlocker( resource, provider );
-            stream = new TransferUnlockingOutputStream( stream, unlocker );
-            stream = decorator == null ? stream : decorator.decorateWrite( stream, this, accessType );
-
             if ( fireEvents )
             {
-                fileEventManager.fire( new FileStorageEvent( accessType, this ) );
+                stream =
+                    new TransferOutputStream( stream, unlocker, new FileStorageEvent( accessType, this ),
+                                              fileEventManager );
             }
+            else
+            {
+                stream = new TransferOutputStream( stream, unlocker );
+            }
+
+            stream = decorator == null ? stream : decorator.decorateWrite( stream, this, accessType );
 
             return stream;
         }

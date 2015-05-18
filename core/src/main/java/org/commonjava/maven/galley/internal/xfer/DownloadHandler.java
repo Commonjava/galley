@@ -63,8 +63,8 @@ public class DownloadHandler
 
     // FIXME: download batch
 
-    public Transfer download( final ConcreteResource resource, final Transfer target, final int timeoutSeconds, final Transport transport,
-                              final boolean suppressFailures )
+    public Transfer download( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
+                              final Transport transport, final boolean suppressFailures )
         throws TransferException
     {
         if ( !resource.allowsDownloading() )
@@ -154,8 +154,8 @@ public class DownloadHandler
         return null;
     }
 
-    private Transfer startDownload( final ConcreteResource resource, final Transfer target, final int timeoutSeconds, final Transport transport,
-                                    final boolean suppressFailures )
+    private Transfer startDownload( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
+                                    final Transport transport, final boolean suppressFailures )
         throws TransferException
     {
         if ( target.exists() )
@@ -178,8 +178,9 @@ public class DownloadHandler
 
             if ( job.getError() != null )
             {
-                logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(), resource, job.getError()
-                                                                                                                         .getMessage() );
+                logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(), resource,
+                              job.getError()
+                                 .getMessage() );
                 nfc.addMissing( resource );
 
                 if ( !suppressFailures )

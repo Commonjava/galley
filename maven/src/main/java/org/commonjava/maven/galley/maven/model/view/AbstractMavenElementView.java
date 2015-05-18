@@ -55,14 +55,13 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 
     protected String getValue( final String path )
     {
-        final Element e = (Element) xmlView.resolveXPathToNodeFrom( elementContext, path, false );
-
-        if ( e == null )
+        final Node node = xmlView.resolveXPathToNodeFrom( elementContext, path, false );
+        if ( node == null )
         {
             return null;
         }
 
-        return e.getTextContent()
+        return node.getTextContent()
                 .trim();
     }
 
