@@ -94,10 +94,14 @@ public class DownloadHandler
         //            return false;
         //        }
 
-        Transfer result = joinDownload( target, timeoutSeconds, suppressFailures );
-        if ( result == null )
+        Transfer result;
+        synchronized ( pending )
         {
-            result = startDownload( resource, target, timeoutSeconds, transport, suppressFailures );
+            result = joinDownload( target, timeoutSeconds, suppressFailures );
+            if ( result == null )
+            {
+                result = startDownload( resource, target, timeoutSeconds, transport, suppressFailures );
+            }
         }
 
         return result;
