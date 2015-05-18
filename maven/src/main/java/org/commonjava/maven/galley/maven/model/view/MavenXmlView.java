@@ -33,6 +33,15 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+/**
+ * Base class for objects parsed from XML documents that can have inheritance or mix-ins (eg. merged Maven 
+ * metadata documents or Maven BOMs).
+ * 
+ * @author jdcasey
+ *
+ * @param <T> The type of project reference this document is associated with (eg. ProjectVersionRef for a POM 
+ *   or versionless ProjectRef for project-level Maven metadata)
+ */
 public class MavenXmlView<T extends ProjectRef>
 {
 
@@ -59,26 +68,39 @@ public class MavenXmlView<T extends ProjectRef>
         this.localOnlyPaths = new HashSet<String>( Arrays.asList( localOnlyPaths ) );
     }
 
-    public MavenXmlView( final List<DocRef<T>> stack, final XPathManager xpath, final XMLInfrastructure xml,
-                         final Set<String> localOnlyPaths )
-    {
-        this.stack = stack;
-        //        this.xpath = xpath;
-        this.xml = xml;
-        this.localOnlyPaths = localOnlyPaths;
-    }
-
+    /**
+     * Retrieve the project reference that this view is associated with.
+     */
     public T getRef()
     {
         return stack.get( 0 )
                     .getRef();
     }
 
+    /**
+     * Retrieve the list of raw documents that constitute the inheritance hierarchy for this view.
+     */
     public List<DocRef<T>> getDocRefStack()
     {
         return stack;
     }
 
+    /**
+     * Retrieve the first node matching the given XPath expression, including the inheritance hierarchy documents
+     * up to the specified maxDepth (if maxDepth < 0, consider the full inheritance hierarchy). Also include 
+     * any mix-in documents in the search. If cachePath is true, compile the XPath instance and cache it for 
+     * reuse in future queries. If the XPath expression resolves to something other than a text value, 
+     * retrieve the text() child.
+     * <br/>
+     * Do NOT resolve Maven-style expressions on the resulting value.
+     * <br/>
+     * If the XPath expression is listed as local-only (specified when the view is constructed), do NOT search
+     * beyond the current document.
+     * 
+     * @param path The XPath expression
+     * @param cachePath If true, compile this XPath expression and cache for future use
+     * @param maxDepth Max ancestry depth to search. If < 0, search all ancestors.
+     */
     public String resolveXPathToRawString( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
@@ -162,6 +184,19 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    /**
+     * Retrieve the first node matching the given XPath expression, including the inheritance hierarchy documents
+     * up to the specified maxDepth (if maxDepth < 0, consider the full inheritance hierarchy). Also include 
+     * any mix-in documents in the search. If cachePath is true, compile the XPath instance and cache it for 
+     * reuse in future queries.
+     * <br/>
+     * If the XPath expression is listed as local-only (specified when the view is constructed), do NOT search
+     * beyond the current document.
+     * 
+     * @param path The XPath expression
+     * @param cachePath If true, compile this XPath expression and cache for future use
+     * @param maxDepth Max ancestry depth to search. If < 0, search all ancestors.
+     */
     public Node resolveXPathToNode( final String path, final boolean cachePath, final int maxDepth )
         throws GalleyMavenRuntimeException
     {
@@ -229,6 +264,19 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    /**
+     * Retrieve the ordered list of nodes matching the given XPath expression, including the inheritance 
+     * hierarchy documents up to the specified maxDepth (if maxDepth < 0, consider the full inheritance 
+     * hierarchy). Also include any mix-in documents in the search. If cachePath is true, compile the XPath 
+     * instance and cache it for reuse in future queries.
+     * <br/>
+     * If the XPath expression is listed as local-only (specified when the view is constructed), do NOT search
+     * beyond the current document.
+     * 
+     * @param path The XPath expression
+     * @param cachePath If true, compile this XPath expression and cache for future use
+     * @param maxDepth Max ancestry depth to search. If < 0, search all ancestors.
+     */
     public synchronized List<Node> resolveXPathToAggregatedNodeList( final String path, final boolean cachePath,
                                                                      final int maxDepth )
         throws GalleyMavenRuntimeException
@@ -285,6 +333,22 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    /**
+     * Traverse through the document stack in the following order, looking for the first document that contains
+     * one or more nodes matching the given XPath expression:
+     * <ol>
+     *   <li>local document</li>
+     *   <li>ancestry documents</li>
+     *   <li>mix-ins</li>
+     * </ol>
+     * 
+     * If the XPath expression is listed as local-only (specified when the view is constructed), do NOT search
+     * beyond the current document.
+     * 
+     * @param path The XPath expression
+     * @param cachePath If true, compile this XPath expression and cache for future use
+     * @param maxDepth Max ancestry depth to search. If < 0, search all ancestors.
+     */
     public synchronized List<Node> resolveXPathToFirstNodeList( final String path, final boolean cachePath,
                                                                 final int maxDepth )
         throws GalleyMavenRuntimeException
@@ -334,6 +398,9 @@ public class MavenXmlView<T extends ProjectRef>
         return null;
     }
 
+    /**
+     * Select the ordered list of nodes matching the given XPath expression, rooted in the given context.
+     */
     protected List<Node> getLocalNodeList( final JXPathContext context, final String path )
         throws GalleyMavenRuntimeException
     {
@@ -350,6 +417,13 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    /**
+     * Select the ordered list of text values for nodes matching the given XPath expression.
+     * <br/>
+     * If cachePath is true, compile the XPath expression and cache for future use. Use this if the expression
+     * isn't too specific, and will be used often. Don't traverse deeper into ancestry documents farther than
+     * maxAncestry. If maxAncestry < 0, traverse all ancestors.
+     */
     public List<String> resolveXPathToAggregatedStringList( final String path, final boolean cachePath,
                                                             final int maxAncestry )
     {
@@ -370,6 +444,13 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    /**
+     * Select the ordered list of text values for nodes matching the given XPath expression, rooted in the 
+     * given context.
+     * <br/>
+     * If cachePath is true, compile the XPath expression and cache for future use. Use this if the expression
+     * isn't too specific, and will be used often.
+     */
     public List<String> resolveXPathToAggregatedStringListFrom( final JXPathContext context, final String path,
                                                                 final boolean cachePath )
     {
@@ -390,12 +471,22 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    /**
+     * Select the first node matching the given XPath expression, rooted in the given context. If cachePath 
+     * is true, compile the XPath expression and cache for future use. This is useful if the expression isn't
+     * overly specific, and will be used multiple times.
+     */
     protected synchronized Node resolveXPathToNodeFrom( final JXPathContext context, final String path,
                                                         final boolean cachePath )
     {
         return (Node) context.selectSingleNode( path );
     }
 
+    /**
+     * Select the ordered list of nodes matching the given XPath expression, rooted in the given context. If 
+     * cachePath is true, compile the XPath expression and cache for future use. This is useful if the
+     * expression isn't overly specific, and will be used multiple times.
+     */
     public synchronized List<Node> resolveXPathToNodeListFrom( final JXPathContext context, final String path,
                                                                final boolean cachePath )
         throws GalleyMavenRuntimeException
@@ -413,21 +504,34 @@ public class MavenXmlView<T extends ProjectRef>
         return result;
     }
 
+    /**
+     * Retrieve the ordered list of mix-in documents that can be searched for nodes and values (in addition
+     * to the local XML document).
+     */
     public List<MavenXmlMixin<T>> getMixins()
     {
         return mixins;
     }
 
+    /**
+     * Append the specified mix-in for consideration when searching for nodes and values.
+     */
     public void addMixin( final MavenXmlMixin<T> mixin )
     {
         mixins.add( mixin );
     }
 
+    /**
+     * Remove the specified mix-in from consideration when searching for nodes and values.
+     */
     public void removeMixin( final MavenXmlMixin<T> mixin )
     {
         mixins.remove( mixin );
     }
 
+    /**
+     * Render the given element to an XML string.
+     */
     public String toXML( final Element element )
     {
         return xml.toXML( element );
