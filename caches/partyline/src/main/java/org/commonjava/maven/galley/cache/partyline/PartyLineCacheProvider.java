@@ -42,8 +42,6 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
-import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper.AtomicStreamCallbacks;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.partyline.JoinableFileManager;
 import org.slf4j.Logger;
@@ -215,23 +213,27 @@ public class PartyLineCacheProvider
             throw new IOException( "Cannot create directory: " + dir );
         }
 
-        final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_WRITE );
-        final OutputStream stream = fileManager.openOutputStream( downloadFile );
+        return fileManager.openOutputStream( targetFile );
 
-        return new AtomicFileOutputStreamWrapper( targetFile, downloadFile, stream, new AtomicStreamCallbacks()
-        {
-            @Override
-            public void beforeClose()
-            {
-                fileManager.lock( targetFile );
-            }
+        //        fileManager.lock( targetFile );
 
-            @Override
-            public void afterClose()
-            {
-                fileManager.unlock( targetFile );
-            }
-        } );
+        //        final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_WRITE );
+        //        final OutputStream stream = fileManager.openOutputStream( downloadFile );
+        //
+        //        return new AtomicFileOutputStreamWrapper( targetFile, downloadFile, stream, new AtomicStreamCallbacks()
+        //        {
+        //            @Override
+        //            public void beforeClose()
+        //            {
+        //                //                fileManager.lock( targetFile );
+        //            }
+        //
+        //            @Override
+        //            public void afterClose()
+        //            {
+        //                fileManager.unlock( targetFile );
+        //            }
+        //        } );
     }
 
     @Override

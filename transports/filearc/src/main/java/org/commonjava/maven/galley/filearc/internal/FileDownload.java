@@ -60,7 +60,7 @@ public class FileDownload
             if ( src.exists() && !src.isDirectory() )
             {
                 in = new FileInputStream( src );
-                out = txfr.openOutputStream( TransferOperation.DOWNLOAD, false );
+                out = txfr.openOutputStream( TransferOperation.DOWNLOAD );
                 copy( in, out );
             }
 

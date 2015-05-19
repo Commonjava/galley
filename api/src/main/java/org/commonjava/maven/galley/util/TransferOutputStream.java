@@ -19,18 +19,35 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.commonjava.maven.galley.event.FileStorageEvent;
 import org.commonjava.maven.galley.model.Transfer.TransferUnlocker;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
 
-public class TransferUnlockingOutputStream
+public class TransferOutputStream
     extends FilterOutputStream
 {
 
     private final TransferUnlocker unlocker;
 
-    public TransferUnlockingOutputStream( final OutputStream out, final TransferUnlocker unlocker )
+    private final FileEventManager fileEventManager;
+
+    private final FileStorageEvent event;
+
+    public TransferOutputStream( final OutputStream out, final TransferUnlocker unlocker, final FileStorageEvent event,
+                                 final FileEventManager fileEventManager )
     {
         super( out );
         this.unlocker = unlocker;
+        this.event = event;
+        this.fileEventManager = fileEventManager;
+    }
+
+    public TransferOutputStream( final OutputStream out, final TransferUnlocker unlocker )
+    {
+        super( out );
+        this.unlocker = unlocker;
+        this.event = null;
+        this.fileEventManager = null;
     }
 
     @Override
@@ -39,6 +56,11 @@ public class TransferUnlockingOutputStream
     {
         super.close();
         unlocker.unlock();
+
+        if ( fileEventManager != null )
+        {
+            fileEventManager.fire( event );
+        }
     }
 
 }
