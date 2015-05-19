@@ -20,8 +20,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-import java.util.Map;
-
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
@@ -40,9 +38,12 @@ public class HttpExistenceTest
     {
         final String fname = "simple-retrieval.html";
 
+        final String url = fixture.formatUrl( fname );
+        fixture.getServer()
+               .expect( url, 200, fname );
+
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
-        final String url = fixture.formatUrl( fname );
 
         final HttpExistence dl = new HttpExistence( url, location, fixture.getHttp() );
         final Boolean result = dl.call();
@@ -54,10 +55,9 @@ public class HttpExistenceTest
 
         assertThat( result, equalTo( true ) );
 
-        final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();
         final String path = fixture.getUrlPath( url );
 
-        assertThat( accessesByPath.get( path ), equalTo( 1 ) );
+        assertThat( fixture.getAccessesFor( "HEAD", path ), equalTo( 1 ) );
     }
 
     @Test
@@ -83,10 +83,9 @@ public class HttpExistenceTest
         assertThat( result, notNullValue() );
         assertThat( result, equalTo( false ) );
 
-        final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();
         final String path = fixture.getUrlPath( url );
 
-        assertThat( accessesByPath.get( path ), equalTo( 1 ) );
+        assertThat( fixture.getAccessesFor( "HEAD", path ), equalTo( 1 ) );
     }
 
     @Test
@@ -108,16 +107,12 @@ public class HttpExistenceTest
         final TransferException err = dl.getError();
         assertThat( err, notNullValue() );
 
-        assertThat( err.getMessage()
-                       .endsWith( error ), equalTo( true ) );
-
         assertThat( result, notNullValue() );
         assertThat( result, equalTo( false ) );
 
-        final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();
         final String path = fixture.getUrlPath( url );
 
-        assertThat( accessesByPath.get( path ), equalTo( 1 ) );
+        assertThat( fixture.getAccessesFor( "HEAD", path ), equalTo( 1 ) );
     }
 
 }

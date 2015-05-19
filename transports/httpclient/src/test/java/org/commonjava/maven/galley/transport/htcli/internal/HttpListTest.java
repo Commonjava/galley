@@ -20,10 +20,12 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Transfer;
@@ -98,6 +100,10 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
+        final String body = getBody( fname );
+        fixture.getServer()
+               .expect( url, 200, body );
+
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
@@ -106,7 +112,21 @@ public class HttpListTest
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
+        assertThat( result, notNullValue() );
+        assertThat( result.getListing(), notNullValue() );
+
+        System.out.println( "Got listing\n\n  " + StringUtils.join( result.getListing(), "\n  " ) + "\n\n" );
         assertTrue( Arrays.equals( centralbtm, result.getListing() ) );
+    }
+
+    private String getBody( final String fname )
+        throws Exception
+    {
+        final InputStream stream = Thread.currentThread()
+                                         .getContextClassLoader()
+                                         .getResourceAsStream( "list-basic/" + fname );
+
+        return IOUtils.toString( stream );
     }
 
     @Test
@@ -118,6 +138,10 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
+        final String body = getBody( fname );
+        fixture.getServer()
+               .expect( url, 200, body );
+
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
@@ -126,8 +150,10 @@ public class HttpListTest
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
+        assertThat( result, notNullValue() );
+        assertThat( result.getListing(), notNullValue() );
         assertTrue( Arrays.equals( centralbtm, result.getListing() ) );
-        
+
         final List<String> lines = IOUtils.readLines( transfer.openInputStream() );
         assertTrue( "Listing file written incorrectly!", lines.equals( Arrays.asList( centralbtm ) ) );
     }
@@ -175,7 +201,7 @@ public class HttpListTest
         assertThat( listing.getError(), notNullValue() );
         assertTrue( listing.getError()
                            .getMessage()
-                           .endsWith( "Test Error" ) );
+                           .contains( "Test Error" ) );
     }
 
     @Test
@@ -187,6 +213,10 @@ public class HttpListTest
         final String listingFname = dir + ".listing.txt";
 
         final String url = fixture.formatUrl( fname );
+        final String body = getBody( fname );
+        fixture.getServer()
+               .expect( url, 200, body );
+
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", url, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
@@ -195,6 +225,8 @@ public class HttpListTest
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
+        assertThat( result, notNullValue() );
+        assertThat( result.getListing(), notNullValue() );
         assertTrue( Arrays.equals( nexusswitchyard, result.getListing() ) );
     }
 
@@ -241,6 +273,6 @@ public class HttpListTest
         assertThat( listing.getError(), notNullValue() );
         assertTrue( listing.getError()
                            .getMessage()
-                           .endsWith( "Test Error" ) );
+                           .contains( "Test Error" ) );
     }
 }

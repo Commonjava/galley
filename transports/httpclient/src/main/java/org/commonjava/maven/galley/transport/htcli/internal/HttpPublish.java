@@ -28,6 +28,7 @@ import org.apache.http.entity.InputStreamEntity;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.util.ContentTypeUtils;
 import org.slf4j.Logger;
@@ -114,7 +115,7 @@ public final class HttpPublish
             if ( sc != HttpStatus.SC_OK && sc != HttpStatus.SC_CREATED )
             {
                 logger.warn( "{} : {}", line, url );
-                throw new TransferException( "HTTP request failed: {}", line );
+                return TransferResponseUtils.handleUnsuccessfulResponse( request, response, url, false );
             }
             else
             {

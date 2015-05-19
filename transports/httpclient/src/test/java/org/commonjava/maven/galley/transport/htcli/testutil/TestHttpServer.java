@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
+ * Copyright (C) 2011 Red Hat, Inc. (jdcasey@commonjava.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,38 @@
  */
 package org.commonjava.maven.galley.transport.htcli.testutil;
 
-import java.io.ByteArrayOutputStream;
+import static org.commonjava.maven.galley.util.PathUtils.normalize;
+import io.undertow.Undertow;
+import io.undertow.servlet.Servlets;
+import io.undertow.servlet.api.DeploymentInfo;
+import io.undertow.servlet.api.DeploymentManager;
+import io.undertow.servlet.api.ServletInfo;
+import io.undertow.servlet.util.ImmediateInstanceFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.io.IOUtils;
+import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.Vertx;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.impl.DefaultVertx;
 
 public class TestHttpServer
-    implements Handler<HttpServerRequest>
+    extends ExternalResource
 {
 
     private static final int TRIES = 4;
@@ -46,17 +57,13 @@ public class TestHttpServer
 
     private final int port;
 
-    private Vertx vertx;
+    private final ExpectationServlet servlet;
 
-    private final String baseResource;
-
-    private final Map<String, Integer> accessesByPath = new HashMap<String, Integer>();
-
-    private final Map<String, String> errors = new HashMap<String, String>();
+    private Undertow server;
 
     public TestHttpServer( final String baseResource )
     {
-        this.baseResource = baseResource;
+        servlet = new ExpectationServlet( baseResource );
 
         int port = -1;
         ServerSocket ss = null;
@@ -82,7 +89,8 @@ public class TestHttpServer
 
         if ( port < 8000 )
         {
-            throw new RuntimeException( "Failed to start test HTTP server. Cannot find open port in " + TRIES + " tries." );
+            throw new RuntimeException( "Failed to start test HTTP server. Cannot find open port in " + TRIES
+                + " tries." );
         }
 
         this.port = port;
@@ -93,31 +101,230 @@ public class TestHttpServer
         return port;
     }
 
-    public void shutdown()
+    @Override
+    public void after()
     {
-        if ( vertx != null )
+        if ( server != null )
         {
-            vertx.stop();
+            server.stop();
+            logger.info( "STOPPED Test HTTP Server on 127.0.0.1:" + port );
         }
     }
 
-    public void start()
+    @Override
+    public void before()
         throws Exception
     {
-        vertx = new DefaultVertx();
-        vertx.createHttpServer()
-             .requestHandler( this )
-             .listen( port );
+        final ServletInfo si = Servlets.servlet( "TEST", ExpectationServlet.class )
+                                       .addMapping( "*" )
+                                       .addMapping( "/*" )
+                                       .setLoadOnStartup( 1 );
+
+        si.setInstanceFactory( new ImmediateInstanceFactory<Servlet>( servlet ) );
+
+        final DeploymentInfo di = new DeploymentInfo().addServlet( si )
+                                                      .setDeploymentName( "TEST" )
+                                                      .setContextPath( "/" )
+                                                      .setClassLoader( Thread.currentThread()
+                                                                             .getContextClassLoader() );
+
+        final DeploymentManager dm = Servlets.defaultContainer()
+                                             .addDeployment( di );
+        dm.deploy();
+
+        server = Undertow.builder()
+                         .setHandler( dm.start() )
+                         .addHttpListener( port, "127.0.0.1" )
+                         .build();
+
+        server.start();
+        logger.info( "STARTED Test HTTP Server on 127.0.0.1:" + port );
     }
 
-    public String formatUrl( final String subpath )
+    public static final class ExpectationServlet
+        extends HttpServlet
     {
-        return String.format( "http://localhost:%s/%s/%s", port, baseResource, subpath );
+        private final Logger logger = LoggerFactory.getLogger( getClass() );
+
+        private static final long serialVersionUID = 1L;
+
+        private final String baseResource;
+
+        private final Map<String, ContentResponse> expectations = new HashMap<String, ContentResponse>();
+
+        private final Map<String, Integer> accessesByPath = new HashMap<String, Integer>();
+
+        private final Map<String, ContentResponse> errors = new HashMap<String, ContentResponse>();
+
+        public ExpectationServlet()
+        {
+            logger.error( "Default constructor not actually supported!!!" );
+            this.baseResource = "/";
+        }
+
+        public ExpectationServlet( final String baseResource )
+        {
+            this.baseResource = baseResource;
+        }
+
+        public Map<String, Integer> getAccessesByPath()
+        {
+            return accessesByPath;
+        }
+
+        public Map<String, ContentResponse> getRegisteredErrors()
+        {
+            return errors;
+        }
+
+        public String getBaseResource()
+        {
+            return baseResource;
+        }
+
+        public void registerException( final String method, final String path, final int code, final String error )
+        {
+            final String key = key( method, path );
+            logger.info( "Registering error: {}, code: {}, body:\n{}", key, code, error );
+            this.errors.put( key, new ContentResponse( method, path, code, error ) );
+        }
+
+        public void expect( final String method, final String testUrl, final int responseCode, final String body )
+            throws Exception
+        {
+            final URL url = new URL( testUrl );
+            final String path = url.getPath();
+
+            final String key = key( method, path );
+            logger.info( "Registering expectation: {}, code: {}, body:\n{}", key, responseCode, body );
+            expectations.put( key, new ContentResponse( method, path, responseCode, body ) );
+        }
+
+        public void expect( final String method, final String testUrl, final int responseCode,
+                            final InputStream bodyStream )
+            throws Exception
+        {
+            final URL url = new URL( testUrl );
+            final String path = url.getPath();
+
+            final String key = key( method, path );
+            logger.info( "Registering expectation: {}, code: {}, body stream:\n{}", key, responseCode, bodyStream );
+            expectations.put( key, new ContentResponse( method, path, responseCode,
+                                                                                      bodyStream ) );
+        }
+
+        @Override
+        protected void service( final HttpServletRequest req, final HttpServletResponse resp )
+            throws ServletException, IOException
+        {
+            String wholePath;
+            try
+            {
+                wholePath = new URI( req.getRequestURI() ).getPath();
+            }
+            catch ( final URISyntaxException e )
+            {
+                throw new ServletException( "Cannot parse request URI", e );
+            }
+
+            String path = wholePath;
+            if ( path.length() > 1 )
+            {
+                path = path.substring( 1 );
+            }
+
+            final String method = req.getMethod()
+                                     .toUpperCase();
+
+            final String key = key( method, wholePath );
+
+            logger.info( "Looking up expectation for: {}", key );
+
+            Integer i = accessesByPath.get( key );
+            if ( i == null )
+            {
+                i = 1;
+            }
+            else
+            {
+                i = i + 1;
+            }
+
+            logger.info( "Logging access for: {} (total: {})", key, i );
+            accessesByPath.put( key, i );
+
+            if ( errors.containsKey( key ) )
+            {
+                final ContentResponse error = errors.get( key );
+                logger.error( "Returning registered error: {}", error );
+                //                resp.setStatus( error.code() );
+                resp.sendError( error.code(), error.body() );
+
+                if ( error.body() != null )
+                {
+                    resp.getWriter()
+                        .write( error.body() );
+                }
+                else
+                {
+                    logger.info( "Registered error doesn't contain a body." );
+                }
+
+                return;
+            }
+
+            logger.info( "Looking for expectation: '{}'", key );
+            final ContentResponse expectation = expectations.get( key );
+            if ( expectation != null )
+            {
+                logger.info( "Responding via registered expectation: {}", expectation );
+
+                resp.setStatus( expectation.code() );
+
+                if ( expectation.body() != null )
+                {
+                    resp.getWriter()
+                        .write( expectation.body() );
+                }
+                else if ( expectation.bodyStream() != null )
+                {
+                    IOUtils.copy( expectation.bodyStream(), resp.getOutputStream() );
+                }
+
+                return;
+            }
+
+            resp.setStatus( 404 );
+        }
+
+        private String key( final String method, final String wholePath )
+        {
+            return method.toUpperCase() + " " + wholePath;
+        }
+
+        public Integer getAccessesFor( final String path )
+        {
+            return getAccessesFor( "GET", path );
+        }
+
+        public Integer getAccessesFor( final String method, final String path )
+        {
+            final String key = key( method, path );
+            final Integer result = accessesByPath.get( key );
+            logger.info( "Got {} accesses for key: {}", result, key );
+            return result;
+        }
+
+    }
+
+    public String formatUrl( final String... subpath )
+    {
+        return String.format( "http://127.0.0.1:%s/%s/%s", port, servlet.getBaseResource(), normalize( subpath ) );
     }
 
     public String getBaseUri()
     {
-        return String.format( "http://localhost:%s/%s", port, baseResource );
+        return String.format( "http://127.0.0.1:%s/%s", port, servlet.getBaseResource() );
     }
 
     public String getUrlPath( final String url )
@@ -128,120 +335,69 @@ public class TestHttpServer
 
     public Map<String, Integer> getAccessesByPath()
     {
-        return accessesByPath;
+        return servlet.getAccessesByPath();
     }
 
-    public Map<String, String> getRegisteredErrors()
+    public Map<String, ContentResponse> getRegisteredErrors()
     {
-        return errors;
-    }
-
-    @Override
-    public void handle( final HttpServerRequest req )
-    {
-        final String wholePath = req.path();
-        String path = wholePath;
-        if ( path.length() > 1 )
-        {
-            path = path.substring( 1 );
-        }
-
-        final Integer i = accessesByPath.get( wholePath );
-        if ( i == null )
-        {
-            accessesByPath.put( wholePath, 1 );
-        }
-        else
-        {
-            accessesByPath.put( wholePath, i + 1 );
-        }
-
-        if ( errors.containsKey( wholePath ) )
-        {
-            final String error = errors.get( wholePath );
-            logger.error( "Returning registered error: {}", error );
-            req.response()
-               .setStatusCode( 500 )
-               .setStatusMessage( error )
-               .end();
-            return;
-        }
-
-        logger.info( "Looking for classpath resource: '{}'", path );
-
-        final URL url = Thread.currentThread()
-                              .getContextClassLoader()
-                              .getResource( path );
-
-        logger.info( "Classpath URL is: '{}'", url );
-
-        if ( url == null )
-        {
-            req.response()
-               .setStatusCode( 404 )
-               .setStatusMessage( "Not found" )
-               .end();
-        }
-        else
-        {
-            final String method = req.method()
-                                     .toUpperCase();
-
-            logger.info( "Method: '{}'", method );
-            if ( "GET".equals( method ) )
-            {
-                doGet( req, url );
-            }
-            else if ( "HEAD".equals( method ) )
-            {
-                req.response()
-                   .setStatusCode( 200 )
-                   .end();
-            }
-            else
-            {
-                req.response()
-                   .setStatusCode( 400 )
-                   .setStatusMessage( "Method: " + method + " not supported by test fixture." )
-                   .end();
-            }
-        }
-    }
-
-    private void doGet( final HttpServerRequest req, final URL url )
-    {
-        InputStream stream = null;
-        try
-        {
-            stream = url.openStream();
-
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            IOUtils.copy( stream, baos );
-
-            final int len = baos.toByteArray().length;
-            final Buffer buf = new Buffer( baos.toByteArray() );
-            logger.info( "Send: {} bytes", len );
-            req.response()
-               .putHeader( "Content-Length", Integer.toString( len ) )
-               .end( buf );
-        }
-        catch ( final IOException e )
-        {
-            logger.error( String.format( "Failed to stream content for: %s. Reason: %s", url, e.getMessage() ), e );
-            req.response()
-               .setStatusCode( 500 )
-               .setStatusMessage( "FAIL: " + e.getMessage() )
-               .end();
-        }
-        finally
-        {
-            IOUtils.closeQuietly( stream );
-        }
+        return servlet.getRegisteredErrors();
     }
 
     public void registerException( final String url, final String error )
     {
-        this.errors.put( url, error );
+        servlet.registerException( "GET", url, 500, error );
+        servlet.registerException( "HEAD", url, 500, error );
+    }
+
+    public void registerException( final String method, final String url, final String error )
+    {
+        servlet.registerException( method, url, 500, error );
+    }
+
+    public void registerException( final String url, final String error, final int responseCode )
+    {
+        servlet.registerException( "GET", url, responseCode, error );
+    }
+
+    public void registerException( final String method, final String url, final int responseCode, final String error )
+    {
+        servlet.registerException( method, url, responseCode, error );
+    }
+
+    public void expect( final String testUrl, final int responseCode, final String body )
+        throws Exception
+    {
+        servlet.expect( "GET", testUrl, responseCode, body );
+        servlet.expect( "HEAD", testUrl, responseCode, (String) null );
+    }
+
+    public void expect( final String method, final String testUrl, final int responseCode, final String body )
+        throws Exception
+    {
+        servlet.expect( method, testUrl, responseCode, body );
+    }
+
+    public void expect( final String testUrl, final int responseCode, final InputStream bodyStream )
+        throws Exception
+    {
+        servlet.expect( "GET", testUrl, responseCode, bodyStream );
+        servlet.expect( "HEAD", testUrl, responseCode, (String) null );
+    }
+
+    public void expect( final String method, final String testUrl, final int responseCode, final InputStream bodyStream )
+        throws Exception
+    {
+        servlet.expect( method, testUrl, responseCode, bodyStream );
+    }
+
+    public Integer getAccessesFor( final String path )
+    {
+        return servlet.getAccessesFor( path );
+    }
+
+    public Integer getAccessesFor( final String method, final String path )
+    {
+        return servlet.getAccessesFor( method, path );
     }
 
 }

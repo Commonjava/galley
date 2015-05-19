@@ -35,6 +35,7 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,16 +145,7 @@ public final class HttpDownload
             logger.debug( "GET {} : {}", line, url );
             if ( sc != HttpStatus.SC_OK )
             {
-                EntityUtils.consume( response.getEntity() );
-
-                if ( sc == HttpStatus.SC_NOT_FOUND )
-                {
-                    return null;
-                }
-                else
-                {
-                    throw new TransferException( "HTTP request failed: {}", line );
-                }
+                return TransferResponseUtils.handleUnsuccessfulResponse( request, response, url );
             }
             else
             {

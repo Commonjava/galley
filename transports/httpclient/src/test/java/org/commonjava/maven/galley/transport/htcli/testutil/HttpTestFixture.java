@@ -91,7 +91,7 @@ public class HttpTestFixture
     @Override
     protected void after()
     {
-        server.shutdown();
+        server.after();
         folder.delete();
         super.after();
     }
@@ -101,7 +101,7 @@ public class HttpTestFixture
         throws Throwable
     {
         super.before();
-        server.start();
+        server.before();
     }
 
     public TemporaryFolder getFolder()
@@ -223,7 +223,7 @@ public class HttpTestFixture
         server.registerException( url, error );
     }
 
-    public Map<String, String> getRegisteredErrors()
+    public Map<String, ContentResponse> getRegisteredErrors()
     {
         return server.getRegisteredErrors();
     }
@@ -237,5 +237,15 @@ public class HttpTestFixture
     public void setPassword( final PasswordEntry id, final String password )
     {
         passwords.put( id, password );
+    }
+
+    public Integer getAccessesFor( final String path )
+    {
+        return server.getAccessesFor( path );
+    }
+
+    public Integer getAccessesFor( final String method, final String path )
+    {
+        return server.getAccessesFor( method, path );
     }
 }

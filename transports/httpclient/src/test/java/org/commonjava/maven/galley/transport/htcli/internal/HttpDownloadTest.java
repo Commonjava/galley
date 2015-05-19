@@ -20,8 +20,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-import java.util.Map;
-
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
@@ -42,6 +40,9 @@ public class HttpDownloadTest
     {
         final String fname = "simple-retrieval.html";
 
+        fixture.getServer()
+               .expect( fixture.formatUrl( fname ), 200, fname );
+
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
@@ -60,10 +61,9 @@ public class HttpDownloadTest
         assertThat( result.exists(), equalTo( true ) );
         assertThat( transfer.exists(), equalTo( true ) );
 
-        final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();
         final String path = fixture.getUrlPath( url );
 
-        assertThat( accessesByPath.get( path ), equalTo( 1 ) );
+        assertThat( fixture.getAccessesFor( path ), equalTo( 1 ) );
     }
 
     @Test
@@ -89,10 +89,9 @@ public class HttpDownloadTest
         assertThat( result.exists(), equalTo( false ) );
         assertThat( transfer.exists(), equalTo( false ) );
 
-        final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();
         final String path = fixture.getUrlPath( url );
 
-        assertThat( accessesByPath.get( path ), equalTo( 1 ) );
+        assertThat( fixture.getAccessesFor( path ), equalTo( 1 ) );
     }
 
     @Test
@@ -107,7 +106,8 @@ public class HttpDownloadTest
         final String url = fixture.formatUrl( fname );
 
         final String error = "Test Error.";
-        fixture.registerException( fixture.getUrlPath( url ), error );
+        final String path = fixture.getUrlPath( url );
+        fixture.registerException( path, error );
 
         assertThat( transfer.exists(), equalTo( false ) );
 
@@ -116,16 +116,15 @@ public class HttpDownloadTest
 
         final TransferException err = dl.getError();
         assertThat( err, notNullValue() );
+
         assertThat( err.getMessage()
-                       .endsWith( error ), equalTo( true ) );
+                       .contains( error ), equalTo( true ) );
 
         assertThat( result, nullValue() );
         assertThat( transfer.exists(), equalTo( false ) );
 
-        final Map<String, Integer> accessesByPath = fixture.getAccessesByPath();
-        final String path = fixture.getUrlPath( url );
 
-        assertThat( accessesByPath.get( path ), equalTo( 1 ) );
+        assertThat( fixture.getAccessesFor( path ), equalTo( 1 ) );
     }
 
 }
