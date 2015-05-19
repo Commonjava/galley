@@ -180,6 +180,7 @@
         <version>0.7.4</version>
       </dependency>
       
+      <!-- Used to simulate remote repositories in transport/httpclient -->
       <dependency>
         <groupId>io.undertow</groupId>
         <artifactId>undertow-core</artifactId>
