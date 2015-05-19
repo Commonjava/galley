@@ -25,6 +25,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,8 +83,6 @@ public final class HttpExistence
     private boolean execute( final HttpHead request, final String url )
         throws TransferException
     {
-        boolean result = false;
-
         try
         {
             final HttpResponse response = http.getClient()
@@ -93,14 +92,8 @@ public final class HttpExistence
             logger.debug( "HEAD {} : {}", line, url );
             if ( sc != HttpStatus.SC_OK )
             {
-                if ( sc != HttpStatus.SC_NOT_FOUND )
-                {
-                    throw new TransferException( "HTTP request failed: {}", line );
-                }
-            }
-            else
-            {
-                result = true;
+                TransferResponseUtils.handleUnsuccessfulResponse( request, response, url );
+                return false;
             }
         }
         catch ( final ClientProtocolException e )
@@ -112,7 +105,7 @@ public final class HttpExistence
             throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
         }
 
-        return result;
+        return true;
     }
 
     private void cleanup( final HttpHead request )

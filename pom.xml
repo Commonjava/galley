@@ -45,6 +45,7 @@
   
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
+    <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.14.0</atlasVersion>
     <partylineVersion>1.4-SNAPSHOT</partylineVersion>
   </properties>
@@ -177,6 +178,25 @@
         <groupId>ch.qos.cal10n</groupId>
         <artifactId>cal10n-api</artifactId>
         <version>0.7.4</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>io.undertow</groupId>
+        <artifactId>undertow-core</artifactId>
+        <version>${undertowVersion}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.undertow</groupId>
+        <artifactId>undertow-servlet</artifactId>
+        <version>${undertowVersion}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.spec.javax.servlet</groupId>
+        <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+        <version>1.0.1.Final</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

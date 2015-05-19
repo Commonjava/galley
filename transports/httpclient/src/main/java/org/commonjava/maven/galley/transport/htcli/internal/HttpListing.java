@@ -37,6 +37,7 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -166,14 +167,8 @@ public class HttpListing
             logger.debug( "GET {} : {}", line, url );
             if ( sc != HttpStatus.SC_OK )
             {
-                if ( sc == HttpStatus.SC_NOT_FOUND )
-                {
-                    result = null;
-                }
-                else
-                {
-                    throw new TransferException( "HTTP request failed: %s", line );
-                }
+                TransferResponseUtils.handleUnsuccessfulResponse( request, response, url );
+                result = null;
             }
             else
             {
