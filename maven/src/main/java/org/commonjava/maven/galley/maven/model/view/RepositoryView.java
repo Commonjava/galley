@@ -73,4 +73,16 @@ public class RepositoryView
         return String.format( "RepositoryView [%s] (url=%s, id=%s)", getName(), getUrl(), getId() );
     }
 
+    public boolean isReleasesEnabled()
+    {
+        final String value = getValue( "releases/enabled/text()" );
+        return value == null ? true : Boolean.parseBoolean( value );
+    }
+
+    public boolean isSnapshotsEnabled()
+    {
+        final String value = getValue( "snapshots/enabled/text()" );
+        return value == null ? false : Boolean.parseBoolean( value );
+    }
+
 }
