@@ -49,6 +49,11 @@ public class RepositoryView
             name = getValue( "name/text()" );
         }
 
+        if ( name == null )
+        {
+            name = getId();
+        }
+
         return name;
     }
 
@@ -60,6 +65,12 @@ public class RepositoryView
         }
 
         return id;
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format( "RepositoryView [%s] (url=%s, id=%s)", getName(), getUrl(), getId() );
     }
 
 }
