@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.maven.parse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -185,8 +186,7 @@ public class MavenPomReader
         DocRef<ProjectVersionRef> dr = getFirstCached( ref, locations );
         if ( dr == null )
         {
-            Transfer transfer = null;
-            transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
+            final Transfer transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
 
             if ( transfer == null )
             {
@@ -225,6 +225,36 @@ public class MavenPomReader
         }
 
         return dr;
+    }
+
+    public MavenPomView readLocalPom( final ProjectVersionRef ref, final Transfer transfer,
+                                      final String... activeProfileIds )
+        throws GalleyMavenException
+    {
+        return readLocalPom( ref, transfer, false, activeProfileIds );
+    }
+
+    public MavenPomView readLocalPom( final ProjectVersionRef ref, final Transfer transfer, final boolean cache,
+                                      final String... activeProfileIds )
+        throws GalleyMavenException
+    {
+        DocRef<ProjectVersionRef> dr;
+        try
+        {
+            dr = getDocRef( ref, transfer, cache );
+        }
+        catch ( final TransferException e )
+        {
+            throw new GalleyMavenException( "Failed to parse POM for: {}. Reason: {}", e, ref, e.getMessage() );
+        }
+
+        final MavenPomView view =
+            new MavenPomView( ref, Collections.singletonList( dr ), xpath, pluginDefaults, pluginImplications, xml,
+                              activeProfileIds );
+
+        logStructure( view );
+
+        return view;
     }
 
     public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations, final String... activeProfileIds )
