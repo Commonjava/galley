@@ -94,7 +94,7 @@ public final class Transfer
     {
         if ( resource.isRoot() )
         {
-            return null;
+            return this;
         }
 
         return provider.getTransfer( (ConcreteResource) resource.getParent() );

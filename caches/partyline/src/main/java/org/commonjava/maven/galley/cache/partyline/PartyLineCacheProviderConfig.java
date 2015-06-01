@@ -22,29 +22,57 @@ import javax.inject.Named;
 @Named
 public class PartyLineCacheProviderConfig
 {
+    private static final int DEFAULT_TIMEOUT_SECONDS = 86400;
+
     private Boolean aliasLinking;
 
     private final File cacheBasedir;
+
+    private Boolean timeoutProcessing;
+
+    private Integer defaultTimeoutSeconds;
 
     public PartyLineCacheProviderConfig( final File cacheBasedir )
     {
         this.cacheBasedir = cacheBasedir;
     }
 
-    public PartyLineCacheProviderConfig withAliasLinking( final boolean aliasLinking )
+    public PartyLineCacheProviderConfig withAliasLinkingEnabled( final boolean aliasLinking )
     {
         this.aliasLinking = aliasLinking;
         return this;
     }
 
-    public boolean isAliasLinking()
+    public boolean isAliasLinkingEnabled()
     {
         return aliasLinking == null ? true : aliasLinking;
+    }
+
+    public PartyLineCacheProviderConfig withTimeoutProcessingEnabled( final boolean timeoutProcessing )
+    {
+        this.timeoutProcessing = timeoutProcessing;
+        return this;
+    }
+
+    public boolean isTimeoutProcessingEnabled()
+    {
+        return timeoutProcessing == null ? false : timeoutProcessing;
     }
 
     public File getCacheBasedir()
     {
         return cacheBasedir;
+    }
+
+    public PartyLineCacheProviderConfig withDefaultTimeoutSeconds( final int defaultTimeoutSeconds )
+    {
+        this.defaultTimeoutSeconds = defaultTimeoutSeconds;
+        return this;
+    }
+
+    public int getDefaultTimeoutSeconds()
+    {
+        return defaultTimeoutSeconds == null ? DEFAULT_TIMEOUT_SECONDS : defaultTimeoutSeconds;
     }
 
 }

@@ -15,7 +15,17 @@
  */
 package org.commonjava.maven.galley.testing.maven;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.TransferManagerImpl;
+import org.commonjava.maven.galley.event.NoOpFileEventManager;
+import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
+import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
+import org.commonjava.maven.galley.internal.xfer.ListingHandler;
+import org.commonjava.maven.galley.internal.xfer.UploadHandler;
+import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
@@ -31,14 +41,17 @@ import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
+import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.testing.core.ApiFixture;
 import org.commonjava.maven.galley.testing.core.cache.TestCacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
+import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -68,6 +81,8 @@ public class GalleyMavenFixture
 
     private VersionResolverImpl versions;
 
+    private Transport[] extraTransports;
+
     public GalleyMavenFixture( final ApiFixture api )
     {
         this.api = api;
@@ -76,6 +91,69 @@ public class GalleyMavenFixture
     public void initMissingComponents()
         throws Exception
     {
+        NotFoundCache nfc = api.getNfc();
+        if ( nfc == null )
+        {
+            nfc = new MemoryNotFoundCache();
+            api.setNfc( nfc );
+        }
+
+        FileEventManager events = api.getEvents();
+        if ( events == null )
+        {
+            events = new NoOpFileEventManager();
+            api.setEvents( events );
+        }
+
+        TransferDecorator decorator = api.getDecorator();
+        if ( decorator == null )
+        {
+            decorator = new NoOpTransferDecorator();
+            api.setDecorator( decorator );
+        }
+
+        TestCacheProvider cache = api.getCache();
+        if ( cache == null )
+        {
+            cache = new TestCacheProvider( getTemp().newFolder(), events, decorator );
+            api.setCache( cache );
+        }
+
+        TestTransport transport = api.getTransport();
+        if ( transport == null )
+        {
+            transport = new TestTransport();
+            api.setTransport( transport );
+        }
+
+        TransportManager transports = api.getTransports();
+        if ( transports == null )
+        {
+            transports = new TransportManagerImpl( transport );
+            if ( this.extraTransports != null )
+            {
+                final Transport[] t = new Transport[this.extraTransports.length + 1];
+                System.arraycopy( this.extraTransports, 0, t, 0, this.extraTransports.length );
+                t[t.length - 1] = transport;
+            }
+
+            api.setTransports( transports );
+        }
+
+        final TransferManager transfers = api.getTransfers();
+        if ( transfers == null )
+        {
+            final ExecutorService exec = Executors.newCachedThreadPool();
+            final DownloadHandler dh = new DownloadHandler( nfc, exec );
+            final UploadHandler uh = new UploadHandler( nfc, exec );
+            final ListingHandler lh = new ListingHandler( nfc );
+            final ExistenceHandler eh = new ExistenceHandler( nfc );
+
+            final TransferManager txfr = new TransferManagerImpl( transports, cache, nfc, events, dh, uh, lh, eh, exec );
+
+            api.setTransfers( txfr );
+        }
+
         api.initMissingComponents();
 
         if ( mapper == null )
@@ -145,6 +223,17 @@ public class GalleyMavenFixture
     {
         api.after();
         super.after();
+    }
+
+    public Transport[] getExtraTransports()
+    {
+        return extraTransports;
+    }
+
+    public GalleyMavenFixture setExtraTransports( final Transport... transports )
+    {
+        this.extraTransports = transports;
+        return this;
     }
 
     public ArtifactManager getArtifacts()

@@ -89,6 +89,7 @@ public final class HttpDownload
             cleanup( request );
         }
 
+        logger.info( "Download attempt done: {} Result:\n  target: {}\n  error: {}", url, target, error );
         return error == null ? target : null;
     }
 
@@ -167,7 +168,7 @@ public final class HttpDownload
     private void cleanup( final HttpGet request )
     {
         http.clearBoundCredentials( location );
-        //        http.closeConnection();
+        http.closeConnection();
     }
 
 }
