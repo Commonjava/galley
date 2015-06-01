@@ -29,9 +29,13 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.TransferInputStream;
 import org.commonjava.maven.galley.util.TransferOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Transfer
 {
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final ConcreteResource resource;
 
@@ -328,6 +332,7 @@ public final class Transfer
     public Transfer getSiblingMeta( final String extension )
     {
         final String named = new File( resource.getPath() ).getName() + extension;
+        logger.debug( "Creating meta-transfer sibling for: {} with name: {} (parent: {})", this, named, getParent() );
         return getParent().getChild( named );
     }
 
