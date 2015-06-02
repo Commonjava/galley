@@ -19,8 +19,8 @@ import java.util.concurrent.Callable;
 
 import org.commonjava.maven.galley.TransferException;
 
-public interface TransportJob<T>
-    extends Callable<T>
+public interface TransportJob<TYPE>
+    extends Callable<TYPE>
 {
 
     TransferException getError();

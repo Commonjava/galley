@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThat;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
 import org.junit.Rule;
@@ -51,13 +52,16 @@ public class HttpDownloadTest
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl = new HttpDownload( url, location, transfer, fixture.getHttp() );
-        final Transfer result = dl.call();
+        final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
         assertThat( error, nullValue() );
 
-        assertThat( result, notNullValue() );
+        assertThat( resultJob, notNullValue() );
 
+        final Transfer result = resultJob.getTransfer();
+
+        assertThat( result, notNullValue() );
         assertThat( result.exists(), equalTo( true ) );
         assertThat( transfer.exists(), equalTo( true ) );
 
@@ -80,10 +84,14 @@ public class HttpDownloadTest
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl = new HttpDownload( url, location, transfer, fixture.getHttp() );
-        final Transfer result = dl.call();
+        final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
         assertThat( error, nullValue() );
+
+        assertThat( resultJob, notNullValue() );
+
+        final Transfer result = resultJob.getTransfer();
 
         assertThat( result, notNullValue() );
         assertThat( result.exists(), equalTo( false ) );
@@ -112,7 +120,7 @@ public class HttpDownloadTest
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl = new HttpDownload( url, location, transfer, fixture.getHttp() );
-        final Transfer result = dl.call();
+        final DownloadJob resultJob = dl.call();
 
         final TransferException err = dl.getError();
         assertThat( err, notNullValue() );
@@ -120,7 +128,11 @@ public class HttpDownloadTest
         assertThat( err.getMessage()
                        .contains( error ), equalTo( true ) );
 
-        assertThat( result, nullValue() );
+        assertThat( resultJob, notNullValue() );
+
+        final Transfer result = resultJob.getTransfer();
+
+        assertThat( result, notNullValue() );
         assertThat( transfer.exists(), equalTo( false ) );
 
 

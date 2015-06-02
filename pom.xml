@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>8-SNAPSHOT</version>
+    <version>8</version>
   </parent>
 
   <groupId>org.commonjava.maven.galley</groupId>
@@ -47,7 +47,7 @@
     <projectOwner>Red Hat, Inc.</projectOwner>
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.14.0</atlasVersion>
-    <partylineVersion>1.4-SNAPSHOT</partylineVersion>
+    <partylineVersion>1.4</partylineVersion>
   </properties>
 
   <dependencyManagement>

@@ -45,7 +45,7 @@ public class DownloadHandler
     @Inject
     private NotFoundCache nfc;
 
-    private final Map<Transfer, Future<Transfer>> pending = new ConcurrentHashMap<Transfer, Future<Transfer>>();
+    private final Map<Transfer, Future<DownloadJob>> pending = new ConcurrentHashMap<Transfer, Future<DownloadJob>>();
 
     @Inject
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
@@ -88,26 +88,12 @@ public class DownloadHandler
 
         logger.debug( "RETRIEVE {}", resource );
 
-        //        if ( nfc.hasEntry( url ) )
-        //        {
-        //            fileEventManager.fire( new FileNotFoundEvent( repository, target.getPath() ) );
-        //            return false;
-        //        }
-
-        Transfer result;
-        synchronized ( pending )
-        {
-            result = joinDownload( target, timeoutSeconds, suppressFailures );
-            if ( result == null )
-            {
-                result = startDownload( resource, target, timeoutSeconds, transport, suppressFailures );
-            }
-        }
-
+        final Transfer result = joinOrStart( resource, target, timeoutSeconds, transport, suppressFailures );
         return result;
     }
 
-    private Transfer joinDownload( final Transfer target, final int timeoutSeconds, final boolean suppressFailures )
+    private Transfer joinOrStart( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
+                                   final Transport transport, final boolean suppressFailures )
         throws TransferException
     {
         // if the target file already exists, skip joining.
@@ -115,66 +101,34 @@ public class DownloadHandler
         {
             return target;
         }
-        else
-        {
-            final Future<Transfer> future = pending.get( target );
-            if ( future != null )
-            {
-                Transfer f = null;
-                try
-                {
-                    f = future.get( timeoutSeconds, TimeUnit.SECONDS );
 
-                    return f;
-                }
-                catch ( final InterruptedException e )
+        Future<DownloadJob> future;
+        synchronized ( pending )
+        {
+            future = pending.get( target );
+            if ( future == null )
+            {
+                if ( transport == null )
                 {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Download interrupted: {}", e, target );
-                    }
+                    return null;
                 }
-                catch ( final ExecutionException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Download failed: {}", e, target );
-                    }
-                }
-                catch ( final TimeoutException e )
-                {
-                    if ( !suppressFailures )
-                    {
-                        throw new TransferException( "Timeout on: {}", e, target );
-                    }
-                }
+
+                final DownloadJob job = transport.createDownloadJob( resource, target, timeoutSeconds );
+
+                future = executor.submit( job );
+                pending.put( target, future );
             }
         }
 
-        return null;
-    }
-
-    private Transfer startDownload( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
-                                    final Transport transport, final boolean suppressFailures )
-        throws TransferException
-    {
-        if ( target.exists() )
-        {
-            return target;
-        }
-
-        if ( transport == null )
-        {
-            return null;
-        }
-
-        final DownloadJob job = transport.createDownloadJob( resource, target, timeoutSeconds );
-
-        final Future<Transfer> future = executor.submit( job );
-        pending.put( target, future );
         try
         {
-            final Transfer downloaded = future.get( timeoutSeconds, TimeUnit.SECONDS );
+            final DownloadJob job = future.get( timeoutSeconds, TimeUnit.SECONDS );
+            synchronized ( pending )
+            {
+                pending.remove( target );
+            }
+
+            final Transfer downloaded = job.getTransfer();
 
             if ( job.getError() != null )
             {
@@ -200,27 +154,22 @@ public class DownloadHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Interrupted download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferException( "Download interrupted: {}", e, target );
             }
         }
         catch ( final ExecutionException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed to download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferException( "Download failed: {}", e, target );
             }
         }
         catch ( final TimeoutException e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferException( "Timeout on: {}", e, target );
             }
-        }
-        finally
-        {
-            //            logger.info( "Marking download complete: {}", url );
-            pending.remove( target );
         }
 
         return null;

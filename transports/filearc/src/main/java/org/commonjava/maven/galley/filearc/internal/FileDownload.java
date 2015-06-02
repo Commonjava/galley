@@ -51,7 +51,7 @@ public class FileDownload
     }
 
     @Override
-    public Transfer call()
+    public DownloadJob call()
     {
         FileInputStream in = null;
         OutputStream out = null;
@@ -64,7 +64,7 @@ public class FileDownload
                 copy( in, out );
             }
 
-            return txfr;
+            return this;
         }
         catch ( final IOException e )
         {
@@ -76,7 +76,12 @@ public class FileDownload
             closeQuietly( out );
         }
 
-        return null;
+        return this;
     }
 
+    @Override
+    public Transfer getTransfer()
+    {
+        return txfr;
+    }
 }

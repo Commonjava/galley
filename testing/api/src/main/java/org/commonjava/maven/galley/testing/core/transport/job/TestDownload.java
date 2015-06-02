@@ -73,7 +73,7 @@ public class TestDownload
     }
 
     @Override
-    public Transfer call()
+    public DownloadJob call()
         throws Exception
     {
         if ( data == null )
@@ -93,12 +93,18 @@ public class TestDownload
             IOUtils.closeQuietly( stream );
         }
 
-        return transfer;
+        return this;
     }
 
     public void setTransfer( final Transfer transfer )
     {
         this.transfer = transfer;
+    }
+
+    @Override
+    public Transfer getTransfer()
+    {
+        return transfer;
     }
 
 }

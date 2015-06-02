@@ -53,14 +53,14 @@ public class ZipDownload
     }
 
     @Override
-    public Transfer call()
+    public DownloadJob call()
     {
         final File src = getArchiveFile( txfr.getLocation()
                                              .getUri() );
 
         if ( !src.canRead() || src.isDirectory() )
         {
-            return txfr;
+            return this;
         }
 
         final boolean isJar = isJar( txfr.getLocation()
@@ -88,7 +88,7 @@ public class ZipDownload
 
                     copy( in, out );
 
-                    return txfr;
+                    return this;
                 }
             }
             else
@@ -121,4 +121,9 @@ public class ZipDownload
         return null;
     }
 
+    @Override
+    public Transfer getTransfer()
+    {
+        return txfr;
+    }
 }

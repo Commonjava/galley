@@ -65,7 +65,7 @@ public final class HttpDownload
     }
 
     @Override
-    public Transfer call()
+    public DownloadJob call()
     {
         final HttpGet request = new HttpGet( url );
 
@@ -90,13 +90,19 @@ public final class HttpDownload
         }
 
         logger.info( "Download attempt done: {} Result:\n  target: {}\n  error: {}", url, target, error );
-        return error == null ? target : null;
+        return this;
     }
 
     @Override
     public TransferException getError()
     {
         return error;
+    }
+
+    @Override
+    public Transfer getTransfer()
+    {
+        return target;
     }
 
     private void writeTarget( final Transfer target, final HttpGet request, final HttpResponse response,
