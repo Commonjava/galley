@@ -30,7 +30,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -56,11 +56,15 @@ public final class HttpDownload
 
     private TransferException error;
 
-    public HttpDownload( final String url, final HttpLocation location, final Transfer target, final Http http )
+    private final EventMetadata eventMetadata;
+
+    public HttpDownload( final String url, final HttpLocation location, final Transfer target,
+                         final EventMetadata eventMetadata, final Http http )
     {
         this.url = url;
         this.location = location;
         this.target = target;
+        this.eventMetadata = eventMetadata;
         this.http = http;
     }
 
@@ -74,10 +78,10 @@ public final class HttpDownload
         HttpResponse response = null;
         try
         {
-            response = executeGet( request, url );
+            response = executeGet( request );
             if ( response != null )
             {
-                writeTarget( target, request, response, url, location );
+                writeTarget( request, response );
             }
         }
         catch ( final TransferException e )
@@ -105,8 +109,7 @@ public final class HttpDownload
         return target;
     }
 
-    private void writeTarget( final Transfer target, final HttpGet request, final HttpResponse response,
-                              final String url, final Location repository )
+    private void writeTarget( final HttpGet request, final HttpResponse response )
         throws TransferException
     {
         OutputStream out = null;
@@ -118,7 +121,7 @@ public final class HttpDownload
                 final HttpEntity entity = response.getEntity();
 
                 in = entity.getContent();
-                out = target.openOutputStream( TransferOperation.DOWNLOAD );
+                out = target.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
                 copy( in, out );
                 logger.info( "Ensuring all HTTP data is consumed..." );
                 EntityUtils.consume( entity );
@@ -140,7 +143,7 @@ public final class HttpDownload
         }
     }
 
-    private HttpResponse executeGet( final HttpGet request, final String url )
+    private HttpResponse executeGet( final HttpGet request )
         throws TransferException
     {
         try

@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -51,7 +52,7 @@ public class HttpDownloadTest
 
         assertThat( transfer.exists(), equalTo( false ) );
 
-        final HttpDownload dl = new HttpDownload( url, location, transfer, fixture.getHttp() );
+        final HttpDownload dl = new HttpDownload( url, location, transfer, new EventMetadata(), fixture.getHttp() );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -83,7 +84,7 @@ public class HttpDownloadTest
 
         assertThat( transfer.exists(), equalTo( false ) );
 
-        final HttpDownload dl = new HttpDownload( url, location, transfer, fixture.getHttp() );
+        final HttpDownload dl = new HttpDownload( url, location, transfer, new EventMetadata(), fixture.getHttp() );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -119,7 +120,7 @@ public class HttpDownloadTest
 
         assertThat( transfer.exists(), equalTo( false ) );
 
-        final HttpDownload dl = new HttpDownload( url, location, transfer, fixture.getHttp() );
+        final HttpDownload dl = new HttpDownload( url, location, transfer, new EventMetadata(), fixture.getHttp() );
         final DownloadJob resultJob = dl.call();
 
         final TransferException err = dl.getError();

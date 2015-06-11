@@ -63,7 +63,7 @@ public class UploadHandler
     }
 
     public boolean upload( final ConcreteResource resource, final InputStream stream, final long length, final String contentType,
-                           final int timeoutSeconds, final Transport transport )
+ final int timeoutSeconds, final Transport transport )
         throws TransferException
     {
         if ( !resource.allowsPublishing() )
@@ -81,6 +81,7 @@ public class UploadHandler
 
         logger.debug( "PUBLISH {}", resource );
 
+        // FIXME: Race condition! Merge with startUpload...
         joinUpload( resource, timeoutSeconds );
 
         // even if we joined another upload in progress, we still want to push this change afterward.

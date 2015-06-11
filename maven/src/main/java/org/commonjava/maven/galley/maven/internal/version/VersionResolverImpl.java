@@ -32,12 +32,12 @@ import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationExcep
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.ProjectVersionRefLocation;
 import org.commonjava.maven.galley.maven.model.view.meta.MavenMetadataView;
 import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
-import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;
 import org.commonjava.maven.galley.maven.version.VersionSelectionStrategy;
 import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
@@ -65,27 +65,29 @@ public class VersionResolverImpl
     }
 
     @Override
-    public ProjectVersionRef resolveVariableVersions( final List<? extends Location> locations,
-                                                      final ProjectVersionRef ref )
-        throws TransferException
-    {
-        return resolveFirstMatchVariableVersion( locations, ref, LatestVersionSelectionStrategy.INSTANCE );
-    }
-
-    @Override
     public ProjectVersionRef resolveLatestVariableVersion( final List<? extends Location> locations,
                                                            final ProjectVersionRef ref,
                                                            final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
+        return resolveLatestVariableVersion( locations, ref, selectionStrategy, new EventMetadata() );
+    }
+
+    @Override
+    public ProjectVersionRef resolveLatestVariableVersion( final List<? extends Location> locations,
+                                                           final ProjectVersionRef ref,
+                                                           final VersionSelectionStrategy selectionStrategy,
+                                                           final EventMetadata eventMetadata )
+        throws TransferException
+    {
         if ( !ref.getVersionSpec()
                  .isSingle() )
         {
-            return resolveLatestMultiRef( locations, ref, selectionStrategy );
+            return resolveLatestMultiRef( locations, ref, selectionStrategy, eventMetadata );
         }
         else if ( ref.isSnapshot() )
         {
-            return resolveLatestSnapshotRef( locations, ref, selectionStrategy );
+            return resolveLatestSnapshotRef( locations, ref, selectionStrategy, eventMetadata );
         }
         else
         {
@@ -99,14 +101,24 @@ public class VersionResolverImpl
                                                                final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
+        return resolveFirstMatchVariableVersion( locations, ref, selectionStrategy, new EventMetadata() );
+    }
+
+    @Override
+    public ProjectVersionRef resolveFirstMatchVariableVersion( final List<? extends Location> locations,
+                                                               final ProjectVersionRef ref,
+                                                               final VersionSelectionStrategy selectionStrategy,
+                                                               final EventMetadata eventMetadata )
+        throws TransferException
+    {
         if ( !ref.getVersionSpec()
                  .isSingle() )
         {
-            return resolveFirstMultiRef( locations, ref, selectionStrategy );
+            return resolveFirstMultiRef( locations, ref, selectionStrategy, eventMetadata );
         }
         else if ( ref.isSnapshot() )
         {
-            return resolveFirstSnapshotRef( locations, ref, selectionStrategy );
+            return resolveFirstSnapshotRef( locations, ref, selectionStrategy, eventMetadata );
         }
         else
         {
@@ -120,14 +132,24 @@ public class VersionResolverImpl
                                                                            final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
+        return resolveLatestVariableVersionLocation( locations, ref, selectionStrategy, new EventMetadata() );
+    }
+
+    @Override
+    public ProjectVersionRefLocation resolveLatestVariableVersionLocation( final List<? extends Location> locations,
+                                                                           final ProjectVersionRef ref,
+                                                                           final VersionSelectionStrategy selectionStrategy,
+                                                                           final EventMetadata eventMetadata )
+        throws TransferException
+    {
         if ( !ref.getVersionSpec()
                  .isSingle() )
         {
-            return resolveLatestMultiRefWithLocation( locations, ref, selectionStrategy );
+            return resolveLatestMultiRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
         }
         else if ( ref.isSnapshot() )
         {
-            return resolveLatestSnapshotRefWithLocation( locations, ref, selectionStrategy );
+            return resolveLatestSnapshotRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
         }
 
         return null;
@@ -139,14 +161,24 @@ public class VersionResolverImpl
                                                                                final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
+        return resolveFirstMatchVariableVersionLocation( locations, ref, selectionStrategy, new EventMetadata() );
+    }
+
+    @Override
+    public ProjectVersionRefLocation resolveFirstMatchVariableVersionLocation( final List<? extends Location> locations,
+                                                                               final ProjectVersionRef ref,
+                                                                               final VersionSelectionStrategy selectionStrategy,
+                                                                               final EventMetadata eventMetadata )
+        throws TransferException
+    {
         if ( !ref.getVersionSpec()
                  .isSingle() )
         {
-            return resolveFirstMultiRefWithLocation( locations, ref, selectionStrategy );
+            return resolveFirstMultiRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
         }
         else if ( ref.isSnapshot() )
         {
-            return resolveFirstSnapshotRefWithLocation( locations, ref, selectionStrategy );
+            return resolveFirstSnapshotRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
         }
 
         return null;
@@ -158,14 +190,24 @@ public class VersionResolverImpl
                                                                                final VersionSelectionStrategy selectionStrategy )
         throws TransferException
     {
+        return resolveAllVariableVersionLocations( locations, ref, selectionStrategy, new EventMetadata() );
+    }
+
+    @Override
+    public List<ProjectVersionRefLocation> resolveAllVariableVersionLocations( final List<? extends Location> locations,
+                                                                               final ArtifactRef ref,
+                                                                               final VersionSelectionStrategy selectionStrategy,
+                                                                               final EventMetadata eventMetadata )
+        throws TransferException
+    {
         if ( !ref.getVersionSpec()
                  .isSingle() )
         {
-            return resolveAllMultiRefsWithLocations( locations, ref, selectionStrategy );
+            return resolveAllMultiRefsWithLocations( locations, ref, selectionStrategy, eventMetadata );
         }
         else if ( ref.isSnapshot() )
         {
-            return resolveAllSnapshotRefsWithLocations( locations, ref, selectionStrategy );
+            return resolveAllSnapshotRefsWithLocations( locations, ref, selectionStrategy, eventMetadata );
         }
 
         return Collections.emptyList();
@@ -173,18 +215,20 @@ public class VersionResolverImpl
 
     private ProjectVersionRef resolveLatestSnapshotRef( final List<? extends Location> locations,
                                                         final ProjectVersionRef ref,
-                                                        final VersionSelectionStrategy selectionStrategy )
+                                                        final VersionSelectionStrategy selectionStrategy,
+                                                        final EventMetadata eventMetadata )
         throws TransferException
     {
         final ProjectVersionRefLocation result =
-            resolveLatestSnapshotRefWithLocation( locations, ref, selectionStrategy );
+            resolveLatestSnapshotRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
 
         return result == null ? null : result.getRef();
     }
 
     private ProjectVersionRefLocation resolveLatestSnapshotRefWithLocation( final List<? extends Location> locations,
                                                                             final ProjectVersionRef ref,
-                                                                            final VersionSelectionStrategy selectionStrategy )
+                                                                            final VersionSelectionStrategy selectionStrategy,
+                                                                            final EventMetadata eventMetadata )
         throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
@@ -193,7 +237,7 @@ public class VersionResolverImpl
             try
             {
                 final MavenMetadataView metadata =
-                    metadataReader.getMetadata( ref, Collections.singletonList( location ) );
+                    metadataReader.getMetadata( ref, Collections.singletonList( location ), eventMetadata );
 
                 if ( metadata != null )
                 {
@@ -225,18 +269,20 @@ public class VersionResolverImpl
 
     private ProjectVersionRef resolveFirstSnapshotRef( final List<? extends Location> locations,
                                                        final ProjectVersionRef ref,
-                                                       final VersionSelectionStrategy selectionStrategy )
+                                                       final VersionSelectionStrategy selectionStrategy,
+                                                       final EventMetadata eventMetadata )
         throws TransferException
     {
         final ProjectVersionRefLocation result =
-            resolveFirstSnapshotRefWithLocation( locations, ref, selectionStrategy );
+            resolveFirstSnapshotRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
 
         return result == null ? null : result.getRef();
     }
 
     private ProjectVersionRefLocation resolveFirstSnapshotRefWithLocation( final List<? extends Location> locations,
                                                                            final ProjectVersionRef ref,
-                                                                           final VersionSelectionStrategy selectionStrategy )
+                                                                           final VersionSelectionStrategy selectionStrategy,
+                                                                           final EventMetadata eventMetadata )
         throws TransferException
     {
         nextLoc: for ( final Location location : locations )
@@ -245,7 +291,7 @@ public class VersionResolverImpl
             try
             {
                 final MavenMetadataView metadata =
-                    metadataReader.getMetadata( ref, Collections.singletonList( location ) );
+                    metadataReader.getMetadata( ref, Collections.singletonList( location ), eventMetadata );
 
                 if ( metadata != null )
                 {
@@ -302,16 +348,19 @@ public class VersionResolverImpl
 
     private ProjectVersionRef resolveLatestMultiRef( final List<? extends Location> locations,
                                                      final ProjectVersionRef ref,
-                                                     final VersionSelectionStrategy selectionStrategy )
+                                                     final VersionSelectionStrategy selectionStrategy,
+                                                     final EventMetadata eventMetadata )
         throws TransferException
     {
-        final ProjectVersionRefLocation result = resolveLatestMultiRefWithLocation( locations, ref, selectionStrategy );
+        final ProjectVersionRefLocation result =
+            resolveLatestMultiRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
         return result == null ? null : result.getRef();
     }
 
     private ProjectVersionRefLocation resolveLatestMultiRefWithLocation( final List<? extends Location> locations,
                                                                          final ProjectVersionRef ref,
-                                                                         final VersionSelectionStrategy selectionStrategy )
+                                                                         final VersionSelectionStrategy selectionStrategy,
+                                                                         final EventMetadata eventMetadata )
         throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
@@ -320,7 +369,8 @@ public class VersionResolverImpl
             try
             {
                 final MavenMetadataView metadata =
-                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ) );
+                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ),
+                                                eventMetadata );
 
                 if ( metadata != null )
                 {
@@ -380,16 +430,19 @@ public class VersionResolverImpl
 
     private ProjectVersionRef resolveFirstMultiRef( final List<? extends Location> locations,
                                                     final ProjectVersionRef ref,
-                                                    final VersionSelectionStrategy selectionStrategy )
+                                                    final VersionSelectionStrategy selectionStrategy,
+                                                    final EventMetadata eventMetadata )
         throws TransferException
     {
-        final ProjectVersionRefLocation result = resolveFirstMultiRefWithLocation( locations, ref, selectionStrategy );
+        final ProjectVersionRefLocation result =
+            resolveFirstMultiRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
         return result == null ? null : result.getRef();
     }
 
     private ProjectVersionRefLocation resolveFirstMultiRefWithLocation( final List<? extends Location> locations,
                                                                         final ProjectVersionRef ref,
-                                                                        final VersionSelectionStrategy selectionStrategy )
+                                                                        final VersionSelectionStrategy selectionStrategy,
+                                                                        final EventMetadata eventMetadata )
         throws TransferException
     {
         nextLoc: for ( final Location location : locations )
@@ -398,7 +451,8 @@ public class VersionResolverImpl
             try
             {
                 final MavenMetadataView metadata =
-                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ) );
+                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ),
+                                                eventMetadata );
 
                 if ( metadata != null )
                 {
@@ -476,7 +530,8 @@ public class VersionResolverImpl
 
     private List<ProjectVersionRefLocation> resolveAllMultiRefsWithLocations( final List<? extends Location> locations,
                                                                               final ProjectVersionRef ref,
-                                                                              final VersionSelectionStrategy selectionStrategy )
+                                                                              final VersionSelectionStrategy selectionStrategy,
+                                                                              final EventMetadata eventMetadata )
         throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
@@ -485,7 +540,8 @@ public class VersionResolverImpl
             try
             {
                 final MavenMetadataView metadata =
-                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ) );
+                    metadataReader.getMetadata( ref.asProjectRef(), Collections.singletonList( location ),
+                                                eventMetadata );
 
                 if ( metadata != null )
                 {
@@ -548,7 +604,8 @@ public class VersionResolverImpl
 
     private List<ProjectVersionRefLocation> resolveAllSnapshotRefsWithLocations( final List<? extends Location> locations,
                                                                                  final ProjectVersionRef ref,
-                                                                                 final VersionSelectionStrategy selectionStrategy )
+                                                                                 final VersionSelectionStrategy selectionStrategy,
+                                                                                 final EventMetadata eventMetadata )
         throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
@@ -557,7 +614,7 @@ public class VersionResolverImpl
             try
             {
                 final MavenMetadataView metadata =
-                    metadataReader.getMetadata( ref, Collections.singletonList( location ) );
+                    metadataReader.getMetadata( ref, Collections.singletonList( location ), eventMetadata );
 
                 if ( metadata != null )
                 {

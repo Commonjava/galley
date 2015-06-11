@@ -20,9 +20,9 @@ import org.commonjava.maven.galley.model.Transfer;
 public class FileDeletionEvent
     extends FileEvent
 {
-    public FileDeletionEvent( final Transfer transfer )
+    public FileDeletionEvent( final Transfer transfer, final EventMetadata eventMetadata )
     {
-        super( transfer );
+        super( transfer, eventMetadata );
     }
 
 }

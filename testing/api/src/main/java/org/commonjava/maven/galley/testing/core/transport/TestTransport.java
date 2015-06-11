@@ -24,6 +24,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -99,7 +100,7 @@ public class TestTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          final int timeoutSeconds )
+                                          final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         final TestDownload job = downloads.get( resource );
@@ -110,6 +111,7 @@ public class TestTransport
         }
 
         job.setTransfer( target );
+        job.setEventMetadata( eventMetadata );
         return job;
     }
 

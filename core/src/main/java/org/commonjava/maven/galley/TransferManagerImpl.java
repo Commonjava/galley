@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.ident.util.JoinString;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
 import org.commonjava.maven.galley.internal.xfer.BatchRetriever;
@@ -315,6 +316,13 @@ public class TransferManagerImpl
     public Transfer retrieveFirst( final VirtualResource virt )
         throws TransferException
     {
+        return retrieveFirst( virt, new EventMetadata() );
+    }
+
+    @Override
+    public Transfer retrieveFirst( final VirtualResource virt, final EventMetadata eventMetadata )
+        throws TransferException
+    {
         Transfer target = null;
 
         TransferException lastError = null;
@@ -351,7 +359,7 @@ public class TransferManagerImpl
             throw lastError;
         }
 
-        fileEventManager.fire( new FileNotFoundEvent( virt ) );
+        fileEventManager.fire( new FileNotFoundEvent( virt, eventMetadata ) );
         return null;
     }
 
@@ -362,8 +370,18 @@ public class TransferManagerImpl
     public List<Transfer> retrieveAll( final VirtualResource virt )
         throws TransferException
     {
+        return retrieveAll( virt, new EventMetadata() );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#retrieveAll(java.util.List, java.lang.String)
+     */
+    @Override
+    public List<Transfer> retrieveAll( final VirtualResource virt , final EventMetadata eventMetadata  )
+        throws TransferException
+    {
         TransferBatch batch = new TransferBatch( Collections.singleton( virt ) );
-        batch = batchRetrieveAll( batch );
+        batch = batchRetrieveAll( batch, eventMetadata );
 
         return new ArrayList<Transfer>( batch.getTransfers()
                                              .values() );
@@ -376,10 +394,19 @@ public class TransferManagerImpl
     public Transfer retrieve( final ConcreteResource resource )
         throws TransferException
     {
-        return retrieve( resource, false );
+        return retrieve( resource, false, new EventMetadata() );
     }
 
+    @Override
     public Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures )
+        throws TransferException
+    {
+        return retrieve( resource, suppressFailures, new EventMetadata() );
+    }
+
+    @Override
+    public Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures,
+                              final EventMetadata eventMetadata )
         throws TransferException
     {
         //        logger.info( "Attempting to resolve: {}", resource );
@@ -409,7 +436,7 @@ public class TransferManagerImpl
 
             final Transfer retrieved =
                 downloader.download( resource, target, getTimeoutSeconds( resource ), getTransport( resource ),
-                                     suppressFailures );
+                                     suppressFailures, eventMetadata );
 
             if ( retrieved != null && retrieved.exists() && !target.equals( retrieved ) )
             {
@@ -429,7 +456,7 @@ public class TransferManagerImpl
         }
         catch ( final TransferException e )
         {
-            fileEventManager.fire( new FileErrorEvent( target, e ) );
+            fileEventManager.fire( new FileErrorEvent( target, e, eventMetadata ) );
             throw e;
         }
         catch ( final IOException e )
@@ -437,13 +464,20 @@ public class TransferManagerImpl
             final TransferException error =
                 new TransferException( "Failed to download: {}. Reason: {}", e, resource, e.getMessage() );
 
-            fileEventManager.fire( new FileErrorEvent( target, error ) );
+            fileEventManager.fire( new FileErrorEvent( target, error, eventMetadata ) );
             throw error;
         }
     }
 
     @Override
     public Transfer store( final ConcreteResource resource, final InputStream stream )
+        throws TransferException
+    {
+        return store( resource, stream, new EventMetadata() );
+    }
+
+    @Override
+    public Transfer store( final ConcreteResource resource , final InputStream stream , final EventMetadata eventMetadata  )
         throws TransferException
     {
         if ( !resource.allowsStoring() )
@@ -458,7 +492,7 @@ public class TransferManagerImpl
         OutputStream out = null;
         try
         {
-            out = target.openOutputStream( TransferOperation.UPLOAD );
+            out = target.openOutputStream( TransferOperation.UPLOAD, true, eventMetadata );
             copy( stream, out );
         }
         catch ( final IOException e )
@@ -498,10 +532,20 @@ public class TransferManagerImpl
     public boolean deleteAll( final VirtualResource virt )
         throws TransferException
     {
+        return deleteAll( virt, new EventMetadata() );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#deleteAll(java.util.List, java.lang.String)
+     */
+    @Override
+    public boolean deleteAll( final VirtualResource virt , EventMetadata eventMetadata  )
+        throws TransferException
+    {
         boolean result = false;
         for ( final ConcreteResource res : virt )
         {
-            result = delete( res ) || result;
+            result = delete( res, new EventMetadata() ) || result;
         }
 
         return result;
@@ -514,11 +558,21 @@ public class TransferManagerImpl
     public boolean delete( final ConcreteResource resource )
         throws TransferException
     {
-        final Transfer item = getCacheReference( resource );
-        return doDelete( item );
+        return delete( resource, new EventMetadata() );
     }
 
-    private Boolean doDelete( final Transfer item )
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#delete(org.commonjava.maven.galley.model.Location, java.lang.String)
+     */
+    @Override
+    public boolean delete( final ConcreteResource resource, final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        final Transfer item = getCacheReference( resource );
+        return doDelete( item, eventMetadata );
+    }
+
+    private Boolean doDelete( final Transfer item, final EventMetadata eventMetadata )
         throws TransferException
     {
         if ( !item.exists() )
@@ -543,7 +597,7 @@ public class TransferManagerImpl
 
             for ( final String sub : listing )
             {
-                if ( !doDelete( item.getChild( sub ) ) )
+                if ( !doDelete( item.getChild( sub ), eventMetadata ) )
                 {
                     return false;
                 }
@@ -553,7 +607,7 @@ public class TransferManagerImpl
         {
             try
             {
-                if ( !item.delete() )
+                if ( !item.delete( true, eventMetadata ) )
                 {
                     throw new TransferException( "Failed to delete: {}.", item );
                 }
@@ -601,11 +655,25 @@ public class TransferManagerImpl
     public <T extends TransferBatch> T batchRetrieve( final T batch )
         throws TransferException
     {
-        return doBatch( batch.getResources(), batch, true );
+        return batchRetrieve( batch, new EventMetadata() );
+    }
+
+    @Override
+    public <T extends TransferBatch> T batchRetrieve( final T batch , final EventMetadata eventMetadata  )
+        throws TransferException
+    {
+        return doBatch( batch.getResources(), batch, true, eventMetadata );
     }
 
     @Override
     public <T extends TransferBatch> T batchRetrieveAll( final T batch )
+        throws TransferException
+    {
+        return batchRetrieveAll( batch, new EventMetadata() );
+    }
+
+    @Override
+    public <T extends TransferBatch> T batchRetrieveAll( final T batch , final EventMetadata eventMetadata  )
         throws TransferException
     {
         final Set<Resource> resources = batch.getResources();
@@ -621,11 +689,11 @@ public class TransferManagerImpl
             }
         }
 
-        return doBatch( resources, batch, false );
+        return doBatch( resources, batch, false, eventMetadata );
     }
 
     private <T extends TransferBatch> T doBatch( final Set<Resource> resources, final T batch,
-                                                 final boolean suppressFailures )
+                                                 final boolean suppressFailures, final EventMetadata eventMetadata )
         throws TransferException
     {
         logger.info( "Attempting to batch-retrieve {} resources:\n  {}", resources.size(), new JoinString( "\n  ",
@@ -634,7 +702,7 @@ public class TransferManagerImpl
         final Set<BatchRetriever> retrievers = new HashSet<BatchRetriever>( resources.size() );
         for ( final Resource resource : resources )
         {
-            retrievers.add( new BatchRetriever( this, resource, suppressFailures ) );
+            retrievers.add( new BatchRetriever( this, resource, suppressFailures, eventMetadata ) );
         }
 
         final Map<ConcreteResource, TransferException> errors = new HashMap<ConcreteResource, TransferException>();

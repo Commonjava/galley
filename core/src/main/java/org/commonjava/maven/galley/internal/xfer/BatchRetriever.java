@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.TransferManagerImpl;
+import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.Transfer;
@@ -34,7 +35,7 @@ public final class BatchRetriever
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final TransferManagerImpl xfer;
+    private final TransferManager xfer;
 
     private final List<ConcreteResource> resources;
 
@@ -52,11 +53,15 @@ public final class BatchRetriever
 
     private final Resource rootResource;
 
-    public BatchRetriever( final TransferManagerImpl xfer, final Resource resource, final boolean suppressFailures )
+    private final EventMetadata eventMetadata;
+
+    public BatchRetriever( final TransferManager xfer, final Resource resource, final boolean suppressFailures,
+                           final EventMetadata eventMetadata )
     {
         this.xfer = xfer;
         this.suppressFailures = suppressFailures;
         this.rootResource = resource;
+        this.eventMetadata = eventMetadata;
         if ( resource instanceof ConcreteResource )
         {
             resources = Collections.singletonList( (ConcreteResource) resource );
@@ -86,7 +91,7 @@ public final class BatchRetriever
             lastTry = resources.get( tries );
             logger.debug( "Try #{} in {}: {}", tries, rootResource, lastTry );
 
-            transfer = xfer.retrieve( lastTry, suppressFailures );
+            transfer = xfer.retrieve( lastTry, suppressFailures, eventMetadata );
         }
         catch ( final TransferException e )
         {

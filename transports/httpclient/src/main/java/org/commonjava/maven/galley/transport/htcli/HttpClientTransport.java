@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -70,10 +71,12 @@ public class HttpClientTransport
     }
 
     @Override
-    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
+                                          final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
-        return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, http );
+        return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, eventMetadata,
+                                 http );
     }
 
     @Override

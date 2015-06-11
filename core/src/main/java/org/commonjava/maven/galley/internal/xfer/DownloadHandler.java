@@ -28,6 +28,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
@@ -64,7 +65,8 @@ public class DownloadHandler
     // FIXME: download batch
 
     public Transfer download( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
-                              final Transport transport, final boolean suppressFailures )
+                              final Transport transport, final boolean suppressFailures,
+                              final EventMetadata eventMetadata )
         throws TransferException
     {
         if ( !resource.allowsDownloading() )
@@ -88,12 +90,14 @@ public class DownloadHandler
 
         logger.debug( "RETRIEVE {}", resource );
 
-        final Transfer result = joinOrStart( resource, target, timeoutSeconds, transport, suppressFailures );
+        final Transfer result =
+            joinOrStart( resource, target, timeoutSeconds, transport, suppressFailures, eventMetadata );
         return result;
     }
 
     private Transfer joinOrStart( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
-                                   final Transport transport, final boolean suppressFailures )
+                                  final Transport transport, final boolean suppressFailures,
+                                  final EventMetadata eventMetadata )
         throws TransferException
     {
         // if the target file already exists, skip joining.
@@ -113,7 +117,7 @@ public class DownloadHandler
                     return null;
                 }
 
-                final DownloadJob job = transport.createDownloadJob( resource, target, timeoutSeconds );
+                final DownloadJob job = transport.createDownloadJob( resource, target, timeoutSeconds, eventMetadata );
 
                 future = executor.submit( job );
                 pending.put( target, future );

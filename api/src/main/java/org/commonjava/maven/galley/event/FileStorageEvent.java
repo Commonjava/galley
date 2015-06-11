@@ -15,8 +15,8 @@
  */
 package org.commonjava.maven.galley.event;
 
-import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
 
 public class FileStorageEvent
     extends FileEvent
@@ -24,9 +24,9 @@ public class FileStorageEvent
 
     final TransferOperation type;
 
-    public FileStorageEvent( final TransferOperation type, final Transfer transfer )
+    public FileStorageEvent( final TransferOperation type, final Transfer transfer, final EventMetadata eventMetadata )
     {
-        super( transfer );
+        super( transfer, eventMetadata );
         this.type = type;
     }
 

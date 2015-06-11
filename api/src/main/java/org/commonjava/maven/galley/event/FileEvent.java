@@ -22,9 +22,17 @@ public class FileEvent
 
     private final Transfer transfer;
 
-    protected FileEvent( final Transfer transfer )
+    private final EventMetadata eventMetadata;
+
+    protected FileEvent( final Transfer transfer, final EventMetadata eventMetadata )
     {
         this.transfer = transfer;
+        this.eventMetadata = eventMetadata;
+    }
+
+    public EventMetadata getEventMetadata()
+    {
+        return eventMetadata;
     }
 
     public Transfer getTransfer()

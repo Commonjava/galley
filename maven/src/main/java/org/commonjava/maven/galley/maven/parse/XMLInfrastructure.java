@@ -51,6 +51,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.model.Transfer;
 import org.slf4j.Logger;
@@ -414,6 +415,12 @@ public class XMLInfrastructure
     }
 
     public Document parse( final Transfer transfer )
+        throws GalleyMavenXMLException
+    {
+        return parse( transfer, new EventMetadata() );
+    }
+
+    public Document parse( final Transfer transfer , final EventMetadata eventMetadata  )
         throws GalleyMavenXMLException
     {
         InputStream stream = null;

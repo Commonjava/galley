@@ -48,7 +48,7 @@ public class TransferManagerTest
     extends AbstractTransferManagerTest
 {
 
-    private TransferManagerImpl mgr;
+    private TransferManager mgr;
 
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
@@ -86,7 +86,7 @@ public class TransferManagerTest
     }
 
     @Override
-    protected TransferManagerImpl getTransferManagerImpl()
+    protected TransferManager getTransferManagerImpl()
         throws Exception
     {
         return mgr;

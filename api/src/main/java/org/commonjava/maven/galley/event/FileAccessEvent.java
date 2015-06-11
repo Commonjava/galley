@@ -21,9 +21,9 @@ public class FileAccessEvent
     extends FileEvent
 {
 
-    public FileAccessEvent( final Transfer item )
+    public FileAccessEvent( final Transfer item, final EventMetadata eventMetadata )
     {
-        super( item );
+        super( item, eventMetadata );
     }
 
 }
