@@ -46,7 +46,7 @@ public class UploadHandler
     @Inject
     private NotFoundCache nfc;
 
-    private final Map<Resource, Future<Boolean>> pending = new ConcurrentHashMap<Resource, Future<Boolean>>();
+    private final Map<Resource, Future<PublishJob>> pending = new ConcurrentHashMap<Resource, Future<PublishJob>>();
 
     @Inject
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
@@ -62,8 +62,8 @@ public class UploadHandler
         this.executor = executor;
     }
 
-    public boolean upload( final ConcreteResource resource, final InputStream stream, final long length, final String contentType,
- final int timeoutSeconds, final Transport transport )
+    public boolean upload( final ConcreteResource resource, final InputStream stream, final long length,
+                           final String contentType, final int timeoutSeconds, final Transport transport )
         throws TransferException
     {
         if ( !resource.allowsPublishing() )
@@ -81,15 +81,11 @@ public class UploadHandler
 
         logger.debug( "PUBLISH {}", resource );
 
-        // FIXME: Race condition! Merge with startUpload...
-        joinUpload( resource, timeoutSeconds );
-
-        // even if we joined another upload in progress, we still want to push this change afterward.
-        return startUpload( resource, timeoutSeconds, stream, length, contentType, transport );
+        return joinOrStart( resource, timeoutSeconds, stream, length, contentType, transport );
     }
 
-    private boolean startUpload( final ConcreteResource resource, final int timeoutSeconds, final InputStream stream, final long length,
-                                 final String contentType, final Transport transport )
+    private boolean joinOrStart( final ConcreteResource resource, final int timeoutSeconds, final InputStream stream,
+                                 final long length, final String contentType, final Transport transport )
         throws TransferException
     {
         if ( transport == null )
@@ -97,13 +93,22 @@ public class UploadHandler
             return false;
         }
 
-        final PublishJob job = transport.createPublishJob( resource, stream, length, contentType, timeoutSeconds );
+        Future<PublishJob> future;
+        synchronized ( pending )
+        {
+            future = pending.get( resource );
+            if ( future == null )
+            {
+                final PublishJob job = transport.createPublishJob( resource, stream, length, timeoutSeconds );
 
-        final Future<Boolean> future = executor.submit( job );
-        pending.put( resource, future );
+                future = executor.submit( job );
+                pending.put( resource, future );
+            }
+        }
+
         try
         {
-            final Boolean published = future.get( timeoutSeconds, TimeUnit.SECONDS );
+            final PublishJob job = future.get( timeoutSeconds, TimeUnit.SECONDS );
 
             if ( job.getError() != null )
             {
@@ -111,7 +116,7 @@ public class UploadHandler
             }
 
             nfc.clearMissing( resource );
-            return published;
+            return job.isSuccessful();
         }
         catch ( final InterruptedException e )
         {
@@ -130,38 +135,5 @@ public class UploadHandler
             //            logger.info( "Marking download complete: {}", url );
             pending.remove( resource );
         }
-    }
-
-    /**
-     * @return true if (a) previous upload in progress succeeded, or (b) there was no previous upload.
-     */
-    private boolean joinUpload( final Resource resource, final int timeoutSeconds )
-        throws TransferException
-    {
-        final Future<Boolean> future = pending.get( resource );
-        if ( future != null )
-        {
-            Boolean f = null;
-            try
-            {
-                f = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-                return f;
-            }
-            catch ( final InterruptedException e )
-            {
-                throw new TransferException( "Publish interrupted: {}", e, resource );
-            }
-            catch ( final ExecutionException e )
-            {
-                throw new TransferException( "Publish failed: {}", e, resource );
-            }
-            catch ( final TimeoutException e )
-            {
-                throw new TransferException( "Timeout on: {}", e, resource );
-            }
-        }
-
-        return true;
     }
 }

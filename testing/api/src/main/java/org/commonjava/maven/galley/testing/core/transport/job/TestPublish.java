@@ -50,8 +50,14 @@ public class TestPublish
     }
 
     @Override
-    public Boolean call()
+    public TestPublish call()
         throws Exception
+    {
+        return this;
+    }
+
+    @Override
+    public boolean isSuccessful()
     {
         return result;
     }

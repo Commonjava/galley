@@ -172,7 +172,8 @@ public class TransferManagerImpl
             return true;
         }
 
-        return exister.exists( resource, getTimeoutSeconds( resource ), getTransport( resource ), suppressFailures );
+        return exister.exists( resource, cached, getTimeoutSeconds( resource ), getTransport( resource ),
+                               suppressFailures );
     }
 
     @Override
@@ -539,7 +540,7 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#deleteAll(java.util.List, java.lang.String)
      */
     @Override
-    public boolean deleteAll( final VirtualResource virt , EventMetadata eventMetadata  )
+    public boolean deleteAll( final VirtualResource virt , final EventMetadata eventMetadata  )
         throws TransferException
     {
         boolean result = false;

@@ -21,10 +21,13 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
 import org.junit.Rule;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HttpExistenceTest
 {
@@ -45,7 +48,10 @@ public class HttpExistenceTest
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
 
-        final HttpExistence dl = new HttpExistence( url, location, fixture.getHttp() );
+        final HttpExistence dl =
+            new HttpExistence( url, location, fixture.getTransfer( new ConcreteResource( location, fname ) ),
+                               fixture.getHttp(), new ObjectMapper() );
+
         final Boolean result = dl.call();
 
         final TransferException error = dl.getError();
@@ -70,7 +76,10 @@ public class HttpExistenceTest
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
         final String url = fixture.formatUrl( fname );
 
-        final HttpExistence dl = new HttpExistence( url, location, fixture.getHttp() );
+        final HttpExistence dl =
+            new HttpExistence( url, location, fixture.getTransfer( new ConcreteResource( location, fname ) ),
+                               fixture.getHttp(), new ObjectMapper() );
+
         final Boolean result = dl.call();
 
         final TransferException error = dl.getError();
@@ -101,7 +110,10 @@ public class HttpExistenceTest
         final String error = "Test Error.";
         fixture.registerException( fixture.getUrlPath( url ), error );
 
-        final HttpExistence dl = new HttpExistence( url, location, fixture.getHttp() );
+        final HttpExistence dl =
+            new HttpExistence( url, location, fixture.getTransfer( new ConcreteResource( location, fname ) ),
+                               fixture.getHttp(), new ObjectMapper() );
+
         final Boolean result = dl.call();
 
         final TransferException err = dl.getError();

@@ -36,6 +36,8 @@ public class FilePublish
 
     private TransferException error;
 
+    private boolean success;
+
     public FilePublish( final File dest, final InputStream stream )
     {
         this.dest = dest;
@@ -49,7 +51,7 @@ public class FilePublish
     }
 
     @Override
-    public Boolean call()
+    public FilePublish call()
     {
         FileOutputStream out = null;
         try
@@ -57,7 +59,7 @@ public class FilePublish
             out = new FileOutputStream( dest );
             copy( stream, out );
 
-            return true;
+            success = true;
         }
         catch ( final IOException e )
         {
@@ -69,7 +71,13 @@ public class FilePublish
             closeQuietly( out );
         }
 
-        return false;
+        return this;
+    }
+
+    @Override
+    public boolean isSuccessful()
+    {
+        return success;
     }
 
 }

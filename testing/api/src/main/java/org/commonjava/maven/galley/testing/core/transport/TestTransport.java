@@ -158,7 +158,8 @@ public class TestTransport
     }
 
     @Override
-    public ExistenceJob createExistenceJob( final ConcreteResource resource, final int timeoutSeconds )
+    public ExistenceJob createExistenceJob( final ConcreteResource resource, final Transfer target,
+                                            final int timeoutSeconds )
         throws TransferException
     {
         final TestExistence job = exists.get( resource );

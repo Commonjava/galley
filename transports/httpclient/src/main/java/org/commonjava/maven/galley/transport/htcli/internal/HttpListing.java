@@ -25,10 +25,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -37,15 +33,13 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class HttpListing
+    extends AbstractHttpJob
     implements ListingJob
 {
 
@@ -58,44 +52,22 @@ public class HttpListing
         }
     };
 
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    private TransferException error;
-
-    private final Http http;
-
     private final ConcreteResource resource;
-
-    private final String url;
 
     private final Transfer target;
 
     public HttpListing( final String url, final ConcreteResource resource, final int timeoutSeconds,
                         final Transfer target, final Http http )
     {
-        this.url = url;
+        super( url, (HttpLocation) resource.getLocation(), http );
         this.resource = resource;
         this.target = target;
-        this.http = http;
-    }
-
-    @Override
-    public TransferException getError()
-    {
-        // this would have been set during the call() method's execution if something went wrong.
-        return error;
     }
 
     @Override
     public ListingResult call()
     {
-        // this is used to bind credentials...
-        final HttpLocation location = (HttpLocation) resource.getLocation();
-
-        //            logger.info( "Trying: {}", url );
-        final HttpGet request = new HttpGet( url );
-
-        http.bindCredentialsTo( location, request );
+        request = new HttpGet( url );
 
         // return null if something goes wrong, after setting the error.
         // What we should be doing here is trying to retrieve the html directory 
@@ -111,10 +83,10 @@ public class HttpListing
         OutputStream stream = null;
         try
         {
-            final InputStream in = executeGet( request, url );
-
-            if ( in != null )
+            if ( executeHttp() )
             {
+                final InputStream in = response.getEntity()
+                                               .getContent();
                 final ArrayList<String> al = new ArrayList<String>();
 
                 // TODO: Charset!!
@@ -147,52 +119,9 @@ public class HttpListing
         finally
         {
             closeQuietly( stream );
-            cleanup( location, request );
+            cleanup();
         }
 
         return error == null ? result : null;
     }
-
-    private InputStream executeGet( final HttpGet request, final String url )
-        throws TransferException
-    {
-        InputStream result = null;
-
-        try
-        {
-            final HttpResponse response = http.getClient()
-                                              .execute( request );
-            final StatusLine line = response.getStatusLine();
-            final int sc = line.getStatusCode();
-            logger.debug( "GET {} : {}", line, url );
-            if ( sc != HttpStatus.SC_OK )
-            {
-                TransferResponseUtils.handleUnsuccessfulResponse( request, response, url );
-                result = null;
-            }
-            else
-            {
-                result = response.getEntity()
-                                 .getContent();
-            }
-        }
-        catch ( final ClientProtocolException e )
-        {
-            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
-        }
-        catch ( final IOException e )
-        {
-            throw new TransferException( "Repository remote request failed for: %s. Reason: %s", e, url, e.getMessage() );
-        }
-
-        return result;
-    }
-
-    private void cleanup( final HttpLocation location, final HttpGet request )
-    {
-        http.clearBoundCredentials( location );
-        request.abort();
-        http.closeConnection();
-    }
-
 }

@@ -15,52 +15,43 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import java.io.IOException;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpHead;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class HttpExistence
+    extends AbstractHttpJob
     implements ExistenceJob
 {
 
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
+    private final ObjectMapper mapper;
 
-    private final String url;
+    private final Transfer transfer;
 
-    private final HttpLocation location;
-
-    private final Http http;
-
-    private TransferException error;
-
-    public HttpExistence( final String url, final HttpLocation location, final Http http )
+    public HttpExistence( final String url, final HttpLocation location, final Transfer transfer, final Http http,
+                          final ObjectMapper mapper )
     {
-        this.url = url;
-        this.location = location;
-        this.http = http;
+        super( url, location, http );
+        this.transfer = transfer;
+        this.mapper = mapper;
     }
 
     @Override
     public Boolean call()
     {
-        final HttpHead request = new HttpHead( url );
-
-        http.bindCredentialsTo( location, request );
+        request = new HttpHead( url );
 
         try
         {
-            return execute( request, url );
+            if ( executeHttp() )
+            {
+                return true;
+            }
         }
         catch ( final TransferException e )
         {
@@ -68,51 +59,11 @@ public final class HttpExistence
         }
         finally
         {
-            cleanup( request );
+            writeMetadata( transfer, mapper );
+            cleanup();
         }
 
         return false;
-    }
-
-    @Override
-    public TransferException getError()
-    {
-        return error;
-    }
-
-    private boolean execute( final HttpHead request, final String url )
-        throws TransferException
-    {
-        try
-        {
-            final HttpResponse response = http.getClient()
-                                              .execute( request );
-            final StatusLine line = response.getStatusLine();
-            final int sc = line.getStatusCode();
-            logger.debug( "HEAD {} : {}", line, url );
-            if ( sc != HttpStatus.SC_OK )
-            {
-                TransferResponseUtils.handleUnsuccessfulResponse( request, response, url );
-                return false;
-            }
-        }
-        catch ( final ClientProtocolException e )
-        {
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
-        }
-        catch ( final IOException e )
-        {
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
-        }
-
-        return true;
-    }
-
-    private void cleanup( final HttpHead request )
-    {
-        http.clearBoundCredentials( location );
-        request.abort();
-        http.closeConnection();
     }
 
 }

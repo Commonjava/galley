@@ -55,7 +55,7 @@ public interface Transport
     /**
      * @return NEVER NULL
      */
-    ExistenceJob createExistenceJob( ConcreteResource resource, int timeoutSeconds )
+    ExistenceJob createExistenceJob( ConcreteResource resource, Transfer target, int timeoutSeconds )
         throws TransferException;
 
     boolean handles( Location location );

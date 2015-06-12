@@ -15,23 +15,70 @@
  */
 package org.commonjava.maven.galley.transport.htcli;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.client.HttpClient;
+import java.io.Closeable;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 public interface Http
+    extends Closeable
 {
 
-    String HTTP_PARAM_LOCATION = "Location-Object";
+    public static final class CertEnumerator
+    {
+        private final KeyStore ks;
+    
+        public CertEnumerator( final KeyStore ks )
+        {
+            this.ks = ks;
+        }
+    
+        @Override
+        public String toString()
+        {
+            final StringBuilder sb = new StringBuilder();
+    
+            try
+            {
+                for ( final Enumeration<String> aliases = ks.aliases(); aliases.hasMoreElements(); )
+                {
+                    final String alias = aliases.nextElement();
+                    final X509Certificate cert = (X509Certificate) ks.getCertificate( alias );
+    
+                    if ( cert != null )
+                    {
+                        sb.append( "\n" )
+                          .append( cert.getSubjectDN() );
+                    }
+                }
+            }
+            catch ( final KeyStoreException e )
+            {
+                sb.append( "ERROR READING KEYSTORE" );
+            }
+    
+            return sb.toString();
+        }
+    }
 
-    void bindCredentialsTo( final HttpLocation location, final HttpRequest request );
+    CloseableHttpClient createClient( HttpLocation location )
+        throws IOException;
 
-    HttpClient getClient();
+    CloseableHttpClient createClient()
+        throws IOException;
 
-    void clearBoundCredentials( HttpLocation location );
+    HttpClientContext createContext( HttpLocation location );
 
-    void clearAllBoundCredentials();
+    HttpClientContext createContext();
 
-    void closeConnection();
-
+    void cleanup( CloseableHttpClient client, HttpUriRequest request, CloseableHttpResponse response );
+    
 }
