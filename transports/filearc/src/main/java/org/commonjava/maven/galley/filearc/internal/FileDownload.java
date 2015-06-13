@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -38,10 +39,13 @@ public class FileDownload
 
     private final File src;
 
-    public FileDownload( final Transfer txfr, final File src )
+    private final EventMetadata eventMetadata;
+
+    public FileDownload( final Transfer txfr, final File src, final EventMetadata eventMetadata )
     {
         this.txfr = txfr;
         this.src = src;
+        this.eventMetadata = eventMetadata;
     }
 
     @Override
@@ -60,7 +64,7 @@ public class FileDownload
             if ( src.exists() && !src.isDirectory() )
             {
                 in = new FileInputStream( src );
-                out = txfr.openOutputStream( TransferOperation.DOWNLOAD );
+                out = txfr.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
                 copy( in, out );
             }
 

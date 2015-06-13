@@ -21,6 +21,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.filearc.internal.ZipDownload;
 import org.commonjava.maven.galley.filearc.internal.ZipExistence;
 import org.commonjava.maven.galley.filearc.internal.ZipListing;
@@ -41,10 +42,11 @@ public class ZipJarTransport
 {
 
     @Override
-    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
+                                          final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
-        return new ZipDownload( target );
+        return new ZipDownload( target, eventMetadata );
     }
 
     @Override
@@ -77,7 +79,8 @@ public class ZipJarTransport
     }
 
     @Override
-    public ExistenceJob createExistenceJob( final ConcreteResource resource, final int timeoutSeconds )
+    public ExistenceJob createExistenceJob( final ConcreteResource resource, final Transfer target,
+                                            final int timeoutSeconds )
         throws TransferException
     {
         return new ZipExistence( resource );

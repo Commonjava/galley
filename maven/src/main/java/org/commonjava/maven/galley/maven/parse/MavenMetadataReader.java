@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
@@ -65,6 +66,12 @@ public class MavenMetadataReader
     public MavenMetadataView getMetadata( final ProjectRef ref, final List<? extends Location> locations )
         throws GalleyMavenException
     {
+        return getMetadata( ref, locations, new EventMetadata() );
+    }
+
+    public MavenMetadataView getMetadata( final ProjectRef ref , final List<? extends Location> locations , final EventMetadata eventMetadata  )
+        throws GalleyMavenException
+    {
         final List<DocRef<ProjectRef>> docs = new ArrayList<DocRef<ProjectRef>>( locations.size() );
         final Map<Location, DocRef<ProjectRef>> cached = getAllCached( ref, locations );
 
@@ -86,7 +93,7 @@ public class MavenMetadataReader
         List<Transfer> transfers;
         try
         {
-            transfers = metadataManager.retrieveAll( toRetrieve, ref );
+            transfers = metadataManager.retrieveAll( toRetrieve, ref, eventMetadata );
         }
         catch ( final TransferException e )
         {
@@ -101,7 +108,7 @@ public class MavenMetadataReader
             for ( final Transfer transfer : transfers )
             {
                 final DocRef<ProjectRef> dr =
-                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer ) );
+                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer, eventMetadata ) );
                 final int idx = locations.indexOf( transfer.getLocation() );
 
                 // FIXME: This is too clever by half...the if/then here is probably wrong.
@@ -151,6 +158,12 @@ public class MavenMetadataReader
     public MavenMetadataView readMetadata( final ProjectRef ref, final List<Transfer> transfers )
         throws GalleyMavenException
     {
+        return readMetadata( ref, transfers, new EventMetadata() );
+    }
+
+    public MavenMetadataView readMetadata( final ProjectRef ref , final List<Transfer> transfers , final EventMetadata eventMetadata  )
+        throws GalleyMavenException
+    {
         final List<DocRef<ProjectRef>> docs = new ArrayList<DocRef<ProjectRef>>( transfers.size() );
 
         if ( transfers != null && !transfers.isEmpty() )
@@ -163,7 +176,7 @@ public class MavenMetadataReader
                 }
 
                 final DocRef<ProjectRef> dr =
-                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer ) );
+                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer, eventMetadata ) );
 
                 if ( dr != null )
                 {

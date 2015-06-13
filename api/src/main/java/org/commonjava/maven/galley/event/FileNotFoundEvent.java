@@ -22,9 +22,17 @@ public class FileNotFoundEvent
 
     private final Resource resource;
 
-    public FileNotFoundEvent( final Resource resource )
+    private final EventMetadata eventMetadata;
+
+    public FileNotFoundEvent( final Resource resource, final EventMetadata eventMetadata )
     {
         this.resource = resource;
+        this.eventMetadata = eventMetadata;
+    }
+
+    public EventMetadata getEventMetadata()
+    {
+        return eventMetadata;
     }
 
     public Resource getResource()

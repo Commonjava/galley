@@ -23,61 +23,47 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class HttpDownload
+    extends AbstractHttpJob
     implements DownloadJob
 {
 
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
-    private final String url;
-
-    private final HttpLocation location;
-
     private final Transfer target;
 
-    private final Http http;
+    private final EventMetadata eventMetadata;
 
-    private TransferException error;
+    private final ObjectMapper mapper;
 
-    public HttpDownload( final String url, final HttpLocation location, final Transfer target, final Http http )
+    public HttpDownload( final String url, final HttpLocation location, final Transfer target,
+                         final EventMetadata eventMetadata, final Http http, final ObjectMapper mapper )
     {
-        this.url = url;
-        this.location = location;
+        super( url, location, http );
         this.target = target;
-        this.http = http;
+        this.eventMetadata = eventMetadata;
+        this.mapper = mapper;
     }
 
     @Override
     public DownloadJob call()
     {
-        final HttpGet request = new HttpGet( url );
-
-        http.bindCredentialsTo( location, request );
-
-        HttpResponse response = null;
+        request = new HttpGet( url );
         try
         {
-            response = executeGet( request, url );
-            if ( response != null )
+            if ( executeHttp() )
             {
-                writeTarget( target, request, response, url, location );
+                writeTarget();
             }
         }
         catch ( final TransferException e )
@@ -86,7 +72,8 @@ public final class HttpDownload
         }
         finally
         {
-            cleanup( request );
+            writeMetadata( target, mapper );
+            cleanup();
         }
 
         logger.info( "Download attempt done: {} Result:\n  target: {}\n  error: {}", url, target, error );
@@ -105,8 +92,7 @@ public final class HttpDownload
         return target;
     }
 
-    private void writeTarget( final Transfer target, final HttpGet request, final HttpResponse response,
-                              final String url, final Location repository )
+    private void writeTarget()
         throws TransferException
     {
         OutputStream out = null;
@@ -118,7 +104,7 @@ public final class HttpDownload
                 final HttpEntity entity = response.getEntity();
 
                 in = entity.getContent();
-                out = target.openOutputStream( TransferOperation.DOWNLOAD );
+                out = target.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
                 copy( in, out );
                 logger.info( "Ensuring all HTTP data is consumed..." );
                 EntityUtils.consume( entity );
@@ -126,7 +112,6 @@ public final class HttpDownload
             }
             catch ( final IOException e )
             {
-                request.abort();
                 throw new TransferException( "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
                                              e, target, url, e.getMessage() );
             }
@@ -138,43 +123,6 @@ public final class HttpDownload
                 closeQuietly( out );
             }
         }
-    }
-
-    private HttpResponse executeGet( final HttpGet request, final String url )
-        throws TransferException
-    {
-        try
-        {
-            final HttpResponse response = http.getClient()
-                                              .execute( request );
-            final StatusLine line = response.getStatusLine();
-            final int sc = line.getStatusCode();
-            logger.debug( "GET {} : {}", line, url );
-            if ( sc != HttpStatus.SC_OK )
-            {
-                return TransferResponseUtils.handleUnsuccessfulResponse( request, response, url );
-            }
-            else
-            {
-                return response;
-            }
-        }
-        catch ( final ClientProtocolException e )
-        {
-            request.abort();
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
-        }
-        catch ( final IOException e )
-        {
-            request.abort();
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
-        }
-    }
-
-    private void cleanup( final HttpGet request )
-    {
-        http.clearBoundCredentials( location );
-        http.closeConnection();
     }
 
 }

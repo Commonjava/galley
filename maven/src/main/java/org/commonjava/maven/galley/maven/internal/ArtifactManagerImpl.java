@@ -32,13 +32,14 @@ import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactRules;
+import org.commonjava.maven.galley.maven.model.ArtifactBatch;
 import org.commonjava.maven.galley.maven.model.ProjectVersionRefLocation;
 import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
 import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;
-import org.commonjava.maven.galley.model.ArtifactBatch;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
@@ -88,8 +89,20 @@ public class ArtifactManagerImpl
     public boolean delete( final Location location, final ArtifactRef ref )
         throws TransferException
     {
+        return delete( location, ref, new EventMetadata() );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ArtifactRef)
+     */
+    // TODO: What if the artifact is a snapshot? Do we resolve it???
+    // TODO: Metadata repair after deletion
+    @Override
+    public boolean delete( final Location location, final ArtifactRef ref, final EventMetadata eventMetadata )
+        throws TransferException
+    {
         final String path = formatArtifactPath( ref, mapper );
-        return transferManager.deleteAll( new VirtualResource( expander.expand( location ), path ) );
+        return transferManager.deleteAll( new VirtualResource( expander.expand( location ), path ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -101,8 +114,21 @@ public class ArtifactManagerImpl
     public boolean deleteAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
+        return deleteAll( locations, ref, new EventMetadata() );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactManager#deleteAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ArtifactRef)
+     */
+    // TODO: What if the artifact is a snapshot? Do we resolve it and delete all???
+    // TODO: Metadata repair after deletion
+    @Override
+    public boolean deleteAll( final List<? extends Location> locations, final ArtifactRef ref,
+                              final EventMetadata eventMetadata )
+        throws TransferException
+    {
         return transferManager.deleteAll( new VirtualResource( expander.expand( locations ),
-                                                               formatArtifactPath( ref, mapper ) ) );
+                                                               formatArtifactPath( ref, mapper ) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -112,9 +138,20 @@ public class ArtifactManagerImpl
     public Transfer retrieve( final Location location, final ArtifactRef ref )
         throws TransferException
     {
-        final VirtualResource virt = resolveFirstVirtualResource( Collections.singletonList( location ), ref );
+        return retrieve( location, ref, new EventMetadata() );
+    }
 
-        return transferManager.retrieveFirst( virt );
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ArtifactRef)
+     */
+    @Override
+    public Transfer retrieve( final Location location, final ArtifactRef ref, final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        final VirtualResource virt =
+            resolveFirstVirtualResource( Collections.singletonList( location ), ref, eventMetadata );
+
+        return transferManager.retrieveFirst( virt, eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -124,13 +161,24 @@ public class ArtifactManagerImpl
     public List<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        final VirtualResource virt = resolveAllVirtualResource( locations, ref );
+        return retrieveAll( locations, ref, new EventMetadata() );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ArtifactRef)
+     */
+    @Override
+    public List<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref,
+                                       final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        final VirtualResource virt = resolveAllVirtualResource( locations, ref, eventMetadata );
         if ( virt == null )
         {
             return Collections.emptyList();
         }
 
-        return transferManager.retrieveAll( virt );
+        return transferManager.retrieveAll( virt, eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -140,9 +188,20 @@ public class ArtifactManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        final VirtualResource virt = resolveFirstVirtualResource( locations, ref );
+        return retrieveFirst( locations, ref, new EventMetadata() );
+    }
 
-        return transferManager.retrieveFirst( virt );
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieveFirst(java.util.List, org.commonjava.maven.atlas.ident.ref.ArtifactRef)
+     */
+    @Override
+    public Transfer retrieveFirst( final List<? extends Location> locations, final ArtifactRef ref,
+                                   final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        final VirtualResource virt = resolveFirstVirtualResource( locations, ref, eventMetadata );
+
+        return transferManager.retrieveFirst( virt, eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -152,12 +211,28 @@ public class ArtifactManagerImpl
     public Transfer store( final Location location, final ArtifactRef ref, final InputStream stream )
         throws TransferException
     {
+        return store( location, ref, stream, new EventMetadata() );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ArtifactRef, java.io.InputStream)
+     */
+    @Override
+    public Transfer store( final Location location, final ArtifactRef ref, final InputStream stream,
+                           final EventMetadata eventMetadata )
+        throws TransferException
+    {
         final List<Location> locations = expander.expand( location );
         final Location selected = ArtifactRules.selectStorageLocation( locations );
 
+        if ( selected == null )
+        {
+            return null;
+        }
+
         final ConcreteResource resource = new ConcreteResource( selected, formatArtifactPath( ref, mapper ) );
         ArtifactRules.checkStorageAuthorization( resource );
-        return selected == null ? null : transferManager.store( resource, stream );
+        return transferManager.store( resource, stream, eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -234,7 +309,15 @@ public class ArtifactManagerImpl
     public ProjectVersionRef resolveVariableVersion( final Location location, final ProjectVersionRef ref )
         throws TransferException
     {
-        return resolveVariableVersion( Collections.singletonList( location ), ref );
+        return resolveVariableVersion( location, ref, new EventMetadata() );
+    }
+
+    @Override
+    public ProjectVersionRef resolveVariableVersion( final Location location, final ProjectVersionRef ref,
+                                                     final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        return resolveVariableVersion( Collections.singletonList( location ), ref, eventMetadata );
     }
 
     @Override
@@ -242,15 +325,32 @@ public class ArtifactManagerImpl
                                                      final ProjectVersionRef ref )
         throws TransferException
     {
+        return resolveVariableVersion( locations, ref, new EventMetadata() );
+    }
+
+    @Override
+    public ProjectVersionRef resolveVariableVersion( final List<? extends Location> locations,
+                                                     final ProjectVersionRef ref, final EventMetadata eventMetadata )
+        throws TransferException
+    {
         return versionResolver.resolveFirstMatchVariableVersion( locations, ref,
-                                                                 LatestVersionSelectionStrategy.INSTANCE );
+                                                                 LatestVersionSelectionStrategy.INSTANCE, eventMetadata );
     }
 
     @Override
     public ConcreteResource checkExistence( final Location location, final ArtifactRef ref )
         throws TransferException
     {
-        final VirtualResource virt = resolveAllVirtualResource( Collections.singletonList( location ), ref );
+        return checkExistence( location, ref, new EventMetadata() );
+    }
+
+    @Override
+    public ConcreteResource checkExistence( final Location location, final ArtifactRef ref,
+                                            final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        final VirtualResource virt =
+            resolveAllVirtualResource( Collections.singletonList( location ), ref, eventMetadata );
         if ( virt == null )
         {
             return null;
@@ -263,40 +363,64 @@ public class ArtifactManagerImpl
     public List<ConcreteResource> findAllExisting( final List<? extends Location> locations, final ArtifactRef ref )
         throws TransferException
     {
-        return transferManager.findAllExisting( new VirtualResource( expander.expand( locations ),
-                                                                     formatArtifactPath( ref, mapper ) ) );
+        return findAllExisting( locations, ref, new EventMetadata() );
+    }
+
+    @Override
+    public List<ConcreteResource> findAllExisting( final List<? extends Location> locations, final ArtifactRef ref,
+                                                   final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        final VirtualResource virt = resolveAllVirtualResource( locations, ref, eventMetadata );
+        return transferManager.findAllExisting( virt );
     }
 
     @Override
     public ArtifactBatch batchRetrieve( final ArtifactBatch batch )
         throws TransferException
     {
-        resolveArtifactMappings( batch );
-        return transferManager.batchRetrieve( batch );
+        return batchRetrieve( batch, new EventMetadata() );
+    }
+
+    @Override
+    public ArtifactBatch batchRetrieve( final ArtifactBatch batch, final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        resolveArtifactMappings( batch, eventMetadata );
+        return transferManager.batchRetrieve( batch, eventMetadata );
     }
 
     @Override
     public ArtifactBatch batchRetrieveAll( final ArtifactBatch batch )
         throws TransferException
     {
-        resolveArtifactMappings( batch );
-        return transferManager.batchRetrieveAll( batch );
+        return batchRetrieveAll( batch, new EventMetadata() );
     }
 
-    private void resolveArtifactMappings( final ArtifactBatch batch )
+    @Override
+    public ArtifactBatch batchRetrieveAll( final ArtifactBatch batch, final EventMetadata eventMetadata )
+        throws TransferException
+    {
+        resolveArtifactMappings( batch, eventMetadata );
+        return transferManager.batchRetrieveAll( batch, eventMetadata );
+    }
+
+    private void resolveArtifactMappings( final ArtifactBatch batch, final EventMetadata eventMetadata )
         throws TransferException
     {
         final Map<ArtifactRef, Resource> resources = new HashMap<ArtifactRef, Resource>( batch.size() );
         for ( final ArtifactRef artifact : batch )
         {
-            final VirtualResource virt = resolveFirstVirtualResource( batch.getLocations( artifact ), artifact );
+            final VirtualResource virt =
+                resolveFirstVirtualResource( batch.getLocations( artifact ), artifact, eventMetadata );
             resources.put( artifact, virt );
         }
 
         batch.setArtifactToResourceMapping( resources );
     }
 
-    private VirtualResource resolveAllVirtualResource( List<? extends Location> locations, final ArtifactRef ref )
+    private VirtualResource resolveAllVirtualResource( List<? extends Location> locations, final ArtifactRef ref,
+                                                       final EventMetadata eventMetadata )
         throws TransferException
     {
         locations = expander.expand( locations );
@@ -304,7 +428,7 @@ public class ArtifactManagerImpl
 
         if ( ref.isVariableVersion() )
         {
-            final List<ProjectVersionRefLocation> resolved = resolveAllVariableVersions( locations, ref );
+            final List<ProjectVersionRefLocation> resolved = resolveAllVariableVersions( locations, ref, eventMetadata );
             if ( resolved != null && !resolved.isEmpty() )
             {
                 final List<ConcreteResource> resources = new ArrayList<ConcreteResource>( resolved.size() );
@@ -324,13 +448,14 @@ public class ArtifactManagerImpl
         return virt;
     }
 
-    private VirtualResource resolveFirstVirtualResource( List<? extends Location> locations, ArtifactRef ref )
+    private VirtualResource resolveFirstVirtualResource( List<? extends Location> locations, ArtifactRef ref,
+                                                         final EventMetadata eventMetadata )
         throws TransferException
     {
         locations = expander.expand( locations );
         if ( ref.isVariableVersion() )
         {
-            final ProjectVersionRefLocation resolved = resolveSingleVariableVersion( locations, ref );
+            final ProjectVersionRefLocation resolved = resolveSingleVariableVersion( locations, ref, eventMetadata );
             if ( resolved != null )
             {
                 locations = Collections.singletonList( resolved.getLocation() );
@@ -342,19 +467,23 @@ public class ArtifactManagerImpl
     }
 
     private ProjectVersionRefLocation resolveSingleVariableVersion( final List<? extends Location> locations,
-                                                                    final ArtifactRef ref )
+                                                                    final ArtifactRef ref,
+                                                                    final EventMetadata eventMetadata )
         throws TransferException
     {
         return versionResolver.resolveFirstMatchVariableVersionLocation( locations, ref,
-                                                                         LatestVersionSelectionStrategy.INSTANCE );
+                                                                         LatestVersionSelectionStrategy.INSTANCE,
+                                                                         eventMetadata );
     }
 
     private List<ProjectVersionRefLocation> resolveAllVariableVersions( final List<? extends Location> locations,
-                                                                        final ArtifactRef ref )
+                                                                        final ArtifactRef ref,
+                                                                        final EventMetadata eventMetadata )
         throws TransferException
     {
         return versionResolver.resolveAllVariableVersionLocations( locations, ref,
-                                                                   LatestVersionSelectionStrategy.INSTANCE );
+                                                                   LatestVersionSelectionStrategy.INSTANCE,
+                                                                   eventMetadata );
     }
 
 }

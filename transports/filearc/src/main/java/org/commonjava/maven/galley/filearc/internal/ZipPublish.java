@@ -44,6 +44,8 @@ public class ZipPublish
 
     private final ConcreteResource resource;
 
+    private boolean success;
+
     public ZipPublish( final ConcreteResource resource, final InputStream stream )
     {
         this.resource = resource;
@@ -57,22 +59,29 @@ public class ZipPublish
     }
 
     @Override
-    public Boolean call()
+    public ZipPublish call()
     {
         final String path = resource.getPath();
         final File dest = new File( resource.getLocationUri() );
 
         if ( dest.exists() )
         {
-            return rewriteArchive( dest, path );
+            success = rewriteArchive( dest, path );
         }
         else
         {
-            return writeArchive( dest, path );
+            success = writeArchive( dest, path );
         }
+
+        return this;
     }
 
-    @SuppressWarnings( "resource" )
+    @Override
+    public boolean isSuccessful()
+    {
+        return success;
+    }
+
     private Boolean writeArchive( final File dest, final String path )
     {
         final boolean isJar = isJar( dest.getPath() );

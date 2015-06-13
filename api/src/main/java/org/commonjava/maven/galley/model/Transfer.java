@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.event.FileAccessEvent;
 import org.commonjava.maven.galley.event.FileDeletionEvent;
 import org.commonjava.maven.galley.event.FileErrorEvent;
@@ -111,21 +112,32 @@ public final class Transfer
 
     public void touch()
     {
+        touch( new EventMetadata() );
+    }
+
+    public void touch( final EventMetadata eventMetadata )
+    {
         provider.waitForWriteUnlock( resource );
         if ( decorator != null )
         {
             decorator.decorateTouch( this );
         }
-        fileEventManager.fire( new FileAccessEvent( this ) );
+        fileEventManager.fire( new FileAccessEvent( this, eventMetadata ) );
     }
 
     public InputStream openInputStream()
         throws IOException
     {
-        return openInputStream( true );
+        return openInputStream( true, new EventMetadata() );
     }
 
     public InputStream openInputStream( final boolean fireEvents )
+        throws IOException
+    {
+        return openInputStream( fireEvents, new EventMetadata() );
+    }
+
+    public InputStream openInputStream( final boolean fireEvents, final EventMetadata eventMetadata )
         throws IOException
     {
         provider.waitForReadUnlock( resource );
@@ -139,7 +151,7 @@ public final class Transfer
 
             if ( fireEvents )
             {
-                stream = new TransferInputStream( stream, new FileAccessEvent( this ), fileEventManager );
+                stream = new TransferInputStream( stream, new FileAccessEvent( this, eventMetadata ), fileEventManager );
             }
 
             stream = decorator == null ? stream : decorator.decorateRead( stream, this );
@@ -149,7 +161,7 @@ public final class Transfer
         {
             if ( fireEvents )
             {
-                fileEventManager.fire( new FileErrorEvent( this, e ) );
+                fileEventManager.fire( new FileErrorEvent( this, e, eventMetadata ) );
             }
             throw e;
         }
@@ -158,10 +170,17 @@ public final class Transfer
     public OutputStream openOutputStream( final TransferOperation accessType )
         throws IOException
     {
-        return openOutputStream( accessType, true );
+        return openOutputStream( accessType, true, new EventMetadata() );
     }
 
     public OutputStream openOutputStream( final TransferOperation accessType, final boolean fireEvents )
+        throws IOException
+    {
+        return openOutputStream( accessType, fireEvents, new EventMetadata() );
+    }
+
+    public OutputStream openOutputStream( final TransferOperation accessType, final boolean fireEvents,
+                                          final EventMetadata eventMetadata )
         throws IOException
     {
         provider.waitForWriteUnlock( resource );
@@ -178,7 +197,8 @@ public final class Transfer
             if ( fireEvents )
             {
                 stream =
-                    new TransferOutputStream( stream, unlocker, new FileStorageEvent( accessType, this ),
+                    new TransferOutputStream( stream, unlocker,
+                                              new FileStorageEvent( accessType, this, eventMetadata ),
                                               fileEventManager );
             }
             else
@@ -194,7 +214,7 @@ public final class Transfer
         {
             if ( fireEvents )
             {
-                fileEventManager.fire( new FileErrorEvent( this, e ) );
+                fileEventManager.fire( new FileErrorEvent( this, e, eventMetadata ) );
             }
             throw e;
         }
@@ -236,10 +256,16 @@ public final class Transfer
     public boolean delete()
         throws IOException
     {
-        return delete( true );
+        return delete( true, new EventMetadata() );
     }
 
     public boolean delete( final boolean fireEvents )
+        throws IOException
+    {
+        return delete( fireEvents, new EventMetadata() );
+    }
+
+    public boolean delete( final boolean fireEvents, final EventMetadata eventMetadata )
         throws IOException
     {
         provider.waitForWriteUnlock( resource );
@@ -253,7 +279,7 @@ public final class Transfer
             final boolean deleted = provider.delete( resource );
             if ( deleted && fireEvents )
             {
-                fileEventManager.fire( new FileDeletionEvent( this ) );
+                fileEventManager.fire( new FileDeletionEvent( this, eventMetadata ) );
             }
 
             return deleted;
@@ -262,7 +288,7 @@ public final class Transfer
         {
             if ( fireEvents )
             {
-                fileEventManager.fire( new FileErrorEvent( this, e ) );
+                fileEventManager.fire( new FileErrorEvent( this, e, eventMetadata ) );
             }
             throw e;
         }

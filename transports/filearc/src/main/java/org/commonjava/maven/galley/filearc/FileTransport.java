@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.filearc.internal.FileDownload;
 import org.commonjava.maven.galley.filearc.internal.FileExistence;
 import org.commonjava.maven.galley.filearc.internal.FileListing;
@@ -62,11 +63,12 @@ public class FileTransport
     }
 
     @Override
-    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
+    public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
+                                          final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         final File src = getFile( resource );
-        return new FileDownload( target, src );
+        return new FileDownload( target, src, eventMetadata );
     }
 
     @Override
@@ -114,7 +116,8 @@ public class FileTransport
     }
 
     @Override
-    public ExistenceJob createExistenceJob( final ConcreteResource resource, final int timeoutSeconds )
+    public ExistenceJob createExistenceJob( final ConcreteResource resource, final Transfer target,
+                                            final int timeoutSeconds )
         throws TransferException
     {
         final File src = getFile( resource );

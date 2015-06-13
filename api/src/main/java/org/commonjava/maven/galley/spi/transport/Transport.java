@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.spi.transport;
 import java.io.InputStream;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -32,9 +33,11 @@ public interface Transport
         throws TransferException;
 
     /**
+     * @param eventMetadata 
      * @return NEVER NULL
      */
-    DownloadJob createDownloadJob( ConcreteResource resource, Transfer target, int timeoutSeconds )
+    DownloadJob createDownloadJob( ConcreteResource resource, Transfer target, int timeoutSeconds,
+                                   EventMetadata eventMetadata )
         throws TransferException;
 
     /**
@@ -52,7 +55,7 @@ public interface Transport
     /**
      * @return NEVER NULL
      */
-    ExistenceJob createExistenceJob( ConcreteResource resource, int timeoutSeconds )
+    ExistenceJob createExistenceJob( ConcreteResource resource, Transfer target, int timeoutSeconds )
         throws TransferException;
 
     boolean handles( Location location );

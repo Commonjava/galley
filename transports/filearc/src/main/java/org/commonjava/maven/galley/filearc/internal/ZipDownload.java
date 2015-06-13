@@ -29,6 +29,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -41,9 +42,12 @@ public class ZipDownload
 
     private final Transfer txfr;
 
-    public ZipDownload( final Transfer txfr )
+    private final EventMetadata eventMetadata;
+
+    public ZipDownload( final Transfer txfr, final EventMetadata eventMetadata )
     {
         this.txfr = txfr;
+        this.eventMetadata = eventMetadata;
     }
 
     @Override
@@ -84,7 +88,7 @@ public class ZipDownload
                 else
                 {
                     in = zf.getInputStream( entry );
-                    out = txfr.openOutputStream( TransferOperation.DOWNLOAD );
+                    out = txfr.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
 
                     copy( in, out );
 

@@ -22,6 +22,7 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -46,7 +47,8 @@ public class ExistenceHandler
         this.nfc = nfc;
     }
 
-    public boolean exists( final ConcreteResource resource, final int timeoutSeconds, final Transport transport, final boolean suppressFailures )
+    public boolean exists( final ConcreteResource resource, final Transfer transfer, final int timeoutSeconds,
+                           final Transport transport, final boolean suppressFailures )
         throws TransferException
     {
         if ( nfc.isMissing( resource ) )
@@ -66,7 +68,7 @@ public class ExistenceHandler
 
         logger.debug( "EXISTS {}", resource );
 
-        final ExistenceJob job = transport.createExistenceJob( resource, timeoutSeconds );
+        final ExistenceJob job = transport.createExistenceJob( resource, transfer, timeoutSeconds );
 
         // TODO: execute this stuff in a thread just like downloads/publishes. Requires cache storage...
         try

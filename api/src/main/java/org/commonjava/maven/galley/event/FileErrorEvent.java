@@ -22,9 +22,9 @@ public class FileErrorEvent
 {
     private final Throwable error;
 
-    public FileErrorEvent( final Transfer transfer, final Throwable error )
+    public FileErrorEvent( final Transfer transfer, final Throwable error, final EventMetadata eventMetadata )
     {
-        super( transfer );
+        super( transfer, eventMetadata );
         this.error = error;
     }
 

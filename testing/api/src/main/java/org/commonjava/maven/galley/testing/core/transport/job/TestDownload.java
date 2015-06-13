@@ -21,6 +21,7 @@ import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
@@ -38,6 +39,8 @@ public class TestDownload
     private final byte[] data;
 
     private Transfer transfer;
+
+    private EventMetadata eventMetadata;
 
     public TestDownload( final TransferException error )
     {
@@ -85,7 +88,7 @@ public class TestDownload
         try
         {
             logger.info( "Writing '{}' to: {}.", new String( data ), transfer );
-            stream = transfer.openOutputStream( TransferOperation.DOWNLOAD );
+            stream = transfer.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
             IOUtils.write( data, stream );
         }
         finally
@@ -105,6 +108,11 @@ public class TestDownload
     public Transfer getTransfer()
     {
         return transfer;
+    }
+
+    public void setEventMetadata( final EventMetadata eventMetadata )
+    {
+        this.eventMetadata = eventMetadata;
     }
 
 }

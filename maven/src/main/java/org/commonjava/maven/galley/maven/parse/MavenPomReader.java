@@ -25,6 +25,7 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DependencyView;
@@ -78,12 +79,20 @@ public class MavenPomReader
                               final String... activeProfileLocations )
         throws GalleyMavenException
     {
+        return read( ref, pom, locations, new EventMetadata(), activeProfileLocations );
+    }
+
+    public MavenPomView read( final ProjectVersionRef ref, final Transfer pom,
+                              final List<? extends Location> locations, final EventMetadata eventMetadata,
+                              final String... activeProfileLocations )
+        throws GalleyMavenException
+    {
         final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
 
         DocRef<ProjectVersionRef> dr;
         try
         {
-            dr = getDocRef( ref, pom, false );
+            dr = getDocRef( ref, pom, false, eventMetadata );
         }
         catch ( final TransferException e )
         {
@@ -98,7 +107,7 @@ public class MavenPomReader
         {
             try
             {
-                dr = getDocRef( next, locations, false );
+                dr = getDocRef( next, locations, false, eventMetadata );
             }
             catch ( final TransferException e )
             {
@@ -180,20 +189,21 @@ public class MavenPomReader
         return sb.toString();
     }
 
-    private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final List<? extends Location> locations, final boolean cache )
+    private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final List<? extends Location> locations,
+                                                 final boolean cache, final EventMetadata eventMetadata )
         throws TransferException, GalleyMavenException
     {
         DocRef<ProjectVersionRef> dr = getFirstCached( ref, locations );
         if ( dr == null )
         {
-            final Transfer transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact() );
+            final Transfer transfer = artifacts.retrieveFirst( locations, ref.asPomArtifact(), eventMetadata );
 
             if ( transfer == null )
             {
                 return null;
             }
 
-            final Document doc = xml.parse( transfer );
+            final Document doc = xml.parse( transfer, new EventMetadata() );
             dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation()
                                                              .toString(), doc );
 
@@ -206,12 +216,13 @@ public class MavenPomReader
         return dr;
     }
 
-    private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final Transfer pom, final boolean cache )
+    private DocRef<ProjectVersionRef> getDocRef( final ProjectVersionRef ref, final Transfer pom, final boolean cache,
+                                                 final EventMetadata eventMetadata )
         throws GalleyMavenException, TransferException
     {
         final Transfer transfer = pom;
 
-        final Document doc = xml.parse( transfer );
+        final Document doc = xml.parse( transfer, eventMetadata );
         DocRef<ProjectVersionRef> dr = getFirstCached( ref, Arrays.asList( pom.getLocation() ) );
 
         if ( dr == null )
@@ -234,14 +245,28 @@ public class MavenPomReader
         return readLocalPom( ref, transfer, false, activeProfileIds );
     }
 
+    public MavenPomView readLocalPom( final ProjectVersionRef ref, final Transfer transfer,
+                                      final EventMetadata eventMetadata, final String... activeProfileIds )
+        throws GalleyMavenException
+    {
+        return readLocalPom( ref, transfer, false, eventMetadata, activeProfileIds );
+    }
+
     public MavenPomView readLocalPom( final ProjectVersionRef ref, final Transfer transfer, final boolean cache,
                                       final String... activeProfileIds )
+        throws GalleyMavenException
+    {
+        return readLocalPom( ref, transfer, cache, new EventMetadata(), activeProfileIds );
+    }
+
+    public MavenPomView readLocalPom( final ProjectVersionRef ref, final Transfer transfer, final boolean cache,
+                                      final EventMetadata eventMetadata, final String... activeProfileIds )
         throws GalleyMavenException
     {
         DocRef<ProjectVersionRef> dr;
         try
         {
-            dr = getDocRef( ref, transfer, cache );
+            dr = getDocRef( ref, transfer, cache, eventMetadata );
         }
         catch ( final TransferException e )
         {
@@ -263,7 +288,22 @@ public class MavenPomReader
         return read( ref, locations, false, activeProfileIds );
     }
 
+    public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations,
+                              final EventMetadata eventMetadata, final String... activeProfileIds )
+        throws GalleyMavenException
+    {
+        return read( ref, locations, false, eventMetadata, activeProfileIds );
+    }
+
+    public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations,
+                              final boolean cache, final String... activeProfileIds )
+        throws GalleyMavenException
+    {
+        return read( ref, locations, cache, new EventMetadata(), activeProfileIds );
+    }
+
     public MavenPomView read( final ProjectVersionRef ref, final List<? extends Location> locations, final boolean cache,
+ final EventMetadata eventMetadata,
                               final String... activeProfileIds )
         throws GalleyMavenException
     {
@@ -275,7 +315,7 @@ public class MavenPomReader
             DocRef<ProjectVersionRef> dr;
             try
             {
-                dr = getDocRef( next, locations, cache );
+                dr = getDocRef( next, locations, cache, eventMetadata );
             }
             catch ( final TransferException e )
             {

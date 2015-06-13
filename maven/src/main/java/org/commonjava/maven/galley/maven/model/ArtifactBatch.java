@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.galley.model;
+package org.commonjava.maven.galley.maven.model;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +26,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.TransferBatch;
+import org.commonjava.maven.galley.model.VirtualResource;
 
 // it only really makes sense to use this in a retrieveFirst() type scenario...
 public class ArtifactBatch

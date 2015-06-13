@@ -16,7 +16,9 @@
 package org.commonjava.maven.galley.spi.transport;
 
 public interface PublishJob
-    extends TransportJob<Boolean>
+    extends TransportJob<PublishJob>
 {
+
+    boolean isSuccessful();
 
 }

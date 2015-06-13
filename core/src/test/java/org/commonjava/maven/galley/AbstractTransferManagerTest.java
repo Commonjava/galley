@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
@@ -40,7 +41,7 @@ import org.junit.Test;
 public abstract class AbstractTransferManagerTest
 {
 
-    protected abstract TransferManagerImpl getTransferManagerImpl()
+    protected abstract TransferManager getTransferManagerImpl()
         throws Exception;
 
     protected abstract TestTransport getTransport()
@@ -60,7 +61,7 @@ public abstract class AbstractTransferManagerTest
     {
         final VirtualResource vr = new VirtualResource( Collections.<Location> emptyList(), "/path/to/nowhere" );
         final TransferBatch batch =
-            getTransferManagerImpl().batchRetrieve( new TransferBatch( Collections.<Resource> singleton( vr ) ) );
+            getTransferManagerImpl().batchRetrieve( new TransferBatch( Collections.<Resource> singleton( vr ) ), new EventMetadata() );
         assertThat( batch, notNullValue() );
 
         assertThat( batch.getErrors()

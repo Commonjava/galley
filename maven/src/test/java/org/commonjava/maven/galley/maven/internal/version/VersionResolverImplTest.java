@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -71,7 +72,7 @@ public class VersionResolverImplTest
 
         final ProjectVersionRef result =
             fixture.getVersionResolver()
-                   .resolveFirstMatchVariableVersion( ONE_LOCATION, ref, LatestVersionSelectionStrategy.INSTANCE );
+                   .resolveFirstMatchVariableVersion( ONE_LOCATION, ref, LatestVersionSelectionStrategy.INSTANCE, new EventMetadata() );
 
         assertThat( result, notNullValue() );
         assertThat( result.getVersionString(), equalTo( "1.0-20140604.101244-1" ) );
@@ -92,7 +93,7 @@ public class VersionResolverImplTest
 
         final ProjectVersionRef result =
             fixture.getVersionResolver()
-                   .resolveFirstMatchVariableVersion( ONE_LOCATION, ref, LatestVersionSelectionStrategy.INSTANCE );
+                   .resolveFirstMatchVariableVersion( ONE_LOCATION, ref, LatestVersionSelectionStrategy.INSTANCE, new EventMetadata() );
 
         assertThat( result, notNullValue() );
         assertThat( result.getVersionString(), equalTo( "1.0-20140604.102909-1" ) );
@@ -117,7 +118,7 @@ public class VersionResolverImplTest
 
         final ProjectVersionRef result =
             fixture.getVersionResolver()
-                   .resolveFirstMatchVariableVersion( TWO_LOCATIONS, ref, LatestVersionSelectionStrategy.INSTANCE );
+                   .resolveFirstMatchVariableVersion( TWO_LOCATIONS, ref, LatestVersionSelectionStrategy.INSTANCE, new EventMetadata() );
 
         assertThat( result, notNullValue() );
 
@@ -144,7 +145,7 @@ public class VersionResolverImplTest
 
         final ProjectVersionRef result =
             fixture.getVersionResolver()
-                   .resolveLatestVariableVersion( TWO_LOCATIONS, ref, LatestVersionSelectionStrategy.INSTANCE );
+                   .resolveLatestVariableVersion( TWO_LOCATIONS, ref, LatestVersionSelectionStrategy.INSTANCE, new EventMetadata() );
 
         assertThat( result, notNullValue() );
 

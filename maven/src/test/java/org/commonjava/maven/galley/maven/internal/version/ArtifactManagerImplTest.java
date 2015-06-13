@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -70,10 +71,10 @@ public class ArtifactManagerImplTest
                .registerDownload( pomResource, new TestDownload( ROOT + testPomResource ) );
 
         final Transfer retrieved = fixture.getArtifactManager()
-                                          .retrieve( LOCATION, ref.asPomArtifact() );
+                                          .retrieve( LOCATION, ref.asPomArtifact(), new EventMetadata() );
 
         final Document document = fixture.getXml()
-                                         .parse( retrieved );
+                                         .parse( retrieved, new EventMetadata() );
         final ProjectVersionRef result = fixture.getXml()
                                                 .getProjectVersionRef( document );
 
@@ -104,10 +105,10 @@ public class ArtifactManagerImplTest
                .registerDownload( pomResource, new TestDownload( ROOT + testPomResource ) );
 
         final Transfer retrieved = fixture.getArtifactManager()
-                                          .retrieve( LOCATION, ref.asPomArtifact() );
+                                          .retrieve( LOCATION, ref.asPomArtifact(), new EventMetadata() );
 
         final Document document = fixture.getXml()
-                                         .parse( retrieved );
+                                         .parse( retrieved, new EventMetadata() );
         final ProjectVersionRef result = fixture.getXml()
                                                 .getProjectVersionRef( document );
 

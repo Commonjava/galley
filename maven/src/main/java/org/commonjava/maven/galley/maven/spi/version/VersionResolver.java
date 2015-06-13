@@ -20,25 +20,13 @@ import java.util.List;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.model.ProjectVersionRefLocation;
-import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;
 import org.commonjava.maven.galley.maven.version.VersionSelectionStrategy;
 import org.commonjava.maven.galley.model.Location;
 
 public interface VersionResolver
 {
-
-    /**
-     * Resolve the FIRST matching version in order locations are given.
-     * <br/>
-     * Uses {@link LatestVersionSelectionStrategy} for version selection.
-     * 
-     * @deprecated Use {@link VersionResolver#resolveFirstMatchVariableVersion(List, ProjectVersionRef, VersionSelectionStrategy)}
-     * instead.
-     */
-    @Deprecated
-    ProjectVersionRef resolveVariableVersions( List<? extends Location> locations, ProjectVersionRef ref )
-        throws TransferException;
 
     /**
      * Resolve the LATEST matching version from ALL locations
@@ -48,10 +36,28 @@ public interface VersionResolver
         throws TransferException;
 
     /**
+     * Resolve the LATEST matching version from ALL locations
+     * @param eventMetadata TODO
+     */
+    ProjectVersionRef resolveLatestVariableVersion( List<? extends Location> locations, ProjectVersionRef ref,
+                                                    VersionSelectionStrategy selectionStrategy,
+                                                    EventMetadata eventMetadata )
+        throws TransferException;
+
+    /**
      * Resolve the FIRST matching version in order locations are given
      */
     ProjectVersionRef resolveFirstMatchVariableVersion( List<? extends Location> locations, ProjectVersionRef ref,
                                                         VersionSelectionStrategy selectionStrategy )
+        throws TransferException;
+
+    /**
+     * Resolve the FIRST matching version in order locations are given
+     * @param eventMetadata TODO
+     */
+    ProjectVersionRef resolveFirstMatchVariableVersion( List<? extends Location> locations, ProjectVersionRef ref,
+                                                        VersionSelectionStrategy selectionStrategy,
+                                                        EventMetadata eventMetadata )
         throws TransferException;
 
     /**
@@ -64,6 +70,17 @@ public interface VersionResolver
         throws TransferException;
 
     /**
+     * Resolve the LATEST matching version from ALL locations. This will return an altered {@link ProjectVersionRef} AND
+     * the location that contains it.
+     * @param eventMetadata TODO
+     */
+    ProjectVersionRefLocation resolveLatestVariableVersionLocation( List<? extends Location> locations,
+                                                                    ProjectVersionRef ref,
+                                                                    VersionSelectionStrategy selectionStrategy,
+                                                                    EventMetadata eventMetadata )
+        throws TransferException;
+
+    /**
      * Resolve the FIRST matching version in order locations are given. This will return an altered {@link ProjectVersionRef} AND
      * the location that contains it.
      */
@@ -73,12 +90,34 @@ public interface VersionResolver
         throws TransferException;
 
     /**
+     * Resolve the FIRST matching version in order locations are given. This will return an altered {@link ProjectVersionRef} AND
+     * the location that contains it.
+     * @param eventMetadata TODO
+     */
+    ProjectVersionRefLocation resolveFirstMatchVariableVersionLocation( List<? extends Location> locations,
+                                                                        ProjectVersionRef ref,
+                                                                        VersionSelectionStrategy selectionStrategy,
+                                                                        EventMetadata eventMetadata )
+        throws TransferException;
+
+    /**
      * Resolve ALL matching, selected version locations from those given. This will return all altered {@link ProjectVersionRef} AND
      * the locations that contain them.
      */
     List<ProjectVersionRefLocation> resolveAllVariableVersionLocations( List<? extends Location> locations,
                                                                         ArtifactRef ref,
                                                                         VersionSelectionStrategy selectionStrategy )
+        throws TransferException;
+
+    /**
+     * Resolve ALL matching, selected version locations from those given. This will return all altered {@link ProjectVersionRef} AND
+     * the locations that contain them.
+     * @param eventMetadata TODO
+     */
+    List<ProjectVersionRefLocation> resolveAllVariableVersionLocations( List<? extends Location> locations,
+                                                                        ArtifactRef ref,
+                                                                        VersionSelectionStrategy selectionStrategy,
+                                                                        EventMetadata eventMetadata )
         throws TransferException;
 
 }

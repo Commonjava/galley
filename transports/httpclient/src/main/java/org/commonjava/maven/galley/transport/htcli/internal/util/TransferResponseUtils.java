@@ -23,10 +23,10 @@ import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
-import org.apache.http.client.methods.AbstractExecutionAwareRequest;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.TransferException;
 import org.slf4j.Logger;
@@ -39,15 +39,17 @@ public final class TransferResponseUtils
     {
     }
 
-    public static HttpResponse handleUnsuccessfulResponse( final AbstractExecutionAwareRequest request,
-                                                           final HttpResponse response, final String url )
+    public static boolean handleUnsuccessfulResponse( final HttpUriRequest request,
+                                                                    final CloseableHttpResponse response,
+                                                                    final String url )
         throws TransferException
     {
         return handleUnsuccessfulResponse( request, response, url, true );
     }
 
-    public static HttpResponse handleUnsuccessfulResponse( final AbstractExecutionAwareRequest request,
-                                                           final HttpResponse response, final String url,
+    public static boolean handleUnsuccessfulResponse( final HttpUriRequest request,
+                                                                    final CloseableHttpResponse response,
+                                                                    final String url,
                                                            final boolean graceful404 )
         throws TransferException
     {
@@ -62,7 +64,7 @@ public final class TransferResponseUtils
             final int sc = line.getStatusCode();
             if ( graceful404 && sc == HttpStatus.SC_NOT_FOUND )
             {
-                return null;
+                return false;
             }
             else
             {
