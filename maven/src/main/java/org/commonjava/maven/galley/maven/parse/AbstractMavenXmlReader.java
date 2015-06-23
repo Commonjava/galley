@@ -24,13 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 
-public abstract class AbstractMavenXmlReader<T extends ProjectRef>
+public abstract class AbstractMavenXmlReader<T>
 {
 
     private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<DocCacheKey<T>, WeakReference<DocRef<T>>>();
@@ -61,7 +60,7 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
     {
         for ( final Location location : locationExpander.expand( locations ) )
         {
-            final DocCacheKey<ProjectRef> key = new DocCacheKey<ProjectRef>( ref, location );
+            final DocCacheKey<T> key = new DocCacheKey<T>( ref, location );
             final WeakReference<DocRef<T>> reference = cache.get( key );
             if ( reference != null )
             {
@@ -85,7 +84,7 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         final Map<Location, DocRef<T>> result = new HashMap<Location, DocRef<T>>();
         for ( final Location location : locations )
         {
-            final DocCacheKey<ProjectRef> key = new DocCacheKey<ProjectRef>( ref, location );
+            final DocCacheKey<T> key = new DocCacheKey<T>( ref, location );
             final WeakReference<DocRef<T>> reference = cache.get( key );
             if ( reference != null )
             {
@@ -104,7 +103,7 @@ public abstract class AbstractMavenXmlReader<T extends ProjectRef>
         return result;
     }
 
-    private static final class DocCacheKey<T extends ProjectRef>
+    private static final class DocCacheKey<T>
     {
         private final T ref;
 

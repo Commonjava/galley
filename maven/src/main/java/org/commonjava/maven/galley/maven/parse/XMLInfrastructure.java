@@ -18,6 +18,8 @@ package org.commonjava.maven.galley.maven.parse;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -412,6 +414,34 @@ public class XMLInfrastructure
         m.appendTail( sb );
 
         return sb.toString();
+    }
+
+    public Document parse( final File file )
+        throws GalleyMavenXMLException
+    {
+        InputStream stream = null;
+        Document doc = null;
+        try
+        {
+            try
+            {
+                stream = new FileInputStream( file );
+                doc = parseDocument( file, stream );
+            }
+            catch ( final GalleyMavenXMLException e )
+            {
+            }
+        }
+        catch ( final IOException e )
+        {
+            throw new GalleyMavenXMLException( "Failed to read: %s. Reason: %s", e, file, e.getMessage() );
+        }
+        finally
+        {
+            closeQuietly( stream );
+        }
+
+        return doc;
     }
 
     public Document parse( final Transfer transfer )
