@@ -380,4 +380,18 @@ public final class Transfer
         }
     }
 
+    public void lockWrite()
+    {
+        provider.lockWrite( resource );
+    }
+
+    public void unlock()
+    {
+        provider.unlockWrite( resource );
+    }
+
+    public boolean isWriteLocked()
+    {
+        return provider.isWriteLocked( resource );
+    }
 }

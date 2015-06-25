@@ -48,6 +48,8 @@ public class ChecksummingOutputStreamTest
     public void before()
     {
         fixture.initMissingComponents();
+        fixture.getCache()
+               .startReporting();
     }
 
     @Test

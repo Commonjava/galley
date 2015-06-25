@@ -25,7 +25,6 @@ import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.jxpath.JXPathException;
 import org.apache.commons.jxpath.JXPathInvalidSyntaxException;
 import org.codehaus.plexus.interpolation.StringSearchInterpolator;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.slf4j.Logger;
@@ -42,7 +41,7 @@ import org.w3c.dom.Node;
  * @param <T> The type of project reference this document is associated with (eg. ProjectVersionRef for a POM 
  *   or versionless ProjectRef for project-level Maven metadata)
  */
-public class MavenXmlView<T extends ProjectRef>
+public class MavenXmlView<T>
 {
 
     protected final Logger logger = LoggerFactory.getLogger( getClass() );

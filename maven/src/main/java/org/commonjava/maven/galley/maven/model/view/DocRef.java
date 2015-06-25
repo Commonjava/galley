@@ -19,11 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.jxpath.JXPathContext;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.parse.JXPathUtils;
 import org.w3c.dom.Document;
 
-public final class DocRef<T extends ProjectRef>
+public final class DocRef<T>
 {
 
     private final Document doc;

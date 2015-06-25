@@ -26,9 +26,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
+import org.commonjava.maven.galley.event.NoOpFileEventManager;
+import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.junit.Test;
 
@@ -37,6 +42,48 @@ public abstract class CacheProviderTCK
 
     protected abstract CacheProvider getCacheProvider()
         throws Exception;
+
+    @Test
+    public void lockThenWaitForLockReturnsImmediatelyInSameThread()
+        throws Exception
+    {
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String path = "my/path.txt";
+        final ConcreteResource res = new ConcreteResource( loc, path );
+
+        final CacheProvider cache = getCacheProvider();
+
+        cache.lockWrite( res );
+        cache.waitForWriteUnlock( res );
+
+        assertThat( cache.isWriteLocked( res ), equalTo( false ) );
+    }
+
+    @Test
+    public void lockThenWriteViaTransferSucceedsInSameThread()
+        throws Exception
+    {
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String path = "my/path.txt";
+        final ConcreteResource res = new ConcreteResource( loc, path );
+
+        final CacheProvider cache = getCacheProvider();
+
+        cache.lockWrite( res );
+
+        final Transfer txfr = new Transfer( res, cache, new NoOpFileEventManager(), new NoOpTransferDecorator() );
+
+        OutputStream out = null;
+        try
+        {
+            out = txfr.openOutputStream( TransferOperation.UPLOAD );
+            IOUtils.write( "this is a test", out );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( out );
+        }
+    }
 
     @Test
     public void writeAndVerifyDirectory()

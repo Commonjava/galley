@@ -43,6 +43,10 @@ public interface CacheProvider
 
     } );
 
+    void startReporting();
+
+    void stopReporting();
+
     void cleanupCurrentThread();
 
     boolean isDirectory( ConcreteResource resource );
