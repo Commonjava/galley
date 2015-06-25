@@ -36,14 +36,13 @@ public abstract class AbstractChecksumGenerator
 
     private final MessageDigest digester;
 
-    private final Transfer transfer;
-
     private final String checksumExtension;
+
+    private final Transfer checksumTransfer;
 
     protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension, final String type )
         throws IOException
     {
-        this.transfer = transfer;
         this.checksumExtension = checksumExtension;
         try
         {
@@ -53,6 +52,11 @@ public abstract class AbstractChecksumGenerator
         {
             throw new IOException( "Cannot get MessageDigest for checksum type: '" + type + "': " + e.getMessage(), e );
         }
+
+        logger.debug( "Getting checksum transfer for: {}", transfer );
+        this.checksumTransfer = getChecksumFile( transfer );
+        logger.debug( "Locking checksum file: {}", checksumTransfer );
+        this.checksumTransfer.lockWrite();
     }
 
     public final void update( final byte[] data )
@@ -68,14 +72,13 @@ public abstract class AbstractChecksumGenerator
     public final void write()
         throws IOException
     {
-        final Transfer checksumFile = getChecksumFile( transfer );
-        logger.info( "Writing {} file: {}", checksumExtension, checksumFile );
+        logger.info( "Writing {} file: {}", checksumExtension, checksumTransfer );
 
         PrintStream out = null;
         OutputStream stream = null;
         try
         {
-            stream = checksumFile.openOutputStream( TransferOperation.GENERATE );
+            stream = checksumTransfer.openOutputStream( TransferOperation.GENERATE );
             out = new PrintStream( stream );
             out.print( encodeHexString( digester.digest() ) );
         }
@@ -89,10 +92,10 @@ public abstract class AbstractChecksumGenerator
     public final void delete()
         throws IOException
     {
-        final Transfer checksumFile = getChecksumFile( transfer );
-        if ( checksumFile.exists() )
+        if ( checksumTransfer.exists() )
         {
-            checksumFile.delete();
+            checksumTransfer.delete();
+            checksumTransfer.unlock();
         }
     }
 

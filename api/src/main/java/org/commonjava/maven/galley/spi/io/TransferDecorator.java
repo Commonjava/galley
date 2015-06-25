@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.spi.io;
 
+import java.io.FilterInputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,12 +24,42 @@ import java.io.OutputStream;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 
+/**
+ * Decorate reads and writes to a {@link Transfer}.<br/>
+ *
+ * <b>NOTE:</b> Anything like a {@link FilterOutputStream} or {@link FilterInputStream} that is used here to
+ * wrap a {@link Transfer} stream needs to be <b>EAGER</b> about creating <b>AND LOCKING</b> derivative 
+ * {@link Transfer} instances, to avoid race conditions on these metadata files. They are often accessed in 
+ * close succession with the original {@link Transfer}.
+ * 
+ * @author jdcasey
+ */
 public interface TransferDecorator
 {
 
+    /**
+     * Decorate a write to a {@link Transfer} instance's {@link OutputStream}.
+     * 
+     * <b>NOTE:</b> Anything like a {@link FilterOutputStream} or {@link FilterInputStream} that is used here to
+     * wrap a {@link Transfer} stream needs to be <b>EAGER</b> about creating <b>AND LOCKING</b> derivative 
+     * {@link Transfer} instances, to avoid race conditions on these metadata files. They are often accessed in 
+     * close succession with the original {@link Transfer}.
+     * 
+     * @throws IOException
+     */
     OutputStream decorateWrite( OutputStream stream, Transfer transfer, TransferOperation op )
         throws IOException;
 
+    /**
+     * Decorate a read from a {@link Transfer} instance's {@link OutputStream}.
+     * 
+     * <b>NOTE:</b> Anything like a {@link FilterOutputStream} or {@link FilterInputStream} that is used here to
+     * wrap a {@link Transfer} stream needs to be <b>EAGER</b> about creating <b>AND LOCKING</b> derivative 
+     * {@link Transfer} instances, to avoid race conditions on these metadata files. They are often accessed in 
+     * close succession with the original {@link Transfer}.
+     * 
+     * @throws IOException
+     */
     InputStream decorateRead( InputStream stream, Transfer transfer )
         throws IOException;
 
@@ -35,9 +67,28 @@ public interface TransferDecorator
 
     void decorateExists( Transfer transfer );
 
+    /**
+     * Decorate a copy operation from one {@link Transfer} instance to another.
+     * 
+     * <b>NOTE:</b> Anything like a {@link FilterOutputStream} or {@link FilterInputStream} that is used here to
+     * wrap a {@link Transfer} stream needs to be <b>EAGER</b> about creating <b>AND LOCKING</b> derivative 
+     * {@link Transfer} instances, to avoid race conditions on these metadata files. They are often accessed in 
+     * close succession with the original {@link Transfer}.
+     * 
+     * @throws IOException
+     */
     void decorateCopyFrom( Transfer from, Transfer transfer )
         throws IOException;
 
+    /**
+     * Decorate deletion of a {@link Transfer} instance's underlying file.
+     * 
+     * <b>NOTE:</b> Implementors should be <b>EAGER</b> about creating <b>AND LOCKING</b> derivative 
+     * {@link Transfer} instances, to avoid race conditions on these metadata files. They are often accessed in 
+     * close succession with the original {@link Transfer}.
+     * 
+     * @throws IOException
+     */
     void decorateDelete( Transfer transfer )
         throws IOException;
 

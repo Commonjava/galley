@@ -392,4 +392,15 @@ public class FileCacheProvider
         lockingSupport.cleanupCurrentThread();
     }
 
+    @Override
+    public void startReporting()
+    {
+        lockingSupport.startReporting();
+    }
+
+    @Override
+    public void stopReporting()
+    {
+        lockingSupport.stopReporting();
+    }
 }

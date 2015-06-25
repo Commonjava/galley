@@ -19,11 +19,16 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.enterprise.context.ApplicationScoped;
 
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class SimpleLockingSupport
 {
 
@@ -32,35 +37,74 @@ public class SimpleLockingSupport
     private final Map<ConcreteResource, WeakReference<Thread>> lock =
         new HashMap<ConcreteResource, WeakReference<Thread>>();
 
+    private ReportingTask reporter;
+
+    private final Timer timer = new Timer( true );
+
     public void waitForUnlock( final ConcreteResource resource )
     {
         synchronized ( lock )
         {
             while ( isLocked( resource ) )
             {
+                logger.debug( "{} waiting for unlock of {}", Thread.currentThread()
+                                                                   .getName(), resource );
                 try
                 {
-                    lock.wait();
+                    lock.wait( 500 );
                 }
                 catch ( final InterruptedException e )
                 {
-                    // TODO
+                    logger.debug( "{} interrupted while waiting for unlock of: {}", Thread.currentThread()
+                                                                                          .getName(), resource );
+                    break;
                 }
             }
         }
     }
 
-    public boolean isLocked( final ConcreteResource resource )
+    public synchronized boolean isLocked( final ConcreteResource resource )
     {
-        return lock.containsKey( resource );
+        final WeakReference<Thread> ref = lock.get( resource );
+        if ( ref != null )
+        {
+            final Thread t = ref.get();
+            if ( t != null )
+            {
+                if ( t == Thread.currentThread() )
+                {
+                    return false;
+                }
+
+                logger.debug( "{} locked by: {}", resource, t.getName() );
+                return true;
+            }
+            else
+            {
+                lock.remove( resource );
+            }
+        }
+
+        return false;
     }
 
     public void unlock( final ConcreteResource resource )
     {
         synchronized ( lock )
         {
-            lock.remove( resource );
-            lock.notifyAll();
+            final Thread me = Thread.currentThread();
+            final WeakReference<Thread> reference = lock.get( resource );
+            if ( reference == null || reference.get() == me )
+            {
+                logger.debug( "Removing locked: {} by: {}. Returning.", resource, me.getName() );
+                lock.remove( resource );
+                lock.notifyAll();
+            }
+            else
+            {
+                logger.debug( "{} locked by: {}. Returning.", resource, reference.get()
+                                                                                 .getName() );
+            }
         }
     }
 
@@ -68,6 +112,24 @@ public class SimpleLockingSupport
     {
         synchronized ( lock )
         {
+            final Thread me = Thread.currentThread();
+            final WeakReference<Thread> reference = lock.get( resource );
+            if ( reference != null )
+            {
+                if ( reference.get() == me )
+                {
+                    logger.debug( "{} already locked by: {}. Returning.", resource, me.getName() );
+                    return;
+                }
+                else
+                {
+                    logger.debug( "{} already locked by: {}. Waiting.", resource, reference.get()
+                                                                                           .getName() );
+                    waitForUnlock( resource );
+                }
+            }
+
+            logger.debug( "Locking: {} in: {}.", resource, me.getName() );
             lock.put( resource, new WeakReference<Thread>( Thread.currentThread() ) );
             lock.notifyAll();
         }
@@ -106,6 +168,92 @@ public class SimpleLockingSupport
                     }
                 }
             }
+        }
+    }
+
+    public Map<ConcreteResource, CharSequence> getActiveLocks()
+    {
+        final Map<ConcreteResource, CharSequence> active = new HashMap<ConcreteResource, CharSequence>();
+        for ( final ConcreteResource f : lock.keySet() )
+        {
+            final StringBuilder owner = new StringBuilder();
+            final WeakReference<Thread> ref = lock.get( f );
+            if ( ref == null )
+            {
+                owner.append( "UNKNOWN OWNER; REF IS NULL." );
+            }
+
+            final Thread t = ref.get();
+            if ( t == null )
+            {
+                owner.append( "UNKNOWN OWNER; REF IS EMPTY." );
+            }
+            else
+            {
+                owner.append( t.getName() );
+                if ( !t.isAlive() )
+                {
+                    owner.append( " (DEAD)" );
+                }
+            }
+
+            active.put( f, owner );
+        }
+
+        return active;
+    }
+
+    public synchronized void startReporting()
+    {
+        startReporting( 0, 10000 );
+    }
+
+    public synchronized void startReporting( final long delay, final long period )
+    {
+        if ( reporter == null )
+        {
+            logger.info( "Starting file-lock statistics reporting with initial delay: {}ms and period: {}ms", delay,
+                         period );
+            reporter = new ReportingTask();
+            timer.schedule( reporter, delay, period );
+        }
+    }
+
+    public synchronized void stopReporting()
+    {
+        if ( reporter != null )
+        {
+            logger.info( "Stopping file-lock statistics reporting." );
+            reporter.cancel();
+        }
+    }
+
+    private final class ReportingTask
+        extends TimerTask
+    {
+        @Override
+        public void run()
+        {
+            final Map<ConcreteResource, CharSequence> activeLocks = getActiveLocks();
+            if ( activeLocks.isEmpty() )
+            {
+                logger.debug( "No file locks to report." );
+                return;
+            }
+
+            final StringBuilder sb = new StringBuilder();
+            sb.append( "\n\nThe following file locks are still active:" );
+            for ( final ConcreteResource file : activeLocks.keySet() )
+            {
+                sb.append( "\n" )
+                  .append( file )
+                  .append( " is owned by " )
+                  .append( activeLocks.get( file ) );
+            }
+
+            sb.append( "\n\n" );
+
+            logger.info( sb.toString() );
         }
     }
 
