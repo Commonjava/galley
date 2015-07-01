@@ -16,18 +16,18 @@
 package org.commonjava.maven.galley;
 
 
-public class TransferException
+public class GalleyInitException
     extends GalleyException
 {
 
     private static final long serialVersionUID = 1L;
 
-    public TransferException( final String format, final Object... params )
+    public GalleyInitException( final String format, final Object... params )
     {
         super( format, params );
     }
 
-    public TransferException( final String format, final Throwable error, final Object... params )
+    public GalleyInitException( final String format, final Throwable error, final Object... params )
     {
         super( format, error, params );
     }

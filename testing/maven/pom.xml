@@ -30,7 +30,11 @@
   <dependencies>
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-api</artifactId>
+      <artifactId>galley-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-test-harness-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>

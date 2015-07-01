@@ -61,7 +61,9 @@ public class TestFixture
 
     @Override
     public void initMissingComponents()
+        throws Exception
     {
+        super.initGalley();
         super.initMissingComponents();
 
         // setup version resolver.
@@ -76,11 +78,11 @@ public class TestFixture
 
         if ( metadataManager == null )
         {
-            metadataManager = new ArtifactMetadataManagerImpl( getTransfers(), getLocations() );
+            metadataManager = new ArtifactMetadataManagerImpl( getTransferManager(), getLocationExpander() );
         }
         if ( metadataReader == null )
         {
-            metadataReader = new MavenMetadataReader( xml, getLocations(), metadataManager, xpath );
+            metadataReader = new MavenMetadataReader( xml, getLocationExpander(), metadataManager, xpath );
         }
         if ( versionResolver == null )
         {
@@ -94,7 +96,8 @@ public class TestFixture
 
         if ( artifactManager == null )
         {
-            artifactManager = new ArtifactManagerImpl( getTransfers(), getLocations(), typeMapper, versionResolver );
+            artifactManager =
+                new ArtifactManagerImpl( getTransferManager(), getLocationExpander(), typeMapper, versionResolver );
         }
     }
 

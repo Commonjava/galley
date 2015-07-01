@@ -47,6 +47,11 @@ public class TransportManagerImpl
         this.transports = new ArrayList<Transport>( Arrays.asList( transports ) );
     }
 
+    public TransportManagerImpl( final List<Transport> transports )
+    {
+        this.transports = transports;
+    }
+
     @PostConstruct
     protected void setup()
     {

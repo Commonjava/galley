@@ -27,7 +27,6 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -43,12 +42,6 @@ public class ArtifactManagerImplTest
 
     @Rule
     public TestFixture fixture = new TestFixture();
-
-    @Before
-    public void before()
-    {
-        fixture.initMissingComponents();
-    }
 
     @Test
     public void resolveSnapshot_FirstMatch_SingletonLocationList_SingletonSnapshotList_LatestVersionStrategy()
