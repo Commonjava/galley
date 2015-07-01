@@ -31,7 +31,6 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -50,12 +49,6 @@ public class VersionResolverImplTest
 
     @Rule
     public TestFixture fixture = new TestFixture();
-
-    @Before
-    public void before()
-    {
-        fixture.initMissingComponents();
-    }
 
     @Test
     public void resolveSnapshot_FirstMatch_SingletonLocationList_SingletonSnapshotList_LatestVersionStrategy()

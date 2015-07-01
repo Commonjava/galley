@@ -15,23 +15,17 @@
  */
 package org.commonjava.maven.galley.testing.maven;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
-import org.commonjava.maven.galley.TransferManagerImpl;
-import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
-import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
-import org.commonjava.maven.galley.internal.xfer.ListingHandler;
-import org.commonjava.maven.galley.internal.xfer.UploadHandler;
-import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
-import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
-import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
+import org.commonjava.maven.galley.maven.GalleyMaven;
+import org.commonjava.maven.galley.maven.GalleyMavenBuilder;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
-import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.type.StandardTypeMapper;
 import org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
@@ -41,17 +35,18 @@ import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
-import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
+import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
+import org.commonjava.maven.galley.spi.auth.PasswordManager;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.spi.transport.LocationResolver;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.maven.galley.testing.core.ApiFixture;
 import org.commonjava.maven.galley.testing.core.cache.TestCacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
-import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -59,170 +54,115 @@ public class GalleyMavenFixture
     extends ExternalResource
 {
 
-    private ApiFixture api;
+    private GalleyMavenBuilder mavenBuilder;
 
-    private ArtifactManager artifacts;
+    private GalleyMaven maven;
 
-    private ArtifactMetadataManager metadata;
+    private TemporaryFolder temp;
 
-    private TypeMapper mapper;
-
-    private MavenPomReader pomReader;
-
-    private MavenPluginDefaults pluginDefaults;
-
-    private MavenPluginImplications pluginImplications;
-
-    private XPathManager xpathManager;
-
-    private XMLInfrastructure xmlInfra;
-
-    private MavenMetadataReader metaReader;
-
-    private VersionResolverImpl versions;
+    private TestTransport testTransport;
 
     private Transport[] extraTransports;
 
-    public GalleyMavenFixture( final ApiFixture api )
+    private final boolean autoInit;
+
+    public GalleyMavenFixture( final TemporaryFolder temp )
     {
-        this.api = api;
+        this.autoInit = true;
+        this.temp = temp;
+    }
+
+    public GalleyMavenFixture( final boolean autoInit, final TemporaryFolder temp )
+    {
+        this.autoInit = autoInit;
+        this.temp = temp;
+    }
+
+    public GalleyMavenFixture( final boolean autoInit )
+    {
+        this.autoInit = autoInit;
+    }
+
+    public GalleyMavenFixture()
+    {
+        this.autoInit = true;
+    }
+
+    public void initGalley()
+        throws IOException
+    {
+        if ( temp == null )
+        {
+            temp = new TemporaryFolder();
+        }
+
+        temp.create();
+        mavenBuilder = new GalleyMavenBuilder( temp.newFolder( "cache" ) );
+    }
+
+    public GalleyMaven getGalleyMaven()
+        throws GalleyInitException
+    {
+        if ( maven == null )
+        {
+            maven = mavenBuilder.build();
+        }
+
+        return maven;
+    }
+
+    public void initTestTransport()
+    {
+        testTransport = new TestTransport();
+        mavenBuilder.withAdditionalTransport( testTransport );
     }
 
     public void initMissingComponents()
         throws Exception
     {
-        NotFoundCache nfc = api.getNfc();
-        if ( nfc == null )
+        if ( mavenBuilder == null )
         {
-            nfc = new MemoryNotFoundCache();
-            api.setNfc( nfc );
+            initGalley();
         }
 
-        FileEventManager events = api.getEvents();
-        if ( events == null )
+        final List<Transport> transports = mavenBuilder.getEnabledTransports();
+        if ( transports == null || transports.isEmpty() )
         {
-            events = new NoOpFileEventManager();
-            api.setEvents( events );
+            initTestTransport();
         }
 
-        TransferDecorator decorator = api.getDecorator();
-        if ( decorator == null )
-        {
-            decorator = new NoOpTransferDecorator();
-            api.setDecorator( decorator );
-        }
-
-        TestCacheProvider cache = api.getCache();
-        if ( cache == null )
-        {
-            cache = new TestCacheProvider( getTemp().newFolder(), events, decorator );
-            api.setCache( cache );
-        }
-
-        TestTransport transport = api.getTransport();
-        if ( transport == null )
-        {
-            transport = new TestTransport();
-            api.setTransport( transport );
-        }
-
-        TransportManager transports = api.getTransports();
-        if ( transports == null )
-        {
-            transports = new TransportManagerImpl( transport );
-            if ( this.extraTransports != null )
-            {
-                final Transport[] t = new Transport[this.extraTransports.length + 1];
-                System.arraycopy( this.extraTransports, 0, t, 0, this.extraTransports.length );
-                t[t.length - 1] = transport;
-            }
-
-            api.setTransports( transports );
-        }
-
-        final TransferManager transfers = api.getTransfers();
-        if ( transfers == null )
-        {
-            final ExecutorService exec = Executors.newCachedThreadPool();
-            final DownloadHandler dh = new DownloadHandler( nfc, exec );
-            final UploadHandler uh = new UploadHandler( nfc, exec );
-            final ListingHandler lh = new ListingHandler( nfc );
-            final ExistenceHandler eh = new ExistenceHandler( nfc );
-
-            final TransferManager txfr = new TransferManagerImpl( transports, cache, nfc, events, dh, uh, lh, eh, exec );
-
-            api.setTransfers( txfr );
-        }
-
-        api.initMissingComponents();
-
-        if ( mapper == null )
-        {
-            mapper = new StandardTypeMapper();
-        }
-
-        if ( metadata == null )
-        {
-            this.metadata = new ArtifactMetadataManagerImpl( api.getTransfers(), api.getLocations() );
-        }
-
-        if ( metaReader == null )
-        {
-            metaReader = new MavenMetadataReader( getXmlInfra(), getLocations(), getMetadata(), getXpathManager() );
-        }
-
-        if ( versions == null )
-        {
-            versions = new VersionResolverImpl( metaReader );
-        }
-
-        if ( artifacts == null )
-        {
-            this.artifacts =
-                new ArtifactManagerImpl( api.getTransfers(), api.getLocations(), getMapper(), getVersions() );
-        }
-
-        if ( pluginDefaults == null )
-        {
-            pluginDefaults = new StandardMaven304PluginDefaults();
-        }
-
-        if ( xmlInfra == null )
-        {
-            xmlInfra = new XMLInfrastructure();
-        }
-
-        if ( pluginImplications == null )
-        {
-            pluginImplications = new StandardMavenPluginImplications( xmlInfra );
-        }
-
-        if ( xpathManager == null )
-        {
-            xpathManager = new XPathManager();
-        }
-
-        if ( pomReader == null && artifacts != null )
-        {
-            pomReader =
-                new MavenPomReader( xmlInfra, getLocations(), artifacts, xpathManager, pluginDefaults,
-                                    pluginImplications );
-        }
+        mavenBuilder.initMissingComponents();
     }
 
     @Override
     public void before()
         throws Throwable
     {
+        if ( autoInit )
+        {
+            if ( maven == null )
+            {
+                initMissingComponents();
+                maven = mavenBuilder.build();
+            }
+        }
+
         super.before();
-        api.before();
     }
 
     @Override
     public void after()
     {
-        api.after();
+        maven = null;
         super.after();
+    }
+
+    private void checkInitialized()
+    {
+        if ( maven != null )
+        {
+            throw new IllegalStateException( "Already initialized!" );
+        }
     }
 
     public Transport[] getExtraTransports()
@@ -230,223 +170,559 @@ public class GalleyMavenFixture
         return extraTransports;
     }
 
-    public GalleyMavenFixture setExtraTransports( final Transport... transports )
+    public GalleyMavenFixture withExtraTransports( final Transport... transports )
     {
+        checkInitialized();
         this.extraTransports = transports;
+        for ( final Transport transport : transports )
+        {
+            mavenBuilder.withAdditionalTransport( transport );
+        }
         return this;
-    }
-
-    public ArtifactManager getArtifacts()
-    {
-        return artifacts;
-    }
-
-    public ArtifactMetadataManager getMetadata()
-    {
-        return metadata;
-    }
-
-    public GalleyMavenFixture setArtifacts( final ArtifactManager artifacts )
-    {
-        this.artifacts = artifacts;
-        return this;
-    }
-
-    public GalleyMavenFixture setMetadata( final ArtifactMetadataManager metadata )
-    {
-        this.metadata = metadata;
-        return this;
-    }
-
-    public TypeMapper getMapper()
-    {
-        return mapper;
-    }
-
-    public GalleyMavenFixture setMapper( final StandardTypeMapper mapper )
-    {
-        this.mapper = mapper;
-        return this;
-    }
-
-    public MavenPomReader getPomReader()
-    {
-        return pomReader;
-    }
-
-    public GalleyMavenFixture setPomReader( final MavenPomReader pomReader )
-    {
-        this.pomReader = pomReader;
-        return this;
-    }
-
-    public MavenPluginDefaults getPluginDefaults()
-    {
-        return pluginDefaults;
-    }
-
-    public void setPluginDefaults( final StandardMaven304PluginDefaults pluginDefaults )
-    {
-        this.pluginDefaults = pluginDefaults;
-    }
-
-    public XPathManager getXpathManager()
-    {
-        return xpathManager;
-    }
-
-    public void setXpathManager( final XPathManager xpathManager )
-    {
-        this.xpathManager = xpathManager;
-    }
-
-    public TemporaryFolder getTemp()
-    {
-        return api.getTemp();
-    }
-
-    public LocationExpander getLocations()
-    {
-        return api.getLocations();
-    }
-
-    public TransferDecorator getDecorator()
-    {
-        return api.getDecorator();
-    }
-
-    public FileEventManager getEvents()
-    {
-        return api.getEvents();
-    }
-
-    public TestCacheProvider getCache()
-    {
-        return api.getCache();
     }
 
     public TestTransport getTransport()
     {
-        return api.getTransport();
+        return testTransport;
     }
 
     public NotFoundCache getNfc()
     {
-        return api.getNfc();
+        return maven == null ? mavenBuilder.getNfc() : mavenBuilder.getNfc();
     }
 
-    public ApiFixture setTemp( final TemporaryFolder temp )
+    public TemporaryFolder getTemp()
     {
-        return api.setTemp( temp );
+        return temp;
     }
 
-    public ApiFixture setLocations( final LocationExpander locations )
+    public GalleyMavenFixture withTemp( final TemporaryFolder temp )
     {
-        return api.setLocations( locations );
+        if ( this.temp != null )
+        {
+            this.temp.delete();
+        }
+        this.temp = temp;
+        return this;
     }
 
-    public ApiFixture setDecorator( final TransferDecorator decorator )
+    @Deprecated
+    public GalleyMavenFixture setTemp( final TemporaryFolder temp )
     {
-        return api.setDecorator( decorator );
+        if ( this.temp != null )
+        {
+            this.temp.delete();
+        }
+        this.temp = temp;
+        return this;
     }
 
-    public ApiFixture setEvents( final FileEventManager events )
+    @Deprecated
+    public GalleyMavenFixture setExtraTransports( final Transport... transports )
     {
-        return api.setEvents( events );
+        checkInitialized();
+        this.extraTransports = transports;
+        for ( final Transport transport : transports )
+        {
+            mavenBuilder.withAdditionalTransport( transport );
+        }
+        return this;
     }
 
-    public ApiFixture setCache( final TestCacheProvider cache )
+    @Deprecated
+    public ArtifactManager getArtifacts()
     {
-        return api.setCache( cache );
+        return maven == null ? mavenBuilder.getArtifactManager() : mavenBuilder.getArtifactManager();
     }
 
-    public ApiFixture setTransport( final TestTransport transport )
+    @Deprecated
+    public ArtifactMetadataManager getMetadata()
     {
-        return api.setTransport( transport );
+        return maven == null ? mavenBuilder.getArtifactMetadataManager() : mavenBuilder.getArtifactMetadataManager();
     }
 
-    public ApiFixture setNfc( final NotFoundCache nfc )
+    @Deprecated
+    public GalleyMavenFixture setArtifacts( final ArtifactManager artifacts )
     {
-        return api.setNfc( nfc );
+        checkInitialized();
+        mavenBuilder.withArtifactManager( artifacts );
+        return this;
     }
 
+    @Deprecated
+    public GalleyMavenFixture setMetadata( final ArtifactMetadataManager metadata )
+    {
+        checkInitialized();
+        mavenBuilder.withArtifactMetadataManager( metadata );
+        return this;
+    }
+
+    @Deprecated
+    public TypeMapper getMapper()
+    {
+        return maven == null ? mavenBuilder.getTypeMapper() : maven.getTypeMapper();
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setMapper( final StandardTypeMapper mapper )
+    {
+        checkInitialized();
+        mavenBuilder.withTypeMapper( mapper );
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setPomReader( final MavenPomReader pomReader )
+    {
+        checkInitialized();
+        mavenBuilder.withPomReader( pomReader );
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setXpathManager( final XPathManager xpathManager )
+    {
+        checkInitialized();
+        mavenBuilder.withXPathManager( xpathManager );
+        return this;
+    }
+
+    @Deprecated
+    public LocationExpander getLocations()
+    {
+        return maven == null ? mavenBuilder.getLocationExpander() : mavenBuilder.getLocationExpander();
+    }
+
+    @Deprecated
+    public TransferDecorator getDecorator()
+    {
+        return maven == null ? mavenBuilder.getTransferDecorator() : mavenBuilder.getTransferDecorator();
+    }
+
+    @Deprecated
+    public FileEventManager getEvents()
+    {
+        return maven == null ? mavenBuilder.getFileEvents() : mavenBuilder.getFileEvents();
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setLocations( final LocationExpander locations )
+    {
+        checkInitialized();
+        mavenBuilder.withLocationExpander( locations );
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setDecorator( final TransferDecorator decorator )
+    {
+        checkInitialized();
+        mavenBuilder.withTransferDecorator( decorator );
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setEvents( final FileEventManager events )
+    {
+        checkInitialized();
+        mavenBuilder.withFileEvents( events );
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setCache( final TestCacheProvider cache )
+    {
+        checkInitialized();
+        mavenBuilder.withCache( cache );
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setTransport( final TestTransport transport )
+    {
+        this.testTransport = transport;
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setNfc( final NotFoundCache nfc )
+    {
+        checkInitialized();
+        mavenBuilder.withNfc( nfc );
+        return this;
+    }
+
+    @Deprecated
     public TransportManager getTransports()
     {
-        return api.getTransports();
+        return maven == null ? mavenBuilder.getTransportManager() : mavenBuilder.getTransportManager();
     }
 
+    @Deprecated
     public TransferManager getTransfers()
     {
-        return api.getTransfers();
+        return maven == null ? mavenBuilder.getTransferManager() : mavenBuilder.getTransferManager();
     }
 
-    public ApiFixture setTransports( final TransportManager transports )
+    @Deprecated
+    public GalleyMavenFixture setTransports( final TransportManager transports )
     {
-        return api.setTransports( transports );
+        checkInitialized();
+        mavenBuilder.withTransportManager( transports );
+        return this;
     }
 
-    public ApiFixture setTransfers( final TransferManager transfers )
+    @Deprecated
+    public GalleyMavenFixture setTransfers( final TransferManager transfers )
     {
-        return api.setTransfers( transfers );
+        checkInitialized();
+        mavenBuilder.withTransferManager( transfers );
+        return this;
     }
 
+    @Deprecated
     public XMLInfrastructure getXmlInfra()
     {
-        return xmlInfra;
+        return maven == null ? mavenBuilder.getXmlInfrastructure() : mavenBuilder.getXmlInfrastructure();
     }
 
-    public void setXmlInfra( final XMLInfrastructure xmlInfra )
+    @Deprecated
+    public GalleyMavenFixture setXmlInfra( final XMLInfrastructure xmlInfra )
     {
-        this.xmlInfra = xmlInfra;
+        checkInitialized();
+        mavenBuilder.withXmlInfrastructure( xmlInfra );
+        return this;
     }
 
-    public ApiFixture getApi()
+    @Deprecated
+    public GalleyMavenFixture setMapper( final TypeMapper mapper )
     {
-        return api;
+        checkInitialized();
+        mavenBuilder.withTypeMapper( mapper );
+        return this;
     }
 
-    public void setApi( final ApiFixture api )
+    @Deprecated
+    public GalleyMavenFixture setPluginDefaults( final MavenPluginDefaults pluginDefaults )
     {
-        this.api = api;
+        checkInitialized();
+        mavenBuilder.withPluginDefaults( pluginDefaults );
+        return this;
     }
 
-    public void setMapper( final TypeMapper mapper )
+    @Deprecated
+    public GalleyMavenFixture setPluginImplications( final MavenPluginImplications pluginImplications )
     {
-        this.mapper = mapper;
+        checkInitialized();
+        mavenBuilder.withPluginImplications( pluginImplications );
+        return this;
     }
 
-    public void setPluginDefaults( final MavenPluginDefaults pluginDefaults )
+    @Deprecated
+    public MavenMetadataReader getMetaReader()
     {
-        this.pluginDefaults = pluginDefaults;
+        return maven == null ? mavenBuilder.getMavenMetadataReader() : mavenBuilder.getMavenMetadataReader();
+    }
+
+    @Deprecated
+    public VersionResolver getVersions()
+    {
+        return maven == null ? mavenBuilder.getVersionResolver() : mavenBuilder.getVersionResolver();
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setMetaReader( final MavenMetadataReader metaReader )
+    {
+        checkInitialized();
+        mavenBuilder.withMavenMetadataReader( metaReader );
+        return this;
+    }
+
+    @Deprecated
+    public GalleyMavenFixture setVersions( final VersionResolverImpl versions )
+    {
+        checkInitialized();
+        mavenBuilder.withVersionResolver( versions );
+        return this;
+    }
+
+    public ArtifactManager getArtifactManager()
+    {
+        return maven == null ? mavenBuilder.getArtifactManager() : maven.getArtifactManager();
+    }
+
+    public ArtifactMetadataManager getArtifactMetadataManager()
+    {
+        return maven == null ? mavenBuilder.getArtifactMetadataManager() : maven.getArtifactMetadataManager();
+    }
+
+    public TypeMapper getTypeMapper()
+    {
+        return maven == null ? mavenBuilder.getTypeMapper() : maven.getTypeMapper();
+    }
+
+    public MavenPomReader getPomReader()
+    {
+        return maven == null ? mavenBuilder.getPomReader() : maven.getPomReader();
+    }
+
+    public MavenPluginDefaults getPluginDefaults()
+    {
+        return maven == null ? mavenBuilder.getPluginDefaults() : maven.getPluginDefaults();
+    }
+
+    public XPathManager getXPathManager()
+    {
+        return maven == null ? mavenBuilder.getXPathManager() : maven.getXPathManager();
+    }
+
+    public XMLInfrastructure getXmlInfrastructure()
+    {
+        return maven == null ? mavenBuilder.getXmlInfrastructure() : maven.getXmlInfrastructure();
     }
 
     public MavenPluginImplications getPluginImplications()
     {
-        return pluginImplications;
+        return maven == null ? mavenBuilder.getPluginImplications() : maven.getPluginImplications();
     }
 
-    public void setPluginImplications( final MavenPluginImplications pluginImplications )
+    public MavenMetadataReader getMavenMetadataReader()
     {
-        this.pluginImplications = pluginImplications;
+        return maven == null ? mavenBuilder.getMavenMetadataReader() : maven.getMavenMetadataReader();
     }
 
-    public MavenMetadataReader getMetaReader()
+    public VersionResolver getVersionResolver()
     {
-        return metaReader;
+        return maven == null ? mavenBuilder.getVersionResolver() : maven.getVersionResolver();
     }
 
-    public VersionResolverImpl getVersions()
+    public LocationExpander getLocationExpander()
     {
-        return versions;
+        return maven == null ? mavenBuilder.getLocationExpander() : maven.getLocationExpander();
     }
 
-    public void setMetaReader( final MavenMetadataReader metaReader )
+    public LocationResolver getLocationResolver()
     {
-        this.metaReader = metaReader;
+        return maven == null ? mavenBuilder.getLocationResolver() : maven.getLocationResolver();
     }
 
-    public void setVersions( final VersionResolverImpl versions )
+    public TransferDecorator getTransferDecorator()
     {
-        this.versions = versions;
+        return maven == null ? mavenBuilder.getTransferDecorator() : maven.getTransferDecorator();
+    }
+
+    public FileEventManager getFileEvents()
+    {
+        return maven == null ? mavenBuilder.getFileEvents() : maven.getFileEvents();
+    }
+
+    public CacheProvider getCache()
+    {
+        return maven == null ? mavenBuilder.getCache() : maven.getCache();
+    }
+
+    public TransportManager getTransportManager()
+    {
+        return maven == null ? mavenBuilder.getTransportManager() : maven.getTransportManager();
+    }
+
+    public TransferManager getTransferManager()
+    {
+        return maven == null ? mavenBuilder.getTransferManager() : maven.getTransferManager();
+    }
+
+    public List<Transport> getEnabledTransports()
+    {
+        return maven == null ? mavenBuilder.getEnabledTransports() : maven.getEnabledTransports();
+    }
+
+    public ExecutorService getHandlerExecutor()
+    {
+        return maven == null ? mavenBuilder.getHandlerExecutor() : maven.getHandlerExecutor();
+    }
+
+    public ExecutorService getBatchExecutor()
+    {
+        return maven == null ? mavenBuilder.getBatchExecutor() : maven.getBatchExecutor();
+    }
+
+    public PasswordManager getPasswordManager()
+    {
+        return maven == null ? mavenBuilder.getPasswordManager() : maven.getPasswordManager();
+    }
+
+    public GalleyMavenFixture withArtifactManager( final ArtifactManager artifactManager )
+    {
+        checkInitialized();
+        mavenBuilder.withArtifactManager( artifactManager );
+        return this;
+    }
+
+    public GalleyMavenFixture withArtifactMetadataManager( final ArtifactMetadataManager metadata )
+    {
+        checkInitialized();
+        mavenBuilder.withArtifactMetadataManager( metadata );
+        return this;
+    }
+
+    public GalleyMavenFixture withPomReader( final MavenPomReader pomReader )
+    {
+        checkInitialized();
+        mavenBuilder.withPomReader( pomReader );
+        return this;
+    }
+
+    public GalleyMavenFixture withPluginDefaults( final StandardMaven304PluginDefaults pluginDefaults )
+    {
+        checkInitialized();
+        mavenBuilder.withPluginDefaults( pluginDefaults );
+        return this;
+    }
+
+    public GalleyMavenFixture withXPathManager( final XPathManager xpathManager )
+    {
+        checkInitialized();
+        mavenBuilder.withXPathManager( xpathManager );
+        return this;
+    }
+
+    public GalleyMavenFixture withXmlInfrastructure( final XMLInfrastructure xmlInfra )
+    {
+        checkInitialized();
+        mavenBuilder.withXmlInfrastructure( xmlInfra );
+        return this;
+    }
+
+    public GalleyMavenFixture withTypeMapper( final TypeMapper mapper )
+    {
+        checkInitialized();
+        mavenBuilder.withTypeMapper( mapper );
+        return this;
+    }
+
+    public GalleyMavenFixture withPluginDefaults( final MavenPluginDefaults pluginDefaults )
+    {
+        checkInitialized();
+        mavenBuilder.withPluginDefaults( pluginDefaults );
+        return this;
+    }
+
+    public GalleyMavenFixture withPluginImplications( final MavenPluginImplications pluginImplications )
+    {
+        checkInitialized();
+        mavenBuilder.withPluginImplications( pluginImplications );
+        return this;
+    }
+
+    public GalleyMavenFixture withMavenMetadataReader( final MavenMetadataReader metaReader )
+    {
+        checkInitialized();
+        mavenBuilder.withMavenMetadataReader( metaReader );
+        return this;
+    }
+
+    public GalleyMavenFixture withVersionResolver( final VersionResolver versionResolver )
+    {
+        checkInitialized();
+        mavenBuilder.withVersionResolver( versionResolver );
+        return this;
+    }
+
+    public GalleyMavenFixture withLocationExpander( final LocationExpander locationExpander )
+    {
+        checkInitialized();
+        mavenBuilder.withLocationExpander( locationExpander );
+        return this;
+    }
+
+    public GalleyMavenFixture withLocationResolver( final LocationResolver locationResolver )
+    {
+        checkInitialized();
+        mavenBuilder.withLocationResolver( locationResolver );
+        return this;
+    }
+
+    public GalleyMavenFixture withTransferDecorator( final TransferDecorator decorator )
+    {
+        checkInitialized();
+        mavenBuilder.withTransferDecorator( decorator );
+        return this;
+    }
+
+    public GalleyMavenFixture withFileEvents( final FileEventManager events )
+    {
+        checkInitialized();
+        mavenBuilder.withFileEvents( events );
+        return this;
+    }
+
+    public GalleyMavenFixture withCache( final CacheProvider cache )
+    {
+        checkInitialized();
+        mavenBuilder.withCache( cache );
+        return this;
+    }
+
+    public GalleyMavenFixture withNfc( final NotFoundCache nfc )
+    {
+        checkInitialized();
+        mavenBuilder.withNfc( nfc );
+        return this;
+    }
+
+    public GalleyMavenFixture withTransportManager( final TransportManager transportManager )
+    {
+        checkInitialized();
+        mavenBuilder.withTransportManager( transportManager );
+        return this;
+    }
+
+    public GalleyMavenFixture withTransferManager( final TransferManager transferManager )
+    {
+        checkInitialized();
+        mavenBuilder.withTransferManager( transferManager );
+        return this;
+    }
+
+    public GalleyMavenFixture withEnabledTransports( final List<Transport> transports )
+    {
+        checkInitialized();
+        mavenBuilder.withEnabledTransports( transports );
+        return this;
+    }
+
+    public GalleyMavenFixture withEnabledTransports( final Transport... transports )
+    {
+        checkInitialized();
+        mavenBuilder.withEnabledTransports( transports );
+        return this;
+    }
+
+    public GalleyMavenFixture withHandlerExecutor( final ExecutorService handlerExecutor )
+    {
+        checkInitialized();
+        mavenBuilder.withHandlerExecutor( handlerExecutor );
+        return this;
+    }
+
+    public GalleyMavenFixture withBatchExecutor( final ExecutorService batchExecutor )
+    {
+        checkInitialized();
+        mavenBuilder.withBatchExecutor( batchExecutor );
+        return this;
+    }
+
+    public GalleyMavenFixture withPasswordManager( final PasswordManager passwordManager )
+    {
+        checkInitialized();
+        mavenBuilder.withPasswordManager( passwordManager );
+        return this;
+    }
+
+    public GalleyMavenFixture withAdditionalTransport( final Transport transport )
+    {
+        checkInitialized();
+        mavenBuilder.withAdditionalTransport( transport );
+        return this;
     }
 }

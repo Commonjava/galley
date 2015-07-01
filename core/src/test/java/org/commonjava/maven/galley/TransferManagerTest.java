@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
+import org.commonjava.maven.galley.internal.TransferManagerImpl;
 import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
