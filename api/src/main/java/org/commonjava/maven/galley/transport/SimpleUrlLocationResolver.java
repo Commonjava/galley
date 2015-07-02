@@ -51,10 +51,11 @@ public class SimpleUrlLocationResolver
     }
     
     @Override
-    public final List<Location> resolve( final String spec )
+    public final Location resolve( final String spec )
         throws TransferException
     {
-        final List<Location> locations = locationExpander.expand( new SimpleLocation( spec ) );
+        final Location location = new SimpleLocation( spec );
+        final List<Location> locations = locationExpander.expand( location );
         if ( locations == null || locations.isEmpty() )
         {
             throw new TransferException( "Invalid location: '%s'. Location expansion returned no results.", spec );
@@ -79,7 +80,7 @@ public class SimpleUrlLocationResolver
                                          spec );
         }
 
-        return locations;
+        return location;
     }
 
 }
