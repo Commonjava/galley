@@ -725,4 +725,10 @@ public class GalleyMavenFixture
         mavenBuilder.withAdditionalTransport( transport );
         return this;
     }
+
+    @Deprecated
+    public XPathManager getXpathManager()
+    {
+        return getXPathManager();
+    }
 }
