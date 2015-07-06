@@ -31,6 +31,8 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
+import org.commonjava.test.http.ContentResponse;
+import org.commonjava.test.http.TestHttpServer;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -197,9 +199,9 @@ public class HttpTestFixture
         return server.getPort();
     }
 
-    public Map<String, Integer> getAccessesByPath()
+    public Map<String, Integer> getAccessesByPathKey()
     {
-        return server.getAccessesByPath();
+        return server.getAccessesByPathKey();
     }
 
     public String formatUrl( final String subpath )
