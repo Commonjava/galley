@@ -1,5 +1,6 @@
 package org.commonjava.maven.galley.transport;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -61,7 +62,7 @@ public class SimpleUrlLocationResolver
             throw new TransferException( "Invalid location: '%s'. Location expansion returned no results.", spec );
         }
 
-        for ( final Iterator<Location> iterator = locations.iterator(); iterator.hasNext(); )
+        for ( final Iterator<Location> iterator = new ArrayList<Location>( locations ).iterator(); iterator.hasNext(); )
         {
             final Location loc = iterator.next();
 

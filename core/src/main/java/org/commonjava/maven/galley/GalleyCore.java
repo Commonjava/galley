@@ -15,8 +15,13 @@
  */
 package org.commonjava.maven.galley;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
 
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -31,36 +36,53 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 public class GalleyCore
 {
 
-    private final LocationExpander locationExpander;
+    @Inject
+    private LocationExpander locationExpander;
 
-    private final LocationResolver locationResolver;
+    @Inject
+    private LocationResolver locationResolver;
 
-    private final TransferDecorator decorator;
+    @Inject
+    private TransferDecorator decorator;
 
-    private final FileEventManager events;
+    @Inject
+    private FileEventManager events;
 
-    private final CacheProvider cache;
+    @Inject
+    private CacheProvider cache;
 
-    private final NotFoundCache nfc;
+    @Inject
+    private NotFoundCache nfc;
 
-    private final TransportManager transportManager;
+    @Inject
+    private TransportManager transportManager;
 
-    private final TransferManager transferManager;
+    @Inject
+    private TransferManager transferManager;
 
-    private final List<Transport> transports;
+    @Inject
+    private Instance<Transport> injectedTransports;
 
-    private final ExecutorService handlerExecutor;
+    private List<Transport> transports;
 
-    private final ExecutorService batchExecutor;
+    @Inject
+    private ExecutorService handlerExecutor;
 
-    private final PasswordManager passwordManager;
+    @Inject
+    private ExecutorService batchExecutor;
+
+    @Inject
+    private PasswordManager passwordManager;
+
+    protected GalleyCore()
+    {
+    }
 
     public GalleyCore( final LocationExpander locationExpander, final LocationResolver locationResolver,
-                       final TransferDecorator decorator,
-                           final FileEventManager events, final CacheProvider cache, final NotFoundCache nfc,
-                           final TransportManager transportManager, final TransferManager transferManager,
-                           final List<Transport> transports, final ExecutorService handlerExecutor,
- final ExecutorService batchExecutor,
+                       final TransferDecorator decorator, final FileEventManager events, final CacheProvider cache,
+                       final NotFoundCache nfc, final TransportManager transportManager,
+                       final TransferManager transferManager, final List<Transport> transports,
+                       final ExecutorService handlerExecutor, final ExecutorService batchExecutor,
                        final PasswordManager passwordManager )
     {
         this.locationExpander = locationExpander;
@@ -75,6 +97,19 @@ public class GalleyCore
         this.handlerExecutor = handlerExecutor;
         this.batchExecutor = batchExecutor;
         this.passwordManager = passwordManager;
+    }
+
+    @PostConstruct
+    public void initInjections()
+    {
+        if ( transports == null && injectedTransports != null )
+        {
+            transports = new ArrayList<Transport>();
+            for ( final Transport transport : injectedTransports )
+            {
+                transports.add( transport );
+            }
+        }
     }
 
     public PasswordManager getPasswordManager()

@@ -21,7 +21,6 @@ import java.util.Map;
 public class SimpleLocation
     implements Location
 {
-
     private final boolean allowPublishing;
 
     private final boolean allowDownloading;

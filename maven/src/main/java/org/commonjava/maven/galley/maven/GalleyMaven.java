@@ -18,6 +18,8 @@ package org.commonjava.maven.galley.maven;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import javax.inject.Inject;
+
 import org.commonjava.maven.galley.GalleyCore;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
@@ -41,27 +43,42 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 public class GalleyMaven
 {
 
-    private final GalleyCore core;
+    @Inject
+    private GalleyCore core;
 
-    private final ArtifactManager artifactManager;
+    @Inject
+    private ArtifactManager artifactManager;
 
-    private final ArtifactMetadataManager metadataManager;
+    @Inject
+    private ArtifactMetadataManager metadataManager;
 
-    private final TypeMapper mapper;
+    @Inject
+    private TypeMapper mapper;
 
-    private final MavenPomReader pomReader;
+    @Inject
+    private MavenPomReader pomReader;
 
-    private final MavenPluginDefaults pluginDefaults;
+    @Inject
+    private MavenPluginDefaults pluginDefaults;
 
-    private final MavenPluginImplications pluginImplications;
+    @Inject
+    private MavenPluginImplications pluginImplications;
 
-    private final XPathManager xpathManager;
+    @Inject
+    private XPathManager xpathManager;
 
-    private final XMLInfrastructure xmlInfra;
+    @Inject
+    private XMLInfrastructure xmlInfra;
 
-    private final MavenMetadataReader metaReader;
+    @Inject
+    private MavenMetadataReader metaReader;
 
-    private final VersionResolver versionResolver;
+    @Inject
+    private VersionResolver versionResolver;
+
+    protected GalleyMaven()
+    {
+    }
 
     public GalleyMaven( final GalleyCore core, final ArtifactManager artifactManager,
                         final ArtifactMetadataManager metadataManager,
