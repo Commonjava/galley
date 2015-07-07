@@ -29,6 +29,8 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named( "no-op-galley-location-expander" )
 @Alternative
@@ -36,11 +38,14 @@ public class NoOpLocationExpander
     implements LocationExpander
 {
 
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
+
     @SuppressWarnings( "unchecked" )
     @Override
     public <T extends Location> List<Location> expand( final Collection<T> locations )
         throws TransferException
     {
+        logger.debug( "NOOP: No expansion available for: {}", locations );
         return locations instanceof List ? (List<Location>) locations : new ArrayList<Location>( locations );
     }
 
@@ -48,12 +53,14 @@ public class NoOpLocationExpander
     public List<Location> expand( final Location... locations )
         throws TransferException
     {
+        logger.debug( "NOOP: No expansion available for: {}", Arrays.toString( locations ) );
         return Arrays.asList( locations );
     }
 
     @Override
     public VirtualResource expand( final Resource resource )
     {
+        logger.debug( "NOOP: No expansion available for: {}", resource );
         if ( resource instanceof VirtualResource )
         {
             return (VirtualResource) resource;

@@ -17,8 +17,6 @@ package org.commonjava.maven.galley.filearc.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang.StringUtils.join;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchiveFile;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,19 +35,16 @@ import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class ZipListing
+    extends AbstractZipOperation
     implements ListingJob
 {
 
     private TransferException error;
 
-    private final ConcreteResource resource;
-
-    private final Transfer target;
-
     public ZipListing( final ConcreteResource resource, final Transfer target )
     {
-        this.resource = resource;
-        this.target = target;
+        super( resource );
+        this.transfer = target;
     }
 
     @Override
@@ -61,13 +56,13 @@ public class ZipListing
     @Override
     public ListingResult call()
     {
-        final File src = getArchiveFile( resource.getLocationUri() );
+        final File src = getZipFile();
         if ( !src.canRead() || src.isDirectory() )
         {
             return null;
         }
 
-        final boolean isJar = isJar( resource.getLocationUri() );
+        final boolean isJar = isJarOperation();
 
         final TreeSet<String> filenames = new TreeSet<String>();
 
@@ -83,7 +78,7 @@ public class ZipListing
                 zf = new ZipFile( src );
             }
 
-            final String path = resource.getPath();
+            final String path = getFullPath();
             final int pathLen = path.length();
             for ( final ZipEntry entry : Collections.list( zf.entries() ) )
             {
@@ -128,14 +123,15 @@ public class ZipListing
             OutputStream stream = null;
             try
             {
-                stream = target.openOutputStream( TransferOperation.DOWNLOAD );
+                stream = transfer.openOutputStream( TransferOperation.DOWNLOAD );
                 stream.write( join( filenames, "\n" ).getBytes( "UTF-8" ) );
 
                 return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
             }
             catch ( final IOException e )
             {
-                error = new TransferException( "Failed to write listing to: %s. Reason: %s", e, target, e.getMessage() );
+                error =
+                    new TransferException( "Failed to write listing to: %s. Reason: %s", e, transfer, e.getMessage() );
             }
             finally
             {

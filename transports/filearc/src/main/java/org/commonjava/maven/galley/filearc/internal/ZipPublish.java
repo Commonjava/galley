@@ -17,7 +17,6 @@ package org.commonjava.maven.galley.filearc.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,6 +34,7 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 
 public class ZipPublish
+    extends AbstractZipOperation
     implements PublishJob
 {
 
@@ -42,13 +42,11 @@ public class ZipPublish
 
     private TransferException error;
 
-    private final ConcreteResource resource;
-
     private boolean success;
 
     public ZipPublish( final ConcreteResource resource, final InputStream stream )
     {
-        this.resource = resource;
+        super( resource );
         this.stream = stream;
     }
 
@@ -61,8 +59,8 @@ public class ZipPublish
     @Override
     public ZipPublish call()
     {
-        final String path = resource.getPath();
-        final File dest = new File( resource.getLocationUri() );
+        final String path = getFullPath();
+        final File dest = getZipFile();
 
         if ( dest.exists() )
         {
@@ -84,7 +82,7 @@ public class ZipPublish
 
     private Boolean writeArchive( final File dest, final String path )
     {
-        final boolean isJar = isJar( dest.getPath() );
+        final boolean isJar = isJarOperation();
         FileOutputStream fos = null;
         ZipOutputStream zos = null;
         ZipFile zf = null;
@@ -127,7 +125,7 @@ public class ZipPublish
 
     private Boolean rewriteArchive( final File dest, final String path )
     {
-        final boolean isJar = isJar( dest.getPath() );
+        final boolean isJar = isJarOperation();
         final File src = new File( dest.getParentFile(), dest.getName() + ".old" );
         dest.renameTo( src );
 

@@ -17,8 +17,6 @@ package org.commonjava.maven.galley.filearc.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchiveFile;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,18 +33,17 @@ import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 
 public class ZipDownload
+    extends AbstractZipOperation
     implements DownloadJob
 {
 
     private TransferException error;
 
-    private final Transfer txfr;
-
     private final EventMetadata eventMetadata;
 
     public ZipDownload( final Transfer txfr, final EventMetadata eventMetadata )
     {
-        this.txfr = txfr;
+        super( txfr );
         this.eventMetadata = eventMetadata;
     }
 
@@ -59,36 +56,33 @@ public class ZipDownload
     @Override
     public DownloadJob call()
     {
-        final File src = getArchiveFile( txfr.getLocation()
-                                             .getUri() );
+        final File src = getZipFile();
 
         if ( !src.canRead() || src.isDirectory() )
         {
             return this;
         }
 
-        final boolean isJar = isJar( txfr.getLocation()
-                                         .getUri() );
-
         ZipFile zf = null;
         InputStream in = null;
         OutputStream out = null;
         try
         {
-            zf = isJar ? new JarFile( src ) : new ZipFile( src );
+            zf = isJarOperation() ? new JarFile( src ) : new ZipFile( src );
 
-            final ZipEntry entry = zf.getEntry( txfr.getPath() );
+            final ZipEntry entry = zf.getEntry( getFullPath() );
             if ( entry != null )
             {
                 if ( entry.isDirectory() )
                 {
-                    error = new TransferException( "Cannot read stream. Source is a directory: %s!%s", txfr.getLocation()
-                                                                                                           .getUri(), txfr.getPath() );
+                    error =
+                        new TransferException( "Cannot read stream. Source is a directory: %s!%s",
+                                               getLocation().getUri(), getFullPath() );
                 }
                 else
                 {
                     in = zf.getInputStream( entry );
-                    out = txfr.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
+                    out = getTransfer().openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
 
                     copy( in, out );
 
@@ -97,13 +91,15 @@ public class ZipDownload
             }
             else
             {
-                error = new TransferException( "Cannot find entry: %s in: %s", txfr.getParent(), txfr.getLocation()
+                error = new TransferException( "Cannot find entry: %s in: %s", getFullPath(), getLocation()
                                                                                                      .getUri() );
             }
         }
         catch ( final IOException e )
         {
-            error = new TransferException( "Failed to copy from: %s to: %s. Reason: %s", e, src, txfr, e.getMessage() );
+            error =
+                new TransferException( "Failed to copy from: %s to: %s. Reason: %s", e, src, getTransfer(),
+                                       e.getMessage() );
         }
         finally
         {
@@ -128,6 +124,6 @@ public class ZipDownload
     @Override
     public Transfer getTransfer()
     {
-        return txfr;
+        return super.getTransfer();
     }
 }

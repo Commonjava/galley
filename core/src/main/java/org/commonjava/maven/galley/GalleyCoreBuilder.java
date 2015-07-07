@@ -45,9 +45,13 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GalleyCoreBuilder
 {
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private LocationExpander locationExpander;
 
@@ -146,6 +150,7 @@ public class GalleyCoreBuilder
 
         if ( locationExpander == null )
         {
+            logger.debug( "Initializing default location expander" );
             locationExpander = new NoOpLocationExpander();
         }
 
@@ -198,6 +203,7 @@ public class GalleyCoreBuilder
 
     public GalleyCoreBuilder withLocationExpander( final LocationExpander locations )
     {
+        logger.debug( "Setting location expander: {}", locations );
         this.locationExpander = locations;
         return this;
     }

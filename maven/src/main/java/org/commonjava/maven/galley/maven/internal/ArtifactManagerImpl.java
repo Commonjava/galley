@@ -424,6 +424,7 @@ public class ArtifactManagerImpl
         throws TransferException
     {
         locations = expander.expand( locations );
+        logger.debug( "Locations expanded to: {} for artifact: {}", locations, ref );
         VirtualResource virt = new VirtualResource( locations, formatArtifactPath( ref, mapper ) );
 
         if ( ref.isVariableVersion() )

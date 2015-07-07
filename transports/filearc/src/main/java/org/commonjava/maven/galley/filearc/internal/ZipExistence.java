@@ -15,9 +15,6 @@
  */
 package org.commonjava.maven.galley.filearc.internal;
 
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.getArchiveFile;
-import static org.commonjava.maven.galley.filearc.internal.util.ZipUtils.isJar;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -30,16 +27,15 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 
 public class ZipExistence
+    extends AbstractZipOperation
     implements ExistenceJob
 {
 
     private TransferException error;
 
-    private final ConcreteResource resource;
-
     public ZipExistence( final ConcreteResource resource )
     {
-        this.resource = resource;
+        super( resource );
     }
 
     @Override
@@ -51,18 +47,16 @@ public class ZipExistence
     @Override
     public Boolean call()
     {
-        final File src = getArchiveFile( resource.getLocationUri() );
+        final File src = getZipFile();
         if ( !src.canRead() || src.isDirectory() )
         {
             return null;
         }
 
-        final boolean isJar = isJar( resource.getLocationUri() );
-
         ZipFile zf = null;
         try
         {
-            if ( isJar )
+            if ( isJarOperation() )
             {
                 zf = new JarFile( src );
             }
@@ -71,7 +65,7 @@ public class ZipExistence
                 zf = new ZipFile( src );
             }
 
-            final String path = resource.getPath();
+            final String path = getFullPath();
 
             boolean found = false;
             for ( final ZipEntry entry : Collections.list( zf.entries() ) )
@@ -88,7 +82,9 @@ public class ZipExistence
         }
         catch ( final IOException e )
         {
-            error = new TransferException( "Failed to get listing for: %s to: %s. Reason: %s", e, resource, e.getMessage() );
+            error =
+                new TransferException( "Failed to get listing for: %s:%s to: %s. Reason: %s", e, getLocation(),
+                                       getPath(), e.getMessage() );
         }
         finally
         {
