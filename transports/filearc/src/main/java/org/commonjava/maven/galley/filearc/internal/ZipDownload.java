@@ -118,6 +118,11 @@ public class ZipDownload
             closeQuietly( out );
         }
 
+        if ( error != null )
+        {
+            logger.error( "Failed to download: {}. Reason: {}", this, error );
+        }
+
         return null;
     }
 

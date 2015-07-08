@@ -38,6 +38,16 @@ public class ZipUtilsTest
     }
 
     @Test
+    public void getArchiveFileFromNakedZipUrl_FilePathPrefix()
+    {
+        final String file = "/path/to/file.zip";
+        final File f = ZipUtils.getArchiveFile( "zip:file://" + file );
+
+        assertThat( f, notNullValue() );
+        assertThat( f.getPath(), equalTo( file ) );
+    }
+
+    @Test
     public void getArchiveFileFromZipUrlWithSubPath()
     {
         final String file = "/path/to/file.zip";
@@ -53,6 +63,16 @@ public class ZipUtilsTest
     {
         final String file = "/path/to/file.jar";
         final File f = ZipUtils.getArchiveFile( "jar://" + file );
+
+        assertThat( f, notNullValue() );
+        assertThat( f.getPath(), equalTo( file ) );
+    }
+
+    @Test
+    public void getArchiveFileFromNakedJarUrl_FilePathPrefix()
+    {
+        final String file = "/path/to/file.jar";
+        final File f = ZipUtils.getArchiveFile( "jar:file://" + file );
 
         assertThat( f, notNullValue() );
         assertThat( f.getPath(), equalTo( file ) );
@@ -120,8 +140,8 @@ public class ZipUtilsTest
     public void getArchivePathMatchesSubFromZipUrlWithSubPath()
     {
         final String file = "/path/to/file.zip";
-        final String subPath = "/path/to/project.pom";
-        final String path = ZipUtils.getArchivePath( "zip://" + file + "!" + subPath );
+        final String subPath = "path/to/project.pom";
+        final String path = ZipUtils.getArchivePath( "zip://" + file + "!/" + subPath );
 
         assertThat( path, notNullValue() );
         assertThat( path, equalTo( subPath ) );
@@ -140,8 +160,8 @@ public class ZipUtilsTest
     public void getArchivePathMatchesSubFromJarUrlWithSubPath()
     {
         final String file = "/path/to/file.jar";
-        final String subPath = "/path/to/project.pom";
-        final String path = ZipUtils.getArchivePath( "jar://" + file + "!" + subPath );
+        final String subPath = "path/to/project.pom";
+        final String path = ZipUtils.getArchivePath( "jar://" + file + "!/" + subPath );
 
         assertThat( path, notNullValue() );
         assertThat( path, equalTo( subPath ) );
