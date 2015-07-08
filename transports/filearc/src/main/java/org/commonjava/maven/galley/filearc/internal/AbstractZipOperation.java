@@ -8,9 +8,14 @@ import org.commonjava.maven.galley.filearc.internal.util.ZipUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class AbstractZipOperation
 {
+
+    protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Location location;
 
@@ -50,11 +55,26 @@ abstract class AbstractZipOperation
         {
             basePath = "";
         }
-        this.basePath = basePath;
 
-        this.fullPath = basePath + path;
+        this.basePath = basePath;
+        String fp = PathUtils.normalize( basePath, path );
+        if ( fp.startsWith( "/" ) )
+        {
+            fp = fp.substring( 1 );
+        }
+        this.fullPath = fp;
+
+        logger.debug( "Got archive reference with the following:\n  File: {}\n  Base-Path: {}\n  Full-Path: {}\n",
+                      zipFile, basePath, fullPath );
     }
-    
+
+    @Override
+    public String toString()
+    {
+        return String.format( "%s [file: %s, base-path: %s, full-path: %s]", getClass().getSimpleName(), zipFile,
+                              basePath, fullPath );
+    }
+
     protected ConcreteResource getResource()
     {
         return resource;

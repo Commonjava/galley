@@ -22,9 +22,7 @@ import java.util.regex.Pattern;
 public final class ZipUtils
 {
 
-    private static final String ARCHIVE_URI_PATTERN = "(zip|jar):[/]{0,2}(.+\\.(jar|zip))(!.*)?";
-
-    private static final String ARCHIVE_ENTRY_PATH_PATTERN = ".+!(.+)";
+    private static final String ARCHIVE_URI_PATTERN = "(zip|jar):\\/?(\\/?file:\\/?)?(\\/[^!]+)(\\!\\/?(.*))?";
 
     private ZipUtils()
     {
@@ -32,19 +30,17 @@ public final class ZipUtils
 
     public static boolean isJar( final String uri )
     {
-        return getArchiveFile( uri ).getPath()
-                                    .endsWith( ".jar" );
+        return uri.startsWith( "jar:" );
     }
 
     public static String getArchivePath( final String uri )
     {
-        final Matcher m = Pattern.compile( ARCHIVE_ENTRY_PATH_PATTERN )
+        final Matcher m = Pattern.compile( ARCHIVE_URI_PATTERN )
                                  .matcher( uri );
         if ( m.matches() )
         {
-            return m.group( 1 );
+            return m.group( 5 );
         }
-
         return null;
     }
 
@@ -54,7 +50,7 @@ public final class ZipUtils
                                  .matcher( uri );
         if ( m.matches() )
         {
-            return new File( m.group( 2 ) );
+            return new File( m.group( 3 ) );
         }
 
         return null;
