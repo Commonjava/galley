@@ -83,8 +83,7 @@ public final class UrlInfo
             }
             else
             {
-                port = url.getProtocol()
-                          .equals( "https" ) ? 443 : 80;
+                port = url.getDefaultPort();
             }
         }
         else
