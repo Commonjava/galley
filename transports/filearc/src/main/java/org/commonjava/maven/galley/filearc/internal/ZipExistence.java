@@ -48,7 +48,7 @@ public class ZipExistence
     public Boolean call()
     {
         final File src = getZipFile();
-        if ( !src.canRead() || src.isDirectory() )
+        if ( src.isDirectory() )
         {
             return null;
         }
@@ -66,11 +66,13 @@ public class ZipExistence
             }
 
             final String path = getFullPath();
+            logger.debug( "Looking for entry: {}", path );
 
             boolean found = false;
             for ( final ZipEntry entry : Collections.list( zf.entries() ) )
             {
                 final String name = entry.getName();
+                logger.debug( "Checking entry: {}", name );
                 if ( name.equals( path ) )
                 {
                     found = true;

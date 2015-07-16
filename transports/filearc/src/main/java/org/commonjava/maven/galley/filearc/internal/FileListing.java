@@ -57,7 +57,7 @@ public class FileListing
     @Override
     public ListingResult call()
     {
-        if ( src.canRead() && src.isDirectory() )
+        if ( src.isDirectory() )
         {
             final String[] raw = src.list();
             OutputStream stream = null;

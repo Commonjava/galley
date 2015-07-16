@@ -58,7 +58,7 @@ public class ZipDownload
     {
         final File src = getZipFile();
 
-        if ( !src.canRead() || src.isDirectory() )
+        if ( src.isDirectory() )
         {
             return this;
         }
