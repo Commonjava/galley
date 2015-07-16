@@ -108,6 +108,42 @@ public class PomPeek
 
     private final InputStream stream;
 
+    public PomPeek( final File pom )
+    {
+        this.pom = pom;
+        this.transfer = null;
+        this.stream = null;
+        captureModules = true;
+        init();
+    }
+
+    public PomPeek( final Transfer transfer )
+    {
+        this.pom = null;
+        this.transfer = transfer;
+        this.stream = null;
+        captureModules = true;
+        init();
+    }
+
+    public PomPeek( final String content )
+    {
+        this.pom = null;
+        this.transfer = null;
+        this.stream = new ByteArrayInputStream( content.getBytes() );
+        captureModules = true;
+        init();
+    }
+
+    public PomPeek( final InputStream stream )
+    {
+        this.pom = null;
+        this.transfer = null;
+        this.stream = stream;
+        captureModules = true;
+        init();
+    }
+
     public PomPeek( final File pom, final boolean captureModules )
     {
         this.pom = pom;
@@ -292,6 +328,8 @@ public class PomPeek
     private boolean captureValue( final String elem, final Stack<String> path, final XMLStreamReader xml )
         throws XMLStreamException
     {
+        final boolean isModule = path.contains(MODULES_ELEM) && !path.contains(PLUGINS_ELEM);
+
         path.push( elem );
 
         final String pathStr = join(path, ":");
@@ -304,7 +342,7 @@ public class PomPeek
 
             return true;
         }
-        else if ( captureModules && path.contains( MODULES_ELEM ) && !path.contains( PLUGINS_ELEM ) )
+        else if ( captureModules && isModule )
         {
             modules.add( xml.getElementText()
                             .trim() );
