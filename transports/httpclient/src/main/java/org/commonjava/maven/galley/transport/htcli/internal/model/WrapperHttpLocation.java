@@ -81,7 +81,7 @@ public class WrapperHttpLocation
     @Override
     public int getPort()
     {
-        return url.getPort();
+        return url.getPort() < 0 ? url.getDefaultPort() : url.getPort();
     }
 
     @Override
