@@ -40,7 +40,7 @@ public class FileExistence
     @Override
     public Boolean call()
     {
-        if ( src.exists() && src.canRead() )
+        if ( src.exists() )
         {
             return true;
         }

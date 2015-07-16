@@ -57,7 +57,7 @@ public class ZipListing
     public ListingResult call()
     {
         final File src = getZipFile();
-        if ( !src.canRead() || src.isDirectory() )
+        if ( src.isDirectory() )
         {
             return null;
         }
