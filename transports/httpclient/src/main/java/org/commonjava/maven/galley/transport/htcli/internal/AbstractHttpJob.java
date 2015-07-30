@@ -23,12 +23,14 @@ import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -103,6 +105,11 @@ public abstract class AbstractHttpJob
                 logger.debug( "Returning non-error failure response for code: " + sc );
                 return false;
             }
+        }
+        catch ( final NoHttpResponseException e )
+        {
+            throw new TransferTimeoutException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                                                e.getMessage() );
         }
         catch ( final ClientProtocolException e )
         {
