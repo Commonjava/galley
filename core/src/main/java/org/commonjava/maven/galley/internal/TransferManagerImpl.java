@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
+import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -645,13 +646,6 @@ public class TransferManagerImpl
     {
         return uploader.upload( resource, stream, length, contentType, getTimeoutSeconds( resource ),
                                 getTransport( resource ) );
-    }
-
-    private int getTimeoutSeconds( final ConcreteResource resource )
-    {
-        return resource.getLocation()
-                       .getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class,
-                                      Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS );
     }
 
     @Override

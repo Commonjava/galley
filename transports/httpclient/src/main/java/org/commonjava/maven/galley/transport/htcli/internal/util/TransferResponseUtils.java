@@ -20,6 +20,10 @@ import static org.apache.commons.io.IOUtils.copy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -28,12 +32,16 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.util.EntityUtils;
+import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.TransferException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class TransferResponseUtils
 {
+
+    private static final Set<Integer> NON_SERVER_GATEWAY_ERRORS =
+        Collections.unmodifiableSet( new HashSet<Integer>( Arrays.asList( 410 ) ) );
 
     private TransferResponseUtils()
     {
@@ -76,8 +84,16 @@ public final class TransferResponseUtils
                     copy( in, out );
                 }
 
-                throw new TransferException( "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
-                    + new String( out.toByteArray() ) ) );
+                if ( NON_SERVER_GATEWAY_ERRORS.contains( sc ) || ( sc > 499 && sc < 599 ) )
+                {
+                    throw new BadGatewayException( sc, "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
+                        + new String( out.toByteArray() ) ) );
+                }
+                else
+                {
+                    throw new TransferException( "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
+                        + new String( out.toByteArray() ) ) );
+                }
             }
         }
         catch ( final IOException e )

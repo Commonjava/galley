@@ -31,6 +31,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -52,6 +53,7 @@ import org.commonjava.maven.galley.transport.htcli.internal.CloseBlockingConnect
 import org.commonjava.maven.galley.transport.htcli.internal.SSLUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
+import org.commonjava.maven.galley.util.LocationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +113,15 @@ public class HttpImpl
                     new DefaultProxyRoutePlanner( new HttpHost( location.getProxyHost(), getProxyPort( location ) ) );
                 builder.setRoutePlanner( planner );
             }
+
+            final int timeout = 1000 * LocationUtils.getTimeoutSeconds( location );
+            builder.setDefaultRequestConfig( RequestConfig.custom()
+                                                          .setConnectionRequestTimeout( timeout )
+                                                          .setSocketTimeout( timeout )
+                                                          .setConnectTimeout( timeout )
+                                                          .build() );
         }
+
 
         return builder.build();
     }

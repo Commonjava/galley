@@ -28,6 +28,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
@@ -172,7 +173,7 @@ public class DownloadHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timeout on: {}", e, target );
+                throw new TransferTimeoutException( "Timeout on: {}", e, target );
             }
         }
 

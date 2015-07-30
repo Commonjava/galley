@@ -137,8 +137,8 @@ public class HttpClientTransport
     public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpListing( getUrl( resource ), new ConcreteResource( getHttpLocation( resource.getLocation() ), resource.getPath() ),
- timeoutSeconds, target,
+        return new HttpListing( getUrl( resource ), new ConcreteResource( getHttpLocation( resource.getLocation() ),
+                                                                          resource.getPath() ), timeoutSeconds, target,
                                 http );
     }
 

@@ -29,6 +29,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Resource;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
@@ -128,7 +129,7 @@ public class UploadHandler
         }
         catch ( final TimeoutException e )
         {
-            throw new TransferException( "Timed-out publish: {}. Reason: {}", e, resource, e.getMessage() );
+            throw new TransferTimeoutException( "Timed-out publish: {}. Reason: {}", e, resource, e.getMessage() );
         }
         finally
         {

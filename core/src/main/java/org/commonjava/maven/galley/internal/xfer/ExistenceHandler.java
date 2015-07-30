@@ -21,6 +21,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
@@ -102,7 +103,7 @@ public class ExistenceHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferTimeoutException( "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
         catch ( final Exception e )
