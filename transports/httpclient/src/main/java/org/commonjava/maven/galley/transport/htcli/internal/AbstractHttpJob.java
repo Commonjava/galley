@@ -28,6 +28,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferTimeoutException;
@@ -107,6 +108,11 @@ public abstract class AbstractHttpJob
             }
         }
         catch ( final NoHttpResponseException e )
+        {
+            throw new TransferTimeoutException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                                                e.getMessage() );
+        }
+        catch ( final ConnectTimeoutException e )
         {
             throw new TransferTimeoutException( "Repository remote request failed for: {}. Reason: {}", e, url,
                                                 e.getMessage() );
