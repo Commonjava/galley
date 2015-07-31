@@ -224,14 +224,14 @@ public class HttpImpl
         }
 
         final String sPem = location.getServerCertPem();
-        logger.debug( "Server certificate PEM:\n{}", sPem );
+        //        logger.debug( "Server certificate PEM:\n{}", sPem );
         if ( sPem != null )
         {
             try
             {
                 ts = SSLUtils.readCerts( sPem, location.getHost() );
 
-                logger.debug( "Trust store contains the following certificates:\n{}", new CertEnumerator( ts ) );
+                //                logger.debug( "Trust store contains the following certificates:\n{}", new CertEnumerator( ts ) );
             }
             catch ( final CertificateException e )
             {
