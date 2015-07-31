@@ -196,6 +196,7 @@ public final class Transfer
             final TransferUnlocker unlocker = new TransferUnlocker( resource, provider );
             if ( fireEvents )
             {
+                logger.info( "Wrapping output stream to: {} using event metadata: {}", this, eventMetadata );
                 stream =
                     new TransferOutputStream( stream, unlocker,
                                               new FileStorageEvent( accessType, this, eventMetadata ),
@@ -203,6 +204,7 @@ public final class Transfer
             }
             else
             {
+                logger.info( "Wrapping output stream to: {} WITHOUT event metadata", this );
                 stream = new TransferOutputStream( stream, unlocker );
             }
 

@@ -28,10 +28,14 @@ import org.commonjava.maven.galley.io.checksum.AbstractChecksumGeneratorFactory;
 import org.commonjava.maven.galley.io.checksum.ChecksummingOutputStream;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ChecksummingTransferDecorator
     extends AbstractTransferDecorator
 {
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories;
 
@@ -70,6 +74,7 @@ public final class ChecksummingTransferDecorator
         {
             if ( ignoredFileEndings == null || ignoredFileEndings.isEmpty() )
             {
+                logger.info( "Wrapping output stream to: {} for checksum generation.", transfer );
                 return new ChecksummingOutputStream( checksumFactories, stream, transfer );
             }
             else
@@ -87,6 +92,7 @@ public final class ChecksummingTransferDecorator
 
                 if ( !ignored )
                 {
+                    logger.info( "Wrapping output stream to: {} for checksum generation.", transfer );
                     return new ChecksummingOutputStream( checksumFactories, stream, transfer );
                 }
             }

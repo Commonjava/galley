@@ -59,4 +59,10 @@ public class EventMetadata
                        .iterator();
     }
 
+    @Override
+    public String toString()
+    {
+        return String.format( "EventMetadata [metadata=%s]", metadata );
+    }
+
 }
