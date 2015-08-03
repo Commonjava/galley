@@ -34,7 +34,7 @@ public class TestDownload
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final TransferException error;
+    private TransferException error;
 
     private final byte[] data;
 
@@ -91,10 +91,17 @@ public class TestDownload
             stream = transfer.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
             IOUtils.write( data, stream );
         }
+        catch ( final IOException e )
+        {
+            e.printStackTrace();
+            error = new TransferException( "Failed to write: %s", e, e.getMessage() );
+        }
         finally
         {
             IOUtils.closeQuietly( stream );
         }
+
+        logger.debug( "After write, does transfer exist? {}", transfer.exists() );
 
         return this;
     }
