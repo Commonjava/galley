@@ -355,9 +355,7 @@ public class PartyLineCacheProvider
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return PathUtils.normalize( config.getCacheBasedir()
-                                          .getPath(), pathGenerator.getFilePath( resource ) )
-                        .toString();
+        return PathUtils.normalize( config.getCacheBasedir().getPath(), pathGenerator.getFilePath( resource ) );
     }
 
     @Override

@@ -223,7 +223,7 @@ public class MavenPomReader
         final Transfer transfer = pom;
 
         final Document doc = xml.parse( transfer, eventMetadata );
-        DocRef<ProjectVersionRef> dr = getFirstCached( ref, Arrays.asList( pom.getLocation() ) );
+        DocRef<ProjectVersionRef> dr = getFirstCached( ref, Collections.singletonList( pom.getLocation() ) );
 
         if ( dr == null )
         {

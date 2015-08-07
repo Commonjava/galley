@@ -41,7 +41,7 @@ public final class TransferResponseUtils
 {
 
     private static final Set<Integer> NON_SERVER_GATEWAY_ERRORS =
-        Collections.unmodifiableSet( new HashSet<Integer>( Arrays.asList( 410 ) ) );
+        Collections.unmodifiableSet( new HashSet<Integer>( Collections.singletonList( 410 ) ) );
 
     private TransferResponseUtils()
     {

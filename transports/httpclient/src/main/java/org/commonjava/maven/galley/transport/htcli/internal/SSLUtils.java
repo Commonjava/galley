@@ -94,7 +94,7 @@ public final class SSLUtils
                 {
                     final KeySpec spec = new PKCS8EncodedKeySpec( data );
                     final PrivateKey key = keyFactory.generatePrivate( spec );
-                    ks.setKeyEntry( "key", key, keyPass.toCharArray(), certs.toArray( new Certificate[] {} ) );
+                    ks.setKeyEntry( "key", key, keyPass.toCharArray(), certs.toArray( new Certificate[certs.size()] ) );
                 }
                 else if ( pass < 1 && header.contains( "BEGIN CERTIFICATE" ) )
                 {

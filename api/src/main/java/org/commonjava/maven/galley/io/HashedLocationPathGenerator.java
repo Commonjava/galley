@@ -33,8 +33,7 @@ public class HashedLocationPathGenerator
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return PathUtils.normalize( formatLocationDir( resource.getLocation() ), resource.getPath() )
-                        .toString();
+        return PathUtils.normalize( formatLocationDir( resource.getLocation() ), resource.getPath() );
     }
 
     private String formatLocationDir( final Location loc )

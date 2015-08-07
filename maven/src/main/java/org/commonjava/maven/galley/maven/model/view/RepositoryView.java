@@ -76,13 +76,13 @@ public class RepositoryView
     public boolean isReleasesEnabled()
     {
         final String value = getValue( "releases/enabled/text()" );
-        return value == null ? true : Boolean.parseBoolean( value );
+        return value == null || Boolean.parseBoolean( value );
     }
 
     public boolean isSnapshotsEnabled()
     {
         final String value = getValue( "snapshots/enabled/text()" );
-        return value == null ? false : Boolean.parseBoolean( value );
+        return value != null && Boolean.parseBoolean( value );
     }
 
 }

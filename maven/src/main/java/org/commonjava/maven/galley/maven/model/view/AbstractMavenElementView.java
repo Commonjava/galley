@@ -115,9 +115,9 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
                         elements.add( (Element) node );
                     }
                 }
-
-                return elements;
             }
+
+            return elements;
         }
 
         return null;
