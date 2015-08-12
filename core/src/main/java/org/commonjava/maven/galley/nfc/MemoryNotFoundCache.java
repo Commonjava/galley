@@ -56,7 +56,7 @@ public class MemoryNotFoundCache
     {
         final Set<String> missing = this.missing.get( resource.getLocation() );
         //        logger.info( "Checking NFC listing: {} for path: {} in: {}", missing, resource.getPath(), resource.getLocation() );
-        return missing == null ? false : missing.contains( resource.getPath() );
+        return missing != null && missing.contains( resource.getPath() );
     }
 
     @Override

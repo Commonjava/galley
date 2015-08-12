@@ -54,7 +54,7 @@ public final class PathUtils
         {
             if ( part == null || part.length() < 1 || "/".equals( part ) )
             {
-                continue parts;
+                continue;
             }
 
             if ( idx == 0 && part.startsWith( "file:" ) )
@@ -64,7 +64,7 @@ public final class PathUtils
                     sb.append( part.substring( 5 ) );
                 }
 
-                continue parts;
+                continue;
             }
 
             if ( idx > 0 )

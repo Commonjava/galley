@@ -311,7 +311,7 @@ public class VersionResolverImpl
                 final SingleVersion selected = selectionStrategy.select( versions );
                 if ( selected == null )
                 {
-                    continue nextLoc;
+                    continue;
                 }
 
                 return new ProjectVersionRefLocation( ref.selectVersion( selected ), available.get( selected ) );

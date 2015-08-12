@@ -99,7 +99,7 @@ public abstract class AbstractChecksumGenerator
         }
     }
 
-    private final Transfer getChecksumFile( final Transfer transfer )
+    private Transfer getChecksumFile( final Transfer transfer )
     {
         return transfer.getSiblingMeta( checksumExtension );
     }

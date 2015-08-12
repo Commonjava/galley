@@ -317,12 +317,8 @@ public class PomPeek
         }
 
         // the only reason we need to parse the full doc is to capture modules.
-        if ( captureModules && "pom".equals( elementValues.get( PKG ) ) )
-        {
-            return false;
-        }
+        return !( captureModules && "pom".equals( elementValues.get( PKG ) ) );
 
-        return true;
     }
 
     private boolean captureValue( final String elem, final Stack<String> path, final XMLStreamReader xml )
@@ -398,12 +394,8 @@ public class PomPeek
             return false;
         }
 
-        if ( "parentVersion".equals( version ) )
-        {
-            return false;
-        }
+        return !"parentVersion".equals( version );
 
-        return true;
     }
 
     private boolean isValidGroupId( final String groupId )
@@ -423,12 +415,8 @@ public class PomPeek
             return false;
         }
 
-        if ( "groupId".equals( groupId ) )
-        {
-            return false;
-        }
+        return !"groupId".equals( groupId );
 
-        return true;
     }
 
     private boolean isValidArtifactId( final String artifactId )
@@ -448,12 +436,8 @@ public class PomPeek
             return false;
         }
 
-        if ( "artifactId".equals( artifactId ) )
-        {
-            return false;
-        }
+        return !"artifactId".equals( artifactId );
 
-        return true;
     }
 
 

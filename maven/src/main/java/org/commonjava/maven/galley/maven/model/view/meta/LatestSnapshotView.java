@@ -33,7 +33,7 @@ public class LatestSnapshotView
     public boolean isLocalCopy()
     {
         final String val = getValue( "localCopy" );
-        return val == null ? false : Boolean.parseBoolean( val );
+        return val != null && Boolean.parseBoolean( val );
     }
 
     public Date getTimestamp()

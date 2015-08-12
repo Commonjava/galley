@@ -117,7 +117,7 @@ public class DependencyView
         if ( optional == null )
         {
             final String val = getValue( OPTIONAL );
-            optional = val == null ? false : Boolean.parseBoolean( val );
+            optional = val != null && Boolean.parseBoolean( val );
         }
 
         return optional;
