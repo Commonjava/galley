@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -51,7 +52,7 @@ public class ArtifactManagerImplTest
         final String testResource = base + "single-snapshot.xml";
         final String testPomResource = base + "single-snapshot-pom.xml";
 
-        final ProjectVersionRef ref = new ProjectVersionRef( "org.group", "artifact", "1.0-SNAPSHOT" );
+        final ProjectVersionRef ref = new SimpleProjectVersionRef( "org.group", "artifact", "1.0-SNAPSHOT" );
         final ConcreteResource metadataResource = new ConcreteResource( LOCATION, fixture.snapshotMetadataPath( ref ) );
         final ConcreteResource pomResource =
             new ConcreteResource( LOCATION, fixture.pomPath( ref.selectVersion( "1.0-20140604.101244-1" )
@@ -85,7 +86,7 @@ public class ArtifactManagerImplTest
         final String testResource = base + "two-snapshots.xml";
         final String testPomResource = base + "two-snapshots-pom.xml";
 
-        final ProjectVersionRef ref = new ProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
+        final ProjectVersionRef ref = new SimpleProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
         final ConcreteResource metadataResource = new ConcreteResource( LOCATION, fixture.snapshotMetadataPath( ref ) );
         final ConcreteResource pomResource =
             new ConcreteResource( LOCATION, fixture.pomPath( ref.selectVersion( "1.0-20140604.102909-1" )

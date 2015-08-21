@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.maven.model.view;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class MavenGAVView
     {
         try
         {
-            return new ProjectVersionRef( getGroupId(), getArtifactId(), getVersion() );
+            return new SimpleProjectVersionRef( getGroupId(), getArtifactId(), getVersion() );
         }
         catch ( final IllegalArgumentException e )
         {

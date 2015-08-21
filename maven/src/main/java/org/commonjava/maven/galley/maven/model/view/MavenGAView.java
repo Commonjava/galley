@@ -19,6 +19,7 @@ import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 
@@ -74,7 +75,7 @@ public class MavenGAView
     {
         try
         {
-            return new ProjectRef( getGroupId(), getArtifactId() );
+            return new SimpleProjectRef( getGroupId(), getArtifactId() );
         }
         catch ( final IllegalArgumentException e )
         {

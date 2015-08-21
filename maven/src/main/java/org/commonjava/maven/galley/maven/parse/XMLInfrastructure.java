@@ -53,6 +53,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.model.Transfer;
@@ -506,7 +507,7 @@ public class XMLInfrastructure
             throw new GalleyMavenXMLException( "Project GAV is invalid! (g=%s,  a=%s, v=%s)", gid, aid, ver );
         }
 
-        return new ProjectVersionRef( gid, aid, ver );
+        return new SimpleProjectVersionRef( gid, aid, ver );
     }
 
     public ProjectVersionRef getParentRef( final Document doc )
@@ -531,7 +532,7 @@ public class XMLInfrastructure
                                                ver );
         }
 
-        return new ProjectVersionRef( gid, aid, ver );
+        return new SimpleProjectVersionRef( gid, aid, ver );
     }
 
     private String getChildText( final String name, final Element parent )

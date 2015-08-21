@@ -17,9 +17,7 @@ package org.commonjava.maven.galley.maven.util;
 
 import static org.commonjava.maven.galley.maven.ArtifactMetadataManager.DEFAULT_FILENAME;
 
-import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.*;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.spi.type.TypeMapper;

@@ -33,6 +33,8 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleVersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -223,18 +225,18 @@ public class DependencyView
     {
         try
         {
-            return new ArtifactRef( asProjectVersionRef(), getType(), getClassifier(), isOptional() );
+            return new SimpleArtifactRef( asProjectVersionRef(), getType(), getClassifier(), isOptional() );
         }
         catch ( final IllegalArgumentException e )
         {
             final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render ArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
+            throw new GalleyMavenException( "Cannot render SimpleArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
                                             getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
             final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render ArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
+            throw new GalleyMavenException( "Cannot render SimpleArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
                                             getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
         }
     }
@@ -244,7 +246,7 @@ public class DependencyView
     {
         try
         {
-            return new VersionlessArtifactRef( asProjectRef(), getType(), getClassifier(), isOptional() );
+            return new SimpleVersionlessArtifactRef( asProjectRef(), getType(), getClassifier(), isOptional() );
         }
         catch ( final IllegalArgumentException e )
         {

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.AbstractMavenPluginImplications;
 
@@ -38,15 +39,15 @@ public class StandardMavenPluginImplications
 
         final String mavenPluginsGid = "org.apache.maven.plugins";
 
-        final ProjectRef surefirePlugin = new ProjectRef( mavenPluginsGid, "maven-surefire-plugin" );
+        final ProjectRef surefirePlugin = new SimpleProjectRef( mavenPluginsGid, "maven-surefire-plugin" );
 
         final String surefireGid = "org.apache.maven.surefire";
         final Set<ProjectRef> surefire = new HashSet<ProjectRef>();
-        surefire.add( new ProjectRef( surefireGid, "surefire-junit4" ) );
-        surefire.add( new ProjectRef( surefireGid, "surefire-junit47" ) );
-        surefire.add( new ProjectRef( surefireGid, "surefire-junit3" ) );
-        surefire.add( new ProjectRef( surefireGid, "surefire-testng" ) );
-        surefire.add( new ProjectRef( surefireGid, "surefire-testng-utils" ) );
+        surefire.add( new SimpleProjectRef( surefireGid, "surefire-junit4" ) );
+        surefire.add( new SimpleProjectRef( surefireGid, "surefire-junit47" ) );
+        surefire.add( new SimpleProjectRef( surefireGid, "surefire-junit3" ) );
+        surefire.add( new SimpleProjectRef( surefireGid, "surefire-testng" ) );
+        surefire.add( new SimpleProjectRef( surefireGid, "surefire-testng-utils" ) );
 
         implied.put( surefirePlugin, Collections.unmodifiableSet( surefire ) );
 

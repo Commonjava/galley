@@ -32,6 +32,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
@@ -157,7 +158,7 @@ public abstract class AbstractMavenViewTest
         throws Exception
     {
         final List<DocRef<ProjectRef>> stack = new ArrayList<DocRef<ProjectRef>>();
-        final ProjectRef pr = new ProjectRef( "not.used", "project-ref" );
+        final ProjectRef pr = new SimpleProjectRef( "not.used", "project-ref" );
         for ( final String pomName : docNames )
         {
             final InputStream is = Thread.currentThread()

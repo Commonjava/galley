@@ -22,6 +22,7 @@ import java.util.Map;
 import javax.enterprise.inject.Alternative;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 
 @Alternative
@@ -35,23 +36,23 @@ public class StandardMaven304PluginDefaults
     {
 
         {
-            put( new ProjectRef( DGID, "maven-resources-plugin" ), "2.4.3" );
-            put( new ProjectRef( DGID, "maven-compiler-plugin" ), "2.3.2" );
-            put( new ProjectRef( DGID, "maven-surefire-plugin" ), "2.7.2" );
-            put( new ProjectRef( DGID, "maven-jar-plugin" ), "2.3.1" );
-            put( new ProjectRef( DGID, "maven-install-plugin" ), "2.3.1" );
-            put( new ProjectRef( DGID, "maven-deploy-plugin" ), "2.5" );
-            put( new ProjectRef( DGID, "maven-clean-plugin" ), "2.4.1" );
-            put( new ProjectRef( DGID, "maven-site-plugin" ), "2.0.1" );
-            put( new ProjectRef( DGID, "maven-ejb-plugin" ), "2.3" );
-            put( new ProjectRef( DGID, "maven-plugin-plugin" ), "2.7" );
-            put( new ProjectRef( DGID, "maven-war-plugin" ), "2.1.1" );
-            put( new ProjectRef( DGID, "maven-ear-plugin" ), "2.5" );
-            put( new ProjectRef( DGID, "maven-rar-plugin" ), "2.2" );
-            put( new ProjectRef( DGID, "maven-antrun-plugin" ), "1.3" );
-            put( new ProjectRef( DGID, "maven-assembly-plugin" ), "2.2-beta-5" );
-            put( new ProjectRef( DGID, "maven-dependency-plugin" ), "2.1" );
-            put( new ProjectRef( DGID, "maven-release-plugin" ), "2.0" );
+            put( new SimpleProjectRef( DGID, "maven-resources-plugin" ), "2.4.3" );
+            put( new SimpleProjectRef( DGID, "maven-compiler-plugin" ), "2.3.2" );
+            put( new SimpleProjectRef( DGID, "maven-surefire-plugin" ), "2.7.2" );
+            put( new SimpleProjectRef( DGID, "maven-jar-plugin" ), "2.3.1" );
+            put( new SimpleProjectRef( DGID, "maven-install-plugin" ), "2.3.1" );
+            put( new SimpleProjectRef( DGID, "maven-deploy-plugin" ), "2.5" );
+            put( new SimpleProjectRef( DGID, "maven-clean-plugin" ), "2.4.1" );
+            put( new SimpleProjectRef( DGID, "maven-site-plugin" ), "2.0.1" );
+            put( new SimpleProjectRef( DGID, "maven-ejb-plugin" ), "2.3" );
+            put( new SimpleProjectRef( DGID, "maven-plugin-plugin" ), "2.7" );
+            put( new SimpleProjectRef( DGID, "maven-war-plugin" ), "2.1.1" );
+            put( new SimpleProjectRef( DGID, "maven-ear-plugin" ), "2.5" );
+            put( new SimpleProjectRef( DGID, "maven-rar-plugin" ), "2.2" );
+            put( new SimpleProjectRef( DGID, "maven-antrun-plugin" ), "1.3" );
+            put( new SimpleProjectRef( DGID, "maven-assembly-plugin" ), "2.2-beta-5" );
+            put( new SimpleProjectRef( DGID, "maven-dependency-plugin" ), "2.1" );
+            put( new SimpleProjectRef( DGID, "maven-release-plugin" ), "2.0" );
         }
 
         private static final long serialVersionUID = 1L;
@@ -66,7 +67,7 @@ public class StandardMaven304PluginDefaults
     @Override
     public String getDefaultVersion( final String groupId, final String artifactId )
     {
-        return getDefaultVersion( new ProjectRef( groupId == null ? getDefaultGroupId( artifactId ) : groupId, artifactId ) );
+        return getDefaultVersion( new SimpleProjectRef( groupId == null ? getDefaultGroupId( artifactId ) : groupId, artifactId ) );
     }
 
     @Override

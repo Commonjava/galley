@@ -15,10 +15,6 @@
  */
 package org.commonjava.maven.galley.maven;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
@@ -28,6 +24,10 @@ import org.commonjava.maven.galley.maven.model.ArtifactBatch;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 public interface ArtifactManager
 {
