@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;
@@ -56,7 +57,7 @@ public class VersionResolverImplTest
     {
         final String testResource = "single-snapshot/single-snapshot.xml";
 
-        final ProjectVersionRef ref = new ProjectVersionRef( "org.group", "artifact", "1.0-SNAPSHOT" );
+        final ProjectVersionRef ref = new SimpleProjectVersionRef( "org.group", "artifact", "1.0-SNAPSHOT" );
         final ConcreteResource cr = new ConcreteResource( LOCATION, fixture.snapshotMetadataPath( ref ) );
         final TestDownload download = new TestDownload( ROOT + testResource );
 
@@ -77,7 +78,7 @@ public class VersionResolverImplTest
     {
         final String testResource = "2-snapshots-1-location/two-snapshots.xml";
 
-        final ProjectVersionRef ref = new ProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
+        final ProjectVersionRef ref = new SimpleProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
         final ConcreteResource cr = new ConcreteResource( LOCATION, fixture.snapshotMetadataPath( ref ) );
         final TestDownload download = new TestDownload( ROOT + testResource );
 
@@ -99,7 +100,7 @@ public class VersionResolverImplTest
         final String testResource = "2-snapshots-2-locations/maven-metadata-1.xml";
         final String testResource2 = "2-snapshots-2-locations/maven-metadata-2.xml";
 
-        final ProjectVersionRef ref = new ProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
+        final ProjectVersionRef ref = new SimpleProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
 
         final String path = fixture.snapshotMetadataPath( ref );
 
@@ -126,7 +127,7 @@ public class VersionResolverImplTest
         final String testResource = "2-snapshots-2-locations/maven-metadata-1.xml";
         final String testResource2 = "2-snapshots-2-locations/maven-metadata-2.xml";
 
-        final ProjectVersionRef ref = new ProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
+        final ProjectVersionRef ref = new SimpleProjectVersionRef( "org.group2", "artifact", "1.0-SNAPSHOT" );
 
         final String path = fixture.snapshotMetadataPath( ref );
 

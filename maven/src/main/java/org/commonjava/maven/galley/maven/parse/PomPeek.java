@@ -38,6 +38,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.model.Transfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -370,13 +371,13 @@ public class PomPeek
         boolean valid = false;
         if ( isValidArtifactId( a ) && isValidGroupId( g ) && isValidVersion( v ) )
         {
-            key = new ProjectVersionRef( g, a, v );
+            key = new SimpleProjectVersionRef( g, a, v );
             valid = true;
         }
 
         if ( isValidArtifactId( pa ) && isValidGroupId( pg ) && isValidVersion( pv ) )
         {
-            parentKey = new ProjectVersionRef( pg, pa, pv );
+            parentKey = new SimpleProjectVersionRef( pg, pa, pv );
         }
 
         return valid;

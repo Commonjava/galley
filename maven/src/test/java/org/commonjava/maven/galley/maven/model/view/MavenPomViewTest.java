@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.GalleyMavenXMLException;
 import org.junit.Test;
 
