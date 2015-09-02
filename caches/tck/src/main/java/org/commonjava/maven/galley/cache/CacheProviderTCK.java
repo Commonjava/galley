@@ -15,9 +15,16 @@
  */
 package org.commonjava.maven.galley.cache;
 
-import static org.apache.commons.lang.StringUtils.join;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.apache.commons.io.IOUtils;
+import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
+import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.SimpleLocation;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -26,16 +33,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
-import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.io.NoOpTransferDecorator;
-import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.junit.Test;
+import static org.apache.commons.lang.StringUtils.join;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public abstract class CacheProviderTCK
 {
@@ -71,7 +71,7 @@ public abstract class CacheProviderTCK
 
         cache.lockWrite( res );
 
-        final Transfer txfr = new Transfer( res, cache, new NoOpFileEventManager(), new NoOpTransferDecorator() );
+        final Transfer txfr = new Transfer( res, cache, new TestFileEventManager(), new TestTransferDecorator() );
 
         OutputStream out = null;
         try

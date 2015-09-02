@@ -15,15 +15,7 @@
  */
 package org.commonjava.maven.galley.transport.htcli.testutil;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.commonjava.maven.galley.auth.PasswordEntry;
-import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
@@ -35,6 +27,12 @@ import org.commonjava.test.http.ContentResponse;
 import org.commonjava.test.http.TestHttpServer;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpTestFixture
     extends ExternalResource
@@ -81,9 +79,9 @@ public class HttpTestFixture
             throw new RuntimeException( "Failed to setup temp folder.", e );
         }
 
-        events = new NoOpFileEventManager();
+        events = new TestFileEventManager();
 
-        decorator = new NoOpTransferDecorator();
+        decorator = new TestTransferDecorator();
 
         cache = new TestCacheProvider( folder.newFolder( "cache" ), events, decorator );
 

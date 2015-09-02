@@ -16,8 +16,6 @@
 package org.commonjava.maven.galley.testing.core;
 
 import org.commonjava.maven.galley.TransferManager;
-import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.nfc.NoOpNotFoundCache;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -25,8 +23,10 @@ import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.testing.core.cache.TestCacheProvider;
+import org.commonjava.maven.galley.testing.core.event.TestFileEventManager;
+import org.commonjava.maven.galley.testing.core.io.TestTransferDecorator;
+import org.commonjava.maven.galley.testing.core.transport.TestLocationExpander;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
-import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -66,17 +66,17 @@ public class ApiFixture
     {
         if ( locations == null )
         {
-            locations = new NoOpLocationExpander();
+            locations = new TestLocationExpander();
         }
 
         if ( decorator == null )
         {
-            decorator = new NoOpTransferDecorator();
+            decorator = new TestTransferDecorator();
         }
 
         if ( events == null )
         {
-            events = new NoOpFileEventManager();
+            events = new TestFileEventManager();
         }
 
         if ( cache == null )
