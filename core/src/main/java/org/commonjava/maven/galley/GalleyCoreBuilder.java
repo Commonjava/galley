@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
@@ -105,8 +106,8 @@ public class GalleyCoreBuilder
             transportManager = new TransportManagerImpl( transports );
         }
 
-        handlerExecutor = Executors.newFixedThreadPool( 2 );
-        batchExecutor = Executors.newFixedThreadPool( 2 );
+        handlerExecutor = Executors.newFixedThreadPool( 2, new NamedThreadFactory( "transfer-handlers", true, 4 ) );
+        batchExecutor = Executors.newFixedThreadPool( 2, new NamedThreadFactory( "transfer-batches", true, 4 ) );
 
         if ( decorator == null )
         {
