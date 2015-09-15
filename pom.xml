@@ -114,7 +114,12 @@
         <artifactId>atlas-identities</artifactId>
         <version>${atlasVersion}</version>
       </dependency>
-      
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-bindings-jackson-identities</artifactId>
+        <version>${atlasVersion}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
@@ -126,7 +131,7 @@
       <dependency>
         <groupId>org.commonjava.util</groupId>
         <artifactId>http-testserver</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
         <scope>test</scope>
       </dependency>
       
@@ -149,6 +154,12 @@
       <dependency>
         <groupId>org.jboss.weld.se</groupId>
         <artifactId>weld-se-core</artifactId>
+        <version>1.1.8.Final</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.weld.se</groupId>
+        <artifactId>weld-se</artifactId>
         <version>1.1.8.Final</version>
         <scope>test</scope>
       </dependency>
@@ -239,6 +250,7 @@
     <module>transports</module>
     <module>testing</module>
     <module>maven</module>
+    <module>cdi-embedder</module>
   </modules>
   
   <build>

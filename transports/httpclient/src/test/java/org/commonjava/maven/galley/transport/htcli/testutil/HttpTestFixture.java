@@ -23,8 +23,8 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
-import org.commonjava.test.http.ContentResponse;
-import org.commonjava.test.http.TestHttpServer;
+import org.commonjava.test.http.expect.ContentResponse;
+import org.commonjava.test.http.expect.ExpectationServer;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -41,7 +41,7 @@ public class HttpTestFixture
 
     public final TemporaryFolder folder = new TemporaryFolder();
 
-    public final TestHttpServer server;
+    public final ExpectationServer server;
 
     private final FileEventManager events;
 
@@ -68,7 +68,7 @@ public class HttpTestFixture
         }
 
         this.baseResource = br;
-        server = new TestHttpServer( baseResource );
+        server = new ExpectationServer( baseResource );
 
         try
         {
@@ -109,7 +109,7 @@ public class HttpTestFixture
         return folder;
     }
 
-    public TestHttpServer getServer()
+    public ExpectationServer getServer()
     {
         return server;
     }
