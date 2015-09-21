@@ -952,7 +952,7 @@ public class MavenPomView
     }
 
     /**
-     * Apply Maven expression resolution rules to substitute values from this POM into the provided expression.
+     * Apply Maven expression resolution validate to substitute values from this POM into the provided expression.
      * 
      * @param expression The expression to resolve
      * @param activeProfileIds The profiles to consider active, whose elements should be treated as merged with

@@ -220,14 +220,12 @@ public class MavenPomReader
                                                  final EventMetadata eventMetadata )
         throws GalleyMavenException, TransferException
     {
-        final Transfer transfer = pom;
-
-        final Document doc = xml.parse( transfer, eventMetadata );
         DocRef<ProjectVersionRef> dr = getFirstCached( ref, Collections.singletonList( pom.getLocation() ) );
 
         if ( dr == null )
         {
-            dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation(), doc );
+            final Document doc = xml.parse( pom, eventMetadata );
+            dr = new DocRef<ProjectVersionRef>( ref, pom.getLocation(), doc );
         }
 
         if ( cache )
