@@ -33,7 +33,7 @@ import org.commonjava.maven.galley.util.TransferOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Transfer
+public class Transfer
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
