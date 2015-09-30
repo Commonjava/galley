@@ -105,6 +105,11 @@ public class GalleyMavenBuilder
                 new ArtifactMetadataManagerImpl( coreBuilder.getTransferManager(), coreBuilder.getLocationExpander() );
         }
 
+        if ( xmlInfra == null )
+        {
+            xmlInfra = new XMLInfrastructure();
+        }
+
         if ( metaReader == null )
         {
             metaReader = new MavenMetadataReader( xmlInfra, coreBuilder.getLocationExpander(), metadata, xpathManager );
@@ -125,11 +130,6 @@ public class GalleyMavenBuilder
         if ( pluginDefaults == null )
         {
             pluginDefaults = new StandardMaven304PluginDefaults();
-        }
-
-        if ( xmlInfra == null )
-        {
-            xmlInfra = new XMLInfrastructure();
         }
 
         if ( pluginImplications == null )
