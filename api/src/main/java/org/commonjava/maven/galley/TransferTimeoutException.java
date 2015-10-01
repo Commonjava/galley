@@ -15,20 +15,79 @@
  */
 package org.commonjava.maven.galley;
 
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.util.UrlUtils;
+
+import java.net.MalformedURLException;
+
 public class TransferTimeoutException
     extends TransferException
 {
 
     private static final long serialVersionUID = 1L;
 
-    public TransferTimeoutException( final String format, final Object... params )
+    private final Location location;
+
+    private final String url;
+
+    public TransferTimeoutException( final Location location, String url, final String format, final Object... params )
     {
         super( format, params );
+        this.location = location;
+        this.url = url;
     }
 
-    public TransferTimeoutException( final String format, final Throwable error, final Object... params )
+    public TransferTimeoutException( final Transfer target, final String format, final Object... params )
+    {
+        super( format, params );
+        this.location = target.getLocation();
+        String u;
+        try
+        {
+            u = UrlUtils.buildUrl( target.getResource() );
+        }
+        catch ( MalformedURLException e )
+        {
+            u = target.getLocation().getUri() + target.getPath();
+        }
+
+        this.url = u;
+    }
+
+    public TransferTimeoutException( final ConcreteResource target, final String format, final Object... params )
+    {
+        super( format, params );
+        this.location = target.getLocation();
+        String u;
+        try
+        {
+            u = UrlUtils.buildUrl( target );
+        }
+        catch ( MalformedURLException e )
+        {
+            u = target.getLocation().getUri() + target.getPath();
+        }
+
+        this.url = u;
+    }
+
+    public TransferTimeoutException( final Location location, final String url, final String format, final Throwable error, final Object... params )
     {
         super( format, error, params );
+        this.location = location;
+        this.url = url;
+    }
+
+    public Location getLocation()
+    {
+        return location;
+    }
+
+    public String getUrl()
+    {
+        return url;
     }
 
 }

@@ -103,7 +103,7 @@ public class ExistenceHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferTimeoutException( "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferTimeoutException( transfer, "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
         catch ( final Exception e )

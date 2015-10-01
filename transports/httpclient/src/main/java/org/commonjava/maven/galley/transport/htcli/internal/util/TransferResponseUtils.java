@@ -34,6 +34,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,18 +48,15 @@ public final class TransferResponseUtils
     {
     }
 
-    public static boolean handleUnsuccessfulResponse( final HttpUriRequest request,
-                                                                    final CloseableHttpResponse response,
-                                                                    final String url )
+    public static boolean handleUnsuccessfulResponse( final HttpUriRequest request, final CloseableHttpResponse response,
+                                                      HttpLocation location, final String url )
         throws TransferException
     {
-        return handleUnsuccessfulResponse( request, response, url, true );
+        return handleUnsuccessfulResponse( request, response, location, url, true );
     }
 
-    public static boolean handleUnsuccessfulResponse( final HttpUriRequest request,
-                                                                    final CloseableHttpResponse response,
-                                                                    final String url,
-                                                           final boolean graceful404 )
+    public static boolean handleUnsuccessfulResponse( final HttpUriRequest request, final CloseableHttpResponse response,
+                                                      HttpLocation location, final String url, final boolean graceful404 )
         throws TransferException
     {
         final Logger logger = LoggerFactory.getLogger( TransferResponseUtils.class );
@@ -86,7 +84,7 @@ public final class TransferResponseUtils
 
                 if ( NON_SERVER_GATEWAY_ERRORS.contains( sc ) || ( sc > 499 && sc < 599 ) )
                 {
-                    throw new BadGatewayException( sc, "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
+                    throw new BadGatewayException( location, url, sc, "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
                         + new String( out.toByteArray() ) ) );
                 }
                 else
