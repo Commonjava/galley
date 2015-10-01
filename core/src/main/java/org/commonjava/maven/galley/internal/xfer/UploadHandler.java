@@ -129,7 +129,7 @@ public class UploadHandler
         }
         catch ( final TimeoutException e )
         {
-            throw new TransferTimeoutException( "Timed-out publish: {}. Reason: {}", e, resource, e.getMessage() );
+            throw new TransferTimeoutException( resource, "Timed-out publish: {}. Reason: {}", e, resource, e.getMessage() );
         }
         finally
         {

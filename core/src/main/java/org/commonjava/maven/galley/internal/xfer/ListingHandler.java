@@ -99,7 +99,7 @@ public class ListingHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferTimeoutException( "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferTimeoutException( target, "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
         catch ( final Exception e )

@@ -173,7 +173,7 @@ public class DownloadHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferTimeoutException( "Timeout on: {}", e, target );
+                throw new TransferTimeoutException( target, "Timeout on: {}", e, target );
             }
         }
 

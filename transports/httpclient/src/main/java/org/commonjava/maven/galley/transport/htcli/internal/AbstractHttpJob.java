@@ -102,19 +102,19 @@ public abstract class AbstractHttpJob
             if ( !successStatuses.contains( sc ) )
             {
                 logger.debug( "Detected failure response: " + sc );
-                success = TransferResponseUtils.handleUnsuccessfulResponse( request, response, url );
+                success = TransferResponseUtils.handleUnsuccessfulResponse( request, response, location, url );
                 logger.debug( "Returning non-error failure response for code: " + sc );
                 return false;
             }
         }
         catch ( final NoHttpResponseException e )
         {
-            throw new TransferTimeoutException( "Repository remote request failed for: {}. Reason: {}", e, url,
+            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}", e, url,
                                                 e.getMessage() );
         }
         catch ( final ConnectTimeoutException e )
         {
-            throw new TransferTimeoutException( "Repository remote request failed for: {}. Reason: {}", e, url,
+            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}", e, url,
                                                 e.getMessage() );
         }
         catch ( final ClientProtocolException e )
