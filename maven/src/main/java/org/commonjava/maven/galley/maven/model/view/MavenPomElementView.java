@@ -70,6 +70,18 @@ public class MavenPomElementView
         return xmlView.getProfileIdFor( element );
     }
 
+    protected String getManagedValue( String named )
+            throws GalleyMavenException
+    {
+        final MavenPomElementView mgmt = getManagementElement();
+        if ( mgmt != null )
+        {
+            return mgmt.getValue( named );
+        }
+
+        return null;
+    }
+
     protected String getValueWithManagement( final String named )
         throws GalleyMavenException
     {
@@ -77,11 +89,7 @@ public class MavenPomElementView
         //        logger.info( "Value of path: '{}' local to: {} is: '{}'\nIn: {}", named, element, value, pomView.getRef() );
         if ( value == null )
         {
-            final MavenPomElementView mgmt = getManagementElement();
-            if ( mgmt != null )
-            {
-                return mgmt.getValue( named );
-            }
+            return getManagedValue( named );
         }
 
         return value;
@@ -125,6 +133,11 @@ public class MavenPomElementView
         }
 
         return nodes;
+    }
+
+    protected String getManagementXpathFragment()
+    {
+        return managementXpathFragment;
     }
 
     private void initManagementXpaths()

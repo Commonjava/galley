@@ -25,13 +25,17 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 public class MavenGAVView
-    extends MavenGAView
-    implements ProjectVersionRefView
+        extends MavenGAView
+        implements ProjectVersionRefView
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private String version;
+    private String rawVersion;
+
+    private String managedVersion;
+
+    private boolean versionLookupFinished;
 
     public MavenGAVView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
     {
@@ -44,22 +48,53 @@ public class MavenGAVView
     }
 
     @Override
-    public synchronized String getVersion()
-        throws GalleyMavenException
+    public String getVersion()
+            throws GalleyMavenException
     {
-        if ( version == null )
+        lookupVersion();
+
+        return rawVersion == null ? managedVersion : rawVersion;
+    }
+
+    private synchronized void lookupVersion()
+            throws GalleyMavenException
+    {
+        if ( !versionLookupFinished && ( rawVersion == null || managedVersion == null ) )
         {
+            versionLookupFinished = true;
+
             //            final Logger logger = LoggerFactory.getLogger( getClass() );
             //            logger.info( "Resolving version for: {}[{}:{}]\nIn: {}", getClass().getSimpleName(), getGroupId(), getArtifactId(), pomView.getRef() );
-            version = getValueWithManagement( V );
+            rawVersion = getValue( V );
+            if ( getManagementXpathFragment() != null )
+            {
+                managedVersion = getManagedValue( V );
+            }
+        }
+    }
+
+    public String getRawVersion()
+            throws GalleyMavenException
+    {
+        lookupVersion();
+        return rawVersion;
+    }
+
+    public String getManagedVersion()
+            throws GalleyMavenException
+    {
+        if ( getManagementXpathFragment() != null )
+        {
+            lookupVersion();
+            return managedVersion;
         }
 
-        return version;
+        return null;
     }
 
     @Override
     public ProjectVersionRef asProjectVersionRef()
-        throws GalleyMavenException
+            throws GalleyMavenException
     {
         try
         {
@@ -67,20 +102,43 @@ public class MavenGAVView
         }
         catch ( final IllegalArgumentException e )
         {
-            throw new GalleyMavenException( "Cannot render ProjectVersionRef: {}:{}:{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
-                                            e.getMessage() );
+            throw new GalleyMavenException( "Cannot render ProjectVersionRef: {}:{}:{}. Reason: {}", e, getGroupId(),
+                                            getArtifactId(), getVersion(), e.getMessage() );
         }
     }
 
     protected void setVersion( final String version )
     {
-        this.version = version;
+        setRawVersion( version );
+    }
+
+    protected void setRawVersion( String version )
+    {
+        this.rawVersion = version;
+    }
+
+    protected void setManagedVersion( String version )
+    {
+        this.managedVersion = version;
+    }
+
+    protected void setVersionLookupDone( boolean done )
+    {
+        this.versionLookupFinished = done;
     }
 
     @Override
     public String toString()
     {
-        return String.format( "%s [%s:%s:%s]", getClass().getSimpleName(), getGroupId(), getArtifactId(), version == null ? "unresolved" : version );
+        String v = rawVersion;
+        if ( v == null )
+        {
+            v = managedVersion;
+        }
+
+        return String.format( "%s [%s:%s:%s]%s", getClass().getSimpleName(), getGroupId(), getArtifactId(),
+                              v == null ? "unresolved" : v,
+                              managedVersion == null ? "" : " (managed from: " + managedVersion + ")" );
     }
 
     @Override
@@ -92,7 +150,7 @@ public class MavenGAVView
         }
         catch ( final GalleyMavenException e )
         {
-            logger.warn( "Failed to lookup management element. Reason: {}", e, e.getMessage() );
+            logger.warn( "Failed to lookupVersion management element. Reason: {}", e, e.getMessage() );
         }
 
         return false;

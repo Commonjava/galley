@@ -38,8 +38,10 @@ import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.ident.util.JoinString;
+import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileNotFoundEvent;
@@ -746,9 +748,14 @@ public class TransferManagerImpl
                 final TransferException error = retriever.getError();
                 if ( error != null )
                 {
-                    errors.put( resource, error );
-                    retrievers.remove( retriever );
                     logger.warn( "ERROR: {}...{}", error, resource, error.getMessage() );
+                    retrievers.remove( retriever );
+
+                    if ( !( error instanceof BadGatewayException ) && !( error instanceof TransferTimeoutException ) )
+                    {
+                        errors.put( resource, error );
+                    }
+
                     continue;
                 }
 
