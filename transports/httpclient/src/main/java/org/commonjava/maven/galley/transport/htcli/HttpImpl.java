@@ -46,6 +46,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
@@ -257,11 +258,19 @@ public class HttpImpl
         {
             try
             {
-                final SSLContext ctx = SSLContexts.custom()
-                                                  .useProtocol( SSLConnectionSocketFactory.TLS )
-                                                  .loadKeyMaterial( ks, kcPass.toCharArray() )
-                                                  .loadTrustMaterial( ts, null )
-                                                  .build();
+                SSLContextBuilder sslBuilder = SSLContexts.custom()
+                                              .useProtocol( SSLConnectionSocketFactory.TLS );
+                if ( ks != null )
+                {
+                    sslBuilder.loadKeyMaterial( ks, kcPass.toCharArray() );
+                }
+
+                if ( ts != null )
+                {
+                    sslBuilder.loadTrustMaterial( ts, null );
+                }
+
+                SSLContext ctx = sslBuilder.build();
 
                 return new SSLConnectionSocketFactory( ctx, new DefaultHostnameVerifier() );
             }
