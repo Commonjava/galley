@@ -106,19 +106,7 @@ public class FileCacheProvider
         final Transfer txfr = getTransfer( resource );
         synchronized ( txfr )
         {
-            final String altDir = resource.getLocation()
-                                          .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
-
-            File f;
-            if ( altDir == null )
-            {
-                f = new File( getFilePath( resource ) );
-            }
-            else
-            {
-                f = new File( altDir, resource.getPath() );
-            }
-
+            File f = getRawFile( resource );
             if ( resource.isRoot() && !f.isDirectory() )
             {
                 f.mkdirs();
@@ -165,6 +153,24 @@ public class FileCacheProvider
         }
     }
 
+    private File getRawFile( ConcreteResource resource )
+    {
+        final String altDir = resource.getLocation()
+                                      .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
+
+        File f = null;
+        if ( altDir == null )
+        {
+            f = new File( getFilePath( resource ) );
+        }
+        else
+        {
+            f = new File( altDir, resource.getPath() );
+        }
+
+        return f;
+    }
+
     @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
@@ -207,7 +213,7 @@ public class FileCacheProvider
     @Override
     public boolean exists( final ConcreteResource resource )
     {
-        final File f = getDetachedFile( resource );
+        final File f = getRawFile( resource );
         //        logger.info( "Checking for existence of cache file: {}", f );
         return f.exists();
     }
