@@ -25,6 +25,8 @@ public interface HttpLocation
 
     String getServerCertPem();
 
+    LocationTrustType getTrustType();
+
     String getHost();
 
     int getPort();
