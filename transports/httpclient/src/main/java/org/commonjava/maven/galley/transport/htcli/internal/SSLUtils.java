@@ -15,11 +15,6 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
-import org.bouncycastle.asn1.x500.RDN;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +28,6 @@ import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -171,8 +165,6 @@ public final class SSLUtils
             Set<String> aliases = new HashSet<String>();
             aliases.add( aliasPrefix + i );
 
-            extractAliases( cert, aliases );
-
             KeyStore.TrustedCertificateEntry ksEntry = new KeyStore.TrustedCertificateEntry( cert );
             for ( String alias : aliases )
             {
@@ -184,42 +176,6 @@ public final class SSLUtils
         }
 
         return ks;
-    }
-
-    public static void extractAliases( Certificate certificate, Set<String> aliases )
-            throws CertificateParsingException
-    {
-        X509Certificate cert = (X509Certificate) certificate;
-        X500Principal x500Principal = cert.getSubjectX500Principal();
-        X500Name x500Name = new X500Name( x500Principal.getName( X500Principal.RFC1779 ) );
-
-        RDN[] matchingRDNs = x500Name.getRDNs( BCStyle.CN );
-        if ( matchingRDNs != null && matchingRDNs.length > 0 )
-        {
-            RDN cn = matchingRDNs[0];
-            AttributeTypeAndValue typeAndValue = cn.getFirst();
-            if ( typeAndValue != null )
-            {
-                aliases.add( IETFUtils.valueToString( typeAndValue.getValue() ) );
-            }
-        }
-
-        Collection<List<?>> subjectAlternativeNames = cert.getSubjectAlternativeNames();
-        if ( subjectAlternativeNames != null )
-        {
-            for ( List<?> names : subjectAlternativeNames )
-            {
-                if ( names.size() > 1 && ( DNSNAME_TYPE.equals( names.get( 0 ) ) ) )
-                {
-                    aliases.add( (String) names.get( 1 ) );
-                }
-            }
-        }
-        else
-        {
-            Logger logger = LoggerFactory.getLogger( SSLUtils.class );
-            logger.debug( "NO SubjectAlternativeNames available!" );
-        }
     }
 
     private static List<String> readLines( final String content )
