@@ -48,6 +48,9 @@
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.15.1</atlasVersion>
     <partylineVersion>1.4</partylineVersion>
+    <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
+    <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
+    <javaVersion>1.7</javaVersion>
   </properties>
 
   <dependencyManagement>
@@ -259,6 +262,7 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
+            <!-- override javaVersion above so we can include this in PME, which has to run in JDK 1.6 environments still. -->
             <source>1.6</source>
             <target>1.6</target>
           </configuration>

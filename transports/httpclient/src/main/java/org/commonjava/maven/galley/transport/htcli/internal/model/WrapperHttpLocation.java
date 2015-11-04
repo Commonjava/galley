@@ -23,6 +23,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.conf.ProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.model.LocationTrustType;
 
 public class WrapperHttpLocation
     implements HttpLocation
@@ -69,6 +70,13 @@ public class WrapperHttpLocation
     @Override
     public String getServerCertPem()
     {
+        return null;
+    }
+
+    @Override
+    public LocationTrustType getTrustType()
+    {
+        // FIXME: Is this something we should handle in the global config?
         return null;
     }
 

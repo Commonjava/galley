@@ -43,14 +43,15 @@ public final class PathUtils
 
     public static String normalize( final String... path )
     {
-        if ( path == null || path.length < 1 )
+        if ( path == null || path.length < 1 || ( path.length == 1 && path[0] == null ) )
         {
             return ROOT;
         }
 
         final StringBuilder sb = new StringBuilder();
         int idx = 0;
-        parts: for ( String part : path )
+        parts:
+        for ( String part : path )
         {
             if ( part == null || part.length() < 1 || "/".equals( part ) )
             {
@@ -99,7 +100,7 @@ public final class PathUtils
             idx++;
         }
 
-        if ( path[path.length - 1].endsWith( "/" ) )
+        if ( path[path.length - 1] != null && path[path.length - 1].endsWith( "/" ) )
         {
             sb.append( "/" );
         }

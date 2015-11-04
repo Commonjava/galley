@@ -46,12 +46,15 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.internal.CloseBlockingConnectionManager;
 import org.commonjava.maven.galley.transport.htcli.internal.SSLUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.model.LocationTrustType;
+import org.commonjava.maven.galley.transport.htcli.util.CertEnumerator;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.LocationUtils;
 import org.slf4j.Logger;
@@ -64,8 +67,6 @@ public class HttpImpl
 
     private final PasswordManager passwords;
 
-    private final CloseBlockingConnectionManager connectionManager;
-
     public HttpImpl( final PasswordManager passwords )
     {
         this( passwords, 200 );
@@ -74,15 +75,6 @@ public class HttpImpl
     public HttpImpl( final PasswordManager passwords, final int maxConnections )
     {
         this.passwords = passwords;
-        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal( 200 );
-        connectionManager = new CloseBlockingConnectionManager( cm );
-    }
-
-    public HttpImpl( final PasswordManager passwordManager, final HttpClientConnectionManager connectionManager )
-    {
-        passwords = passwordManager;
-        this.connectionManager = new CloseBlockingConnectionManager( connectionManager );
     }
 
     @Override
@@ -96,14 +88,15 @@ public class HttpImpl
     public CloseableHttpClient createClient( final HttpLocation location )
         throws IOException
     {
-        final HttpClientBuilder builder = HttpClients.custom()
-                                                     .setConnectionManager( connectionManager );
+        final HttpClientBuilder builder = HttpClients.custom();
 
         if ( location != null )
         {
             final LayeredConnectionSocketFactory sslFac = createSSLSocketFactory( location );
             if ( sslFac != null )
             {
+//                HostnameVerifier verifier = new SSLHostnameVerifierImpl( );
+//                builder.setSSLHostnameVerifier( verifier );
                 builder.setSSLSocketFactory( sslFac );
             }
 
@@ -193,6 +186,7 @@ public class HttpImpl
 
             try
             {
+                logger.debug( "Reading Client SSL key from:\n\n{}\n\n", kcPem );
                 ks = SSLUtils.readKeyAndCert( kcPem, kcPass );
 
                 logger.debug( "Keystore contains the following certificates: {}", new CertEnumerator( ks ) );
@@ -229,6 +223,7 @@ public class HttpImpl
         {
             try
             {
+                logger.debug( "Reading Server SSL cert from:\n\n{}\n\n", sPem );
                 ts = SSLUtils.readCerts( sPem, location.getHost() );
 
                 //                logger.debug( "Trust store contains the following certificates:\n{}", new CertEnumerator( ts ) );
@@ -257,11 +252,28 @@ public class HttpImpl
         {
             try
             {
-                final SSLContext ctx = SSLContexts.custom()
-                                                  .useProtocol( SSLConnectionSocketFactory.TLS )
-                                                  .loadKeyMaterial( ks, kcPass.toCharArray() )
-                                                  .loadTrustMaterial( ts, null )
-                                                  .build();
+                SSLContextBuilder sslBuilder = SSLContexts.custom()
+                                              .useProtocol( SSLConnectionSocketFactory.TLS );
+                if ( ks != null )
+                {
+                    logger.debug( "Loading key material for SSL context..." );
+                    sslBuilder.loadKeyMaterial( ks, kcPass.toCharArray() );
+                }
+
+                if ( ts != null )
+                {
+                    logger.debug( "Loading trust material for SSL context..." );
+
+                    LocationTrustType trustType = location.getTrustType();
+                    if ( trustType == null )
+                    {
+                        trustType = LocationTrustType.DEFAULT;
+                    }
+
+                    sslBuilder.loadTrustMaterial( ts, trustType.getTrustStrategy() );
+                }
+
+                SSLContext ctx = sslBuilder.build();
 
                 return new SSLConnectionSocketFactory( ctx, new DefaultHostnameVerifier() );
             }
@@ -305,6 +317,5 @@ public class HttpImpl
     public void close()
         throws IOException
     {
-        connectionManager.reallyShutdown();
     }
 }

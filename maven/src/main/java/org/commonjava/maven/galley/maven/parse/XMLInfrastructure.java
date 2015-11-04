@@ -101,8 +101,8 @@ public class XMLInfrastructure
 
             {
                 put( "org.apache.xml.dtm.DTMManager", "org.apache.xml.dtm.ref.DTMManagerDefault" );
-                put( "com.sun.org.apache.xml.internal.dtm.DTMManager",
-                     "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault" );
+                put( "com.sun.org.apache.xml.INTERNAL.dtm.DTMManager",
+                     "com.sun.org.apache.xml.INTERNAL.dtm.ref.DTMManagerDefault" );
             }
 
             private static final long serialVersionUID = 1L;
@@ -458,14 +458,8 @@ public class XMLInfrastructure
         Document doc = null;
         try
         {
-            try
-            {
-                stream = transfer.openInputStream( false );
-                doc = parseDocument( transfer.toString(), stream );
-            }
-            catch ( final GalleyMavenXMLException e )
-            {
-            }
+            stream = transfer.openInputStream( false );
+            doc = parseDocument( transfer.toString(), stream );
         }
         catch ( final IOException e )
         {

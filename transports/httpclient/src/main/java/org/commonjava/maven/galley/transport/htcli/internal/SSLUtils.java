@@ -15,9 +15,10 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import static org.apache.commons.codec.binary.Base64.decodeBase64;
-import static org.apache.commons.io.IOUtils.closeQuietly;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.security.auth.x500.X500Principal;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -31,16 +32,26 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static org.apache.commons.codec.binary.Base64.decodeBase64;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public final class SSLUtils
 {
+
+    private static final Integer DNSNAME_TYPE = 2;
 
     private SSLUtils()
     {
@@ -143,13 +154,24 @@ public final class SSLUtils
         }
 
         int i = 0;
+        Logger logger = LoggerFactory.getLogger( SSLUtils.class );
         for ( final String entry : entries )
         {
             final byte[] data = decodeBase64( entry );
 
             final Certificate c = certFactory.generateCertificate( new ByteArrayInputStream( data ) );
+            X509Certificate cert = (X509Certificate) c;
 
-            ks.setCertificateEntry( aliasPrefix + i, c );
+            Set<String> aliases = new HashSet<String>();
+            aliases.add( aliasPrefix + i );
+
+            KeyStore.TrustedCertificateEntry ksEntry = new KeyStore.TrustedCertificateEntry( cert );
+            for ( String alias : aliases )
+            {
+                ks.setEntry( alias, ksEntry, null );
+                logger.info( "Storing trusted cert under alias: {}\n  with DN: {}", alias, cert.getSubjectDN().getName() );
+            }
+
             i++;
         }
 
