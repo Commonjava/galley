@@ -48,6 +48,7 @@
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.15.1</atlasVersion>
     <partylineVersion>1.4</partylineVersion>
+    <javaVersion>1.6</javaVersion>
   </properties>
 
   <dependencyManagement>
@@ -253,17 +254,4 @@
     <module>cdi-embedder</module>
   </modules>
   
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
 </project>
