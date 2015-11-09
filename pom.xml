@@ -48,6 +48,7 @@
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.15.1</atlasVersion>
     <partylineVersion>1.4</partylineVersion>
+    <jhttpcVersion>1.0-SNAPSHOT</jhttpcVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
     <javaVersion>1.7</javaVersion>
@@ -104,6 +105,12 @@
         <artifactId>galley-test-harness-core</artifactId>
         <version>0.10.4-SNAPSHOT</version>
         <scope>test</scope>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>jhttpc</artifactId>
+        <version>${jhttpcVersion}</version>
       </dependency>
       
       <dependency>

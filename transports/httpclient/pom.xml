@@ -29,6 +29,10 @@
   <name>Galley :: Transports :: HttpClient Transport</name>
   <dependencies>
     <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>jhttpc</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>

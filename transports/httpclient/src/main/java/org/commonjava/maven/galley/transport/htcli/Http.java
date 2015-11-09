@@ -26,6 +26,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 public interface Http
@@ -33,10 +34,10 @@ public interface Http
 {
 
     CloseableHttpClient createClient( HttpLocation location )
-        throws IOException;
+        throws GalleyException;
 
     CloseableHttpClient createClient()
-        throws IOException;
+        throws GalleyException;
 
     HttpClientContext createContext( HttpLocation location );
 

@@ -15,108 +15,83 @@
  */
 package org.commonjava.maven.galley.transport.htcli;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-
-import javax.net.ssl.SSLContext;
-
-import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.SSLContexts;
+import org.commonjava.maven.galley.GalleyException;
+import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
-import org.commonjava.maven.galley.transport.htcli.internal.CloseBlockingConnectionManager;
-import org.commonjava.maven.galley.transport.htcli.internal.SSLUtils;
+import org.commonjava.maven.galley.transport.htcli.internal.util.HttpFactoryPasswordDelegate;
+import org.commonjava.maven.galley.transport.htcli.internal.util.LocationLookup;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.maven.galley.transport.htcli.model.LocationTrustType;
-import org.commonjava.maven.galley.transport.htcli.util.CertEnumerator;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.LocationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.commonjava.util.jhttpc.HttpFactory;
+import org.commonjava.util.jhttpc.JHttpCException;
+import org.commonjava.util.jhttpc.model.SiteConfig;
+import org.commonjava.util.jhttpc.model.SiteConfigBuilder;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 public class HttpImpl
-    implements Http, Closeable
+        implements Http, Closeable
 {
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
     private final PasswordManager passwords;
+
+    private final HttpFactory httpFactory;
+
+    private final LocationLookup locationLookup;
 
     public HttpImpl( final PasswordManager passwords )
     {
-        this( passwords, 200 );
-    }
-
-    public HttpImpl( final PasswordManager passwords, final int maxConnections )
-    {
         this.passwords = passwords;
+        this.locationLookup = new LocationLookup();
+        this.httpFactory = new HttpFactory( new HttpFactoryPasswordDelegate( passwords, locationLookup ) );
     }
 
     @Override
     public CloseableHttpClient createClient()
-        throws IOException
+            throws GalleyException
     {
         return createClient( null );
     }
 
     @Override
     public CloseableHttpClient createClient( final HttpLocation location )
-        throws IOException
+            throws GalleyException
     {
-        final HttpClientBuilder builder = HttpClients.custom();
-
-        if ( location != null )
+        try
         {
-            final LayeredConnectionSocketFactory sslFac = createSSLSocketFactory( location );
-            if ( sslFac != null )
+            if ( location != null )
             {
-//                HostnameVerifier verifier = new SSLHostnameVerifierImpl( );
-//                builder.setSSLHostnameVerifier( verifier );
-                builder.setSSLSocketFactory( sslFac );
-            }
+                locationLookup.register( location );
 
-            if ( location.getProxyHost() != null )
+                int maxConnections = LocationUtils.getMaxConnections( location );
+                SiteConfigBuilder configBuilder = new SiteConfigBuilder( location.getName(), location.getUri() );
+                configBuilder.withAttributes( location.getAttributes() )
+                             .withKeyCertPem( location.getKeyCertPem() )
+                             .withMaxConnections( maxConnections );
+
+                SiteConfig config = configBuilder.build();
+
+                return httpFactory.createClient( config );
+            }
+            else
             {
-                final HttpRoutePlanner planner =
-                    new DefaultProxyRoutePlanner( new HttpHost( location.getProxyHost(), getProxyPort( location ) ) );
-                builder.setRoutePlanner( planner );
+                return httpFactory.createClient();
             }
-
-            final int timeout = 1000 * LocationUtils.getTimeoutSeconds( location );
-            builder.setDefaultRequestConfig( RequestConfig.custom()
-                                                          .setConnectionRequestTimeout( timeout )
-                                                          .setSocketTimeout( timeout )
-                                                          .setConnectTimeout( timeout )
-                                                          .build() );
         }
-
-
-        return builder.build();
+        catch ( JHttpCException e )
+        {
+            throw new TransferException( "Failed to initialize http client: %s", e, e.getMessage() );
+        }
     }
 
     private int getProxyPort( final HttpLocation location )
@@ -149,14 +124,14 @@ public class HttpImpl
             if ( location.getUser() != null )
             {
                 final String password =
-                    passwords.getPassword( new PasswordEntry( location, PasswordEntry.USER_PASSWORD ) );
+                        passwords.getPassword( new PasswordEntry( location, PasswordEntry.USER_PASSWORD ) );
                 creds.setCredentials( as, new UsernamePasswordCredentials( location.getUser(), password ) );
             }
 
             if ( location.getProxyHost() != null && location.getProxyUser() != null )
             {
                 final String password =
-                    passwords.getPassword( new PasswordEntry( location, PasswordEntry.PROXY_PASSWORD ) );
+                        passwords.getPassword( new PasswordEntry( location, PasswordEntry.PROXY_PASSWORD ) );
                 creds.setCredentials( new AuthScope( location.getProxyHost(), getProxyPort( location ) ),
                                       new UsernamePasswordCredentials( location.getProxyUser(), password ) );
             }
@@ -165,145 +140,6 @@ public class HttpImpl
         }
 
         return ctx;
-    }
-
-    private SSLConnectionSocketFactory createSSLSocketFactory( final HttpLocation location )
-        throws IOException
-    {
-        KeyStore ks = null;
-        KeyStore ts = null;
-
-        final String kcPem = location.getKeyCertPem();
-        final String kcPass = passwords.getPassword( new PasswordEntry( location, PasswordEntry.KEY_PASSWORD ) );
-        if ( kcPem != null )
-        {
-            if ( kcPass == null || kcPass.length() < 1 )
-            {
-                logger.error( "Invalid configuration. Location: {} cannot have an empty key password!",
-                              location.getUri() );
-                throw new IOException( "Location: " + location.getUri() + " is misconfigured!" );
-            }
-
-            try
-            {
-                logger.debug( "Reading Client SSL key from:\n\n{}\n\n", kcPem );
-                ks = SSLUtils.readKeyAndCert( kcPem, kcPass );
-
-                logger.debug( "Keystore contains the following certificates: {}", new CertEnumerator( ks ) );
-            }
-            catch ( final CertificateException e )
-            {
-                logger.error( String.format( "Invalid configuration. Location: %s has an invalid client certificate! Error: %s",
-                                             location.getUri(), e.getMessage() ), e );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final KeyStoreException e )
-            {
-                logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s",
-                                             location.getUri(), e.getMessage() ), e );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final NoSuchAlgorithmException e )
-            {
-                logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s",
-                                             location.getUri(), e.getMessage() ), e );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final InvalidKeySpecException e )
-            {
-                logger.error( String.format( "Invalid configuration. Invalid client key for repository: %s. Error: %s",
-                                             location.getUri(), e.getMessage() ), e );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-        }
-
-        final String sPem = location.getServerCertPem();
-        //        logger.debug( "Server certificate PEM:\n{}", sPem );
-        if ( sPem != null )
-        {
-            try
-            {
-                logger.debug( "Reading Server SSL cert from:\n\n{}\n\n", sPem );
-                ts = SSLUtils.readCerts( sPem, location.getHost() );
-
-                //                logger.debug( "Trust store contains the following certificates:\n{}", new CertEnumerator( ts ) );
-            }
-            catch ( final CertificateException e )
-            {
-                logger.error( String.format( "Invalid configuration. Location: %s has an invalid server certificate! Error: %s",
-                                             location.getUri(), e.getMessage() ), e );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final KeyStoreException e )
-            {
-                logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s",
-                                             location.getUri(), e.getMessage() ), e );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final NoSuchAlgorithmException e )
-            {
-                logger.error( String.format( "Invalid configuration. Cannot initialize keystore for repository: %s. Error: %s",
-                                             location.getUri(), e.getMessage() ), e );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-        }
-
-        if ( ks != null || ts != null )
-        {
-            try
-            {
-                SSLContextBuilder sslBuilder = SSLContexts.custom()
-                                              .useProtocol( SSLConnectionSocketFactory.TLS );
-                if ( ks != null )
-                {
-                    logger.debug( "Loading key material for SSL context..." );
-                    sslBuilder.loadKeyMaterial( ks, kcPass.toCharArray() );
-                }
-
-                if ( ts != null )
-                {
-                    logger.debug( "Loading trust material for SSL context..." );
-
-                    LocationTrustType trustType = location.getTrustType();
-                    if ( trustType == null )
-                    {
-                        trustType = LocationTrustType.DEFAULT;
-                    }
-
-                    sslBuilder.loadTrustMaterial( ts, trustType.getTrustStrategy() );
-                }
-
-                SSLContext ctx = sslBuilder.build();
-
-                return new SSLConnectionSocketFactory( ctx, new DefaultHostnameVerifier() );
-            }
-            catch ( final KeyManagementException e )
-            {
-                logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}",
-                              e, location.getUri(), e.getMessage() );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final UnrecoverableKeyException e )
-            {
-                logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}",
-                              e, location.getUri(), e.getMessage() );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final NoSuchAlgorithmException e )
-            {
-                logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}",
-                              e, location.getUri(), e.getMessage() );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-            catch ( final KeyStoreException e )
-            {
-                logger.error( "Invalid configuration. Cannot initialize SSL socket factory for repository: {}. Error: {}",
-                              e, location.getUri(), e.getMessage() );
-                throw new IOException( "Failed to initialize SSL connection for repository: " + location.getUri() );
-            }
-        }
-
-        return null;
     }
 
     @Override
@@ -315,7 +151,7 @@ public class HttpImpl
 
     @Override
     public void close()
-        throws IOException
+            throws IOException
     {
     }
 }

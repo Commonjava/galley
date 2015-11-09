@@ -30,6 +30,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.Transfer;
@@ -118,6 +119,10 @@ public abstract class AbstractHttpJob
                                                 e.getMessage() );
         }
         catch ( final ClientProtocolException e )
+        {
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
+        }
+        catch ( final GalleyException e )
         {
             throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
         }
