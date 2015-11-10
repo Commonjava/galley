@@ -45,4 +45,8 @@ public final class LocationUtils
                                       Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS );
     }
 
+    public static Integer getMaxConnections( Location location )
+    {
+        return location.getAttribute( Location.MAX_CONNECTIONS, Integer.class, Location.DEFAULT_MAX_CONNECTIONS );
+    }
 }

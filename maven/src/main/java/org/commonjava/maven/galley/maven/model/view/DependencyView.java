@@ -65,9 +65,9 @@ public class DependencyView
 
     private Set<ProjectRefView> exclusions;
 
-    public DependencyView( final MavenPomView pomView, final Element element )
+    public DependencyView( final MavenPomView pomView, final Element element, final OriginInfo originInfo )
     {
-        super( pomView, element, "dependencyManagement/dependencies/dependency" );
+        super( pomView, element, originInfo, "dependencyManagement/dependencies/dependency" );
     }
 
     public boolean isManaged()
@@ -130,13 +130,13 @@ public class DependencyView
     {
         if ( exclusions == null )
         {
-            final List<Node> nodes = getFirstNodesWithManagement( EXCLUSIONS );
+            final List<XmlNodeInfo> nodes = getFirstNodesWithManagement( EXCLUSIONS );
             if ( nodes != null )
             {
                 final Set<ProjectRefView> exclusions = new HashSet<ProjectRefView>();
-                for ( final Node node : nodes )
+                for ( final XmlNodeInfo node : nodes )
                 {
-                    exclusions.add( new MavenGAView( xmlView, (Element) node ) );
+                    exclusions.add( new MavenGAView( xmlView, (Element) node.getNode(), node.getOriginInfo() ) );
                 }
 
                 this.exclusions = exclusions;

@@ -48,10 +48,10 @@ public class PluginView
 
     private final MavenPluginImplications pluginImplications;
 
-    protected PluginView( final MavenPomView pomView, final Element element, final MavenPluginDefaults pluginDefaults,
+    protected PluginView( final MavenPomView pomView, final Element element, final OriginInfo originInfo, final MavenPluginDefaults pluginDefaults,
                           final MavenPluginImplications pluginImplications )
     {
-        super( pomView, element, "build/pluginManagement/plugins/plugin" );
+        super( pomView, element, originInfo, "build/pluginManagement/plugins/plugin" );
         this.pluginDefaults = pluginDefaults;
         this.pluginImplications = pluginImplications;
     }
@@ -69,13 +69,13 @@ public class PluginView
         {
             final List<PluginDependencyView> result = new ArrayList<PluginDependencyView>();
 
-            final List<Node> nodes = getFirstNodesWithManagement( "dependencies/dependency" );
+            final List<XmlNodeInfo> nodes = getFirstNodesWithManagement( "dependencies/dependency" );
             if ( nodes != null )
             {
-                for ( final Node node : nodes )
+                for ( final XmlNodeInfo node : nodes )
                 {
-                    logger.debug( "Adding plugin dependency for: {}", node.getNodeName() );
-                    result.add( new PluginDependencyView( xmlView, this, (Element) node ) );
+                    logger.debug( "Adding plugin dependency for: {}", node.getNode().getNodeName() );
+                    result.add( new PluginDependencyView( xmlView, this, (Element) node.getNode(), node.getOriginInfo() ) );
                 }
 
                 this.pluginDependencies = result;

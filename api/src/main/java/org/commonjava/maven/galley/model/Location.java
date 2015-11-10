@@ -26,11 +26,15 @@ public interface Location
 
     String ATTR_ALT_STORAGE_LOCATION = "alt-storage-location";
 
+    String MAX_CONNECTIONS = "max-connections";
+
     int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 30;
 
     int DEFAULT_CACHE_TIMEOUT_SECONDS = 86400;
 
     int MIN_CACHE_TIMEOUT_SECONDS = 3600;
+
+    int DEFAULT_MAX_CONNECTIONS = 10;
 
     boolean allowsDownloading();
 

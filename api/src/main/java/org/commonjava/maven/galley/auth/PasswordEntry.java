@@ -20,11 +20,11 @@ import org.commonjava.maven.galley.model.Location;
 public class PasswordEntry
 {
 
-    public static final String USER_PASSWORD = "userPassword";
+    public static final String USER_PASSWORD = "USER";
 
-    public static final String KEY_PASSWORD = "keyPassword";
+    public static final String KEY_PASSWORD = "KEY";
 
-    public static final String PROXY_PASSWORD = "proxyPassword";
+    public static final String PROXY_PASSWORD = "PROXY";
 
     private final Location location;
 

@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
+import org.commonjava.maven.galley.maven.model.view.OriginInfo;
 import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;
 import org.commonjava.maven.galley.maven.model.view.PluginView;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
@@ -51,7 +52,9 @@ public abstract class AbstractMavenPluginImplications
         map.put( V, pv.getVersion() );
 
         final Element element = pv.getElement();
-        return new PluginDependencyView( pv.getPomView(), pv, xml.createElement( element, "dependencies/dependency", map ) );
+        return new PluginDependencyView( pv.getPomView(), pv,
+                                         xml.createElement( element, "dependencies/dependency", map ),
+                                         new OriginInfo() );
     }
 
     @Override

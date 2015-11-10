@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.transport.htcli.internal;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +31,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.commonjava.maven.galley.BadGatewayException;
+import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.Transfer;
@@ -109,21 +112,37 @@ public abstract class AbstractHttpJob
         }
         catch ( final NoHttpResponseException e )
         {
-            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}", e, url,
-                                                e.getMessage() );
+            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
+                                                e, url, e.getMessage() );
         }
         catch ( final ConnectTimeoutException e )
         {
-            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}", e, url,
-                                                e.getMessage() );
+            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
+                                                e, url, e.getMessage() );
+        }
+        catch ( final SocketTimeoutException e )
+        {
+            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
+                                                e, url, e.getMessage() );
         }
         catch ( final ClientProtocolException e )
         {
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                                         e.getMessage() );
+        }
+        catch ( BadGatewayException e )
+        {
+            throw e;
+        }
+        catch ( final GalleyException e )
+        {
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                                         e.getMessage() );
         }
         catch ( final IOException e )
         {
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url, e.getMessage() );
+            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                                         e.getMessage() );
         }
 
         return true;

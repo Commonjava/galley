@@ -37,14 +37,14 @@ public class MavenGAVView
 
     private boolean versionLookupFinished;
 
-    public MavenGAVView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
+    public MavenGAVView( final MavenPomView pomView, final Element element, final OriginInfo originInfo, final String managementXpathFragment )
     {
-        super( pomView, element, managementXpathFragment );
+        super( pomView, element, originInfo, managementXpathFragment );
     }
 
-    public MavenGAVView( final MavenPomView pomView, final Element element )
+    public MavenGAVView( final MavenPomView pomView, final Element element, final OriginInfo originInfo )
     {
-        super( pomView, element );
+        this( pomView, element, originInfo, null );
     }
 
     @Override
