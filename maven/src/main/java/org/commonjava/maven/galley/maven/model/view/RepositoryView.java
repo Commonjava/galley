@@ -18,7 +18,7 @@ package org.commonjava.maven.galley.maven.model.view;
 import org.w3c.dom.Element;
 
 public class RepositoryView
-    extends AbstractMavenElementView<MavenPomView>
+    extends MavenPomElementView
 {
 
     private String url;
@@ -27,9 +27,9 @@ public class RepositoryView
 
     private String id;
 
-    public RepositoryView( final MavenPomView xmlView, final Element element )
+    public RepositoryView( final MavenPomView xmlView, final Element element, OriginInfo originInfo )
     {
-        super( xmlView, element );
+        super( xmlView, element, originInfo );
     }
 
     public synchronized String getUrl()

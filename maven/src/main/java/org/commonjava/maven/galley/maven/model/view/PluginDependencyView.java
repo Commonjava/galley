@@ -24,9 +24,9 @@ public class PluginDependencyView
 
     private final PluginView plugin;
 
-    public PluginDependencyView( final MavenPomView pomView, final PluginView plugin, final Element element )
+    public PluginDependencyView( final MavenPomView pomView, final PluginView plugin, final Element element, final OriginInfo originInfo )
     {
-        super( pomView, element );
+        super( pomView, element, originInfo );
         this.plugin = plugin;
     }
 

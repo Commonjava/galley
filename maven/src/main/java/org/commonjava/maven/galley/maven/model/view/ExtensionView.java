@@ -21,9 +21,9 @@ public class ExtensionView
     extends MavenGAVView
 {
 
-    public ExtensionView( final MavenPomView pomView, final Element element )
+    public ExtensionView( final MavenPomView pomView, final Element element, final OriginInfo originInfo )
     {
-        super( pomView, element );
+        super( pomView, element, originInfo );
     }
 
 }

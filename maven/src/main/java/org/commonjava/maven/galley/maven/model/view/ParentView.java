@@ -22,9 +22,9 @@ public class ParentView
     extends MavenGAVView
 {
 
-    public ParentView( final MavenPomView pomView, final Element element )
+    public ParentView( final MavenPomView pomView, final Element element, OriginInfo originInfo )
     {
-        super( pomView, element );
+        super( pomView, element, originInfo );
     }
 
     public String getRelativePath()

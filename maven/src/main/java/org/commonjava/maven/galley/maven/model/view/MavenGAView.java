@@ -32,14 +32,14 @@ public class MavenGAView
 
     private String artifactId;
 
-    public MavenGAView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
+    public MavenGAView( final MavenPomView pomView, final Element element, final OriginInfo originInfo, final String managementXpathFragment )
     {
-        super( pomView, element, managementXpathFragment );
+        super( pomView, element, originInfo, managementXpathFragment );
     }
 
-    public MavenGAView( final MavenPomView pomView, final Element element )
+    public MavenGAView( final MavenPomView pomView, final Element element, final OriginInfo originInfo )
     {
-        super( pomView, element, null );
+        super( pomView, element, originInfo, null );
     }
 
     @Override

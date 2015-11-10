@@ -237,7 +237,7 @@ public class MavenPomView
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
-            depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
+            depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return depViews;
@@ -257,7 +257,7 @@ public class MavenPomView
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
-            depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
+            depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return depViews;
@@ -302,7 +302,7 @@ public class MavenPomView
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
-            depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
+            depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return depViews;
@@ -323,7 +323,7 @@ public class MavenPomView
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
-            depViews.add( new DependencyView( node.getPomView(), node.getElement() ) );
+            depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return depViews;
@@ -453,7 +453,7 @@ public class MavenPomView
 
         if ( n != null )
         {
-            return new MavenPomElementView( this, n );
+            return new MavenPomElementView( this, n, new OriginInfo( ancestryDepth == 0 ) );
         }
 
         MavenPomElementView result = null;
@@ -481,7 +481,16 @@ public class MavenPomView
      */
     public DependencyView asDependency( final Element depElement )
     {
-        return new DependencyView( this, depElement );
+        return asDependency( depElement, new OriginInfo() );
+    }
+
+    /**
+     * Wrap the given DOM element in a {@link DependencyView} instance, to allow convenience methods to query
+     * the dependency information.
+     */
+    public DependencyView asDependency( final Element depElement, final OriginInfo originInfo )
+    {
+        return new DependencyView( this, depElement, originInfo );
     }
 
     /**
@@ -490,7 +499,16 @@ public class MavenPomView
      */
     public PluginView asPlugin( final Element element )
     {
-        return new PluginView( this, element, pluginDefaults, pluginImplications );
+        return asPlugin( element, new OriginInfo() );
+    }
+
+    /**
+     * Wrap the given DOM element in a {@link PluginView} instance, to allow convenience methods to query
+     * the plugin information.
+     */
+    public PluginView asPlugin( final Element element, final OriginInfo originInfo )
+    {
+        return new PluginView( this, element, originInfo, pluginDefaults, pluginImplications );
     }
 
     /**
@@ -504,7 +522,7 @@ public class MavenPomView
 
         if ( parentEl != null )
         {
-            return new ParentView( this, parentEl );
+            return new ParentView( this, parentEl, new OriginInfo() );
         }
 
         return null;
@@ -527,7 +545,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new ExtensionView( node.getPomView(), node.getElement() ) );
+            result.add( new ExtensionView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return result;
@@ -549,7 +567,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new PluginView( node.getPomView(), node.getElement(), pluginDefaults, pluginImplications ) );
+            result.add( new PluginView( node.getPomView(), node.getElement(), node.getOriginInfo(), pluginDefaults, pluginImplications ) );
         }
 
         return result;
@@ -571,7 +589,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new DependencyView( node.getPomView(), node.getElement() ) );
+            result.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return result;
@@ -594,7 +612,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new PluginView( node.getPomView(), node.getElement(), pluginDefaults, pluginImplications ) );
+            result.add( new PluginView( node.getPomView(), node.getElement(), node.getOriginInfo(), pluginDefaults, pluginImplications ) );
         }
 
         return result;
@@ -618,7 +636,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new PluginView( node.getPomView(), node.getElement(), pluginDefaults, pluginImplications ) );
+            result.add( new PluginView( node.getPomView(), node.getElement(), node.getOriginInfo(), pluginDefaults, pluginImplications ) );
         }
 
         return result;
@@ -637,7 +655,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new RepositoryView( node.getPomView(), node.getElement() ) );
+            result.add( new RepositoryView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return result;
@@ -656,7 +674,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new RepositoryView( node.getPomView(), node.getElement() ) );
+            result.add( new RepositoryView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return result;
@@ -678,7 +696,7 @@ public class MavenPomView
             if ( activeProfileIds.contains( ALL_PROFILES )
                 || activeProfileIds.contains( getProfileIdFor( node.getElement() ) ) )
             {
-                result.add( new RepositoryView( node.getPomView(), node.getElement() ) );
+                result.add( new RepositoryView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
             }
         }
 
@@ -701,7 +719,7 @@ public class MavenPomView
             if ( activeProfileIds.contains( ALL_PROFILES )
                 || activeProfileIds.contains( getProfileIdFor( node.getElement() ) ) )
             {
-                result.add( new RepositoryView( node.getPomView(), node.getElement() ) );
+                result.add( new RepositoryView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
             }
         }
 
@@ -725,7 +743,7 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new MavenGAVView( node.getPomView(), node.getElement() ) );
+            result.add( new MavenGAVView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
         }
 
         return result;
@@ -751,11 +769,11 @@ public class MavenPomView
             final String v = node.getValue( V );
             if ( v != null )
             {
-                result.add( new MavenGAVView( this, (Element) node ) );
+                result.add( new MavenGAVView( this, (Element) node, node.getOriginInfo() ) );
             }
             else
             {
-                result.add( new MavenGAView( this, (Element) node ) );
+                result.add( new MavenGAView( this, (Element) node, node.getOriginInfo() ) );
             }
         }
 
@@ -823,7 +841,7 @@ public class MavenPomView
             {
                 for ( final Node node : nodes )
                 {
-                    result.add( new MavenPomElementView( this, (Element) node ) );
+                    result.add( new MavenPomElementView( this, (Element) node, new OriginInfo( ancestryDepth == 0 ) ) );
                 }
             }
 
@@ -846,6 +864,7 @@ public class MavenPomView
                 {
                     for ( final MavenPomElementView node : nodes )
                     {
+                        node.getOriginInfo().setMixin( true );
                         result.add( node );
                     }
                 }
@@ -954,7 +973,7 @@ public class MavenPomView
     /**
      * Apply Maven expression resolution validate to substitute values from this POM into the provided expression.
      * 
-     * @param expression The expression to resolve
+     * @param value The expression to resolve
      * @param activeProfileIds The profiles to consider active, whose elements should be treated as merged with
      *   the main POM body
      */

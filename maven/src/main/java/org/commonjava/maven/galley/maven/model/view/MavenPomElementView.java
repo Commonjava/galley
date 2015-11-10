@@ -25,26 +25,42 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 public class MavenPomElementView
-    extends AbstractMavenElementView<MavenPomView>
+        extends AbstractMavenElementView<MavenPomView>
 {
 
     //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final String managementXpathFragment;
 
+    private OriginInfo originInfo;
+
     private String[] managementXpaths;
 
     private MavenPomElementView managementElement;
 
-    public MavenPomElementView( final MavenPomView pomView, final Element element, final String managementXpathFragment )
+    public MavenPomElementView( final MavenPomView pomView, final Element element, OriginInfo originInfo )
     {
         super( pomView, element );
+        this.originInfo = originInfo;
+        this.managementXpathFragment = null;
+    }
+
+    public MavenPomElementView( final MavenPomView pomView, final Element element, OriginInfo originInfo,
+                                final String managementXpathFragment )
+    {
+        super( pomView, element );
+        this.originInfo = originInfo;
         this.managementXpathFragment = managementXpathFragment;
     }
 
-    public MavenPomElementView( final MavenPomView pomView, final Element element )
+    public synchronized OriginInfo getOriginInfo()
     {
-        this( pomView, element, null );
+        if ( originInfo == null )
+        {
+            originInfo = new OriginInfo();
+        }
+
+        return originInfo;
     }
 
     /**
@@ -83,7 +99,7 @@ public class MavenPomElementView
     }
 
     protected String getValueWithManagement( final String named )
-        throws GalleyMavenException
+            throws GalleyMavenException
     {
         final String value = getValue( named );
         //        logger.info( "Value of path: '{}' local to: {} is: '{}'\nIn: {}", named, element, value, pomView.getRef() );
@@ -96,7 +112,7 @@ public class MavenPomElementView
     }
 
     private synchronized MavenPomElementView getManagementElement()
-        throws GalleyMavenException
+            throws GalleyMavenException
     {
         if ( managementElement == null )
         {
@@ -118,21 +134,43 @@ public class MavenPomElementView
         return managementElement;
     }
 
-    protected List<Node> getFirstNodesWithManagement( final String path )
-        throws GalleyMavenException
+    protected List<XmlNodeInfo> getFirstNodesWithManagement( final String path )
+            throws GalleyMavenException
     {
         //        logger.info( "Resolving '{}' from node: {}", path, this.element );
         final List<Node> nodes = xmlView.resolveXPathToNodeListFrom( elementContext, path, true );
+        List<XmlNodeInfo> nodeInfos = new ArrayList<XmlNodeInfo>( nodes.size() );
         if ( nodes == null || nodes.isEmpty() )
         {
             final MavenPomElementView managedElement = getManagementElement();
             if ( managedElement != null )
             {
-                return managedElement.getFirstNodesWithManagement( path );
+                nodeInfos = managedElement.getFirstNodesWithManagement( path );
+                for ( XmlNodeInfo info : nodeInfos )
+                {
+                    info.setMixin( managedElement.isMixin() );
+                }
+            }
+        }
+        else
+        {
+            for ( Node node : nodes )
+            {
+                nodeInfos.add( new XmlNodeInfo( isInherited(), isMixin(), node ) );
             }
         }
 
-        return nodes;
+        return nodeInfos;
+    }
+
+    private boolean isInherited()
+    {
+        return originInfo == null ? false : originInfo.isInherited();
+    }
+
+    private boolean isMixin()
+    {
+        return originInfo == null ? false : originInfo.isMixin();
     }
 
     protected String getManagementXpathFragment()
@@ -179,11 +217,7 @@ public class MavenPomElementView
         }
 
         final StringBuilder sb = new StringBuilder();
-        sb.append( "/project/" )
-          .append( managementXpathFragment )
-          .append( '[' )
-          .append( qualifier )
-          .append( "]" );
+        sb.append( "/project/" ).append( managementXpathFragment ).append( '[' ).append( qualifier ).append( "]" );
 
         final String xp = sb.toString();
         xpaths.add( xp );

@@ -27,4 +27,15 @@
   
   <artifactId>galley-transport-filearc</artifactId>
   <name>Galley :: Transports :: File and Archive Transport</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+  </dependencies>
 </project>

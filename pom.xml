@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>9</version>
+    <version>11</version>
   </parent>
 
   <groupId>org.commonjava.maven.galley</groupId>
@@ -48,7 +48,7 @@
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.15.1</atlasVersion>
     <partylineVersion>1.4</partylineVersion>
-    <jhttpcVersion>1.0-SNAPSHOT</jhttpcVersion>
+    <jhttpcVersion>1.0</jhttpcVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
     <javaVersion>1.7</javaVersion>
@@ -133,7 +133,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>17</version>
+        <version>18-SNAPSHOT</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -184,13 +184,13 @@
         <artifactId>jsoup</artifactId>
         <version>1.7.2</version>
       </dependency>
-      <dependency>
+<!--       <dependency>
         <groupId>io.vertx</groupId>
         <artifactId>vertx-core</artifactId>
         <version>2.0.1-final</version>
         <scope>test</scope>
       </dependency>
-      <dependency>
+ -->      <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-interpolation</artifactId>
         <version>1.19</version>
