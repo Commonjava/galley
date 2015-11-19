@@ -42,11 +42,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
- * Represents a view of a Maven POM which has had inheritance, mix-ins (eg. BOMs), and expressions resolved. 
- * This is really a wrapper around an ordered structure of XML documents which constitutes a fully  
- * materialized POM, and which provides convenience methods to construct child XML views that correspond to 
+ * Represents a view of a Maven POM which has had inheritance, mix-ins (eg. BOMs), and expressions resolved.
+ * This is really a wrapper around an ordered structure of XML documents which constitutes a fully
+ * materialized POM, and which provides convenience methods to construct child XML views that correspond to
  * the model fields in a POM file.
- * 
+ *
  * @author jdcasey
  */
 public class MavenPomView
@@ -69,17 +69,17 @@ public class MavenPomView
 
     /**
      * Not really designed for direct construction. See {@link MavenPomReader}.
-     * 
+     *
      * @param ref The GAV represented by this view
      * @param stack The stack of XML documents that constitutes the inheritance hierarchy for this POM. Does
      *   NOT contain mix-ins like BOMs, which are added later in the view init process.
      * @param xpath Cache manager for XPath objects that have been compiled for this view
      * @param pluginDefaults Provides versions and groupId's when a plugin declaration doesn't specify one.
-     * @param pluginImplications Provides extra dependencies expected when a given plugin is encountered 
+     * @param pluginImplications Provides extra dependencies expected when a given plugin is encountered
      * @param xml Infrastructure methods for parsing/generating XML
-     * @param activeProfileIds When querying for model elements, consider the given profiles to have been 
+     * @param activeProfileIds When querying for model elements, consider the given profiles to have been
      *   merged in (activated)
-     *   
+     *
      * @see MavenPomReader
      */
     public MavenPomView( final ProjectVersionRef ref, final List<DocRef<ProjectVersionRef>> stack,
@@ -103,7 +103,7 @@ public class MavenPomView
     }
 
     /**
-     * Return the list of profile id's that were considered active when this view was constructed. Their 
+     * Return the list of profile id's that were considered active when this view was constructed. Their
      * model elements will be returned as if they were declared in the main POM body, just as actual activated
      * profiles will be during a Maven build.
      */
@@ -224,7 +224,7 @@ public class MavenPomView
     }
 
     /**
-     * Resolve an ordered list of {@link DependencyView} instances for non-managed dependencies that are 
+     * Resolve an ordered list of {@link DependencyView} instances for non-managed dependencies that are
      * either in the main POM body or in an active profile.
      */
     public List<DependencyView> getAllDirectDependencies()
@@ -244,9 +244,9 @@ public class MavenPomView
     }
 
     /**
-     * Reads all managed dependencies from this pom. It means all from pom 
+     * Reads all managed dependencies from this pom. It means all from pom
      * itself, from its parents and also from imported BOM poms. This method will even include colliding dependency declarations, or overlaps.
-     * 
+     *
      * @return list of read dependencies
      */
     public List<DependencyView> getAllManagedDependenciesUnfiltered()
@@ -264,9 +264,9 @@ public class MavenPomView
     }
 
     /**
-     * Reads all managed dependencies from this pom. It means all from pom 
+     * Reads all managed dependencies from this pom. It means all from pom
      * itself, from its parents and also from imported BOM poms. This method will eliminate overlapping, or colliding, dependency declarations.
-     * 
+     *
      * @return list of read dependencies
      */
     public List<DependencyView> getAllManagedDependencies()
@@ -289,9 +289,9 @@ public class MavenPomView
     }
 
     /**
-     * Reads managed dependencies specified in this pom itself and its parents. 
+     * Reads managed dependencies specified in this pom itself and its parents.
      * It omits managed dependencies specified in imported BOM poms.
-     * 
+     *
      * @return list of read dependencies
      */
     public List<DependencyView> getManagedDependenciesNoImports()
@@ -309,7 +309,7 @@ public class MavenPomView
     }
 
     /**
-     * Return all managed, import-scoped, pom-typed dependency declarations in this POM 
+     * Return all managed, import-scoped, pom-typed dependency declarations in this POM
      * (also considering inheritance and applied mix-in documents, such as applied BOMs). Return an ordered
      * list of {@link DependencyView} instances referencing each BOM encountered.
      */
@@ -334,7 +334,7 @@ public class MavenPomView
      * RAW ACCESS: Resolve the given XPath expression. If the result is a Node, retrieve the text() child. Resolve any
      * Maven-style expressions in the result, and pass back the resolved value, or null if nothing is matched.
      * If more than one node matches, process the first for its string value.
-     * 
+     *
      * @param path The XPath expression
      * @param localOnly If true, only consider values in the local XML document and any available mix-ins (eg.
      *   BOMs)
@@ -347,11 +347,11 @@ public class MavenPomView
     }
 
     /**
-     * RAW ACCESS: Retrieve an {@link Element} instance for the first element matching the given 
+     * RAW ACCESS: Retrieve an {@link Element} instance for the first element matching the given
      * XPath expression and within the other given parameters. If none is found, return null.
-     * The XPath instance compiled from the given expression will be cached for future use. This method will 
+     * The XPath instance compiled from the given expression will be cached for future use. This method will
      * consider values available in mix-ins (eg. BOMs).
-     * 
+     *
      * @param path The XPath expression to resolve
      * @param localOnly If true, don't consider values present in ancestry.
      */
@@ -368,11 +368,11 @@ public class MavenPomView
     }
 
     /**
-     * RAW ACCESS: Retrieve an ordered list of {@link MavenPomElementView} instances matching the given 
+     * RAW ACCESS: Retrieve an ordered list of {@link MavenPomElementView} instances matching the given
      * XPath expression and within the other given parameters. The XPath instance compiled from the given
      * expression will be cached for future use. This method will consider values available in mix-ins (eg.
      * BOMs).
-     * 
+     *
      * @param path The XPath expression to resolve
      * @param localOnly If true, don't consider values present in ancestry.
      */
@@ -383,11 +383,11 @@ public class MavenPomView
     }
 
     /**
-     * RAW ACCESS: Retrieve a {@link Node} instance for the first element matching the given 
+     * RAW ACCESS: Retrieve a {@link Node} instance for the first element matching the given
      * XPath expression and within the other given parameters. If none is found, return null.
-     * The XPath instance compiled from the given expression will be cached for future use. This method will 
+     * The XPath instance compiled from the given expression will be cached for future use. This method will
      * consider values available in mix-ins (eg. BOMs).
-     * 
+     *
      * @param path The XPath expression to resolve
      * @param localOnly If true, don't consider values present in ancestry.
      */
@@ -399,13 +399,13 @@ public class MavenPomView
     }
 
     /**
-     * RAW ACCESS: Retrieve a {@link MavenPomElementView} instance for the first element matching the given 
+     * RAW ACCESS: Retrieve a {@link MavenPomElementView} instance for the first element matching the given
      * XPath expression and within the other given parameters. If none is found, return null.
-     * 
+     *
      * @param path The XPath expression to resolve
      * @param cachePath Whether to cache the compiled XPath instance. Do this if the expression isn't overly
      *   specific, and will be used multiple times.
-     * @param maxDepth If a large ancestry (parents of parents of...) exists, limit the search to the given 
+     * @param maxDepth If a large ancestry (parents of parents of...) exists, limit the search to the given
      *   depth
      */
     public MavenPomElementView resolveXPathToElementView( final String path, final boolean cachePath, final int maxDepth )
@@ -453,7 +453,7 @@ public class MavenPomView
 
         if ( n != null )
         {
-            return new MavenPomElementView( this, n, new OriginInfo( ancestryDepth == 0 ) );
+            return new MavenPomElementView( this, n, new OriginInfo( ancestryDepth != 0 ) );
         }
 
         MavenPomElementView result = null;
@@ -512,7 +512,7 @@ public class MavenPomView
     }
 
     /**
-     * Return a {@link ParentView} instance wrapping the parent XML section, if it exists. Return null 
+     * Return a {@link ParentView} instance wrapping the parent XML section, if it exists. Return null
      * otherwise.
      */
     public ParentView getParent()
@@ -529,7 +529,7 @@ public class MavenPomView
     }
 
     /**
-     * Return an ordered list of {@link ExtensionView} instances corresponding to the build extensions 
+     * Return an ordered list of {@link ExtensionView} instances corresponding to the build extensions
      * declared in this POM (also considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<ExtensionView> getBuildExtensions()
@@ -596,7 +596,7 @@ public class MavenPomView
     }
 
     /**
-     * Return an ordered list of {@link PluginView} instances for declared, non-managed plugins (also 
+     * Return an ordered list of {@link PluginView} instances for declared, non-managed plugins (also
      * considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<PluginView> getAllBuildPlugins()
@@ -619,7 +619,7 @@ public class MavenPomView
     }
 
     /**
-     * Return an ordered list of {@link PluginView} instances for declared, managed plugins (also 
+     * Return an ordered list of {@link PluginView} instances for declared, managed plugins (also
      * considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<PluginView> getAllManagedBuildPlugins()
@@ -728,7 +728,7 @@ public class MavenPomView
 
     /**
      * Return the ordered list of GAV references ({@link ProjectVersionRefView} instances) from this POM that
-     * match the given XPath expression (also considering inheritance and applied mix-in documents, such as 
+     * match the given XPath expression (also considering inheritance and applied mix-in documents, such as
      * applied BOMs).
      */
     public List<ProjectVersionRefView> getProjectVersionRefs( final String path )
@@ -751,7 +751,7 @@ public class MavenPomView
 
     /**
      * Return the ordered list of GA (project) references ({@link ProjectRefView} instances) from this POM that
-     * match the given XPath expression (also considering inheritance and applied mix-in documents, such as 
+     * match the given XPath expression (also considering inheritance and applied mix-in documents, such as
      * applied BOMs).
      */
     public List<ProjectRefView> getProjectRefs( final String path )
@@ -784,13 +784,13 @@ public class MavenPomView
      * RAW ACCESS: Retrieve an ordered list of {@link MavenPomElementView} instances matching the given XPath
      * expression and within the other given parameters. Any available mix-in documents (eg. BOMs) will also
      * be searched.
-     * 
+     *
      * @param path The XPath expression to resolve
      * @param cachePath Whether to cache the compiled XPath instance. Do this if the expression isn't overly
      *   specific, and will be used multiple times.
-     * @param maxDepth If a large ancestry (parents of parents of...) exists, limit the search to the given 
+     * @param maxDepth If a large ancestry (parents of parents of...) exists, limit the search to the given
      *   depth
-     *   
+     *
      * @see {@link #resolveXPathToAggregatedElementViewList(String, boolean, int, boolean)}
      */
     public List<MavenPomElementView> resolveXPathToAggregatedElementViewList( final String path,
@@ -803,11 +803,11 @@ public class MavenPomView
     /**
      * RAW ACCESS: Retrieve an ordered list of {@link MavenPomElementView} instances matching the given XPath
      * expression and within the other given parameters.
-     * 
+     *
      * @param path The XPath expression to resolve
      * @param cachePath Whether to cache the compiled XPath instance. Do this if the expression isn't overly
      *   specific, and will be used multiple times.
-     * @param maxDepth If a large ancestry (parents of parents of...) exists, limit the search to the given 
+     * @param maxDepth If a large ancestry (parents of parents of...) exists, limit the search to the given
      *   depth
      * @param includeMixins Whether to include mix-ins (eg. BOMs) when searching for matches
      */
@@ -841,7 +841,7 @@ public class MavenPomView
             {
                 for ( final Node node : nodes )
                 {
-                    result.add( new MavenPomElementView( this, (Element) node, new OriginInfo( ancestryDepth == 0 ) ) );
+                    result.add( new MavenPomElementView( this, (Element) node, new OriginInfo( ancestryDepth != 0 ) ) );
                 }
             }
 
@@ -939,8 +939,8 @@ public class MavenPomView
     }
 
     /**
-     * RAW ACCESS: Resolve the specified XPath expression into a list of Node values, considering values in inheritance 
-     * and mix-ins (eg. BOMs). Once the node list is found, retrieve the text() of each and resolve any 
+     * RAW ACCESS: Resolve the specified XPath expression into a list of Node values, considering values in inheritance
+     * and mix-ins (eg. BOMs). Once the node list is found, retrieve the text() of each and resolve any
      * Maven-style expressions. Return the resulting list of strings.
      */
     public List<String> resolveXPathExpressionToAggregatedList( final String path, final boolean cachePath,
@@ -972,7 +972,7 @@ public class MavenPomView
 
     /**
      * Apply Maven expression resolution validate to substitute values from this POM into the provided expression.
-     * 
+     *
      * @param value The expression to resolve
      * @param activeProfileIds The profiles to consider active, whose elements should be treated as merged with
      *   the main POM body
