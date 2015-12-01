@@ -15,31 +15,12 @@
  */
 package org.commonjava.maven.galley.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
-
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.event.EventMetadata;
@@ -65,6 +46,25 @@ import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.io.IOUtils.copy;
+import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 
 public class TransferManagerImpl
     implements TransferManager
@@ -751,7 +751,7 @@ public class TransferManagerImpl
                     logger.warn( "ERROR: {}...{}", error, resource, error.getMessage() );
                     retrievers.remove( retriever );
 
-                    if ( !( error instanceof BadGatewayException ) && !( error instanceof TransferTimeoutException ) )
+                    if ( !( error instanceof TransferLocationException) )
                     {
                         errors.put( resource, error );
                     }

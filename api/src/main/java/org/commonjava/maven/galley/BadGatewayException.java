@@ -18,12 +18,10 @@ package org.commonjava.maven.galley;
 import org.commonjava.maven.galley.model.Location;
 
 public class BadGatewayException
-    extends TransferException
+    extends TransferLocationException
 {
 
     private static final long serialVersionUID = 1L;
-
-    private Location location;
 
     private String url;
 
@@ -31,16 +29,14 @@ public class BadGatewayException
 
     public BadGatewayException( final Location location, final String url, final int code, final String format, final Object... params )
     {
-        super( format, params );
-        this.location = location;
+        super( location, format, params );
         this.url = url;
         this.statusCode = code;
     }
 
     public BadGatewayException( final Location location, final String url, final int code, final String format, final Throwable error, final Object... params )
     {
-        super( format, error, params );
-        this.location = location;
+        super( location, format, error, params );
         this.url = url;
         this.statusCode = code;
     }
@@ -48,11 +44,6 @@ public class BadGatewayException
     public int getStatusCode()
     {
         return statusCode;
-    }
-
-    public Location getLocation()
-    {
-        return location;
     }
 
     public String getUrl()
