@@ -24,7 +24,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.commonjava.maven.galley.GalleyException;
-import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.internal.util.HttpFactoryPasswordDelegate;
@@ -90,8 +90,9 @@ public class HttpImpl
         }
         catch ( JHttpCException e )
         {
-            throw new TransferException( "Failed to initialize http client: %s", e, e.getMessage() );
+            throw new TransferLocationException( location, "Failed to initialize http client: %s", e, e.getMessage() );
         }
+        finally{}
     }
 
     private int getProxyPort( final HttpLocation location )

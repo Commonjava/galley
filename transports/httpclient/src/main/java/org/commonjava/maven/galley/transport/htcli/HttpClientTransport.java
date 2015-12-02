@@ -28,6 +28,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -128,6 +129,7 @@ public class HttpClientTransport
         }
         catch ( final MalformedURLException e )
         {
+            logger.warn( String.format("HTTP transport cannot handle: %s. Error parsing URL: %s", location, e.getMessage()), e );
         }
 
         return false;
@@ -151,7 +153,7 @@ public class HttpClientTransport
         }
         catch ( final MalformedURLException e )
         {
-            throw new TransferException( "Failed to parse base-URL for: {}", e, repository.getUri() );
+            throw new TransferLocationException( repository, "Failed to parse base-URL for: {}", e, repository.getUri() );
         }
     }
 
@@ -172,7 +174,7 @@ public class HttpClientTransport
         }
         catch ( final MalformedURLException e )
         {
-            throw new TransferException( "Failed to build URL for resource: {}. Reason: {}", e, resource, e.getMessage() );
+            throw new TransferLocationException( resource.getLocation(), "Failed to build URL for resource: {}. Reason: {}", e, resource, e.getMessage() );
         }
     }
 

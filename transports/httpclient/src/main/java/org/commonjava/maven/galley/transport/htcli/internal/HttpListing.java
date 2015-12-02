@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Transfer;
@@ -90,20 +91,33 @@ public class HttpListing
                 final ArrayList<String> al = new ArrayList<String>();
 
                 // TODO: Charset!!
-                final Document doc = Jsoup.parse( in, "UTF-8", url );
-                for ( final Element file : doc.select( "a" ) )
+                Document doc = null;
+                try
                 {
-                    if ( file.attr( "href" )
-                             .contains( file.text() ) && !EXCLUDES.contains( file.text() ) )
-                    {
-                        al.add( file.text() );
-                    }
+                    doc = Jsoup.parse( in, "UTF-8", url );
+                }
+                catch ( IOException e )
+                {
+                    this.error =
+                            new TransferLocationException( resource.getLocation(), "Invalid HTML in: {}. Reason: {}", e, url, e.getMessage() );
                 }
 
-                stream = target.openOutputStream( TransferOperation.DOWNLOAD );
-                stream.write( join( al, "\n" ).getBytes( "UTF-8" ) );
+                if ( doc != null )
+                {
+                    for ( final Element file : doc.select( "a" ) )
+                    {
+                        if ( file.attr( "href" )
+                                 .contains( file.text() ) && !EXCLUDES.contains( file.text() ) )
+                        {
+                            al.add( file.text() );
+                        }
+                    }
 
-                result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
+                    stream = target.openOutputStream( TransferOperation.DOWNLOAD );
+                    stream.write( join( al, "\n" ).getBytes( "UTF-8" ) );
+
+                    result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
+                }
             }
         }
         catch ( final TransferException e )
@@ -113,7 +127,7 @@ public class HttpListing
         catch ( final IOException e )
         {
             this.error =
-                new TransferException( "Failed to parse directory listing HTML for: {} using JSoup. Reason: {}", e,
+                new TransferException( "Failed to construct directory listing for: {}. Reason: {}", e,
                                        url, e.getMessage() );
         }
         finally

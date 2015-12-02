@@ -34,6 +34,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
@@ -127,7 +128,7 @@ public abstract class AbstractHttpJob
         }
         catch ( final ClientProtocolException e )
         {
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+            throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e, url,
                                          e.getMessage() );
         }
         catch ( BadGatewayException e )
@@ -141,7 +142,7 @@ public abstract class AbstractHttpJob
         }
         catch ( final IOException e )
         {
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+            throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e, url,
                                          e.getMessage() );
         }
 

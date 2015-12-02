@@ -23,26 +23,22 @@ import org.commonjava.maven.galley.util.UrlUtils;
 import java.net.MalformedURLException;
 
 public class TransferTimeoutException
-    extends TransferException
+    extends TransferLocationException
 {
 
     private static final long serialVersionUID = 1L;
-
-    private final Location location;
 
     private final String url;
 
     public TransferTimeoutException( final Location location, String url, final String format, final Object... params )
     {
-        super( format, params );
-        this.location = location;
+        super( location, format, params );
         this.url = url;
     }
 
     public TransferTimeoutException( final Transfer target, final String format, final Object... params )
     {
-        super( format, params );
-        this.location = target.getLocation();
+        super( target.getLocation(), format, params );
         String u;
         try
         {
@@ -58,8 +54,7 @@ public class TransferTimeoutException
 
     public TransferTimeoutException( final ConcreteResource target, final String format, final Object... params )
     {
-        super( format, params );
-        this.location = target.getLocation();
+        super( target.getLocation(), format, params );
         String u;
         try
         {
@@ -75,14 +70,8 @@ public class TransferTimeoutException
 
     public TransferTimeoutException( final Location location, final String url, final String format, final Throwable error, final Object... params )
     {
-        super( format, error, params );
-        this.location = location;
+        super( location, format, error, params );
         this.url = url;
-    }
-
-    public Location getLocation()
-    {
-        return location;
     }
 
     public String getUrl()

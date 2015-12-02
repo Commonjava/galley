@@ -20,7 +20,6 @@ import static org.apache.commons.io.IOUtils.copy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +33,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +89,7 @@ public final class TransferResponseUtils
                 }
                 else
                 {
-                    throw new TransferException( "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
+                    throw new TransferLocationException( location, "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
                         + new String( out.toByteArray() ) ) );
                 }
             }
@@ -97,8 +97,8 @@ public final class TransferResponseUtils
         catch ( final IOException e )
         {
             request.abort();
-            throw new TransferException(
-                                         "Error reading body of unsuccessful request.\nStatus: %s.\nURL: %s.\nReason: %s",
+            throw new TransferLocationException(
+                                         location, "Error reading body of unsuccessful request.\nStatus: %s.\nURL: %s.\nReason: %s",
                                          e, line, url, e.getMessage() );
         }
         finally
