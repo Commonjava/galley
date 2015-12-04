@@ -131,6 +131,14 @@ public class UploadHandler
         {
             throw new TransferTimeoutException( resource, "Timed-out publish: {}. Reason: {}", e, resource, e.getMessage() );
         }
+        catch ( final TransferException e )
+        {
+            throw e;
+        }
+        catch ( final Exception e )
+        {
+            throw new TransferException( "Failed listing: {}. Reason: {}", e, resource, e.getMessage() );
+        }
         finally
         {
             //            logger.info( "Marking download complete: {}", url );

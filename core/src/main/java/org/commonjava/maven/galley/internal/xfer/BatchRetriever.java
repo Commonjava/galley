@@ -80,6 +80,8 @@ public final class BatchRetriever
     @Override
     public void run()
     {
+        String oldThreadName = Thread.currentThread().getName();
+        Thread.currentThread().setName( "BATCH-TRY#" + tries + "@" + rootResource );
         try
         {
             if ( !hasMoreTries() )
@@ -102,6 +104,7 @@ public final class BatchRetriever
             logger.debug( "Try #{} finishing up for: {}. Last try was: {}", tries, rootResource, lastTry );
             tries++;
             latch.countDown();
+            Thread.currentThread().setName( oldThreadName );
         }
     }
 

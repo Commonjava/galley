@@ -176,6 +176,20 @@ public class DownloadHandler
                 throw new TransferTimeoutException( target, "Timeout on: {}", e, target );
             }
         }
+        catch ( final TransferException e )
+        {
+            if ( !suppressFailures )
+            {
+                throw e;
+            }
+        }
+        catch ( final Exception e )
+        {
+            if ( !suppressFailures )
+            {
+                throw new TransferException( "Download failed: {}. Reason: {}", e, resource, e.getMessage() );
+            }
+        }
 
         return null;
     }

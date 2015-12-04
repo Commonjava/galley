@@ -21,6 +21,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
@@ -99,7 +100,15 @@ public class ListingHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferTimeoutException( target, "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferTimeoutException( target, "Timed-out download: {}. Reason: {}", e, resource,
+                                                    e.getMessage() );
+            }
+        }
+        catch ( final TransferException e )
+        {
+            if ( !suppressFailures )
+            {
+                throw e;
             }
         }
         catch ( final Exception e )
