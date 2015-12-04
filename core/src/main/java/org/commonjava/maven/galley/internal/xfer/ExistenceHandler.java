@@ -103,14 +103,21 @@ public class ExistenceHandler
         {
             if ( !suppressFailures )
             {
-                throw new TransferTimeoutException( transfer, "Timed-out download: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferTimeoutException( transfer, "Timed-out existence check: {}. Reason: {}", e, resource, e.getMessage() );
+            }
+        }
+        catch ( final TransferException e )
+        {
+            if ( !suppressFailures )
+            {
+                throw e;
             }
         }
         catch ( final Exception e )
         {
             if ( !suppressFailures )
             {
-                throw new TransferException( "Failed listing: {}. Reason: {}", e, resource, e.getMessage() );
+                throw new TransferException( "Failed existence check: {}. Reason: {}", e, resource, e.getMessage() );
             }
         }
 
