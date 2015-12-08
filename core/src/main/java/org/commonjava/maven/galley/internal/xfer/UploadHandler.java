@@ -29,6 +29,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Resource;
@@ -65,7 +66,7 @@ public class UploadHandler
 
     public boolean upload( final ConcreteResource resource, final InputStream stream, final long length,
                            final String contentType, final int timeoutSeconds, final Transport transport )
-        throws TransferException
+            throws TransferException
     {
         if ( !resource.allowsPublishing() )
         {
@@ -74,10 +75,9 @@ public class UploadHandler
 
         if ( transport == null )
         {
-            throw new TransferException( "No transports available to handle: {} with location type: {}", resource,
-                                         resource.getLocation()
-                                                 .getClass()
-                                                 .getSimpleName() );
+            throw new TransferLocationException( resource.getLocation(),
+                                                 "No transports available to handle: {} with location type: {}",
+                                                 resource, resource.getLocation().getClass().getSimpleName() );
         }
 
         logger.debug( "PUBLISH {}", resource );
@@ -87,7 +87,7 @@ public class UploadHandler
 
     private boolean joinOrStart( final ConcreteResource resource, final int timeoutSeconds, final InputStream stream,
                                  final long length, final String contentType, final Transport transport )
-        throws TransferException
+            throws TransferException
     {
         if ( transport == null )
         {
@@ -129,7 +129,8 @@ public class UploadHandler
         }
         catch ( final TimeoutException e )
         {
-            throw new TransferTimeoutException( resource, "Timed-out publish: {}. Reason: {}", e, resource, e.getMessage() );
+            throw new TransferTimeoutException( resource, "Timed-out publish: {}. Reason: {}", e, resource,
+                                                e.getMessage() );
         }
         catch ( final TransferException e )
         {

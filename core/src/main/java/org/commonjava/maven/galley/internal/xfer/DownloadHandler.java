@@ -28,6 +28,7 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -68,7 +69,7 @@ public class DownloadHandler
     public Transfer download( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
                               final Transport transport, final boolean suppressFailures,
                               final EventMetadata eventMetadata )
-        throws TransferException
+            throws TransferException
     {
         if ( !resource.allowsDownloading() )
         {
@@ -77,10 +78,9 @@ public class DownloadHandler
 
         if ( transport == null )
         {
-            throw new TransferException( "No transports available to handle: {} with location type: {}", resource,
-                                         resource.getLocation()
-                                                 .getClass()
-                                                 .getSimpleName() );
+            throw new TransferLocationException( resource.getLocation(),
+                                                 "No transports available to handle: {} with location type: {}",
+                                                 resource, resource.getLocation().getClass().getSimpleName() );
         }
 
         if ( nfc.isMissing( resource ) )
@@ -92,14 +92,14 @@ public class DownloadHandler
         logger.debug( "RETRIEVE {}", resource );
 
         final Transfer result =
-            joinOrStart( resource, target, timeoutSeconds, transport, suppressFailures, eventMetadata );
+                joinOrStart( resource, target, timeoutSeconds, transport, suppressFailures, eventMetadata );
         return result;
     }
 
     private Transfer joinOrStart( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
                                   final Transport transport, final boolean suppressFailures,
                                   final EventMetadata eventMetadata )
-        throws TransferException
+            throws TransferException
     {
         // if the target file already exists, skip joining.
         if ( target.exists() )
@@ -138,8 +138,7 @@ public class DownloadHandler
             if ( job.getError() != null )
             {
                 logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(), resource,
-                              job.getError()
-                                 .getMessage() );
+                              job.getError().getMessage() );
                 nfc.addMissing( resource );
 
                 if ( !suppressFailures )
