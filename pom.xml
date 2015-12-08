@@ -47,7 +47,7 @@
     <projectOwner>Red Hat, Inc.</projectOwner>
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.15.1</atlasVersion>
-    <partylineVersion>1.4</partylineVersion>
+    <partylineVersion>1.5-SNAPSHOT</partylineVersion>
     <jhttpcVersion>1.1-SNAPSHOT</jhttpcVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
