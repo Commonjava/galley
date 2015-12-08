@@ -1,0 +1,16 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.foo</groupId>
+  <artifactId>bar</artifactId>
+  <version>1</version>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>ext.group</groupId>
+        <artifactId>ext-artifact</artifactId>
+        <version>1.0</version>
+      </extension>
+    </extensions>
+  </build>
+</project>

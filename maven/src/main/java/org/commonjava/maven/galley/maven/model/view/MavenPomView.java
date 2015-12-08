@@ -536,7 +536,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenPomElementView> list =
-            resolveXPathToAggregatedElementViewList( "/project//extensions/extension", true, -1 );
+            resolveXPathToAggregatedElementViewList( "/project//build/extensions/extension", true, -1 );
         final List<ExtensionView> result = new ArrayList<ExtensionView>( list.size() );
         for ( final MavenPomElementView node : list )
         {
