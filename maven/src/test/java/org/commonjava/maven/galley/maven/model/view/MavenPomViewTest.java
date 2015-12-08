@@ -52,6 +52,48 @@ public class MavenPomViewTest
     }
 
     @Test
+    public void buildExtension()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-build-ext.xml" );
+
+        List<ExtensionView> extensions = pomView.getBuildExtensions();
+
+        assertThat( extensions, notNullValue() );
+        assertThat( extensions.size(), equalTo( 1 ) );
+        assertThat( extensions.get( 0 ).asProjectVersionRef(),
+                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group","ext-artifact", "1.0" ) ) );
+
+    }
+
+    @Test
+    public void pluginConfigCalledExtension()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( new String[] { "test" }, "pom-with-plugin-conf-ext.xml" );
+
+        List<ExtensionView> extensions = pomView.getBuildExtensions();
+
+        assertThat( extensions, notNullValue() );
+        assertThat( extensions.size(), equalTo( 0 ) );
+    }
+
+    @Test
+    public void profileBuildExtension()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( new String[] { "test" }, "pom-with-profile-build-ext.xml" );
+
+        List<ExtensionView> extensions = pomView.getBuildExtensions();
+
+        assertThat( extensions, notNullValue() );
+        assertThat( extensions.size(), equalTo( 1 ) );
+        assertThat( extensions.get( 0 ).asProjectVersionRef(),
+                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group","ext-artifact", "1.0" ) ) );
+
+    }
+
+    @Test
     public void dependencyManagedByProfile()
         throws Exception
     {
