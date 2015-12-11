@@ -68,7 +68,9 @@ public final class TransferResponseUtils
         {
             entity = response.getEntity();
             final int sc = line.getStatusCode();
-            if ( graceful404 && sc == HttpStatus.SC_NOT_FOUND )
+            boolean contentMissing = ( sc == HttpStatus.SC_NOT_FOUND || sc == HttpStatus.SC_GONE );
+
+            if ( graceful404 && contentMissing )
             {
                 return false;
             }
@@ -84,13 +86,20 @@ public final class TransferResponseUtils
 
                 if ( NON_SERVER_GATEWAY_ERRORS.contains( sc ) || ( sc > 499 && sc < 599 ) )
                 {
-                    throw new BadGatewayException( location, url, sc, "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
-                        + new String( out.toByteArray() ) ) );
+                    throw new BadGatewayException( location, url, sc, "HTTP request failed: %s%s", line,
+                                                   ( out == null ? "" : "\n\n" + new String( out.toByteArray() ) ) );
+                }
+                else if ( contentMissing )
+                {
+                    throw new TransferException( "HTTP request failed: %s\nURL: %s%s", line, url, ( out == null ?
+                            "" :
+                            "\n\n" + new String( out.toByteArray() ) ) );
                 }
                 else
                 {
-                    throw new TransferLocationException( location, "HTTP request failed: %s%s", line, ( out == null ? "" : "\n\n"
-                        + new String( out.toByteArray() ) ) );
+                    throw new TransferLocationException( location, "HTTP request failed: %s%s", line, ( out == null ?
+                            "" :
+                            "\n\n" + new String( out.toByteArray() ) ) );
                 }
             }
         }
