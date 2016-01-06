@@ -73,7 +73,8 @@ public class TransferManagerImpl
     private static final Set<String> BANNED_LISTING_NAMES = Collections.unmodifiableSet( new HashSet<String>()
     {
         {
-            add( ".listing.txt" );
+            add( "\\.listing\\.txt" );
+            add( ".+\\.http-metadata\\.json.*");
         }
 
         private static final long serialVersionUID = 1L;
@@ -247,7 +248,17 @@ public class TransferManagerImpl
                     int idx = 0;
                     for ( final String fname : fnames )
                     {
-                        if ( BANNED_LISTING_NAMES.contains( fname ) )
+                        boolean banned = false;
+                        for ( String bannedPattern : BANNED_LISTING_NAMES )
+                        {
+                            if ( fname.matches( bannedPattern ) )
+                            {
+                                banned = true;
+                                break;
+                            }
+                        }
+
+                        if ( banned )
                         {
                             continue;
                         }
