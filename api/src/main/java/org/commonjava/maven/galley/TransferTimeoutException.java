@@ -74,6 +74,12 @@ public class TransferTimeoutException
         this.url = url;
     }
 
+    @Override
+    public String getMessage()
+    {
+        return super.getMessage() + "\nTimed out URL: " + getUrl();
+    }
+
     public String getUrl()
     {
         return url;
