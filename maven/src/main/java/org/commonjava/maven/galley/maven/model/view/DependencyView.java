@@ -225,7 +225,7 @@ public class DependencyView
     {
         try
         {
-            return new SimpleArtifactRef( asProjectVersionRef(), getType(), getClassifier(), isOptional() );
+            return new SimpleArtifactRef( asProjectVersionRef(), getType(), getClassifier() );
         }
         catch ( final IllegalArgumentException e )
         {
@@ -246,7 +246,7 @@ public class DependencyView
     {
         try
         {
-            return new SimpleVersionlessArtifactRef( asProjectRef(), getType(), getClassifier(), isOptional() );
+            return new SimpleVersionlessArtifactRef( asProjectRef(), getType(), getClassifier() );
         }
         catch ( final IllegalArgumentException e )
         {
