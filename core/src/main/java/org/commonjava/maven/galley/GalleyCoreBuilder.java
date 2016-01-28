@@ -33,10 +33,12 @@ import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
@@ -71,6 +73,8 @@ public class GalleyCoreBuilder
     private TransferManager transferManager;
 
     private List<Transport> transports;
+
+    private SpecialPathManager specialPathManager;
 
     private ExecutorService handlerExecutor;
 
@@ -142,10 +146,15 @@ public class GalleyCoreBuilder
         final ListingHandler lh = new ListingHandler( getNfc() );
         final ExistenceHandler eh = new ExistenceHandler( getNfc() );
 
+        if ( specialPathManager == null )
+        {
+            specialPathManager = new SpecialPathManagerImpl();
+        }
+
         if ( transferManager == null )
         {
             transferManager =
-                new TransferManagerImpl( transportManager, getCache(), getNfc(), getFileEvents(), dh, uh, lh, eh,
+                new TransferManagerImpl( transportManager, getCache(), getNfc(), getFileEvents(), dh, uh, lh, eh, specialPathManager,
                                          batchExecutor );
         }
 
@@ -202,6 +211,11 @@ public class GalleyCoreBuilder
         return nfc;
     }
 
+    public SpecialPathManager getSpecialPathManager()
+    {
+        return specialPathManager;
+    }
+
     public GalleyCoreBuilder withLocationExpander( final LocationExpander locations )
     {
         logger.debug( "Setting location expander: {}", locations );
@@ -230,6 +244,12 @@ public class GalleyCoreBuilder
     public GalleyCoreBuilder withNfc( final NotFoundCache nfc )
     {
         this.nfc = nfc;
+        return this;
+    }
+
+    public GalleyCoreBuilder withSpecialPathManager( final SpecialPathManager specialPathManager )
+    {
+        this.specialPathManager = specialPathManager;
         return this;
     }
 

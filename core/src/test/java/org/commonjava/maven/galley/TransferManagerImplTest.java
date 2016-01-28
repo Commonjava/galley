@@ -27,6 +27,7 @@ import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
@@ -45,7 +46,7 @@ import org.junit.rules.TemporaryFolder;
  * 
  * @author jdcasey
  */
-public class TransferManagerTest
+public class TransferManagerImplTest
     extends AbstractTransferManagerTest
 {
 
@@ -83,7 +84,7 @@ public class TransferManagerTest
         final ListingHandler lh = new ListingHandler( nfc );
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
-        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, dh, uh, lh, eh, Executors.newFixedThreadPool( 2 ) );
+        mgr = new TransferManagerImpl( transportMgr, cacheProvider, nfc, fileEvents, dh, uh, lh, eh, new SpecialPathManagerImpl(), Executors.newFixedThreadPool( 2 ) );
     }
 
     @Override
