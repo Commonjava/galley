@@ -26,8 +26,10 @@ import java.util.Set;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGenerator;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGeneratorFactory;
 import org.commonjava.maven.galley.io.checksum.ChecksummingOutputStream;
+import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,21 +43,21 @@ public final class ChecksummingTransferDecorator
 
     private final Set<TransferOperation> ops;
 
-    private final Set<String> ignoredFileEndings;
+    private SpecialPathManager specialPathManager;
 
-    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, final Set<String> ignoredFileEndings,
+    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, SpecialPathManager specialPathManager,
                                           final AbstractChecksumGeneratorFactory<?>... checksumFactories )
     {
         this.ops = ops;
-        this.ignoredFileEndings = ignoredFileEndings;
+        this.specialPathManager = specialPathManager;
         this.checksumFactories = new HashSet<AbstractChecksumGeneratorFactory<?>>( Arrays.asList( checksumFactories ) );
     }
 
-    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, final Set<String> ignoredFileEndings,
+    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, final SpecialPathManager specialPathManager,
                                           final Collection<AbstractChecksumGeneratorFactory<?>> checksumFactories )
     {
         this.ops = ops;
-        this.ignoredFileEndings = ignoredFileEndings;
+        this.specialPathManager = specialPathManager;
         if ( checksumFactories instanceof Set )
         {
             this.checksumFactories = (Set<AbstractChecksumGeneratorFactory<?>>) checksumFactories;
@@ -72,29 +74,12 @@ public final class ChecksummingTransferDecorator
     {
         if ( ops.contains( op ) )
         {
-            if ( ignoredFileEndings == null || ignoredFileEndings.isEmpty() )
+            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
+
+            if ( specialPathInfo == null || specialPathInfo.isDecoratable() )
             {
                 logger.info( "Wrapping output stream to: {} for checksum generation.", transfer );
                 return new ChecksummingOutputStream( checksumFactories, stream, transfer );
-            }
-            else
-            {
-                final String path = transfer.getPath();
-                boolean ignored = false;
-                for ( final String ending : ignoredFileEndings )
-                {
-                    if ( path.endsWith( ending ) )
-                    {
-                        ignored = true;
-                        break;
-                    }
-                }
-
-                if ( !ignored )
-                {
-                    logger.info( "Wrapping output stream to: {} for checksum generation.", transfer );
-                    return new ChecksummingOutputStream( checksumFactories, stream, transfer );
-                }
             }
         }
 
@@ -113,30 +98,8 @@ public final class ChecksummingTransferDecorator
         throws IOException
     {
         boolean delete = false;
-        if ( ignoredFileEndings == null || ignoredFileEndings.isEmpty() )
-        {
-            delete = true;
-        }
-        else
-        {
-            final String path = transfer.getPath();
-            boolean ignored = false;
-            for ( final String ending : ignoredFileEndings )
-            {
-                if ( path.endsWith( ending ) )
-                {
-                    ignored = true;
-                    break;
-                }
-            }
-
-            if ( !ignored )
-            {
-                delete = true;
-            }
-        }
-
-        if ( delete )
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
+        if ( specialPathInfo == null || specialPathInfo.isDeletable() )
         {
             for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
             {

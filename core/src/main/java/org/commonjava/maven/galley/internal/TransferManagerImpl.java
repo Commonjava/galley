@@ -35,12 +35,14 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferBatch;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -52,9 +54,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,16 +73,6 @@ import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 public class TransferManagerImpl
     implements TransferManager
 {
-
-    private static final Set<String> BANNED_LISTING_NAMES = Collections.unmodifiableSet( new HashSet<String>()
-    {
-        {
-            add( "\\.listing\\.txt" );
-            add( ".+\\.http-metadata\\.json.*");
-        }
-
-        private static final long serialVersionUID = 1L;
-    } );
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -107,6 +101,9 @@ public class TransferManagerImpl
     private ExistenceHandler exister;
 
     @Inject
+    private SpecialPathManager specialPathManager;
+
+    @Inject
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-batching", priority = 8 )
     private ExecutorService executor;
 
@@ -118,7 +115,7 @@ public class TransferManagerImpl
                                 final NotFoundCache nfc, final FileEventManager fileEventManager,
                                 final DownloadHandler downloader, final UploadHandler uploader,
                                 final ListingHandler lister, final ExistenceHandler exister,
-                                final ExecutorService executor )
+                                final SpecialPathManager specialPathManager, final ExecutorService executor )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;
@@ -128,6 +125,7 @@ public class TransferManagerImpl
         this.uploader = uploader;
         this.lister = lister;
         this.exister = exister;
+        this.specialPathManager = specialPathManager;
         this.executor = executor;
     }
 
@@ -210,14 +208,14 @@ public class TransferManagerImpl
         throws TransferException
     {
         final Transfer cachedListing = getCacheReference( (ConcreteResource) resource.getChild( ".listing.txt" ) );
+        List<String> filenames = new ArrayList<String>();
         if ( cachedListing.exists() )
         {
             InputStream stream = null;
             try
             {
                 stream = cachedListing.openInputStream();
-                final List<String> filenames = IOUtils.readLines( stream, "UTF-8" );
-                return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
+                filenames.addAll( IOUtils.readLines( stream, "UTF-8" ) );
             }
             catch ( final IOException e )
             {
@@ -229,84 +227,80 @@ public class TransferManagerImpl
                 closeQuietly( stream );
             }
         }
-
-        final Transfer cached = getCacheReference( resource );
-        ListingResult cacheResult = null;
-        if ( cached.exists() )
-        {
-            if ( cached.isFile() )
-            {
-                throw new TransferException( "Cannot list: {}. It does not appear to be a directory.", resource );
-            }
-            else
-            {
-                try
-                {
-                    // This is fairly stupid, but we need to append '/' to the end of directories in the listing so content processors can figure
-                    // out what to do with them.
-                    final String[] fnames = cached.list();
-                    int idx = 0;
-                    for ( final String fname : fnames )
-                    {
-                        boolean banned = false;
-                        for ( String bannedPattern : BANNED_LISTING_NAMES )
-                        {
-                            if ( fname.matches( bannedPattern ) )
-                            {
-                                banned = true;
-                                break;
-                            }
-                        }
-
-                        if ( banned )
-                        {
-                            continue;
-                        }
-
-                        final ConcreteResource child = (ConcreteResource) resource.getChild( fname );
-                        final Transfer childRef = getCacheReference( child );
-                        if ( !childRef.isFile() )
-                        {
-                            fnames[idx] = fname + "/";
-                        }
-
-                        idx++;
-                    }
-
-                    cacheResult = new ListingResult( resource, fnames );
-                }
-                catch ( final IOException e )
-                {
-                    throw new TransferException( "Listing failed: {}. Reason: {}", e, resource, e.getMessage() );
-                }
-            }
-        }
-
-        if ( !resource.getLocation()
-                      .allowsDownloading() )
-        {
-            return cacheResult;
-        }
-
-        final int timeoutSeconds = getTimeoutSeconds( resource );
-        final ListingResult remoteResult =
-            lister.list( resource, cachedListing, timeoutSeconds, getTransport( resource ), suppressFailures );
-
-        ListingResult result;
-        if ( cacheResult != null && remoteResult != null )
-        {
-            result = cacheResult.mergeWith( remoteResult );
-        }
-        else if ( cacheResult != null )
-        {
-            result = cacheResult;
-        }
         else
         {
-            result = remoteResult;
+
+            final Transfer cached = getCacheReference( resource );
+            if ( cached.exists() )
+            {
+                if ( cached.isFile() )
+                {
+                    throw new TransferException( "Cannot list: {}. It does not appear to be a directory.", resource );
+                }
+                else
+                {
+                    try
+                    {
+                        // This is fairly stupid, but we need to append '/' to the end of directories in the listing so content processors can figure
+                        // out what to do with them.
+                        String[] fnames = cached.list();
+                        if ( fnames != null && fnames.length > 0 )
+                        {
+                            filenames.addAll( Arrays.asList( fnames ) );
+                        }
+                    }
+                    catch ( final IOException e )
+                    {
+                        throw new TransferException( "Listing failed: {}. Reason: {}", e, resource, e.getMessage() );
+                    }
+                }
+            }
+
+            if ( resource.getLocation()
+                         .allowsDownloading() )
+            {
+                final int timeoutSeconds = getTimeoutSeconds( resource );
+                final ListingResult remoteResult =
+                        lister.list( resource, cachedListing, timeoutSeconds, getTransport( resource ), suppressFailures );
+
+                if ( remoteResult != null )
+                {
+                    String[] remoteListing = remoteResult.getListing();
+                    if ( remoteListing != null )
+                    {
+                        filenames.addAll( Arrays.asList( remoteListing ) );
+                    }
+                }
+            }
         }
 
-        return result;
+        if ( filenames != null )
+        {
+            List<String> resultingNames = new ArrayList<String>( filenames.size() );
+            for( String fname: filenames )
+            {
+                ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+
+                SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child );
+                if ( specialPathInfo != null && !specialPathInfo.isListable() )
+                {
+                    continue;
+                }
+
+                final Transfer childRef = getCacheReference( child );
+                if ( !childRef.isFile() )
+                {
+                    resultingNames.add( fname + "/" );
+                }
+                else
+                {
+                    resultingNames.add( fname );
+                }
+            }
+        }
+
+
+        return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
     }
 
     private Transport getTransport( final ConcreteResource resource )
@@ -355,7 +349,7 @@ public class TransferManagerImpl
 
             try
             {
-                target = retrieve( res, true );
+                target = retrieve( res, true, eventMetadata );
                 lastError = null;
                 if ( target != null && target.exists() )
                 {
@@ -445,7 +439,8 @@ public class TransferManagerImpl
                 return target;
             }
 
-            if ( !resource.allowsDownloading() )
+            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource );
+            if ( !resource.allowsDownloading() || ( specialPathInfo != null && !specialPathInfo.isRetrievable() ) )
             {
                 logger.debug( "Download not allowed for: {}. Returning null transfer.", resource );
                 return null;
@@ -497,9 +492,10 @@ public class TransferManagerImpl
     public Transfer store( final ConcreteResource resource , final InputStream stream , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        if ( !resource.allowsStoring() )
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource );
+        if ( !resource.allowsStoring() || ( specialPathInfo != null && !specialPathInfo.isStorable() ) )
         {
-            throw new TransferException( "Storing not allowed in: {}", resource );
+            throw new TransferException( "Storing not allowed for: {}", resource );
         }
 
         final Transfer target = getCacheReference( resource );
@@ -599,6 +595,12 @@ public class TransferManagerImpl
 
         logger.info( "DELETE {}", item.getResource() );
 
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( item );
+        if ( specialPathInfo != null && !specialPathInfo.isDeletable() )
+        {
+            throw new TransferException( "Deleting not allowed for: %s", item );
+        }
+
         if ( item.isDirectory() )
         {
             String[] listing;
@@ -657,6 +659,12 @@ public class TransferManagerImpl
                             final String contentType )
         throws TransferException
     {
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource );
+        if ( specialPathInfo != null && !specialPathInfo.isPublishable() )
+        {
+            throw new TransferException( "Publishing not allowed for: %s", resource );
+        }
+
         return uploader.upload( resource, stream, length, contentType, getTimeoutSeconds( resource ),
                                 getTransport( resource ) );
     }
