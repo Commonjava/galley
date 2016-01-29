@@ -274,34 +274,29 @@ public class TransferManagerImpl
             }
         }
 
-        if ( filenames != null )
+        List<String> resultingNames = new ArrayList<String>( filenames.size() );
+        for( String fname : filenames )
         {
-            List<String> resultingNames = new ArrayList<String>( filenames.size() );
-            for( String fname: filenames )
+            ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+
+            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child );
+            if ( specialPathInfo != null && !specialPathInfo.isListable() )
             {
-                ConcreteResource child = (ConcreteResource) resource.getChild( fname );
-
-                SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child );
-                if ( specialPathInfo != null && !specialPathInfo.isListable() )
-                {
-                    continue;
-                }
-
-                final Transfer childRef = getCacheReference( child );
-                if ( !childRef.isFile() )
-                {
-                    resultingNames.add( fname + "/" );
-                }
-                else
-                {
-                    resultingNames.add( fname );
-                }
+                continue;
             }
 
-            return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
+            final Transfer childRef = getCacheReference( child );
+            if ( !childRef.isFile() )
+            {
+                resultingNames.add( fname + "/" );
+            }
+            else
+            {
+                resultingNames.add( fname );
+            }
         }
 
-        return null;
+        return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
     }
 
     private Transport getTransport( final ConcreteResource resource )
