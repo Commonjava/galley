@@ -246,7 +246,19 @@ public class TransferManagerImpl
                         String[] fnames = cached.list();
                         if ( fnames != null && fnames.length > 0 )
                         {
-                            filenames.addAll( Arrays.asList( fnames ) );
+                            for ( String fname : fnames )
+                            {
+                                final ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+                                final Transfer childRef = getCacheReference( child );
+                                if ( childRef.isFile() )
+                                {
+                                    filenames.add( fname );
+                                }
+                                else
+                                {
+                                    filenames.add( fname + "/" );
+                                }
+                            }
                         }
                     }
                     catch ( final IOException e )
@@ -285,15 +297,7 @@ public class TransferManagerImpl
                 continue;
             }
 
-            final Transfer childRef = getCacheReference( child );
-            if ( !childRef.isFile() )
-            {
-                resultingNames.add( fname + "/" );
-            }
-            else
-            {
-                resultingNames.add( fname );
-            }
+            resultingNames.add( fname );
         }
 
         return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
