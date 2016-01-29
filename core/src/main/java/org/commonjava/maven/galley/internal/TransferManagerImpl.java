@@ -208,7 +208,7 @@ public class TransferManagerImpl
         throws TransferException
     {
         final Transfer cachedListing = getCacheReference( (ConcreteResource) resource.getChild( ".listing.txt" ) );
-        List<String> filenames = new ArrayList<String>();
+        Set<String> filenames = new HashSet<String>();
         if ( cachedListing.exists() )
         {
             InputStream stream = null;
