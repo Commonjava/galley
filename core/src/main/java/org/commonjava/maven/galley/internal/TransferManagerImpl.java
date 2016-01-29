@@ -208,7 +208,7 @@ public class TransferManagerImpl
         throws TransferException
     {
         final Transfer cachedListing = getCacheReference( (ConcreteResource) resource.getChild( ".listing.txt" ) );
-        List<String> filenames = new ArrayList<String>();
+        Set<String> filenames = new HashSet<String>();
         if ( cachedListing.exists() )
         {
             InputStream stream = null;
@@ -246,7 +246,19 @@ public class TransferManagerImpl
                         String[] fnames = cached.list();
                         if ( fnames != null && fnames.length > 0 )
                         {
-                            filenames.addAll( Arrays.asList( fnames ) );
+                            for ( String fname : fnames )
+                            {
+                                final ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+                                final Transfer childRef = getCacheReference( child );
+                                if ( childRef.isFile() )
+                                {
+                                    filenames.add( fname );
+                                }
+                                else
+                                {
+                                    filenames.add( fname + "/" );
+                                }
+                            }
                         }
                     }
                     catch ( final IOException e )
@@ -274,33 +286,21 @@ public class TransferManagerImpl
             }
         }
 
-        if ( filenames != null )
+        List<String> resultingNames = new ArrayList<String>( filenames.size() );
+        for( String fname : filenames )
         {
-            List<String> resultingNames = new ArrayList<String>( filenames.size() );
-            for( String fname: filenames )
+            ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+
+            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child );
+            if ( specialPathInfo != null && !specialPathInfo.isListable() )
             {
-                ConcreteResource child = (ConcreteResource) resource.getChild( fname );
-
-                SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child );
-                if ( specialPathInfo != null && !specialPathInfo.isListable() )
-                {
-                    continue;
-                }
-
-                final Transfer childRef = getCacheReference( child );
-                if ( !childRef.isFile() )
-                {
-                    resultingNames.add( fname + "/" );
-                }
-                else
-                {
-                    resultingNames.add( fname );
-                }
+                continue;
             }
+
+            resultingNames.add( fname );
         }
 
-
-        return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
+        return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
     }
 
     private Transport getTransport( final ConcreteResource resource )
@@ -422,8 +422,8 @@ public class TransferManagerImpl
     {
         //        logger.info( "Attempting to resolve: {}", resource );
 
-        // TODO: Handle the case where storage isn't allowed? 
-        // NOTE: This would expand the notion out from simply: 
+        // TODO: Handle the case where storage isn't allowed?
+        // NOTE: This would expand the notion out from simply:
         //    "don't allow storing new stuff"
         // to:
         //    "don't ever cache this stuff"
