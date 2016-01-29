@@ -18,7 +18,7 @@ public class SpecialPathConstants
     static{
         Map<SpecialPathMatcher, SpecialPathInfo> sp = new HashMap<SpecialPathMatcher, SpecialPathInfo>();
 
-        SpecialPathInfo pi = SpecialPathInfo.from( new FilePatternMatcher( ".*\\.http-metadata" ) )
+        SpecialPathInfo pi = SpecialPathInfo.from( new FilePatternMatcher( ".*\\.http-metadata\\.json" ) )
                                             .setDecoratable( false )
                                             .setListable( false )
                                             .setPublishable( false )
