@@ -297,10 +297,11 @@ public class TransferManagerImpl
                     resultingNames.add( fname );
                 }
             }
+
+            return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
         }
 
-
-        return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
+        return null;
     }
 
     private Transport getTransport( final ConcreteResource resource )
@@ -422,8 +423,8 @@ public class TransferManagerImpl
     {
         //        logger.info( "Attempting to resolve: {}", resource );
 
-        // TODO: Handle the case where storage isn't allowed? 
-        // NOTE: This would expand the notion out from simply: 
+        // TODO: Handle the case where storage isn't allowed?
+        // NOTE: This would expand the notion out from simply:
         //    "don't allow storing new stuff"
         // to:
         //    "don't ever cache this stuff"
