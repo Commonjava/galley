@@ -163,7 +163,7 @@ public class ConcreteResource
         return path == ROOT || ROOT.equals( path );
     }
 
-    public Resource getParent()
+    public ConcreteResource getParent()
     {
         if ( isRoot() )
         {
@@ -173,7 +173,7 @@ public class ConcreteResource
         return new ConcreteResource( location, parentPath( path ) );
     }
 
-    public Resource getChild( final String file )
+    public ConcreteResource getChild( final String file )
     {
         return new ConcreteResource( location, normalize( path, file ) );
     }

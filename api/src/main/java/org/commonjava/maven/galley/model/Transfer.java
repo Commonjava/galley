@@ -102,12 +102,12 @@ public class Transfer
             return this;
         }
 
-        return provider.getTransfer( (ConcreteResource) resource.getParent() );
+        return provider.getTransfer( resource.getParent() );
     }
 
     public Transfer getChild( final String file )
     {
-        return provider.getTransfer( (ConcreteResource) resource.getChild( file ) );
+        return provider.getTransfer( resource.getChild( file ) );
     }
 
     public void touch()
