@@ -36,6 +36,7 @@ import org.commonjava.util.jhttpc.HttpFactory;
 import org.commonjava.util.jhttpc.JHttpCException;
 import org.commonjava.util.jhttpc.model.SiteConfig;
 import org.commonjava.util.jhttpc.model.SiteConfigBuilder;
+import org.commonjava.util.jhttpc.model.SiteTrustType;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -77,7 +78,19 @@ public class HttpImpl
                 SiteConfigBuilder configBuilder = new SiteConfigBuilder( location.getName(), location.getUri() );
                 configBuilder.withAttributes( location.getAttributes() )
                              .withKeyCertPem( location.getKeyCertPem() )
+                             .withServerCertPem( location.getServerCertPem() )
+                             .withProxyHost( location.getProxyHost() )
+                             .withProxyPort( location.getProxyPort() )
+                             .withProxyUser( location.getProxyUser() )
+                             .withRequestTimeoutSeconds( LocationUtils.getTimeoutSeconds( location ) )
+                             .withUser( location.getUser() )
                              .withMaxConnections( maxConnections );
+
+                if ( location.getTrustType() != null )
+                {
+                    configBuilder.withTrustType( SiteTrustType.getType( location.getTrustType().name() ) );
+                }
+
 
                 SiteConfig config = configBuilder.build();
 
