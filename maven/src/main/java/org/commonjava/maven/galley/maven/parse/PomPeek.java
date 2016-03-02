@@ -188,7 +188,7 @@ public class PomPeek
         if ( !createCoordinateInfo() )
         {
             logger.warn( "Could not peek at POM coordinate for: " + pom
-                + "This POM will NOT be available as an ancestor to other models during effective-model building." );
+                + "\nThis POM will NOT be available as an ancestor to other models during effective-model building." );
         }
     }
 
