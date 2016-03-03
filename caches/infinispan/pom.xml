@@ -21,25 +21,34 @@
   
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
-    <artifactId>galley</artifactId>
-    <version>0.11.4-SNAPSHOT</version>
+    <artifactId>galley-caches</artifactId>
+    <version>0.11.2-SNAPSHOT</version>
   </parent>
   
-  <artifactId>galley-caches</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>galley-cache-infinispan</artifactId>
   
-  <name>Galley :: Caches :: Parent</name>
-  
-  <modules>
-    <module>infinispan</module>
-    <module>partyline</module>
-    <module>tck</module>
-  </modules>
+  <name>Galley :: Caches :: Infinispan</name>
   
   <dependencies>
     <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-cdi-embedded</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-embedded</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-api</artifactId>
+      <artifactId>galley-cache-tck</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
     </dependency>
   </dependencies>
 </project>
