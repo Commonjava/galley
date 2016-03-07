@@ -48,7 +48,7 @@
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.16.0</atlasVersion>
     <partylineVersion>1.5</partylineVersion>
-    <jhttpcVersion>1.1.1</jhttpcVersion>
+    <jhttpcVersion>1.1.2</jhttpcVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
     <javaVersion>1.7</javaVersion>
