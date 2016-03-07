@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
@@ -97,10 +98,10 @@ public class HttpClientTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
-        return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, eventMetadata,
+        return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, transferSizes, eventMetadata,
                                  http, mapper );
     }
 

@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.filearc;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
@@ -43,7 +44,7 @@ public class ZipJarTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         return new ZipDownload( target, eventMetadata );

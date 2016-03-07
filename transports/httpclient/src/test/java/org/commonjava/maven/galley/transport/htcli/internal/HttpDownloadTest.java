@@ -32,6 +32,9 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class HttpDownloadTest
 {
 
@@ -52,10 +55,12 @@ public class HttpDownloadTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
+        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl =
-            new HttpDownload( url, location, transfer, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
+            new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -85,10 +90,12 @@ public class HttpDownloadTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
+        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl =
-            new HttpDownload( url, location, transfer, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
+            new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -122,10 +129,12 @@ public class HttpDownloadTest
         final String path = fixture.getUrlPath( url );
         fixture.registerException( path, error );
 
+        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl =
-            new HttpDownload( url, location, transfer, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
+            new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
         final DownloadJob resultJob = dl.call();
 
         final TransferException err = dl.getError();

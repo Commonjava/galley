@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.filearc;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -64,10 +65,11 @@ public class FileTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         final File src = getFile( resource );
+        transferSizes.put( target, src.length() );
         return new FileDownload( target, src, eventMetadata );
     }
 

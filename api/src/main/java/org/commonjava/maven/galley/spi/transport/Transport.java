@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.spi.transport;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.event.EventMetadata;
@@ -33,10 +34,12 @@ public interface Transport
         throws TransferException;
 
     /**
-     * @param eventMetadata 
+     *
+     * @param transferSizes
+     * @param eventMetadata
      * @return NEVER NULL
      */
-    DownloadJob createDownloadJob( ConcreteResource resource, Transfer target, int timeoutSeconds,
+    DownloadJob createDownloadJob( ConcreteResource resource, Transfer target, Map<Transfer, Long> transferSizes, int timeoutSeconds,
                                    EventMetadata eventMetadata )
         throws TransferException;
 

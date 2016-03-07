@@ -21,6 +21,7 @@ import static org.apache.commons.io.IOUtils.copy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -34,6 +35,7 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -42,15 +44,18 @@ public final class HttpDownload
 
     private final Transfer target;
 
+    private Map<Transfer, Long> transferSizes;
+
     private final EventMetadata eventMetadata;
 
     private final ObjectMapper mapper;
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
-                         final EventMetadata eventMetadata, final Http http, final ObjectMapper mapper )
+                         Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http, final ObjectMapper mapper )
     {
         super( url, location, http );
         this.target = target;
+        this.transferSizes = transferSizes;
         this.eventMetadata = eventMetadata;
         this.mapper = mapper;
     }
@@ -63,6 +68,7 @@ public final class HttpDownload
         {
             if ( executeHttp() )
             {
+                transferSizes.put( target, HttpUtil.getContentLength( response ) );
                 writeTarget();
             }
         }
@@ -78,6 +84,12 @@ public final class HttpDownload
 
         logger.info( "Download attempt done: {} Result:\n  target: {}\n  error: {}", url, target, error );
         return this;
+    }
+
+    @Override
+    public long getTransferSize()
+    {
+        return response == null ? -1 : HttpUtil.getContentLength( response );
     }
 
     @Override
@@ -98,6 +110,7 @@ public final class HttpDownload
         OutputStream out = null;
         if ( response != null )
         {
+
             InputStream in = null;
             try
             {

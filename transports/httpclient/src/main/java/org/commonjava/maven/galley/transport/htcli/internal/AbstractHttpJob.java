@@ -42,6 +42,7 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +91,11 @@ public abstract class AbstractHttpJob
     public TransferException getError()
     {
         return error;
+    }
+
+    public long getTransferSize()
+    {
+        return response == null ? -1 : HttpUtil.getContentLength( response );
     }
 
     protected boolean executeHttp()

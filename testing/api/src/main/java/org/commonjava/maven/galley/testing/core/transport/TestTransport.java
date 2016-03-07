@@ -100,7 +100,7 @@ public class TestTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         final TestDownload job = downloads.get( resource );

@@ -15,17 +15,6 @@
  */
 package org.commonjava.maven.galley.internal.xfer;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
@@ -36,8 +25,19 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @ApplicationScoped
 public class DownloadHandler
@@ -47,6 +47,11 @@ public class DownloadHandler
 
     @Inject
     private NotFoundCache nfc;
+
+    @Inject
+    private TransportManagerConfig config;
+
+    private final Map<Transfer, Long> transferSizes = new ConcurrentHashMap<Transfer, Long>();
 
     private final Map<Transfer, Future<DownloadJob>> pending = new ConcurrentHashMap<Transfer, Future<DownloadJob>>();
 
@@ -58,9 +63,10 @@ public class DownloadHandler
     {
     }
 
-    public DownloadHandler( final NotFoundCache nfc, final ExecutorService executor )
+    public DownloadHandler( final NotFoundCache nfc, final TransportManagerConfig config, final ExecutorService executor )
     {
         this.nfc = nfc;
+        this.config = config;
         this.executor = executor;
     }
 
@@ -118,76 +124,102 @@ public class DownloadHandler
                     return null;
                 }
 
-                final DownloadJob job = transport.createDownloadJob( resource, target, timeoutSeconds, eventMetadata );
+                final DownloadJob job = transport.createDownloadJob( resource, target, transferSizes, timeoutSeconds, eventMetadata );
 
                 future = executor.submit( job );
                 pending.put( target, future );
             }
         }
 
+        int waitSeconds = (int) ( timeoutSeconds * config.getTimeoutOverextensionFactor() );
+        int tries = 1;
         try
         {
-            final DownloadJob job = future.get( timeoutSeconds, TimeUnit.SECONDS );
-            synchronized ( pending )
+            while ( tries > 0 )
             {
-                pending.remove( target );
-            }
+                tries--;
 
-            final Transfer downloaded = job.getTransfer();
-
-            if ( job.getError() != null )
-            {
-                logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(), resource,
-                              job.getError().getMessage() );
-                nfc.addMissing( resource );
-
-                if ( !suppressFailures )
+                try
                 {
-                    throw job.getError();
+                    final DownloadJob job = future.get( waitSeconds, TimeUnit.SECONDS );
+
+                    synchronized ( pending )
+                    {
+                        pending.remove( target );
+                    }
+
+                    final Transfer downloaded = job.getTransfer();
+
+                    if ( job.getError() != null )
+                    {
+                        logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(),
+                                      resource, job.getError().getMessage() );
+                        nfc.addMissing( resource );
+
+                        if ( !suppressFailures )
+                        {
+                            throw job.getError();
+                        }
+                    }
+                    else if ( downloaded == null || !downloaded.exists() )
+                    {
+                        logger.debug( "NFC: Download did not complete. Marking as missing: {}", resource );
+                        nfc.addMissing( resource );
+                    }
+
+                    return downloaded;
+                }
+                catch ( final InterruptedException e )
+                {
+                    if ( !suppressFailures )
+                    {
+                        throw new TransferException( "Download interrupted: {}", e, target );
+                    }
+                }
+                catch ( final ExecutionException e )
+                {
+                    if ( !suppressFailures )
+                    {
+                        throw new TransferException( "Download failed: {}", e, target );
+                    }
+                }
+                catch ( final TimeoutException e )
+                {
+                    Long size = transferSizes.get( target );
+                    if ( tries > 0 )
+                    {
+                        continue;
+                    }
+                    else if ( size != null && size > config.getThresholdWaitRetrySize() )
+                    {
+                        logger.debug( "Downloading a large file: {}. Retrying Future.get() up to {} times.", size, tries );
+                        tries = (int) ( size / config.getWaitRetryScalingIncrement() );
+                        continue;
+                    }
+                    else if ( !suppressFailures )
+                    {
+                        throw new TransferTimeoutException( target, "Timed out waiting for execution of: {}", e, target );
+                    }
+                }
+                catch ( final TransferException e )
+                {
+                    if ( !suppressFailures )
+                    {
+                        throw e;
+                    }
+                }
+                catch ( final Exception e )
+                {
+                    if ( !suppressFailures )
+                    {
+                        throw new TransferException( "Download failed: {}. Reason: {}", e, resource, e.getMessage() );
+                    }
                 }
             }
-            else if ( downloaded == null || !downloaded.exists() )
-            {
-                logger.debug( "NFC: Download did not complete. Marking as missing: {}", resource );
-                nfc.addMissing( resource );
-            }
-
-            return downloaded;
         }
-        catch ( final InterruptedException e )
+        finally
         {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Download interrupted: {}", e, target );
-            }
-        }
-        catch ( final ExecutionException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Download failed: {}", e, target );
-            }
-        }
-        catch ( final TimeoutException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferTimeoutException( target, "Timeout on: {}", e, target );
-            }
-        }
-        catch ( final TransferException e )
-        {
-            if ( !suppressFailures )
-            {
-                throw e;
-            }
-        }
-        catch ( final Exception e )
-        {
-            if ( !suppressFailures )
-            {
-                throw new TransferException( "Download failed: {}. Reason: {}", e, resource, e.getMessage() );
-            }
+            transferSizes.remove( target );
         }
 
         return null;

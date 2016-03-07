@@ -20,6 +20,7 @@ import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModul
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
+import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
@@ -93,6 +94,8 @@ public class EmbeddableCDIProducer
 
     private MavenPluginImplications pluginImplications;
 
+    private TransportManagerConfig transportManagerConfig;
+
     @PostConstruct
     public void postConstruct()
     {
@@ -103,6 +106,7 @@ public class EmbeddableCDIProducer
         nfc = new MemoryNotFoundCache();
         locationExpander = new NoOpLocationExpander();
         locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
+        transportManagerConfig = new TransportManagerConfig();
 
         passwordManager = new MemoryPasswordManager();
         http = new HttpImpl( passwordManager );
@@ -112,6 +116,13 @@ public class EmbeddableCDIProducer
 
         pluginDefaults = new StandardMaven304PluginDefaults();
         pluginImplications = new StandardMavenPluginImplications( xml );
+    }
+
+    @Default
+    @Produces
+    public TransportManagerConfig getTransportManagerConfig()
+    {
+        return transportManagerConfig;
     }
 
     @Default

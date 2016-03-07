@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.internal.TransferManagerImpl;
 import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
@@ -79,8 +80,10 @@ public class TransferManagerImplTest
         fileEvents = new NoOpFileEventManager();
         executor = Executors.newSingleThreadExecutor();
 
-        final DownloadHandler dh = new DownloadHandler( nfc, executor );
-        final UploadHandler uh = new UploadHandler( nfc, executor );
+        TransportManagerConfig transportManagerConfig = new TransportManagerConfig();
+
+        final DownloadHandler dh = new DownloadHandler( nfc, transportManagerConfig, executor );
+        final UploadHandler uh = new UploadHandler( nfc, transportManagerConfig, executor );
         final ListingHandler lh = new ListingHandler( nfc );
         final ExistenceHandler eh = new ExistenceHandler( nfc );
 
