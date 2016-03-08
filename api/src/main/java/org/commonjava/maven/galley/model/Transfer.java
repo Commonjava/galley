@@ -15,11 +15,6 @@
  */
 package org.commonjava.maven.galley.model;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.event.FileAccessEvent;
 import org.commonjava.maven.galley.event.FileDeletionEvent;
@@ -32,6 +27,11 @@ import org.commonjava.maven.galley.util.TransferInputStream;
 import org.commonjava.maven.galley.util.TransferOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Transfer
 {
@@ -359,9 +359,18 @@ public class Transfer
 
     public Transfer getSiblingMeta( final String extension )
     {
-        final String named = new File( resource.getPath() ).getName() + extension;
-        logger.debug( "Creating meta-transfer sibling for: {} with name: {} (parent: {})", this, named, getParent() );
-        return getParent().getChild( named );
+        final String named = resource.getPath() + extension;
+
+        final Transfer tx = this;
+        logger.debug( "Creating meta-transfer sibling for: {}", new Object()
+        {
+            public String toString()
+            {
+                return tx + " with name: " + named + " (parent: " + tx.getParent() + ")";
+            }
+        } );
+
+        return provider.getTransfer( new ConcreteResource( getLocation(), named ) );
     }
 
     public static final class TransferUnlocker
