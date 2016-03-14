@@ -42,33 +42,8 @@ public class PropertiesView
         for ( Element e : elements )
         {
             Node value = e.getFirstChild();
-            result.setProperty( e.getNodeName(), (value == null ? "" : e.getFirstChild().getNodeValue() ) );
-        }
-
-        for ( String key : result.stringPropertyNames() )
-        {
-            if ( result.getProperty( key ).startsWith( "${" ) )
-            {
-                result.setProperty( key, getValue( result, key ) );
-            }
-        }
-        return result;
-    }
-
-
-    private String getValue (Properties mappings, String key)
-    {
-        String result = mappings.getProperty( key );
-
-        // If we didn't find anything break out. Return the original property.
-        if ( result == null )
-        {
-            return "${".concat( key ).concat( "}" );
-        }
-        // If its a property reference search again.
-        else if ( result.startsWith( "${" ) )
-        {
-            result = getValue( mappings, result.substring( 2, result.length() - 1 ) );
+            result.setProperty( e.getNodeName(), (value == null ? "" :
+                            getPomView().resolveExpressions( e.getFirstChild().getNodeValue() ) ) );
         }
         return result;
     }
