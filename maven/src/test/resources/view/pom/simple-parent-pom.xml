@@ -14,5 +14,10 @@
   <artifactId>bar-parent</artifactId>
   <version>1.0.0.0</version>
   <packaging>pom</packaging>
-  
+
+  <properties>
+    <another-property>${skipTests}</another-property>
+    <parent-property>999999</parent-property>
+  </properties>
+
 </project>
