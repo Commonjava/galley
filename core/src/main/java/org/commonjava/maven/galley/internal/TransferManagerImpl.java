@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.internal;
 
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
@@ -101,6 +102,7 @@ public class TransferManagerImpl
     private SpecialPathManager specialPathManager;
 
     @Inject
+    @WeftManaged
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-batching", priority = 8 )
     private ExecutorService executor;
 

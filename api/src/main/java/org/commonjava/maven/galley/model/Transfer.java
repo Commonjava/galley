@@ -307,19 +307,19 @@ public class Transfer
         return listing;
     }
 
-    public File getDetachedFile()
-    {
-        provider.waitForWriteUnlock( resource );
-        provider.lockWrite( resource );
-        try
-        {
-            return provider.getDetachedFile( resource );
-        }
-        finally
-        {
-            provider.unlockWrite( resource );
-        }
-    }
+//    public File getDetachedFile()
+//    {
+//        provider.waitForWriteUnlock( resource );
+//        provider.lockWrite( resource );
+//        try
+//        {
+//            return provider.getDetachedFile( resource );
+//        }
+//        finally
+//        {
+//            provider.unlockWrite( resource );
+//        }
+//    }
 
     public void mkdirs()
         throws IOException

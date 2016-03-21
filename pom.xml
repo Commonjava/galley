@@ -134,7 +134,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>18</version>
+        <version>20-SNAPSHOT</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -183,7 +183,7 @@
       <dependency>
         <groupId>org.jsoup</groupId>
         <artifactId>jsoup</artifactId>
-        <version>1.7.2</version>
+        <version>1.8.3</version>
       </dependency>
 <!--       <dependency>
         <groupId>io.vertx</groupId>

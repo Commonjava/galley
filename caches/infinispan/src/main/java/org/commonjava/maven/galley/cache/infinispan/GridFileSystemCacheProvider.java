@@ -42,7 +42,7 @@ import java.util.List;
 @Named( "partyline-galley-cache" )
 @Alternative
 public class GridFileSystemCacheProvider
-        implements CacheProvider
+        implements CacheProvider, CacheProvider.AdminView
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -70,6 +70,11 @@ public class GridFileSystemCacheProvider
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.filesystem = filesystem;
+    }
+
+    public boolean isFileBased()
+    {
+        return true;
     }
 
     @Override

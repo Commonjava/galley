@@ -23,6 +23,8 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
@@ -66,9 +68,13 @@ public class GalleyCore
     private List<Transport> transports;
 
     @Inject
+    @WeftManaged
+    @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
     private ExecutorService handlerExecutor;
 
     @Inject
+    @WeftManaged
+    @ExecutorConfig( threads = 12, daemon = true, named = "galley-batching", priority = 8 )
     private ExecutorService batchExecutor;
 
     @Inject

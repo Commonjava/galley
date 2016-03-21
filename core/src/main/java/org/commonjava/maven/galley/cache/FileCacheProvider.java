@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 @Named( "file-galley-cache" )
 @Alternative
 public class FileCacheProvider
-    implements CacheProvider
+    implements CacheProvider, CacheProvider.AdminView
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -96,6 +96,11 @@ public class FileCacheProvider
                               final TransferDecorator transferDecorator )
     {
         this( cacheBasedir, pathGenerator, fileEventManager, transferDecorator, true );
+    }
+
+    public boolean isFileBased()
+    {
+        return true;
     }
 
     @Override

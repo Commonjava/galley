@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 @Named( "partyline-galley-cache" )
 @Alternative
 public class PartyLineCacheProvider
-    implements CacheProvider
+    implements CacheProvider, CacheProvider.AdminView
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -122,6 +122,11 @@ public class PartyLineCacheProvider
     public void stopReportingDaemon()
     {
         fileManager.stopReporting();
+    }
+
+    public boolean isFileBased()
+    {
+        return true;
     }
 
     @Override

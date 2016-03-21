@@ -28,6 +28,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
@@ -58,6 +59,7 @@ public class UploadHandler
     private final Map<Resource, Future<PublishJob>> pending = new ConcurrentHashMap<Resource, Future<PublishJob>>();
 
     @Inject
+    @WeftManaged
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
     private ExecutorService executor;
 

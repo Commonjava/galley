@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.internal.xfer;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
@@ -56,6 +57,7 @@ public class DownloadHandler
     private final Map<Transfer, Future<DownloadJob>> pending = new ConcurrentHashMap<Transfer, Future<DownloadJob>>();
 
     @Inject
+    @WeftManaged
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
     private ExecutorService executor;
 
