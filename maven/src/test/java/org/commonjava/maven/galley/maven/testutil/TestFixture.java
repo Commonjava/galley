@@ -20,11 +20,17 @@ import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.type.StandardTypeMapper;
 import org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
+import org.commonjava.maven.galley.maven.parse.MavenPomReader;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
+import org.commonjava.maven.galley.maven.rel.MavenModelProcessor;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
+import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
@@ -39,6 +45,8 @@ public class TestFixture
 
     private MavenMetadataReader metadataReader;
 
+    private MavenPomReader pomReader;
+
     private XMLInfrastructure xml;
 
     private ArtifactMetadataManager metadataManager;
@@ -46,6 +54,12 @@ public class TestFixture
     private XPathManager xpath;
 
     private StandardTypeMapper typeMapper;
+
+    private MavenPluginDefaults pluginDefaults;
+
+    private MavenPluginImplications pluginImplications;
+
+    private MavenModelProcessor modelProcessor;
 
     public String pomPath( final ProjectVersionRef ref )
         throws Exception
@@ -97,8 +111,38 @@ public class TestFixture
         if ( artifactManager == null )
         {
             artifactManager =
-                new ArtifactManagerImpl( getTransferManager(), getLocationExpander(), typeMapper, versionResolver );
+                    new ArtifactManagerImpl( getTransferManager(), getLocationExpander(), typeMapper, versionResolver );
         }
+
+        if ( pluginDefaults == null )
+        {
+            pluginDefaults = new StandardMaven304PluginDefaults();
+        }
+
+        if ( pluginImplications == null )
+        {
+            pluginImplications = new StandardMavenPluginImplications( xml );
+        }
+
+        if ( modelProcessor == null )
+        {
+            modelProcessor = new MavenModelProcessor();
+        }
+
+        if ( pomReader == null )
+        {
+            pomReader = new MavenPomReader( xml, getLocationExpander(), getArtifactManager(), getXpath(), getPluginDefaults(), getPluginImplications() );
+        }
+    }
+
+    private MavenPluginImplications getPluginImplications()
+    {
+        return pluginImplications;
+    }
+
+    private MavenPluginDefaults getPluginDefaults()
+    {
+        return pluginDefaults;
     }
 
     public ArtifactManager getArtifactManager()
@@ -161,4 +205,43 @@ public class TestFixture
         this.xpath = xpath;
     }
 
+    public void setPomReader( MavenPomReader pomReader )
+    {
+        this.pomReader = pomReader;
+    }
+
+    public void setTypeMapper( StandardTypeMapper typeMapper )
+    {
+        this.typeMapper = typeMapper;
+    }
+
+    public void setPluginDefaults( MavenPluginDefaults pluginDefaults )
+    {
+        this.pluginDefaults = pluginDefaults;
+    }
+
+    public void setPluginImplications( MavenPluginImplications pluginImplications )
+    {
+        this.pluginImplications = pluginImplications;
+    }
+
+    public MavenPomReader getPomReader()
+    {
+        return pomReader;
+    }
+
+    public StandardTypeMapper getTypeMapper()
+    {
+        return typeMapper;
+    }
+
+    public MavenModelProcessor getModelProcessor()
+    {
+        return modelProcessor;
+    }
+
+    public void setModelProcessor( MavenModelProcessor modelProcessor )
+    {
+        this.modelProcessor = modelProcessor;
+    }
 }
