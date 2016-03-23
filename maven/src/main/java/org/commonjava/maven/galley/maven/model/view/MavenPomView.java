@@ -15,14 +15,6 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.jxpath.JXPathContext;
 import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.Interpolator;
@@ -40,6 +32,14 @@ import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.V;
 
 /**
  * Represents a view of a Maven POM which has had inheritance, mix-ins (eg. BOMs), and expressions resolved.
@@ -779,6 +779,28 @@ public class MavenPomView
 
         return result;
     }
+
+
+    public List<PropertiesView> getProperties()
+    {
+        final List<MavenPomElementView> list =
+            resolveXPathToAggregatedElementViewList( "/project//properties", true, -1 );
+        final List<PropertiesView> result = new ArrayList<PropertiesView>( list.size() );
+
+        for ( final MavenPomElementView node : list )
+        {
+            if ( node == null )
+            {
+                continue;
+            }
+
+            result.add (new PropertiesView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
+        }
+        return result;
+    }
+
+
+
 
     /**
      * RAW ACCESS: Retrieve an ordered list of {@link MavenPomElementView} instances matching the given XPath
