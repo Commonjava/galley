@@ -1,1 +1,3 @@
-core/var
+.idea
+*.iml
+target/

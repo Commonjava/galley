@@ -15,20 +15,21 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-import java.util.Set;
-
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.GalleyMavenXMLException;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 public class MavenPomViewTest
     extends AbstractMavenViewTest
@@ -356,6 +357,26 @@ public class MavenPomViewTest
 
         assertThat( aid, equalTo( "bar-project" ) );
         assertThat( pvr.getArtifactId(), equalTo( "bar-project" ) );
+    }
+
+    @Test
+    public void pomProperties()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-property.xml", "simple-parent-pom.xml" );
+
+        List<PropertiesView> lpv = pomView.getProperties();
+
+        Properties result = PropertiesView.aggregateProperties( lpv );
+
+        assertThat( result.size(), equalTo( 7 ) );
+        assertThat( result.getProperty( "another-property" ), equalTo( "2.1" ) );
+        assertThat( result.getProperty( "resolve-second-property" ), equalTo( "2.1" ) );
+        assertThat( result.getProperty( "resolve-third-property" ), equalTo( "2.1" ) );
+        assertThat( result.getProperty( "resolve-fourth-property" ), equalTo( "2.1" ) );
+        assertThat( result.getProperty( "parent-property" ), equalTo( "999999" ) );
+
+        assertThat( result.getProperty( "resolve-no-property" ), equalTo( "${i-dont-exist}" ) );
     }
 
 }
