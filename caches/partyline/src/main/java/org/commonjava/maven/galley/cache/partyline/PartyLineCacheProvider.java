@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 @Named( "partyline-galley-cache" )
 @Alternative
 public class PartyLineCacheProvider
-    implements CacheProvider
+    implements CacheProvider, CacheProvider.AdminView
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -124,6 +124,11 @@ public class PartyLineCacheProvider
         fileManager.stopReporting();
     }
 
+    public boolean isFileBased()
+    {
+        return true;
+    }
+
     @Override
     public File getDetachedFile( final ConcreteResource resource )
     {
@@ -145,9 +150,13 @@ public class PartyLineCacheProvider
                 f = new File( altDir, resource.getPath() );
             }
 
-            if ( resource.isRoot() && !f.isDirectory() )
+            // TODO: Need a better sync object!!
+            synchronized ( this )
             {
-                f.mkdirs();
+                if ( resource.isRoot() && !f.isDirectory() )
+                {
+                    f.mkdirs();
+                }
             }
 
             // TODO: configurable default timeout
@@ -221,9 +230,14 @@ public class PartyLineCacheProvider
         final File targetFile = getDetachedFile( resource );
 
         final File dir = targetFile.getParentFile();
-        if ( !dir.isDirectory() && !dir.mkdirs() )
+
+        // TODO: Need a better sync object!!
+        synchronized ( this )
         {
-            throw new IOException( "Cannot create directory: " + dir );
+            if ( !dir.isDirectory() && !dir.mkdirs() )
+            {
+                throw new IOException( "Cannot create directory: " + dir );
+            }
         }
 
         return fileManager.openOutputStream( targetFile );
@@ -321,7 +335,8 @@ public class PartyLineCacheProvider
     }
 
     @Override
-    public void mkdirs( final ConcreteResource resource )
+    // TODO: Need a better sync object!!
+    public synchronized void mkdirs( final ConcreteResource resource )
         throws IOException
     {
         getDetachedFile( resource ).mkdirs();

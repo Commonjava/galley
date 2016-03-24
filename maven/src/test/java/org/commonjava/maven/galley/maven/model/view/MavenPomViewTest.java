@@ -19,6 +19,7 @@ import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.GalleyMavenXMLException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -164,6 +165,47 @@ public class MavenPomViewTest
 
         assertThat( dv.getVersion(), equalTo( "1.0" ) );
         assertThat( dv.getScope(), equalTo( DependencyScope.test ) );
+    }
+
+    @Test
+    public void directDepsInParentAndMainPOM()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-parent-and-direct-dep.xml", "simple-parent-with-direct-dep.xml" );
+
+        List<DependencyView> deps = pomView.getAllDirectDependencies();
+        assertThat( deps.size(), equalTo( 2 ) );
+    }
+
+    @Test
+    @Ignore( "https://github.com/Commonjava/galley/issues/96" )
+    public void managedDepOverlapMergedFromParentToMainPOM()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-parent-and-incomplete-managed-dep.xml", "simple-parent-with-managed-dep.xml" );
+
+        List<DependencyView> deps = pomView.getAllManagedDependencies();
+
+
+        assertThat( deps.size(), equalTo( 1 ) );
+        DependencyView dep = deps.get( 0 );
+        assertThat( dep.getScope(), equalTo( DependencyScope.test ) );
+        assertThat( dep.getVersion(), equalTo( "2.5" ) );
+    }
+
+    @Test
+    @Ignore( "https://github.com/Commonjava/galley/issues/96" )
+    public void dependencyOverrideInMainPOM()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-parent-and-redeclared-direct-dep.xml", "simple-parent-with-direct-dep.xml" );
+
+        List<DependencyView> deps = pomView.getAllDirectDependencies();
+
+
+        assertThat( deps.size(), equalTo( 1 ) );
+        DependencyView dep = deps.get( 0 );
+        assertThat( dep.getScope(), equalTo( DependencyScope.compile ) );
     }
 
     @Test

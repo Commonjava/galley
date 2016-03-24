@@ -28,11 +28,14 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
+import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
+import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Resource;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -48,9 +51,15 @@ public class UploadHandler
     @Inject
     private NotFoundCache nfc;
 
+    @Inject
+    private TransportManagerConfig config;
+
+    private final Map<ConcreteResource, Long> transferSizes = new ConcurrentHashMap<ConcreteResource, Long>();
+
     private final Map<Resource, Future<PublishJob>> pending = new ConcurrentHashMap<Resource, Future<PublishJob>>();
 
     @Inject
+    @WeftManaged
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
     private ExecutorService executor;
 
@@ -58,9 +67,10 @@ public class UploadHandler
     {
     }
 
-    public UploadHandler( final NotFoundCache nfc, final ExecutorService executor )
+    public UploadHandler( final NotFoundCache nfc, final TransportManagerConfig config, final ExecutorService executor )
     {
         this.nfc = nfc;
+        this.config = config;
         this.executor = executor;
     }
 
@@ -107,43 +117,70 @@ public class UploadHandler
             }
         }
 
+        int waitSeconds = (int) ( timeoutSeconds * config.getTimeoutOverextensionFactor() );
+        int tries = 1;
         try
         {
-            final PublishJob job = future.get( timeoutSeconds, TimeUnit.SECONDS );
-
-            if ( job.getError() != null )
+            while( tries > 0 )
             {
-                throw job.getError();
-            }
+                tries--;
 
-            nfc.clearMissing( resource );
-            return job.isSuccessful();
-        }
-        catch ( final InterruptedException e )
-        {
-            throw new TransferException( "Interrupted publish: {}. Reason: {}", e, resource, e.getMessage() );
-        }
-        catch ( final ExecutionException e )
-        {
-            throw new TransferException( "Failed to publish: {}. Reason: {}", e, resource, e.getMessage() );
-        }
-        catch ( final TimeoutException e )
-        {
-            throw new TransferTimeoutException( resource, "Timed-out publish: {}. Reason: {}", e, resource,
-                                                e.getMessage() );
-        }
-        catch ( final TransferException e )
-        {
-            throw e;
-        }
-        catch ( final Exception e )
-        {
-            throw new TransferException( "Failed listing: {}. Reason: {}", e, resource, e.getMessage() );
+                try
+                {
+                    final PublishJob job = future.get( timeoutSeconds, TimeUnit.SECONDS );
+
+                    if ( job.getError() != null )
+                    {
+                        throw job.getError();
+                    }
+
+                    nfc.clearMissing( resource );
+                    return job.isSuccessful();
+                }
+                catch ( final InterruptedException e )
+                {
+                    throw new TransferException( "Interrupted publish: {}. Reason: {}", e, resource, e.getMessage() );
+                }
+                catch ( final ExecutionException e )
+                {
+                    throw new TransferException( "Failed to publish: {}. Reason: {}", e, resource, e.getMessage() );
+                }
+                catch ( final TimeoutException e )
+                {
+                    Long size = transferSizes.get( resource );
+                    if ( tries > 0 )
+                    {
+                        continue;
+                    }
+                    else if ( size != null && size > config.getThresholdWaitRetrySize() )
+                    {
+                        logger.debug( "Publishing a large file: {}. Retrying Future.get() up to {} times.", size, tries );
+                        tries = (int) ( size / config.getWaitRetryScalingIncrement() );
+                        continue;
+                    }
+                    else
+                    {
+                        throw new TransferTimeoutException( resource, "Timed out waiting for execution of: {}", e, resource );
+                    }
+                }
+                catch ( final TransferException e )
+                {
+                    throw e;
+                }
+                catch ( final Exception e )
+                {
+                    throw new TransferException( "Failed listing: {}. Reason: {}", e, resource, e.getMessage() );
+                }
+            }
         }
         finally
         {
+            transferSizes.remove( resource );
+
             //            logger.info( "Marking download complete: {}", url );
             pending.remove( resource );
         }
+
+        return false;
     }
 }

@@ -176,7 +176,6 @@ public class TestCacheProvider
         return getDetachedFile( resource ).list();
     }
 
-    @Override
     public File getDetachedFile( final ConcreteResource resource )
     {
         return new File( new File( dir, resource.getLocationName() ), resource.getPath() );

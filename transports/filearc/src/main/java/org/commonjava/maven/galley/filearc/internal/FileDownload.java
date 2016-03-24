@@ -49,6 +49,12 @@ public class FileDownload
     }
 
     @Override
+    public long getTransferSize()
+    {
+        return src.length();
+    }
+
+    @Override
     public TransferException getError()
     {
         return error;

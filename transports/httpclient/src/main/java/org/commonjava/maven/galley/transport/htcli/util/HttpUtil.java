@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.transport.htcli.util;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
+import org.apache.http.Header;
 import org.apache.http.client.methods.AbstractExecutionAwareRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -25,6 +26,8 @@ import org.apache.http.util.EntityUtils;
 
 public final class HttpUtil
 {
+
+    private static final String CONTENT_LENGTH = "Content-Length";
 
     private HttpUtil()
     {
@@ -53,4 +56,14 @@ public final class HttpUtil
         }
     }
 
+    public static long getContentLength( CloseableHttpResponse response )
+    {
+        if ( response == null )
+        {
+            return -1;
+        }
+
+        Header header = response.getFirstHeader( CONTENT_LENGTH );
+        return header == null ? 0 : Long.parseLong( header.getValue() );
+    }
 }

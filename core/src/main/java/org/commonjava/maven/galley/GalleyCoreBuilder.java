@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.internal.TransferManagerImpl;
 import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
@@ -67,6 +68,8 @@ public class GalleyCoreBuilder
     private CacheProvider cache;
 
     private NotFoundCache nfc;
+
+    private TransportManagerConfig transportManagerConfig;
 
     private TransportManager transportManager;
 
@@ -140,9 +143,14 @@ public class GalleyCoreBuilder
         {
             nfc = new MemoryNotFoundCache();
         }
+
+        if ( transportManagerConfig == null )
+        {
+            transportManagerConfig = new TransportManagerConfig();
+        }
         
-        final DownloadHandler dh = new DownloadHandler( getNfc(), handlerExecutor );
-        final UploadHandler uh = new UploadHandler( getNfc(), handlerExecutor );
+        final DownloadHandler dh = new DownloadHandler( getNfc(), transportManagerConfig, handlerExecutor );
+        final UploadHandler uh = new UploadHandler( getNfc(), transportManagerConfig, handlerExecutor );
         final ListingHandler lh = new ListingHandler( getNfc() );
         final ExistenceHandler eh = new ExistenceHandler( getNfc() );
 
@@ -345,6 +353,17 @@ public class GalleyCoreBuilder
 
         transports.add( transport );
 
+        return this;
+    }
+
+    public TransportManagerConfig getTransportManagerConfig()
+    {
+        return transportManagerConfig;
+    }
+
+    public GalleyCoreBuilder withTransportManagerConfig( TransportManagerConfig transportManagerConfig )
+    {
+        this.transportManagerConfig = transportManagerConfig;
         return this;
     }
 }

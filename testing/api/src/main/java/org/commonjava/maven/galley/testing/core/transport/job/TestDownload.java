@@ -112,6 +112,12 @@ public class TestDownload
     }
 
     @Override
+    public long getTransferSize()
+    {
+        return 1;
+    }
+
+    @Override
     public Transfer getTransfer()
     {
         return transfer;

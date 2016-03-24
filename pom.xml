@@ -49,9 +49,10 @@
     <atlasVersion>0.16.0</atlasVersion>
     <partylineVersion>1.5</partylineVersion>
     <jhttpcVersion>1.1.2</jhttpcVersion>
+    <infinispanVersion>8.1.2.Final</infinispanVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
-    <javaVersion>1.7</javaVersion>
+    <javaVersion>1.8</javaVersion>
   </properties>
 
   <dependencyManagement>
@@ -126,6 +127,11 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.maven.atlas</groupId>
+        <artifactId>atlas-relationships-api</artifactId>
+        <version>${atlasVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.maven.atlas</groupId>
         <artifactId>atlas-bindings-jackson-identities</artifactId>
         <version>${atlasVersion}</version>
       </dependency>
@@ -133,7 +139,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>18</version>
+        <version>20-SNAPSHOT</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -182,7 +188,7 @@
       <dependency>
         <groupId>org.jsoup</groupId>
         <artifactId>jsoup</artifactId>
-        <version>1.7.2</version>
+        <version>1.8.3</version>
       </dependency>
 <!--       <dependency>
         <groupId>io.vertx</groupId>
@@ -206,6 +212,22 @@
         <groupId>ch.qos.cal10n</groupId>
         <artifactId>cal10n-api</artifactId>
         <version>0.7.4</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.infinispan</groupId>
+        <artifactId>infinispan-cdi-embedded</artifactId>
+        <version>${infinispanVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.infinispan</groupId>
+        <artifactId>infinispan-embedded</artifactId>
+        <version>${infinispanVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.logging</groupId>
+        <artifactId>jboss-logging</artifactId>
+        <version>3.3.0.Final</version>
       </dependency>
       
       <!-- Used to simulate remote repositories in transport/httpclient -->

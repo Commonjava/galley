@@ -19,6 +19,12 @@ public interface PublishJob
     extends TransportJob<PublishJob>
 {
 
+    /**
+     * Give a hint to the handler waiting on Future.get(), so if this size is above a (configurable) threshold, retry
+     * the get() call by some scaling factor based on the actual size and the threshold. If unknown, return -1.
+     */
+    long getTransferSize();
+
     boolean isSuccessful();
 
 }

@@ -71,8 +71,6 @@ public interface CacheProvider
 
     String[] list( ConcreteResource resource );
 
-    File getDetachedFile( ConcreteResource resource );
-
     void mkdirs( ConcreteResource resource )
         throws IOException;
 
@@ -106,4 +104,10 @@ public interface CacheProvider
 
     void waitForReadUnlock( ConcreteResource resource );
 
+    interface AdminView extends CacheProvider
+    {
+        boolean isFileBased();
+
+        File getDetachedFile( ConcreteResource resource );
+    }
 }

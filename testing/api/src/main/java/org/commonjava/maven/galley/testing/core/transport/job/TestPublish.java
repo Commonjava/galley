@@ -57,6 +57,12 @@ public class TestPublish
     }
 
     @Override
+    public long getTransferSize()
+    {
+        return 1;
+    }
+
+    @Override
     public boolean isSuccessful()
     {
         return result;

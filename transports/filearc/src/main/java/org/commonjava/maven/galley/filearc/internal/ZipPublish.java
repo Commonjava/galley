@@ -51,6 +51,12 @@ public class ZipPublish
     }
 
     @Override
+    public long getTransferSize()
+    {
+        return -1;
+    }
+
+    @Override
     public TransferException getError()
     {
         return error;
