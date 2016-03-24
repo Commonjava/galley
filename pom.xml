@@ -310,6 +310,12 @@
           </executions>
         </plugin>
         <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <configuration>
+            <additionalparam>-Xdoclint:none</additionalparam>
+          </configuration>
+        </plugin>
+        <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
             <!-- override javaVersion above so we can include this in PME, which has to run in JDK 1.6 environments still. -->
