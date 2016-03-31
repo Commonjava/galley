@@ -32,6 +32,7 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -71,7 +72,7 @@ public class HttpListing
         request = new HttpGet( url );
 
         // return null if something goes wrong, after setting the error.
-        // What we should be doing here is trying to retrieve the html directory 
+        // What we should be doing here is trying to retrieve the html directory
         // listing, then parse out the filenames from that...
         //
         // They'll be links, so that's something to key in on.
@@ -96,7 +97,7 @@ public class HttpListing
                 {
                     doc = Jsoup.parse( in, "UTF-8", url );
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     this.error =
                             new TransferLocationException( resource.getLocation(), "Invalid HTML in: {}. Reason: {}", e, url, e.getMessage() );
@@ -113,10 +114,14 @@ public class HttpListing
                         }
                     }
 
-                    stream = target.openOutputStream( TransferOperation.DOWNLOAD );
-                    stream.write( join( al, "\n" ).getBytes( "UTF-8" ) );
+                    final TransferDecorator decorator = target.getDecorator();
+                    String[] listing = al.toArray( new String[ al.size() ] );
+                    listing = decorator.decorateListing( target.getParent(), listing );
 
-                    result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
+                    stream = target.openOutputStream( TransferOperation.DOWNLOAD );
+                    stream.write( join( listing, "\n" ).getBytes( "UTF-8" ) );
+
+                    result = new ListingResult( resource, listing );
                 }
             }
         }

@@ -22,13 +22,13 @@ import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileStorageEvent;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.TransferInputStream;
 import org.commonjava.maven.galley.util.TransferOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -224,11 +224,20 @@ public class Transfer
 
     public boolean exists()
     {
+        OverriddenBooleanValue overriden = null;
         if ( decorator != null )
         {
-            decorator.decorateExists( this );
+            overriden = decorator.decorateExists( this );
         }
-        return provider.exists( resource );
+
+        if ( ( overriden != null ) && overriden.overrides() )
+        {
+            return overriden.getResult();
+        }
+        else
+        {
+            return provider.exists( resource );
+        }
     }
 
     public void copyFrom( final Transfer f )
@@ -364,6 +373,7 @@ public class Transfer
         final Transfer tx = this;
         logger.debug( "Creating meta-transfer sibling for: {}", new Object()
         {
+            @Override
             public String toString()
             {
                 return tx + " with name: " + named + " (parent: " + tx.getParent() + ")";
@@ -405,4 +415,10 @@ public class Transfer
     {
         return provider.isWriteLocked( resource );
     }
+
+    public TransferDecorator getDecorator()
+    {
+        return decorator;
+    }
+
 }
