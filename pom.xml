@@ -47,7 +47,7 @@
     <projectOwner>Red Hat, Inc.</projectOwner>
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.16.0</atlasVersion>
-    <partylineVersion>1.5</partylineVersion>
+    <partylineVersion>1.6</partylineVersion>
     <jhttpcVersion>1.1.2</jhttpcVersion>
     <infinispanVersion>8.1.2.Final</infinispanVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
