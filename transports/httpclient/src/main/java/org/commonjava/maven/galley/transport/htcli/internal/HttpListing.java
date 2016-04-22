@@ -16,8 +16,6 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,9 +28,6 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -56,14 +51,10 @@ public class HttpListing
 
     private final ConcreteResource resource;
 
-    private final Transfer target;
-
-    public HttpListing( final String url, final ConcreteResource resource, final int timeoutSeconds,
-                        final Transfer target, final Http http )
+    public HttpListing( final String url, final ConcreteResource resource, final Http http )
     {
         super( url, (HttpLocation) resource.getLocation(), http );
         this.resource = resource;
-        this.target = target;
     }
 
     @Override
@@ -114,14 +105,7 @@ public class HttpListing
                         }
                     }
 
-                    final TransferDecorator decorator = target.getDecorator();
-                    String[] listing = al.toArray( new String[ al.size() ] );
-                    listing = decorator.decorateListing( target.getParent(), listing );
-
-                    stream = target.openOutputStream( TransferOperation.DOWNLOAD );
-                    stream.write( join( listing, "\n" ).getBytes( "UTF-8" ) );
-
-                    result = new ListingResult( resource, listing );
+                    result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
                 }
             }
         }
@@ -143,4 +127,5 @@ public class HttpListing
 
         return error == null ? result : null;
     }
+
 }

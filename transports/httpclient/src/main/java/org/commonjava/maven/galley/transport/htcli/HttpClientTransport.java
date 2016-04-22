@@ -98,7 +98,7 @@ public class HttpClientTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          final Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, transferSizes, eventMetadata,
@@ -140,8 +140,8 @@ public class HttpClientTransport
     public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpListing( getUrl( resource ), new ConcreteResource( getHttpLocation( resource.getLocation() ),
-                                                                          resource.getPath() ), timeoutSeconds, target,
+        return new HttpListing( getUrl( resource ),
+                                new ConcreteResource( getHttpLocation( resource.getLocation() ), resource.getPath() ),
                                 http );
     }
 
@@ -177,6 +177,12 @@ public class HttpClientTransport
         {
             throw new TransferLocationException( resource.getLocation(), "Failed to build URL for resource: {}. Reason: {}", e, resource, e.getMessage() );
         }
+    }
+
+    @Override
+    public boolean allowsCaching()
+    {
+        return true;
     }
 
 }

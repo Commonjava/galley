@@ -44,7 +44,7 @@ public class ZipJarTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          final Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         return new ZipDownload( target, eventMetadata );
@@ -85,6 +85,12 @@ public class ZipJarTransport
         throws TransferException
     {
         return new ZipExistence( resource );
+    }
+
+    @Override
+    public boolean allowsCaching()
+    {
+        return true;
     }
 
 }

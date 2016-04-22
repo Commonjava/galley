@@ -66,48 +66,33 @@ extends AbstractTransferDecorator
         final Location loc = transfer.getLocation();
         final boolean allowsSnapshots = loc.allowsSnapshots();
         final boolean allowsReleases = loc.allowsReleases();
-        if ( !allowsSnapshots || !allowsReleases )
+        if ( loc instanceof HttpLocation && ( !allowsSnapshots || !allowsReleases ) )
         {
             if ( transfer.isFile() )
             {
                 final String path = transfer.getPath();
+                // pattern for "groupId path/(artifactId)/(version)/(filename)"
                 final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/([^/]+)$" );
                 final Matcher matcher = pattern.matcher( path );
                 if ( matcher.find() )
                 {
-                    if ( matcher.group( 3 ).startsWith( matcher.group( 1 ) + '-' + matcher.group( 2 ) ) )
+                    String artifactId = matcher.group( 1 );
+                    String version = matcher.group( 2 );
+                    String filename = matcher.group( 3 );
+                    // if file starts with artifactId-version, it is an artifact
+                    if ( filename.startsWith( artifactId + '-' + version ) )
                     {
-                        // it is an artifact
-                        final boolean isSnapshot = path.matches( ".*/[^/]+/[^/]+\\-SNAPSHOT/[^/]+$" );
+                        final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
                         if ( isSnapshot && !allowsSnapshots || !isSnapshot && !allowsReleases )
                         {
                             return OverriddenBooleanValue.OVERRIDE_FALSE;
                         }
-                        else
-                        {
-                            return OverriddenBooleanValue.DEFER;
-                        }
-                    }
-                    else
-                    {
-                        return OverriddenBooleanValue.DEFER;
                     }
                 }
-                else
-                {
-                    return OverriddenBooleanValue.DEFER;
-                }
-            }
-            else
-            {
-                // TODO
-                return OverriddenBooleanValue.DEFER;
             }
         }
-        else
-        {
-            return OverriddenBooleanValue.DEFER;
-        }
+
+        return OverriddenBooleanValue.DEFER;
     }
 
     @Override
@@ -117,7 +102,8 @@ extends AbstractTransferDecorator
         final Location loc = transfer.getLocation();
         final boolean allowsSnapshots = loc.allowsSnapshots();
         final boolean allowsReleases = loc.allowsReleases();
-        if ( ( !allowsSnapshots || !allowsReleases ) && transfer.getFullPath().endsWith( "maven-metadata.xml" ) )
+        if ( loc instanceof HttpLocation && ( !allowsSnapshots || !allowsReleases )
+                && transfer.getFullPath().endsWith( "maven-metadata.xml" ) )
         {
             return new MetadataFilteringOutputStream( stream, allowsSnapshots, allowsReleases );
         }
