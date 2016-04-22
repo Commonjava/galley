@@ -1,1 +1,9 @@
-core/var
+.idea
+*.iml
+target/
+
+# eclipse
+.classpath
+.project
+.settings/
+
