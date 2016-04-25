@@ -72,21 +72,17 @@ extends AbstractTransferDecorator
             {
                 final String path = transfer.getPath();
                 // pattern for "groupId path/(artifactId)/(version)/(filename)"
-                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/([^/]+)$" );
+                // where the filename starts with artifactId-version and is followed by - or .
+                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(\\1-\\2[-.][^/]+)$" );
                 final Matcher matcher = pattern.matcher( path );
                 if ( matcher.find() )
                 {
-                    String artifactId = matcher.group( 1 );
                     String version = matcher.group( 2 );
-                    String filename = matcher.group( 3 );
-                    // if file starts with artifactId-version, it is an artifact
-                    if ( filename.startsWith( artifactId + '-' + version ) )
+
+                    final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
+                    if ( isSnapshot && !allowsSnapshots || !isSnapshot && !allowsReleases )
                     {
-                        final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
-                        if ( isSnapshot && !allowsSnapshots || !isSnapshot && !allowsReleases )
-                        {
-                            return OverriddenBooleanValue.OVERRIDE_FALSE;
-                        }
+                        return OverriddenBooleanValue.OVERRIDE_FALSE;
                     }
                 }
             }
