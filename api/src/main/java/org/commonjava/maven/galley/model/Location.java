@@ -24,6 +24,8 @@ public interface Location
 
     String CACHE_TIMEOUT_SECONDS = "cache-timeout";
 
+    String METADATA_TIMEOUT_SECONDS = "metadata-timeout";
+
     String ATTR_ALT_STORAGE_LOCATION = "alt-storage-location";
 
     String MAX_CONNECTIONS = "max-connections";
