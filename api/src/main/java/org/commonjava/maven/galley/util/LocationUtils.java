@@ -49,4 +49,10 @@ public final class LocationUtils
     {
         return location.getAttribute( Location.MAX_CONNECTIONS, Integer.class, Location.DEFAULT_MAX_CONNECTIONS );
     }
+
+    public static int getMetadataTimeoutSeconds( final Location location )
+    {
+        return location.getAttribute( Location.METADATA_TIMEOUT_SECONDS, Integer.class,
+                                      Location.DEFAULT_CACHE_TIMEOUT_SECONDS );
+    }
 }

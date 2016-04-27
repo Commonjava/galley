@@ -34,13 +34,15 @@ public class SpecialPathInfo
 
     private boolean deletable = true;
 
+    private boolean metadata = false;
+
     public static Builder from( SpecialPathMatcher matcher )
     {
         return new Builder( matcher );
     }
 
     protected SpecialPathInfo( SpecialPathMatcher matcher, boolean retrievable, boolean publishable, boolean listable,
-                            boolean decoratable, boolean storable, boolean deletable )
+                            boolean decoratable, boolean storable, boolean deletable, boolean metadata )
     {
         this.matcher = matcher;
         this.retrievable = retrievable;
@@ -49,6 +51,7 @@ public class SpecialPathInfo
         this.decoratable = decoratable;
         this.storable = storable;
         this.deletable = deletable;
+        this.metadata = metadata;
     }
 
     protected SpecialPathInfo( SpecialPathMatcher matcher )
@@ -124,6 +127,16 @@ public class SpecialPathInfo
     protected void setDeletable( boolean deletable )
     {
         this.deletable = deletable;
+    }
+
+    public boolean isMetadata()
+    {
+        return metadata;
+    }
+
+    public void setMetadata( boolean metadata )
+    {
+        this.metadata = metadata;
     }
 
     public static class Builder
@@ -212,6 +225,17 @@ public class SpecialPathInfo
         public boolean isDeletable()
         {
             return info.isDeletable();
+        }
+
+        public Builder setMetadata( boolean metadata )
+        {
+            info.setMetadata( metadata );
+            return this;
+        }
+
+        public boolean isMetadata()
+        {
+            return info.isMetadata();
         }
     }
 
