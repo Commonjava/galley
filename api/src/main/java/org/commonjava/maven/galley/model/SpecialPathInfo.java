@@ -36,13 +36,22 @@ public class SpecialPathInfo
 
     private boolean metadata = false;
 
-    public static Builder from( SpecialPathMatcher matcher )
+    /**
+     * Flag reflecting the fact that this content should not be returned alone when in a group but rather should be
+     * merged using all available sources.
+     */
+    private boolean mergable = false;
+
+
+    public static Builder from( final SpecialPathMatcher matcher )
     {
         return new Builder( matcher );
     }
 
-    protected SpecialPathInfo( SpecialPathMatcher matcher, boolean retrievable, boolean publishable, boolean listable,
-                            boolean decoratable, boolean storable, boolean deletable, boolean metadata )
+
+    protected SpecialPathInfo( final SpecialPathMatcher matcher, final boolean retrievable, final boolean publishable,
+                               final boolean listable, final boolean decoratable, final boolean storable,
+                               final boolean deletable, final boolean metadata, final boolean mergable )
     {
         this.matcher = matcher;
         this.retrievable = retrievable;
@@ -52,19 +61,21 @@ public class SpecialPathInfo
         this.storable = storable;
         this.deletable = deletable;
         this.metadata = metadata;
+        this.mergable = mergable;
     }
 
-    protected SpecialPathInfo( SpecialPathMatcher matcher )
+    protected SpecialPathInfo( final SpecialPathMatcher matcher )
     {
         this.matcher = matcher;
     }
+
 
     public SpecialPathMatcher getMatcher()
     {
         return matcher;
     }
 
-    protected void setMatcher( SpecialPathMatcher matcher )
+    protected void setMatcher( final SpecialPathMatcher matcher )
     {
         this.matcher = matcher;
     }
@@ -74,7 +85,7 @@ public class SpecialPathInfo
         return retrievable;
     }
 
-    protected void setRetrievable( boolean retrievable )
+    protected void setRetrievable( final boolean retrievable )
     {
         this.retrievable = retrievable;
     }
@@ -84,7 +95,7 @@ public class SpecialPathInfo
         return publishable;
     }
 
-    protected void setPublishable( boolean publishable )
+    protected void setPublishable( final boolean publishable )
     {
         this.publishable = publishable;
     }
@@ -94,7 +105,7 @@ public class SpecialPathInfo
         return listable;
     }
 
-    protected void setListable( boolean listable )
+    protected void setListable( final boolean listable )
     {
         this.listable = listable;
     }
@@ -104,12 +115,12 @@ public class SpecialPathInfo
         return decoratable;
     }
 
-    protected void setDecoratable( boolean decoratable )
+    protected void setDecoratable( final boolean decoratable )
     {
         this.decoratable = decoratable;
     }
 
-    protected void setStorable( boolean storable )
+    protected void setStorable( final boolean storable )
     {
         this.storable = storable;
     }
@@ -124,7 +135,7 @@ public class SpecialPathInfo
         return deletable;
     }
 
-    protected void setDeletable( boolean deletable )
+    protected void setDeletable( final boolean deletable )
     {
         this.deletable = deletable;
     }
@@ -134,16 +145,27 @@ public class SpecialPathInfo
         return metadata;
     }
 
-    public void setMetadata( boolean metadata )
+    public void setMetadata( final boolean metadata )
     {
         this.metadata = metadata;
     }
+
+    public boolean isMergable()
+    {
+        return mergable;
+    }
+
+    protected void setMergable( final boolean mergable )
+    {
+        this.mergable = mergable;
+    }
+
 
     public static class Builder
     {
         private SpecialPathInfo info;
 
-        protected Builder( SpecialPathMatcher matcher )
+        protected Builder( final SpecialPathMatcher matcher )
         {
             this.info = new SpecialPathInfo( matcher );
         }
@@ -181,31 +203,31 @@ public class SpecialPathInfo
             return info.getMatcher();
         }
 
-        public Builder setRetrievable( boolean retrievable )
+        public Builder setRetrievable( final boolean retrievable )
         {
             info.setRetrievable( retrievable );
             return this;
         }
 
-        public Builder setListable( boolean listable )
+        public Builder setListable( final boolean listable )
         {
             info.setListable( listable );
             return this;
         }
 
-        public Builder setDecoratable( boolean decoratable )
+        public Builder setDecoratable( final boolean decoratable )
         {
             info.setDecoratable( decoratable );
             return this;
         }
 
-        public Builder setPublishable( boolean publishable )
+        public Builder setPublishable( final boolean publishable )
         {
             info.setPublishable( publishable );
             return this;
         }
 
-        public Builder setStorable( boolean storable )
+        public Builder setStorable( final boolean storable )
         {
             info.setStorable( storable );
             return this;
@@ -216,7 +238,7 @@ public class SpecialPathInfo
             return info.isStorable();
         }
 
-        public Builder setDeletable( boolean deletable )
+        public Builder setDeletable( final boolean deletable )
         {
             info.setDeletable( deletable );
             return this;
@@ -227,7 +249,7 @@ public class SpecialPathInfo
             return info.isDeletable();
         }
 
-        public Builder setMetadata( boolean metadata )
+        public Builder setMetadata( final boolean metadata )
         {
             info.setMetadata( metadata );
             return this;
@@ -236,6 +258,17 @@ public class SpecialPathInfo
         public boolean isMetadata()
         {
             return info.isMetadata();
+        }
+
+        public Builder setMergable( final boolean mergable )
+        {
+            info.setMergable( mergable );
+            return this;
+        }
+
+        public boolean isMergable()
+        {
+            return info.mergable;
         }
     }
 
