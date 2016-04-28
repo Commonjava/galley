@@ -39,7 +39,6 @@ public class SpecialPathConstants
                                             .setPublishable( false )
                                             .setRetrievable( false )
                                             .setStorable( false )
-                                            .setDeletable( true )
                                             .build();
 
         sp.put( pi.getMatcher(), pi );
@@ -50,18 +49,28 @@ public class SpecialPathConstants
                             .setPublishable( false )
                             .setRetrievable( false )
                             .setStorable( false )
+                            .setMergable( true )
                             .build();
 
         sp.put( pi.getMatcher(), pi );
 
-        for ( String extPattern: Arrays.asList( ".+\\.asc$", ".+\\.md5$", ".+\\.sha[\\d]+$") )
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
+                            .setMergable( true )
+                            .build();
+
+        sp.put( pi.getMatcher(), pi );
+
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
+                            .setMergable( true )
+                            .build();
+
+        sp.put( pi.getMatcher(), pi );
+
+        String notMergablePrefix = ".+(?<!(maven-metadata|archetype-catalog)\\.xml)\\.";
+        for ( String extPattern : Arrays.asList( "asc$", "md5$", "sha[\\d]+$" ) )
         {
-            pi = SpecialPathInfo.from( new FilePatternMatcher( extPattern ) )
+            pi = SpecialPathInfo.from( new FilePatternMatcher( notMergablePrefix + extPattern ) )
                                 .setDecoratable( false )
-                                .setListable( true )
-                                .setPublishable( true )
-                                .setRetrievable( true )
-                                .setStorable( true )
                                 .build();
 
             sp.put( pi.getMatcher(), pi );
