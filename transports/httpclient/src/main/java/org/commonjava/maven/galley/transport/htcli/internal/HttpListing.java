@@ -16,8 +16,6 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,8 +28,6 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -55,14 +51,10 @@ public class HttpListing
 
     private final ConcreteResource resource;
 
-    private final Transfer target;
-
-    public HttpListing( final String url, final ConcreteResource resource, final int timeoutSeconds,
-                        final Transfer target, final Http http )
+    public HttpListing( final String url, final ConcreteResource resource, final Http http )
     {
         super( url, (HttpLocation) resource.getLocation(), http );
         this.resource = resource;
-        this.target = target;
     }
 
     @Override
@@ -71,7 +63,7 @@ public class HttpListing
         request = new HttpGet( url );
 
         // return null if something goes wrong, after setting the error.
-        // What we should be doing here is trying to retrieve the html directory 
+        // What we should be doing here is trying to retrieve the html directory
         // listing, then parse out the filenames from that...
         //
         // They'll be links, so that's something to key in on.
@@ -96,7 +88,7 @@ public class HttpListing
                 {
                     doc = Jsoup.parse( in, "UTF-8", url );
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     this.error =
                             new TransferLocationException( resource.getLocation(), "Invalid HTML in: {}. Reason: {}", e, url, e.getMessage() );
@@ -112,9 +104,6 @@ public class HttpListing
                             al.add( file.text() );
                         }
                     }
-
-                    stream = target.openOutputStream( TransferOperation.DOWNLOAD );
-                    stream.write( join( al, "\n" ).getBytes( "UTF-8" ) );
 
                     result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
                 }
@@ -138,4 +127,5 @@ public class HttpListing
 
         return error == null ? result : null;
     }
+
 }

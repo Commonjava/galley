@@ -65,7 +65,7 @@ public class FileTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          final Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         final File src = getFile( resource );
@@ -114,7 +114,7 @@ public class FileTransport
         throws TransferException
     {
         final File src = getFile( resource );
-        return new FileListing( resource, src, target );
+        return new FileListing( resource, src );
     }
 
     @Override
@@ -129,6 +129,12 @@ public class FileTransport
     private File getFile( final ConcreteResource resource )
     {
         return new File( PathUtils.normalize( resource.getLocationUri(), resource.getPath() ) );
+    }
+
+    @Override
+    public boolean allowsCaching()
+    {
+        return true;
     }
 
 }

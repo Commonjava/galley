@@ -30,6 +30,7 @@ import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +46,18 @@ public final class ChecksummingTransferDecorator
 
     private SpecialPathManager specialPathManager;
 
-    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, SpecialPathManager specialPathManager,
+
+    public ChecksummingTransferDecorator( final Set<TransferOperation> ops, final SpecialPathManager specialPathManager,
                                           final AbstractChecksumGeneratorFactory<?>... checksumFactories )
     {
+        this( null, ops, specialPathManager, checksumFactories );
+    }
+
+    public ChecksummingTransferDecorator( final TransferDecorator next, final Set<TransferOperation> ops,
+                                          final SpecialPathManager specialPathManager,
+                                          final AbstractChecksumGeneratorFactory<?>... checksumFactories )
+    {
+        super( next );
         this.ops = ops;
         this.specialPathManager = specialPathManager;
         this.checksumFactories = new HashSet<AbstractChecksumGeneratorFactory<?>>( Arrays.asList( checksumFactories ) );
@@ -56,6 +66,14 @@ public final class ChecksummingTransferDecorator
     public ChecksummingTransferDecorator( final Set<TransferOperation> ops, final SpecialPathManager specialPathManager,
                                           final Collection<AbstractChecksumGeneratorFactory<?>> checksumFactories )
     {
+        this( null, ops, specialPathManager, checksumFactories );
+    }
+
+    public ChecksummingTransferDecorator( final TransferDecorator next, final Set<TransferOperation> ops,
+                                          final SpecialPathManager specialPathManager,
+                                          final Collection<AbstractChecksumGeneratorFactory<?>> checksumFactories )
+    {
+        super( next );
         this.ops = ops;
         this.specialPathManager = specialPathManager;
         if ( checksumFactories instanceof Set )
@@ -69,7 +87,8 @@ public final class ChecksummingTransferDecorator
     }
 
     @Override
-    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
+    protected OutputStream decorateWriteInternal( final OutputStream stream, final Transfer transfer,
+                                                  final TransferOperation op )
         throws IOException
     {
         if ( ops.contains( op ) )
@@ -87,14 +106,14 @@ public final class ChecksummingTransferDecorator
     }
 
     @Override
-    public InputStream decorateRead( final InputStream stream, final Transfer transfer )
+    protected InputStream decorateReadInternal( final InputStream stream, final Transfer transfer )
         throws IOException
     {
         return stream;
     }
 
     @Override
-    public void decorateDelete( final Transfer transfer )
+    protected void decorateDeleteInternal( final Transfer transfer )
         throws IOException
     {
         boolean delete = false;

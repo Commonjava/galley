@@ -43,9 +43,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Stubbed out {@link Transport} implementation that allows pre-registering
- * {@link DownloadJob} and {@link PublishJob} instances before attempting to 
+ * {@link DownloadJob} and {@link PublishJob} instances before attempting to
  * access them from a higher component (such as {@link TransferManagerImpl}).
- * 
+ *
  * @author jdcasey
  */
 @TestData
@@ -100,7 +100,7 @@ public class TestTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          final Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
         throws TransferException
     {
         final TestDownload job = downloads.get( resource );
@@ -177,6 +177,12 @@ public class TestTransport
         publishes.clear();
         listings.clear();
         exists.clear();
+    }
+
+    @Override
+    public boolean allowsCaching()
+    {
+        return false;
     }
 
 }

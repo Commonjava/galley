@@ -21,68 +21,191 @@ import java.io.OutputStream;
 
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 public abstract class AbstractTransferDecorator
     implements TransferDecorator
 {
 
+    private final TransferDecorator next;
+
+
     protected AbstractTransferDecorator()
     {
+        this( null );
+    }
+
+    protected AbstractTransferDecorator( final TransferDecorator next )
+    {
+        this.next = next;
+    }
+
+
+    @Override
+    @SuppressWarnings("resource")
+    public final OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
+            throws IOException
+    {
+        OutputStream nextStream;
+        if ( next == null )
+        {
+            nextStream = stream;
+        }
+        else
+        {
+            nextStream = next.decorateWrite( stream, transfer, op );
+        }
+        return decorateWriteInternal( nextStream, transfer, op );
     }
 
     @Override
-    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
-        throws IOException
+    @SuppressWarnings("resource")
+    public final InputStream decorateRead( final InputStream stream, final Transfer transfer )
+            throws IOException
+    {
+        InputStream nextStream;
+        if ( next == null )
+        {
+            nextStream = stream;
+        }
+        else
+        {
+            nextStream = next.decorateRead( stream, transfer );
+        }
+        return decorateReadInternal( nextStream, transfer );
+    }
+
+    @Override
+    public final void decorateTouch( final Transfer transfer )
+    {
+        decorateTouchInternal( transfer );
+        if ( next != null )
+        {
+            next.decorateTouch( transfer );
+        }
+    }
+
+    @Override
+    public final OverriddenBooleanValue decorateExists( final Transfer transfer )
+    {
+        OverriddenBooleanValue result = decorateExistsInternal( transfer );
+        if ( !result.overrides() && ( next != null ) )
+        {
+            result = next.decorateExists( transfer );
+        }
+        return result;
+    }
+
+    @Override
+    public final void decorateCopyFrom( final Transfer from, final Transfer transfer )
+            throws IOException
+    {
+        decorateCopyFromInternal( from, transfer );
+        if ( next != null )
+        {
+            next.decorateCopyFrom( from, transfer );
+        }
+    }
+
+    @Override
+    public final void decorateDelete( final Transfer transfer )
+            throws IOException
+    {
+        decorateDeleteInternal( transfer );
+        if ( next != null )
+        {
+            next.decorateDelete( transfer );
+        }
+    }
+
+    @Override
+    public final String[] decorateListing( final Transfer transfer, final String[] listing )
+            throws IOException
+    {
+        final String[] result = decorateListingInternal( transfer, listing );
+        if ( next == null )
+        {
+            return result;
+        }
+        else
+        {
+            return next.decorateListing( transfer, result );
+        }
+    }
+
+    @Override
+    public final void decorateMkdirs( final Transfer transfer )
+            throws IOException
+    {
+        decorateMkdirsInternal( transfer );
+        if ( next != null )
+        {
+            next.decorateMkdirs( transfer );
+        }
+    }
+
+    @Override
+    public final void decorateCreateFile( final Transfer transfer )
+            throws IOException
+    {
+        decorateCreateFileInternal( transfer );
+        if ( next != null )
+        {
+            next.decorateCreateFile( transfer );
+        }
+    }
+
+    // ========= METHODS TO BE OVERRIDEN ==========
+
+    @SuppressWarnings("unused")
+    protected OutputStream decorateWriteInternal( final OutputStream stream, final Transfer transfer,
+            final TransferOperation op )
+                    throws IOException
     {
         return stream;
     }
 
-    @Override
-    public InputStream decorateRead( final InputStream stream, final Transfer transfer )
-        throws IOException
+    @SuppressWarnings("unused")
+    protected InputStream decorateReadInternal( final InputStream stream, final Transfer transfer ) throws IOException
     {
         return stream;
     }
 
-    @Override
-    public void decorateTouch( final Transfer transfer )
+    @SuppressWarnings("unused")
+    protected void decorateTouchInternal( final Transfer transfer )
     {
     }
 
-    @Override
-    public void decorateExists( final Transfer transfer )
+    @SuppressWarnings("unused")
+    protected OverriddenBooleanValue decorateExistsInternal( final Transfer transfer )
+    {
+        return OverriddenBooleanValue.DEFER;
+    }
+
+    @SuppressWarnings("unused")
+    protected void decorateCopyFromInternal( final Transfer from, final Transfer transfer ) throws IOException
     {
     }
 
-    @Override
-    public void decorateCopyFrom( final Transfer from, final Transfer transfer )
-        throws IOException
+    @SuppressWarnings("unused")
+    protected void decorateDeleteInternal( final Transfer transfer ) throws IOException
     {
     }
 
-    @Override
-    public void decorateDelete( final Transfer transfer )
-        throws IOException
-    {
-    }
-
-    @Override
-    public String[] decorateListing( final Transfer transfer, final String[] listing )
-        throws IOException
+    @SuppressWarnings("unused")
+    protected String[] decorateListingInternal( final Transfer transfer, final String[] listing ) throws IOException
     {
         return listing;
     }
 
-    @Override
-    public void decorateMkdirs( final Transfer transfer )
-        throws IOException
+    @SuppressWarnings("unused")
+    protected void decorateMkdirsInternal( final Transfer transfer ) throws IOException
     {
     }
 
-    @Override
-    public void decorateCreateFile( final Transfer transfer )
-        throws IOException
+    @SuppressWarnings("unused")
+    private void decorateCreateFileInternal( final Transfer transfer ) throws IOException
     {
     }
 

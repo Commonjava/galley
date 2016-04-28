@@ -65,7 +65,7 @@ public interface TransferDecorator
 
     void decorateTouch( Transfer transfer );
 
-    void decorateExists( Transfer transfer );
+    OverriddenBooleanValue decorateExists( Transfer transfer );
 
     /**
      * Decorate a copy operation from one {@link Transfer} instance to another.
