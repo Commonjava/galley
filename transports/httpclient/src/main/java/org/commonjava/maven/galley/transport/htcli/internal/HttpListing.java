@@ -19,6 +19,8 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -96,12 +98,37 @@ public class HttpListing
 
                 if ( doc != null )
                 {
-                    for ( final Element file : doc.select( "a" ) )
+                    for ( final Element link : doc.select( "a" ) )
                     {
-                        if ( file.attr( "href" )
-                                 .contains( file.text() ) && !EXCLUDES.contains( file.text() ) )
+                        String linkText = link.text();
+                        String linkHref = link.attr( "href" );
+                        String linkProtocol = null;
+                        String linkAuthority = null;
+                        String linkPath;
+                        try
                         {
-                            al.add( file.text() );
+                            URL linkUrl = new URL( linkHref );
+                            linkProtocol = linkUrl.getProtocol();
+                            linkAuthority = linkUrl.getAuthority();
+                            linkPath = linkUrl.getPath();
+                        }
+                        catch ( MalformedURLException ex )
+                        {
+                            linkPath = linkHref;
+                        }
+                        URL url = new URL( this.url );
+
+                        boolean sameServer = ( linkProtocol == null && linkAuthority == null )
+                                             || ( linkProtocol.equals( url.getProtocol() )
+                                                 && linkAuthority.equals( url.getAuthority() ) );
+                        boolean isSubpath = (( linkPath.charAt( 0 ) != '/' ) && ( linkPath.charAt( 0 ) != '.' ))
+                                            || linkPath.startsWith( url.getPath() );
+
+                        if ( ( sameServer && isSubpath )
+                                && ( linkHref.endsWith( linkText ) || linkHref.endsWith( linkText + '/' ) )
+                                && !EXCLUDES.contains( linkText ) )
+                        {
+                            al.add( linkText );
                         }
                     }
 
