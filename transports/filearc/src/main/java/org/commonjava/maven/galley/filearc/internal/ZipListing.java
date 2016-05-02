@@ -15,12 +15,8 @@
  */
 package org.commonjava.maven.galley.filearc.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collections;
 import java.util.TreeSet;
 import java.util.jar.JarFile;
@@ -31,7 +27,6 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 
 public class ZipListing
@@ -120,23 +115,7 @@ public class ZipListing
 
         if ( !filenames.isEmpty() )
         {
-            OutputStream stream = null;
-            try
-            {
-                stream = transfer.openOutputStream( TransferOperation.DOWNLOAD );
-                stream.write( join( filenames, "\n" ).getBytes( "UTF-8" ) );
-
-                return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
-            }
-            catch ( final IOException e )
-            {
-                error =
-                    new TransferException( "Failed to write listing to: %s. Reason: %s", e, transfer, e.getMessage() );
-            }
-            finally
-            {
-                closeQuietly( stream );
-            }
+            return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
         }
 
         return null;

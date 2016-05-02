@@ -42,6 +42,7 @@ import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -66,6 +67,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
+import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 
 public class TransferManagerImpl
@@ -206,7 +208,7 @@ public class TransferManagerImpl
     private ListingResult doList( final ConcreteResource resource, final boolean suppressFailures )
         throws TransferException
     {
-        final Transfer cachedListing = getCacheReference( (ConcreteResource) resource.getChild( ".listing.txt" ) );
+        final Transfer cachedListing = getCacheReference( resource.getChild( ".listing.txt" ) );
         Set<String> filenames = new HashSet<String>();
         if ( cachedListing.exists() )
         {
@@ -247,7 +249,7 @@ public class TransferManagerImpl
                         {
                             for ( String fname : fnames )
                             {
-                                final ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+                                final ConcreteResource child = resource.getChild( fname );
                                 final Transfer childRef = getCacheReference( child );
                                 if ( childRef.isFile() )
                                 {
@@ -271,14 +273,52 @@ public class TransferManagerImpl
                          .allowsDownloading() )
             {
                 final int timeoutSeconds = getTimeoutSeconds( resource );
+                Transport transport = getTransport( resource );
                 final ListingResult remoteResult =
-                        lister.list( resource, cachedListing, timeoutSeconds, getTransport( resource ), suppressFailures );
+                        lister.list( resource, cachedListing, timeoutSeconds, transport, suppressFailures );
 
                 if ( remoteResult != null )
                 {
                     String[] remoteListing = remoteResult.getListing();
                     if ( remoteListing != null )
                     {
+                        final TransferDecorator decorator = cachedListing.getDecorator();
+                        if ( decorator != null )
+                        {
+                            try
+                            {
+                                remoteListing = decorator.decorateListing( cachedListing.getParent(), remoteListing );
+                            }
+                            catch ( final IOException e )
+                            {
+                                logger.error( "Failed to decorate directory listing for: {}. Reason: {}",
+                                              e, resource, e.getMessage() );
+                                remoteListing = null;
+                            }
+                        }
+                    }
+
+                    if ( remoteListing != null )
+                    {
+                        if ( transport.allowsCaching() )
+                        {
+                            OutputStream stream = null;
+                            try
+                            {
+                                stream = cachedListing.openOutputStream( TransferOperation.DOWNLOAD );
+                                stream.write( join( remoteListing, "\n" ).getBytes( "UTF-8" ) );
+                            }
+                            catch ( final IOException e )
+                            {
+                                logger.debug( "Failed to store directory listing for: {}. Reason: {}",
+                                        e, resource, e.getMessage() );
+                            }
+                            finally
+                            {
+                                closeQuietly( stream );
+                            }
+                        }
+
                         filenames.addAll( Arrays.asList( remoteListing ) );
                     }
                 }
@@ -288,7 +328,7 @@ public class TransferManagerImpl
         List<String> resultingNames = new ArrayList<String>( filenames.size() );
         for( String fname : filenames )
         {
-            ConcreteResource child = (ConcreteResource) resource.getChild( fname );
+            ConcreteResource child = resource.getChild( fname );
 
             SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child );
             if ( specialPathInfo != null && !specialPathInfo.isListable() )

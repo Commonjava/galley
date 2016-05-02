@@ -16,11 +16,11 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.lang.StringUtils.join;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,8 +30,6 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -55,14 +53,10 @@ public class HttpListing
 
     private final ConcreteResource resource;
 
-    private final Transfer target;
-
-    public HttpListing( final String url, final ConcreteResource resource, final int timeoutSeconds,
-                        final Transfer target, final Http http )
+    public HttpListing( final String url, final ConcreteResource resource, final Http http )
     {
         super( url, (HttpLocation) resource.getLocation(), http );
         this.resource = resource;
-        this.target = target;
     }
 
     @Override
@@ -71,7 +65,7 @@ public class HttpListing
         request = new HttpGet( url );
 
         // return null if something goes wrong, after setting the error.
-        // What we should be doing here is trying to retrieve the html directory 
+        // What we should be doing here is trying to retrieve the html directory
         // listing, then parse out the filenames from that...
         //
         // They'll be links, so that's something to key in on.
@@ -96,7 +90,7 @@ public class HttpListing
                 {
                     doc = Jsoup.parse( in, "UTF-8", url );
                 }
-                catch ( IOException e )
+                catch ( final IOException e )
                 {
                     this.error =
                             new TransferLocationException( resource.getLocation(), "Invalid HTML in: {}. Reason: {}", e, url, e.getMessage() );
@@ -104,17 +98,39 @@ public class HttpListing
 
                 if ( doc != null )
                 {
-                    for ( final Element file : doc.select( "a" ) )
+                    for ( final Element link : doc.select( "a" ) )
                     {
-                        if ( file.attr( "href" )
-                                 .contains( file.text() ) && !EXCLUDES.contains( file.text() ) )
+                        String linkText = link.text();
+                        String linkHref = link.attr( "href" );
+                        String linkProtocol = null;
+                        String linkAuthority = null;
+                        String linkPath;
+                        try
                         {
-                            al.add( file.text() );
+                            URL linkUrl = new URL( linkHref );
+                            linkProtocol = linkUrl.getProtocol();
+                            linkAuthority = linkUrl.getAuthority();
+                            linkPath = linkUrl.getPath();
+                        }
+                        catch ( MalformedURLException ex )
+                        {
+                            linkPath = linkHref;
+                        }
+                        URL url = new URL( this.url );
+
+                        boolean sameServer = ( linkProtocol == null && linkAuthority == null )
+                                             || ( linkProtocol.equals( url.getProtocol() )
+                                                 && linkAuthority.equals( url.getAuthority() ) );
+                        boolean isSubpath = (( linkPath.charAt( 0 ) != '/' ) && ( linkPath.charAt( 0 ) != '.' ))
+                                            || linkPath.startsWith( url.getPath() );
+
+                        if ( ( sameServer && isSubpath )
+                                && ( linkHref.endsWith( linkText ) || linkHref.endsWith( linkText + '/' ) )
+                                && !EXCLUDES.contains( linkText ) )
+                        {
+                            al.add( linkText );
                         }
                     }
-
-                    stream = target.openOutputStream( TransferOperation.DOWNLOAD );
-                    stream.write( join( al, "\n" ).getBytes( "UTF-8" ) );
 
                     result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
                 }
@@ -138,4 +154,5 @@ public class HttpListing
 
         return error == null ? result : null;
     }
+
 }

@@ -37,53 +37,53 @@ import org.junit.Test;
 public class HttpListTest
 {
     /* @formatter:off */
-    static final String[] centralbtm = new String [] 
+    static final String[] centralbtm = new String []
     {
-    	"btm-2.1.3-javadoc.jar", 
-    	"btm-2.1.3-javadoc.jar.asc", 
-    	"btm-2.1.3-javadoc.jar.asc.md5", 
+    	"btm-2.1.3-javadoc.jar",
+    	"btm-2.1.3-javadoc.jar.asc",
+    	"btm-2.1.3-javadoc.jar.asc.md5",
     	"btm-2.1.3-javadoc.jar.asc.sha1",
-    	"btm-2.1.3-javadoc.jar.md5", 
-    	"btm-2.1.3-javadoc.jar.sha1", 
-    	"btm-2.1.3-sources.jar", 
-    	"btm-2.1.3-sources.jar.asc", 
-    	"btm-2.1.3-sources.jar.asc.md5", 
-    	"btm-2.1.3-sources.jar.asc.sha1", 
-    	"btm-2.1.3-sources.jar.md5", 
-    	"btm-2.1.3-sources.jar.sha1", 
-    	"btm-2.1.3-test-sources.jar", 
-    	"btm-2.1.3-test-sources.jar.asc", 
-    	"btm-2.1.3-test-sources.jar.asc.md5", 
-    	"btm-2.1.3-test-sources.jar.asc.sha1", 
-    	"btm-2.1.3-test-sources.jar.md5", 
-    	"btm-2.1.3-test-sources.jar.sha1", 
-    	"btm-2.1.3.jar", 
-    	"btm-2.1.3.jar.asc", 
-    	"btm-2.1.3.jar.asc.md5", 
-    	"btm-2.1.3.jar.asc.sha1", 
-    	"btm-2.1.3.jar.md5", 
-    	"btm-2.1.3.jar.sha1", 
-    	"btm-2.1.3.pom", 
-    	"btm-2.1.3.pom.asc", 
-    	"btm-2.1.3.pom.asc.md5", 
-    	"btm-2.1.3.pom.asc.sha1", 
-    	"btm-2.1.3.pom.md5", 
+    	"btm-2.1.3-javadoc.jar.md5",
+    	"btm-2.1.3-javadoc.jar.sha1",
+    	"btm-2.1.3-sources.jar",
+    	"btm-2.1.3-sources.jar.asc",
+    	"btm-2.1.3-sources.jar.asc.md5",
+    	"btm-2.1.3-sources.jar.asc.sha1",
+    	"btm-2.1.3-sources.jar.md5",
+    	"btm-2.1.3-sources.jar.sha1",
+    	"btm-2.1.3-test-sources.jar",
+    	"btm-2.1.3-test-sources.jar.asc",
+    	"btm-2.1.3-test-sources.jar.asc.md5",
+    	"btm-2.1.3-test-sources.jar.asc.sha1",
+    	"btm-2.1.3-test-sources.jar.md5",
+    	"btm-2.1.3-test-sources.jar.sha1",
+    	"btm-2.1.3.jar",
+    	"btm-2.1.3.jar.asc",
+    	"btm-2.1.3.jar.asc.md5",
+    	"btm-2.1.3.jar.asc.sha1",
+    	"btm-2.1.3.jar.md5",
+    	"btm-2.1.3.jar.sha1",
+    	"btm-2.1.3.pom",
+    	"btm-2.1.3.pom.asc",
+    	"btm-2.1.3.pom.asc.md5",
+    	"btm-2.1.3.pom.asc.sha1",
+    	"btm-2.1.3.pom.md5",
     	"btm-2.1.3.pom.sha1"
     };
-    		
+
     static final String[] nexusswitchyard = new String[]
     {
-    	"switchyard-runtime-1.0.0.Final-sources.jar", 
-    	"switchyard-runtime-1.0.0.Final-sources.jar.md5", 
-    	"switchyard-runtime-1.0.0.Final-sources.jar.sha1", 
-    	"switchyard-runtime-1.0.0.Final-tests.jar", 
-    	"switchyard-runtime-1.0.0.Final-tests.jar.md5", 
-    	"switchyard-runtime-1.0.0.Final-tests.jar.sha1", 
-    	"switchyard-runtime-1.0.0.Final.jar", 
-    	"switchyard-runtime-1.0.0.Final.jar.md5", 
-    	"switchyard-runtime-1.0.0.Final.jar.sha1", 
-    	"switchyard-runtime-1.0.0.Final.pom", 
-    	"switchyard-runtime-1.0.0.Final.pom.md5", 
+    	"switchyard-runtime-1.0.0.Final-sources.jar",
+    	"switchyard-runtime-1.0.0.Final-sources.jar.md5",
+    	"switchyard-runtime-1.0.0.Final-sources.jar.sha1",
+    	"switchyard-runtime-1.0.0.Final-tests.jar",
+    	"switchyard-runtime-1.0.0.Final-tests.jar.md5",
+    	"switchyard-runtime-1.0.0.Final-tests.jar.sha1",
+    	"switchyard-runtime-1.0.0.Final.jar",
+    	"switchyard-runtime-1.0.0.Final.jar.md5",
+    	"switchyard-runtime-1.0.0.Final.jar.sha1",
+    	"switchyard-runtime-1.0.0.Final.pom",
+    	"switchyard-runtime-1.0.0.Final.pom.md5",
     	"switchyard-runtime-1.0.0.Final.pom.sha1"
     };
     /* @formatter:on */
@@ -108,7 +108,7 @@ public class HttpListTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
-            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+            new HttpListing( url, new ConcreteResource( location, fname ), fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -146,7 +146,7 @@ public class HttpListTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
-            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+            new HttpListing( url, new ConcreteResource( location, fname ), fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -171,7 +171,7 @@ public class HttpListTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
-            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+            new HttpListing( url, new ConcreteResource( location, fname ), fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );
@@ -194,7 +194,7 @@ public class HttpListTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
-            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+            new HttpListing( url, new ConcreteResource( location, fname ), fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );
@@ -221,7 +221,7 @@ public class HttpListTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
-            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+            new HttpListing( url, new ConcreteResource( location, fname ), fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -243,7 +243,7 @@ public class HttpListTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
-            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+            new HttpListing( url, new ConcreteResource( location, fname ), fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( listing.getError(), nullValue() );
@@ -266,7 +266,7 @@ public class HttpListTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, listingFname ) );
 
         final HttpListing listing =
-            new HttpListing( url, new ConcreteResource( location, fname ), 10, transfer, fixture.getHttp() );
+            new HttpListing( url, new ConcreteResource( location, fname ), fixture.getHttp() );
         final ListingResult result = listing.call();
 
         assertThat( result, nullValue() );

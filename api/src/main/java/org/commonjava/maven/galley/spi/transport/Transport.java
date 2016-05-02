@@ -63,4 +63,6 @@ public interface Transport
 
     boolean handles( Location location );
 
+    boolean allowsCaching();
+
 }
