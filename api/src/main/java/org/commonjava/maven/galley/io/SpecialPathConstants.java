@@ -19,8 +19,10 @@ import org.commonjava.maven.galley.model.FilePatternMatcher;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.SpecialPathMatcher;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,10 +30,10 @@ import java.util.Map;
  */
 public class SpecialPathConstants
 {
-    public static final Map<SpecialPathMatcher, SpecialPathInfo> STANDARD_SPECIAL_PATHS;
+    public static final List<SpecialPathInfo> STANDARD_SPECIAL_PATHS;
 
     static{
-        Map<SpecialPathMatcher, SpecialPathInfo> sp = new HashMap<SpecialPathMatcher, SpecialPathInfo>();
+        List<SpecialPathInfo> sp = new ArrayList<>();
 
         SpecialPathInfo pi = SpecialPathInfo.from( new FilePatternMatcher( ".*\\.http-metadata\\.json$" ) )
                                             .setDecoratable( false )
@@ -41,7 +43,7 @@ public class SpecialPathConstants
                                             .setStorable( false )
                                             .build();
 
-        sp.put( pi.getMatcher(), pi );
+        sp.add( pi );
 
         pi = SpecialPathInfo.from( new FilePatternMatcher( "\\.listing\\.txt" ) )
                             .setDecoratable( false )
@@ -52,19 +54,21 @@ public class SpecialPathConstants
                             .setMergable( true )
                             .build();
 
-        sp.put( pi.getMatcher(), pi );
+        sp.add( pi );
 
         pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
                             .setMergable( true )
+                            .setMetadata( true )
                             .build();
 
-        sp.put( pi.getMatcher(), pi );
+        sp.add( pi );
 
         pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
                             .setMergable( true )
+                            .setMetadata( true )
                             .build();
 
-        sp.put( pi.getMatcher(), pi );
+        sp.add( pi );
 
         String notMergablePrefix = ".+(?<!(maven-metadata|archetype-catalog)\\.xml)\\.";
         for ( String extPattern : Arrays.asList( "asc$", "md5$", "sha[\\d]+$" ) )
@@ -73,7 +77,7 @@ public class SpecialPathConstants
                                 .setDecoratable( false )
                                 .build();
 
-            sp.put( pi.getMatcher(), pi );
+            sp.add( pi );
         }
 
         STANDARD_SPECIAL_PATHS = sp;

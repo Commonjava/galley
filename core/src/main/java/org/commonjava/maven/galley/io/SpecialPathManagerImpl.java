@@ -24,10 +24,16 @@ import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.SpecialPathMatcher;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -37,30 +43,24 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SpecialPathManagerImpl
         implements SpecialPathManager
 {
-    private ConcurrentHashMap<SpecialPathMatcher, SpecialPathInfo> specialPaths;
+    private List<SpecialPathInfo> specialPaths;
 
     public SpecialPathManagerImpl()
     {
-        specialPaths = new ConcurrentHashMap<SpecialPathMatcher, SpecialPathInfo>();
-        specialPaths.putAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
+        specialPaths = new ArrayList<>();
+        specialPaths.addAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
     }
 
     @Override
-    public void registerSpecialPathInfo( SpecialPathInfo pathInfo )
+    public synchronized void registerSpecialPathInfo( SpecialPathInfo pathInfo )
     {
-        specialPaths.put( pathInfo.getMatcher(), pathInfo );
+        specialPaths.add( pathInfo );
     }
 
     @Override
-    public void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
+    public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
     {
-        specialPaths.remove( pathInfo.getMatcher() );
-    }
-
-    @Override
-    public void deregisterSpecialPathInfo( SpecialPathMatcher pathMatcher )
-    {
-        specialPaths.remove( pathMatcher );
+        specialPaths.remove( pathInfo );
     }
 
     @Override
@@ -88,17 +88,26 @@ public class SpecialPathManagerImpl
     @Override
     public SpecialPathInfo getSpecialPathInfo( Location location, String path )
     {
+        SpecialPathInfo firstHit = null;
         if ( location != null && path != null )
         {
-            for ( Map.Entry<SpecialPathMatcher, SpecialPathInfo> entry : specialPaths.entrySet() )
+            for ( SpecialPathInfo info : specialPaths )
             {
-                if ( entry.getKey().matches( location, path ) )
+                if ( info.getMatcher().matches( location, path ) )
                 {
-                    return entry.getValue();
+                    if ( firstHit != null )
+                    {
+                        Logger logger = LoggerFactory.getLogger( getClass() );
+                        logger.error( "Duplicate special-path registration for: {}:{}. Using: {}", location, path, firstHit );
+                    }
+                    else
+                    {
+                        firstHit = info;
+                    }
                 }
             }
         }
 
-        return null;
+        return firstHit;
     }
 }

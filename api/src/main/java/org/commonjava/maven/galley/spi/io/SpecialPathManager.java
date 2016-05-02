@@ -32,8 +32,6 @@ public interface SpecialPathManager
 
     void deregisterSpecialPathInfo( SpecialPathInfo pathInfo );
 
-    void deregisterSpecialPathInfo( SpecialPathMatcher pathMatcher );
-
     SpecialPathInfo getSpecialPathInfo( ConcreteResource resource );
 
     SpecialPathInfo getSpecialPathInfo( Transfer transfer );
