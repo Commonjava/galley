@@ -23,7 +23,7 @@ import java.io.File;
 public class FilePatternMatcher
     implements SpecialPathMatcher
 {
-    private String pattern;
+    private final String pattern;
 
     public FilePatternMatcher( String pattern )
     {
@@ -34,5 +34,29 @@ public class FilePatternMatcher
     public boolean matches( Location location, String path )
     {
         return path == null ? false : new File( path).getName().matches( pattern );
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( !( o instanceof FilePatternMatcher ) )
+        {
+            return false;
+        }
+
+        FilePatternMatcher that = (FilePatternMatcher) o;
+
+        return pattern.equals( that.pattern );
+
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return pattern.hashCode();
     }
 }

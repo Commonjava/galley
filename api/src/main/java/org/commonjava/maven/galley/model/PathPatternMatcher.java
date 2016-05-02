@@ -21,7 +21,7 @@ package org.commonjava.maven.galley.model;
 public class PathPatternMatcher
     implements SpecialPathMatcher
 {
-    private String pattern;
+    private final String pattern;
 
     public PathPatternMatcher( String pattern )
     {
@@ -32,5 +32,29 @@ public class PathPatternMatcher
     public boolean matches( Location location, String path )
     {
         return path == null ? false : path.matches( pattern );
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( !( o instanceof PathPatternMatcher ) )
+        {
+            return false;
+        }
+
+        PathPatternMatcher that = (PathPatternMatcher) o;
+
+        return pattern.equals( that.pattern );
+
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return pattern.hashCode();
     }
 }

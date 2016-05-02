@@ -160,6 +160,29 @@ public class SpecialPathInfo
         this.mergable = mergable;
     }
 
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( !( o instanceof SpecialPathInfo ) )
+        {
+            return false;
+        }
+
+        SpecialPathInfo that = (SpecialPathInfo) o;
+
+        return getMatcher().equals( that.getMatcher() );
+
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return getMatcher().hashCode();
+    }
 
     public static class Builder
     {
