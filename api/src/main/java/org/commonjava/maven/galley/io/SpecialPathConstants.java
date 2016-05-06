@@ -54,15 +54,31 @@ public class SpecialPathConstants
 
         sp.put( pi.getMatcher(), pi );
 
-        pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml$" ) )
                             .setMergable( true )
                             .build();
 
         sp.put( pi.getMatcher(), pi );
 
-        pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
+                .setDecoratable( false )
+                .setMergable( true )
+                .setMetadata( true )
+                .build();
+
+        sp.put( pi.getMatcher(), pi );
+
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml$" ) )
                             .setMergable( true )
                             .build();
+
+        sp.put( pi.getMatcher(), pi );
+
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
+                .setDecoratable( false )
+                .setMergable( true )
+                .setMetadata( true )
+                .build();
 
         sp.put( pi.getMatcher(), pi );
 
