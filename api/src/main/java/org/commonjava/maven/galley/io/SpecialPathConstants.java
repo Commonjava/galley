@@ -17,13 +17,9 @@ package org.commonjava.maven.galley.io;
 
 import org.commonjava.maven.galley.model.FilePatternMatcher;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
-import org.commonjava.maven.galley.model.SpecialPathMatcher;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by jdcasey on 1/27/16.
@@ -56,17 +52,33 @@ public class SpecialPathConstants
 
         sp.add( pi );
 
-        pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml$" ) )
                             .setMergable( true )
                             .setMetadata( true )
                             .build();
 
         sp.add( pi );
 
-        pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)?$" ) )
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
+                .setDecoratable( false )
+                .setMergable( true )
+                .setMetadata( true )
+                .build();
+
+        sp.add( pi );
+
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml$" ) )
                             .setMergable( true )
                             .setMetadata( true )
                             .build();
+
+        sp.add( pi );
+
+        pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
+                .setDecoratable( false )
+                .setMergable( true )
+                .setMetadata( true )
+                .build();
 
         sp.add( pi );
 
