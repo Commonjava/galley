@@ -15,13 +15,8 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.InputStream;
-import java.security.MessageDigest;
-
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.io.checksum.Md5GeneratorFactory.Md5Generator;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -32,6 +27,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.util.Arrays;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class Md5GeneratorFactoryTest
 {
@@ -50,13 +53,13 @@ public class Md5GeneratorFactoryTest
 
     @Test
     public void verifyWithMessageDigest()
-        throws Exception
+            throws Exception
     {
         final byte[] data = "this is a test".getBytes();
 
-        final Transfer txfr =
-            fixture.getCache()
-                   .getTransfer( new ConcreteResource( new SimpleLocation( "test:uri" ), "my-path.txt" ) );
+        final Transfer txfr = fixture.getCache()
+                                     .getTransfer(
+                                             new ConcreteResource( new SimpleLocation( "test:uri" ), "my-path.txt" ) );
 
         final Md5GeneratorFactory factory = new Md5GeneratorFactory();
 
