@@ -117,11 +117,11 @@ public class Transfer
 
     public void touch( final EventMetadata eventMetadata )
     {
-        provider.waitForWriteUnlock( resource );
         if ( decorator != null )
         {
             decorator.decorateTouch( this );
         }
+
         fileEventManager.fire( new FileAccessEvent( this, eventMetadata ) );
     }
 
