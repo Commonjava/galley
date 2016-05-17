@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
     <artifactId>galley-caches</artifactId>
-    <version>0.12.1-SNAPSHOT</version>
+    <version>0.13.0</version>
   </parent>
   
   <artifactId>galley-cache-partyline</artifactId>
