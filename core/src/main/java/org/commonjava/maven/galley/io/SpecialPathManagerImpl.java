@@ -71,6 +71,7 @@ public class SpecialPathManagerImpl
             return getSpecialPathInfo( resource.getLocation(), resource.getPath() );
         }
 
+        // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return null;
     }
 
@@ -82,6 +83,7 @@ public class SpecialPathManagerImpl
             return getSpecialPathInfo( transfer.getLocation(), transfer.getPath() );
         }
 
+        // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return null;
     }
 
@@ -107,6 +109,8 @@ public class SpecialPathManagerImpl
                 }
             }
         }
+
+        // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR based on path if firstHit is null!
 
         return firstHit;
     }

@@ -16,7 +16,9 @@
 package org.commonjava.maven.galley.io;
 
 import org.commonjava.maven.galley.model.FilePatternMatcher;
+import org.commonjava.maven.galley.model.PathPatternMatcher;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +30,30 @@ public class SpecialPathConstants
 {
     public static final List<SpecialPathInfo> STANDARD_SPECIAL_PATHS;
 
-    static{
+    public static final SpecialPathInfo DEFAULT_FILE = SpecialPathInfo.from( new PathPatternMatcher( ".*[^/]" ) )
+                                                                      .setDecoratable( true )
+                                                                      .setDeletable( true )
+                                                                      .setListable( false )
+                                                                      .setMergable( false )
+                                                                      .setMetadata( false )
+                                                                      .setPublishable( true )
+                                                                      .setRetrievable( true )
+                                                                      .setStorable( true )
+                                                                      .build();
+
+    public static final SpecialPathInfo DEFAULT_DIR = SpecialPathInfo.from( new PathPatternMatcher( ".*/" ) )
+                                                                     .setDecoratable( true )
+                                                                     .setDeletable( true )
+                                                                     .setListable( false )
+                                                                     .setMergable( false )
+                                                                     .setMetadata( false )
+                                                                     .setPublishable( true )
+                                                                     .setRetrievable( true )
+                                                                     .setStorable( true )
+                                                                     .build();
+
+    static
+    {
         List<SpecialPathInfo> sp = new ArrayList<>();
 
         SpecialPathInfo pi = SpecialPathInfo.from( new FilePatternMatcher( ".*\\.http-metadata\\.json$" ) )
@@ -37,6 +62,8 @@ public class SpecialPathConstants
                                             .setPublishable( false )
                                             .setRetrievable( false )
                                             .setStorable( false )
+                                            .setMetadata( true )
+                                            .setMergable( true )
                                             .build();
 
         sp.add( pi );
@@ -48,6 +75,7 @@ public class SpecialPathConstants
                             .setRetrievable( false )
                             .setStorable( false )
                             .setMergable( true )
+                            .setMetadata( true )
                             .build();
 
         sp.add( pi );
@@ -60,10 +88,10 @@ public class SpecialPathConstants
         sp.add( pi );
 
         pi = SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
-                .setDecoratable( false )
-                .setMergable( true )
-                .setMetadata( true )
-                .build();
+                            .setDecoratable( false )
+                            .setMergable( true )
+                            .setMetadata( true )
+                            .build();
 
         sp.add( pi );
 
@@ -75,10 +103,10 @@ public class SpecialPathConstants
         sp.add( pi );
 
         pi = SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
-                .setDecoratable( false )
-                .setMergable( true )
-                .setMetadata( true )
-                .build();
+                            .setDecoratable( false )
+                            .setMergable( true )
+                            .setMetadata( true )
+                            .build();
 
         sp.add( pi );
 
