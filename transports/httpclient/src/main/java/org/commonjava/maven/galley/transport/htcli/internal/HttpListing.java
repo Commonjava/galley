@@ -76,12 +76,12 @@ public class HttpListing
 
         ListingResult result = null;
         OutputStream stream = null;
+        InputStream in = null;
         try
         {
             if ( executeHttp() )
             {
-                final InputStream in = response.getEntity()
-                                               .getContent();
+                in = response.getEntity().getContent();
                 final ArrayList<String> al = new ArrayList<String>();
 
                 // TODO: Charset!!
@@ -102,29 +102,13 @@ public class HttpListing
                     {
                         String linkText = link.text();
                         String linkHref = link.attr( "href" );
-                        String linkProtocol = null;
-                        String linkAuthority = null;
-                        String linkPath;
-                        try
-                        {
-                            URL linkUrl = new URL( linkHref );
-                            linkProtocol = linkUrl.getProtocol();
-                            linkAuthority = linkUrl.getAuthority();
-                            linkPath = linkUrl.getPath();
-                        }
-                        catch ( MalformedURLException ex )
-                        {
-                            linkPath = linkHref;
-                        }
+
                         URL url = new URL( this.url );
 
-                        boolean sameServer = ( linkProtocol == null && linkAuthority == null )
-                                             || ( linkProtocol.equals( url.getProtocol() )
-                                                 && linkAuthority.equals( url.getAuthority() ) );
-                        boolean isSubpath = (( linkPath.charAt( 0 ) != '/' ) && ( linkPath.charAt( 0 ) != '.' ))
-                                            || linkPath.startsWith( url.getPath() );
+                        boolean sameServer = isSameServer( url, linkHref );
+                        boolean subpath = isSubpath( url, linkHref );
 
-                        if ( ( sameServer && isSubpath )
+                        if ( ( sameServer && subpath )
                                 && ( linkHref.endsWith( linkText ) || linkHref.endsWith( linkText + '/' ) )
                                 && !EXCLUDES.contains( linkText ) )
                         {
@@ -148,11 +132,48 @@ public class HttpListing
         }
         finally
         {
+            closeQuietly( in );
             closeQuietly( stream );
             cleanup();
         }
 
         return error == null ? result : null;
+    }
+
+    static boolean isSubpath( final URL url, final String linkHref )
+    {
+        String linkPath;
+        try
+        {
+            URL linkUrl = new URL( linkHref );
+            linkPath = linkUrl.getPath();
+        }
+        catch ( MalformedURLException ex )
+        {
+            linkPath = linkHref;
+        }
+        return linkPath.length() > 0
+               && ( ( ( linkPath.charAt( 0 ) != '/' ) && ( linkPath.charAt( 0 ) != '.' ) )
+                    || linkPath.startsWith( url.getPath() ) );
+    }
+
+    static boolean isSameServer( final URL url, final String linkHref )
+    {
+        String linkProtocol = null;
+        String linkAuthority = null;
+        try
+        {
+            URL linkUrl = new URL( linkHref );
+            linkProtocol = linkUrl.getProtocol();
+            linkAuthority = linkUrl.getAuthority();
+        }
+        catch ( MalformedURLException ex )
+        {
+            // linkHref is a relative path on the same server
+        }
+
+        return ( linkProtocol == null && linkAuthority == null )
+               || linkProtocol.equals( url.getProtocol() ) && linkAuthority.equals( url.getAuthority() );
     }
 
 }
