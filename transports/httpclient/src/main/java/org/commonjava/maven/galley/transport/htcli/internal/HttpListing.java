@@ -183,7 +183,7 @@ public class HttpListing
             // linkHref is a relative path on the same server
         }
 
-        return ( linkProtocol == null && linkAuthority == null )
-               || linkProtocol.equals( url.getProtocol() ) && linkAuthority.equals( url.getAuthority() );
+        return ( linkProtocol == null || linkProtocol.equals( url.getProtocol() ) )
+               && ( linkAuthority == null || linkAuthority.equals( url.getAuthority() ) );
     }
 }
