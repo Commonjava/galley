@@ -36,7 +36,8 @@ import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a decorator responsible for filtering out location contents based on location settings. Effectively it is
@@ -101,7 +102,7 @@ extends AbstractTransferDecorator
         if ( loc instanceof HttpLocation && ( !allowsSnapshots || !allowsReleases )
                 && transfer.getFullPath().endsWith( "maven-metadata.xml" ) )
         {
-            return new MetadataFilteringOutputStream( stream, allowsSnapshots, allowsReleases );
+            return new MetadataFilteringOutputStream( stream, allowsSnapshots, allowsReleases, transfer );
         }
         else
         {
@@ -194,12 +195,15 @@ extends AbstractTransferDecorator
 
         private final boolean allowsReleases;
 
+        private Transfer transfer;
+
         private MetadataFilteringOutputStream( final OutputStream stream, final boolean allowsSnapshots,
-                final boolean allowsReleases )
+                                               final boolean allowsReleases, Transfer transfer )
         {
             super( stream );
             this.allowsSnapshots = allowsSnapshots;
             this.allowsReleases = allowsReleases;
+            this.transfer = transfer;
         }
 
         private String filterMetadata()
@@ -229,6 +233,8 @@ extends AbstractTransferDecorator
                 final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
                 if ( !allowsSnapshots && isSnapshot || !allowsReleases && !isSnapshot )
                 {
+                    Logger logger = LoggerFactory.getLogger( getClass() );
+                    logger.debug( "FILTER: Removing prohibited version: {} from: {}", version, transfer );
                     versions.remove( version );
                     changed = true;
                 }
@@ -257,6 +263,9 @@ extends AbstractTransferDecorator
                 final boolean isSnapshot = latestVersion.endsWith( "-SNAPSHOT" );
                 if ( !allowsSnapshots && isSnapshot || !allowsReleases && !isSnapshot )
                 {
+                    Logger logger = LoggerFactory.getLogger( getClass() );
+                    logger.debug( "FILTER: Recalculating LATEST version; supplied value is prohibited: {} from: {}", latestVersion, transfer );
+
                     String newLatest;
                     if ( versions.size() > 0 )
                     {
@@ -276,6 +285,9 @@ extends AbstractTransferDecorator
                 final Matcher releaseMatcher = releasePattern.matcher( filteredMetadata );
                 if ( releaseMatcher.find() )
                 {
+                    Logger logger = LoggerFactory.getLogger( getClass() );
+                    logger.debug( "FILTER: Suppressing prohibited release fields from: {}", transfer );
+
                     filteredMetadata = filteredMetadata.replaceFirst( RELEASE, "<release></release>" );
                 }
             }
@@ -283,6 +295,9 @@ extends AbstractTransferDecorator
             // filter snapshots from GAV metadata
             if ( !allowsSnapshots )
             {
+                Logger logger = LoggerFactory.getLogger( getClass() );
+                logger.debug( "FILTER: Suppressing prohibited snapshot fields from: {}", transfer );
+
                 final String snapshots = StringUtils.substringBetween( filteredMetadata,
                                                                        "<snapshotVersions>",
                                                                        "</snapshotVersions>" );

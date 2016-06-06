@@ -313,7 +313,15 @@ public class FileCacheProvider
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return PathUtils.normalize( config.getCacheBasedir().getPath(), pathGenerator.getFilePath( resource ) );
+        String dir = resource.getLocation()
+                             .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
+
+        if ( dir == null )
+        {
+            dir = config.getCacheBasedir().getPath();
+        }
+
+        return PathUtils.normalize( dir, pathGenerator.getFilePath( resource ) );
     }
 
     @Override

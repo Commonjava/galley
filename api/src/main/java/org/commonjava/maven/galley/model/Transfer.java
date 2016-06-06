@@ -92,7 +92,7 @@ public class Transfer
     @Override
     public String toString()
     {
-        return String.format( "%s:%s", resource.getLocation(), resource.getPath() );
+        return String.format( "%s:%s (stored at: %s)", resource.getLocation(), resource.getPath(), provider.getFilePath( resource ) );
     }
 
     public Transfer getParent()
