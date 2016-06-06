@@ -163,15 +163,7 @@ public class FileCacheProvider
         final String altDir = resource.getLocation()
                                       .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
 
-        File f = null;
-        if ( altDir == null )
-        {
-            f = new File( getFilePath( resource ) );
-        }
-        else
-        {
-            f = new File( altDir, resource.getPath() );
-        }
+        File f = new File( getFilePath( resource ) );
 
         return f;
     }
