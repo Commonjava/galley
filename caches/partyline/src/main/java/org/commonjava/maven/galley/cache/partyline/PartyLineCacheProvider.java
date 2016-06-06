@@ -132,18 +132,7 @@ public class PartyLineCacheProvider
         final Transfer txfr = getTransfer( resource );
         synchronized ( txfr )
         {
-            final String altDir = resource.getLocation()
-                                          .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
-
-            File f;
-            if ( altDir == null )
-            {
-                f = new File( getFilePath( resource ) );
-            }
-            else
-            {
-                f = new File( altDir, resource.getPath() );
-            }
+            File f = new File( getFilePath( resource ) );
 
             if ( resource.isRoot() && !f.isDirectory() )
             {
@@ -355,7 +344,15 @@ public class PartyLineCacheProvider
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return PathUtils.normalize( config.getCacheBasedir().getPath(), pathGenerator.getFilePath( resource ) );
+        String dir = resource.getLocation()
+                                      .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
+
+        if ( dir == null )
+        {
+            dir = config.getCacheBasedir().getPath();
+        }
+
+        return PathUtils.normalize( dir, pathGenerator.getFilePath( resource ) );
     }
 
     @Override
