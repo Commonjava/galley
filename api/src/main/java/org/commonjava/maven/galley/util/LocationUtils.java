@@ -39,8 +39,11 @@ public final class LocationUtils
 
     public static int getTimeoutSeconds( final Location location )
     {
-        logger.debug( "Retrieving timeout from location: {}\n{}", location, Arrays.toString( Thread.currentThread()
-                                                                                                   .getStackTrace() ) );
+        if ( logger.isDebugEnabled() )
+        {
+            logger.debug( "Retrieving timeout from location: {}", location );
+        }
+
         return location.getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class,
                                       Location.DEFAULT_CONNECTION_TIMEOUT_SECONDS );
     }

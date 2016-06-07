@@ -158,15 +158,7 @@ public class FileCacheProvider
         final String altDir = resource.getLocation()
                                       .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
 
-        File f = null;
-        if ( altDir == null )
-        {
-            f = new File( getFilePath( resource ) );
-        }
-        else
-        {
-            f = new File( altDir, resource.getPath() );
-        }
+        File f = new File( getFilePath( resource ) );
 
         return f;
     }
@@ -308,7 +300,15 @@ public class FileCacheProvider
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return PathUtils.normalize( config.getCacheBasedir().getPath(), pathGenerator.getFilePath( resource ) );
+        String dir = resource.getLocation()
+                             .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
+
+        if ( dir == null )
+        {
+            dir = config.getCacheBasedir().getPath();
+        }
+
+        return PathUtils.normalize( dir, pathGenerator.getFilePath( resource ) );
     }
 
     @Override
