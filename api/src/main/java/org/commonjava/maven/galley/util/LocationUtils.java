@@ -20,8 +20,6 @@ import org.commonjava.maven.galley.model.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-
 public final class LocationUtils
 {
 
@@ -41,8 +39,7 @@ public final class LocationUtils
     {
         if ( logger.isDebugEnabled() )
         {
-            String stacktrace = Arrays.toString( Thread.currentThread().getStackTrace() );
-            logger.debug( "Retrieving timeout from location: {}\n{}", location, stacktrace );
+            logger.debug( "Retrieving timeout from location: {}", location );
         }
 
         return location.getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class,
