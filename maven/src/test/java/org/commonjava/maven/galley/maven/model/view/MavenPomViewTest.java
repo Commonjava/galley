@@ -30,6 +30,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class MavenPomViewTest
     extends AbstractMavenViewTest
@@ -42,8 +43,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void resolveExpressionReferencingPropertyWithNumericDottedPart()
-        throws Exception
+    public void resolveExpressionReferencingPropertyWithNumericDottedPart() throws Exception
     {
         final String expr = "${my.1.version}";
         final MavenPomView pom = loadPoms( "pom-with-property.xml" );
@@ -54,8 +54,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void buildExtension()
-            throws Exception
+    public void buildExtension() throws Exception
     {
         MavenPomView pomView = loadPoms( "pom-with-build-ext.xml" );
 
@@ -64,13 +63,12 @@ public class MavenPomViewTest
         assertThat( extensions, notNullValue() );
         assertThat( extensions.size(), equalTo( 1 ) );
         assertThat( extensions.get( 0 ).asProjectVersionRef(),
-                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group","ext-artifact", "1.0" ) ) );
+                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group", "ext-artifact", "1.0" ) ) );
 
     }
 
     @Test
-    public void pluginConfigCalledExtension()
-            throws Exception
+    public void pluginConfigCalledExtension() throws Exception
     {
         MavenPomView pomView = loadPoms( new String[] { "test" }, "pom-with-plugin-conf-ext.xml" );
 
@@ -81,8 +79,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void profileBuildExtension()
-            throws Exception
+    public void profileBuildExtension() throws Exception
     {
         MavenPomView pomView = loadPoms( new String[] { "test" }, "pom-with-profile-build-ext.xml" );
 
@@ -91,26 +88,23 @@ public class MavenPomViewTest
         assertThat( extensions, notNullValue() );
         assertThat( extensions.size(), equalTo( 1 ) );
         assertThat( extensions.get( 0 ).asProjectVersionRef(),
-                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group","ext-artifact", "1.0" ) ) );
+                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group", "ext-artifact", "1.0" ) ) );
 
     }
 
     @Test
-    public void dependencyManagedByProfile()
-        throws Exception
+    public void dependencyManagedByProfile() throws Exception
     {
         MavenPomView pomView = loadPoms( "pom-with-profile.xml" );
 
-        DependencyView dv = pomView.getAllDirectDependencies()
-                                   .get( 0 );
+        DependencyView dv = pomView.getAllDirectDependencies().get( 0 );
 
         assertThat( dv.getVersion(), nullValue() );
         assertThat( dv.getScope(), equalTo( DependencyScope.compile ) );
 
         pomView = loadPoms( new String[] { "test" }, "pom-with-profile.xml" );
 
-        dv = pomView.getAllDirectDependencies()
-                    .get( 0 );
+        dv = pomView.getAllDirectDependencies().get( 0 );
 
         assertThat( dv.getVersion(), equalTo( "1.0" ) );
         assertThat( dv.getScope(), equalTo( DependencyScope.test ) );
@@ -123,53 +117,45 @@ public class MavenPomViewTest
      * value so it also checks if the profile value takes preference.
      */
     @Test
-    public void pluginWithVersionPropertyInProfile()
-        throws Exception
+    public void pluginWithVersionPropertyInProfile() throws Exception
     {
-        MavenPomView pomView = loadPoms( new String[] { "test" },
-                                         "pom-with-plugin-version-property-in-profile.xml" );
+        MavenPomView pomView = loadPoms( new String[] { "test" }, "pom-with-plugin-version-property-in-profile.xml" );
 
-        PluginView pv = pomView.getAllBuildPlugins()
-                               .get( 0 );
+        PluginView pv = pomView.getAllBuildPlugins().get( 0 );
 
         assertThat( pv.getVersion(), equalTo( "2.0" ) );
     }
 
     @Test
-    public void dependencyManagedBySingleBOM()
-        throws Exception
+    public void dependencyManagedBySingleBOM() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-bom.xml" );
         final MavenPomView bomView = loadPoms( "simple-bom.xml" );
 
         pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
 
-        final DependencyView dv = pomView.getAllDirectDependencies()
-                                         .get( 0 );
+        final DependencyView dv = pomView.getAllDirectDependencies().get( 0 );
 
         assertThat( dv.getVersion(), equalTo( "1.0" ) );
         assertThat( dv.getScope(), equalTo( DependencyScope.test ) );
     }
 
     @Test
-    public void dependencyManagedBySingleBOMWithExpressionToProjectGroupId()
-        throws Exception
+    public void dependencyManagedBySingleBOMWithExpressionToProjectGroupId() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-bom-expr.xml" );
         final MavenPomView bomView = loadPoms( "simple-bom-expr.xml" );
 
         pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
 
-        final DependencyView dv = pomView.getAllDirectDependencies()
-                                         .get( 0 );
+        final DependencyView dv = pomView.getAllDirectDependencies().get( 0 );
 
         assertThat( dv.getVersion(), equalTo( "1.0" ) );
         assertThat( dv.getScope(), equalTo( DependencyScope.test ) );
     }
 
     @Test
-    public void directDepsInParentAndMainPOM()
-            throws Exception
+    public void directDepsInParentAndMainPOM() throws Exception
     {
         MavenPomView pomView = loadPoms( "pom-with-parent-and-direct-dep.xml", "simple-parent-with-direct-dep.xml" );
 
@@ -179,13 +165,12 @@ public class MavenPomViewTest
 
     @Test
     @Ignore( "https://github.com/Commonjava/galley/issues/96" )
-    public void managedDepOverlapMergedFromParentToMainPOM()
-            throws Exception
+    public void managedDepOverlapMergedFromParentToMainPOM() throws Exception
     {
-        MavenPomView pomView = loadPoms( "pom-with-parent-and-incomplete-managed-dep.xml", "simple-parent-with-managed-dep.xml" );
+        MavenPomView pomView = loadPoms( "pom-with-parent-and-incomplete-managed-dep.xml",
+                                         "simple-parent-with-managed-dep.xml" );
 
         List<DependencyView> deps = pomView.getAllManagedDependencies();
-
 
         assertThat( deps.size(), equalTo( 1 ) );
         DependencyView dep = deps.get( 0 );
@@ -195,13 +180,12 @@ public class MavenPomViewTest
 
     @Test
     @Ignore( "https://github.com/Commonjava/galley/issues/96" )
-    public void dependencyOverrideInMainPOM()
-            throws Exception
+    public void dependencyOverrideInMainPOM() throws Exception
     {
-        MavenPomView pomView = loadPoms( "pom-with-parent-and-redeclared-direct-dep.xml", "simple-parent-with-direct-dep.xml" );
+        MavenPomView pomView = loadPoms( "pom-with-parent-and-redeclared-direct-dep.xml",
+                                         "simple-parent-with-direct-dep.xml" );
 
         List<DependencyView> deps = pomView.getAllDirectDependencies();
-
 
         assertThat( deps.size(), equalTo( 1 ) );
         DependencyView dep = deps.get( 0 );
@@ -209,8 +193,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void projectWithBOMContainingBOMs()
-        throws Exception
+    public void projectWithBOMContainingBOMs() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-bom-of-boms.xml" );
         final MavenPomView bomView = loadPoms( "bom-with-boms.xml" );
@@ -227,30 +210,26 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void retrieveManagedDependencyFromBOMWithExpressionToBOMGroupId()
-        throws Exception
+    public void retrieveManagedDependencyFromBOMWithExpressionToBOMGroupId() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-bom-expr.xml" );
         final MavenPomView bomView = loadPoms( "simple-bom-expr.xml" );
 
         pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
 
-        DependencyView dv = pomView.getAllManagedDependencies()
-                                   .get( 0 );
+        DependencyView dv = pomView.getAllManagedDependencies().get( 0 );
 
         assertThat( dv.getGroupId(), equalTo( "org.foo" ) );
 
-        dv = pomView.getAllBOMs()
-                    .get( 0 );
+        dv = pomView.getAllBOMs().get( 0 );
 
         assertThat( dv.getGroupId(), equalTo( "org.foo" ) );
     }
 
     @Test
-    public void resolveParentVersionExpressionWithoutProjectPrefix()
-        throws Exception
+    public void resolveParentVersionExpressionWithoutProjectPrefix() throws Exception
     {
-        final MavenPomView pomView = loadPoms( "pom-with-parent-expr.xml"/*, "simple-parent-pom.xml"*/);
+        final MavenPomView pomView = loadPoms( "pom-with-parent-expr.xml"/*, "simple-parent-pom.xml"*/ );
 
         final String value = pomView.resolveExpressions( "${parent.version}" );
 
@@ -258,10 +237,9 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void resolveExpressionWithDeprecatedPomDotPrefix()
-        throws Exception
+    public void resolveExpressionWithDeprecatedPomDotPrefix() throws Exception
     {
-        final MavenPomView pomView = loadPoms( "pom-with-parent-expr.xml"/*, "simple-parent-pom.xml"*/);
+        final MavenPomView pomView = loadPoms( "pom-with-parent-expr.xml"/*, "simple-parent-pom.xml"*/ );
 
         final String value = pomView.resolveExpressions( "${pom.parent.version}" );
 
@@ -269,10 +247,10 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void parentPathIsLocalOnly()
-        throws Exception
+    public void parentPathIsLocalOnly() throws Exception
     {
-        final MavenPomView pomView = loadPoms( "pom-with-broken-parent.xml", "pom-with-parent.xml", "simple-parent-pom.xml" );
+        final MavenPomView pomView =
+                        loadPoms( "pom-with-broken-parent.xml", "pom-with-parent.xml", "simple-parent-pom.xml" );
 
         final String value = pomView.resolveExpressions( "${parent.version}" );
 
@@ -280,8 +258,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void groupIdFailOverToParent()
-        throws Exception
+    public void groupIdFailOverToParent() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-parent-groupId.xml", "simple-parent-pom.xml" );
 
@@ -293,10 +270,10 @@ public class MavenPomViewTest
     }
 
     @Test( expected = GalleyMavenXMLException.class )
-    public void artifactId_DOES_NOT_FailOverToParent()
-        throws Exception
+    public void artifactId_DOES_NOT_FailOverToParent() throws Exception
     {
-        final MavenPomView pomView = loadPoms( "pom-with-broken-artifactId.xml", "pom-with-parent.xml", "simple-parent-pom.xml" );
+        final MavenPomView pomView =
+                        loadPoms( "pom-with-broken-artifactId.xml", "pom-with-parent.xml", "simple-parent-pom.xml" );
 
         final String aid = pomView.getArtifactId();
 
@@ -306,8 +283,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void retrieveDirectBOMReference()
-        throws Exception
+    public void retrieveDirectBOMReference() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-bom.xml" );
         final List<DependencyView> boms = pomView.getAllBOMs();
@@ -317,8 +293,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void retrieveBOMReferenceInParent()
-        throws Exception
+    public void retrieveBOMReferenceInParent() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-bom-child.xml", "pom-with-bom.xml" );
         final List<DependencyView> boms = pomView.getAllBOMs();
@@ -328,8 +303,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void retrieveImpliedPluginDepsForSurefire()
-        throws Exception
+    public void retrieveImpliedPluginDepsForSurefire() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-surefire.xml" );
 
@@ -347,8 +321,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void artifactIdWithWhitespace()
-        throws Exception
+    public void artifactIdWithWhitespace() throws Exception
     {
         final MavenPomView pomView = loadPoms( "pom-with-whitespace-artifactId.xml" );
 
@@ -360,8 +333,7 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void pomProperties()
-            throws Exception
+    public void pomProperties() throws Exception
     {
         MavenPomView pomView = loadPoms( "pom-with-property.xml", "simple-parent-pom.xml" );
 
@@ -379,4 +351,18 @@ public class MavenPomViewTest
         assertThat( result.getProperty( "resolve-no-property" ), equalTo( "${i-dont-exist}" ) );
     }
 
+    @Test
+    public void pluginWithManagedPlugins() throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-managed-plugin-conf.xml", "pom-plugin-parent.xml" );
+
+        List<PluginView> pvs = pomView.getAllManagedBuildPlugins();
+
+        for ( PluginView pv : pvs )
+        {
+            System.out.println( "pv " + pv.getGroupId() + " for version " + pv.getVersion() );
+
+            assertTrue( !pv.getVersion().contains( "${" ) );
+        }
+    }
 }
