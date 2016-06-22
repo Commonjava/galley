@@ -1,0 +1,12 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.commonjava.plugin-test</groupId>
+  <artifactId>parent</artifactId>
+  <version>1</version>
+
+  <properties>
+    <version.antrun.plugin>1.8</version.antrun.plugin>
+    <version.assembly.plugin>2.5.5</version.assembly.plugin>
+  </properties>
+
+</project>
