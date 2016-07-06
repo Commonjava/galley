@@ -19,7 +19,6 @@ import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.GalleyMavenXMLException;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.Set;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -164,7 +164,6 @@ public class MavenPomViewTest
     }
 
     @Test
-    @Ignore( "https://github.com/Commonjava/galley/issues/96" )
     public void managedDepOverlapMergedFromParentToMainPOM() throws Exception
     {
         MavenPomView pomView = loadPoms( "pom-with-parent-and-incomplete-managed-dep.xml",
@@ -176,10 +175,10 @@ public class MavenPomViewTest
         DependencyView dep = deps.get( 0 );
         assertThat( dep.getScope(), equalTo( DependencyScope.test ) );
         assertThat( dep.getVersion(), equalTo( "2.5" ) );
+        assertFalse( dep.isOptional() );
     }
 
     @Test
-    @Ignore( "https://github.com/Commonjava/galley/issues/96" )
     public void dependencyOverrideInMainPOM() throws Exception
     {
         MavenPomView pomView = loadPoms( "pom-with-parent-and-redeclared-direct-dep.xml",

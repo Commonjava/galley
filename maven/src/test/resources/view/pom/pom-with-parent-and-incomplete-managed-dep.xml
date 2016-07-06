@@ -28,6 +28,7 @@
         <groupId>commons-lang</groupId>
         <artifactId>commons-lang</artifactId>
         <scope>test</scope>
+        <optional></optional>
       </dependency>
     </dependencies>
   </dependencyManagement>

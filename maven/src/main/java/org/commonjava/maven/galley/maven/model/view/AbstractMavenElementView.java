@@ -15,37 +15,56 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.jxpath.JXPathContext;
 import org.commonjava.maven.galley.maven.parse.JXPathUtils;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 {
 
     //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    protected final Element element;
+    protected Element element;
 
     protected final JXPathContext elementContext;
 
     protected final T xmlView;
 
+    protected ArrayList<Element> elements;
+
     public AbstractMavenElementView( final T xmlView, final Element element )
     {
         this.xmlView = xmlView;
         this.element = element;
-
         this.elementContext = JXPathUtils.newContext( element );
     }
 
-    public final Element getElement()
+    public Element getElement()
     {
         return element;
+    }
+
+    public void addElement( Element element )
+    {
+        if ( null == elements || elements.isEmpty() )
+        {
+            elements = new ArrayList<Element>();
+            elements.add( this.element );
+            elements.add( element );
+        }
+        else
+        {
+            elements.add( element );
+        }
+        appendElement();
     }
 
     public final T getXmlView()
@@ -139,4 +158,49 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         return xmlView.toXML( element );
     }
 
+    private void appendElement()
+    {
+        Map<String, Element> seen = new HashMap<String, Element>();
+        NodeList nodeList = element.getChildNodes();
+        for ( int i = 0; i <= nodeList.getLength(); i++ )
+        {
+            Node node = nodeList.item( i );
+            Element e = node instanceof Element ? (Element) node : null;
+            if ( null == e )
+            {
+                continue;
+            }
+            seen.put( e.getNodeName(), e );
+        }
+
+        for ( int i = 1; i < elements.size(); i++ )
+        {
+            NodeList addList = elements.get( i ).getChildNodes();
+
+            for ( int j = 0; j < addList.getLength(); j++ )
+            {
+                Node node = addList.item( j );
+                Element e = node instanceof Element ? (Element) node : null;
+                if ( null == e )
+                {
+                    continue;
+                }
+
+                Document document = element.getOwnerDocument();
+                Element child = document.createElement( e.getNodeName() );
+                child.setTextContent( e.getTextContent() );
+
+                if ( !seen.keySet().contains( child.getNodeName() ) )
+                {
+                    element.appendChild( child );
+                }
+                else if ( seen.get( child.getNodeName() ).getTextContent().isEmpty() )
+                {
+                    element.removeChild( seen.get( child.getNodeName() ) );
+                    element.appendChild( child );
+                }
+                seen.put( child.getNodeName(), child );
+            }
+        }
+    }
 }

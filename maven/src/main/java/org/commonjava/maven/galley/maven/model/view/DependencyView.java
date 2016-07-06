@@ -15,22 +15,6 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.AND;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.END_PAREN;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.EQQUOTE;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.NOT;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.OPEN_PAREN;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.OR;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.RESOLVE;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXT;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.commonjava.maven.atlas.ident.DependencyScope;
 import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
@@ -39,11 +23,28 @@ import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.AND;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.END_PAREN;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.EQQUOTE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.NOT;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.OPEN_PAREN;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.OR;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.RESOLVE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXT;
 
 public class DependencyView
     extends MavenGAVView
 {
+
+    private static final String G = "groupId";
+
+    private static final String A = "artifactId";
 
     private static final String C = "classifier";
 
@@ -54,6 +55,10 @@ public class DependencyView
     private static final String OPTIONAL = "optional";
 
     private static final String EXCLUSIONS = "exclusions/exclusion";
+
+    private String groupId;
+
+    private String artifactId;
 
     private String classifier;
 
@@ -74,6 +79,26 @@ public class DependencyView
         throws GalleyMavenException
     {
         return xmlView.resolveXPathToNodeFrom( elementContext, "ancestor::dependencyManagement", true ) != null;
+    }
+
+    public synchronized String getGroupId()
+    {
+        if ( groupId == null )
+        {
+            groupId = getValue( G );
+        }
+
+        return groupId;
+    }
+
+    public synchronized String getArtifactId()
+    {
+        if ( artifactId == null )
+        {
+            artifactId = getValue( A );
+        }
+
+        return artifactId;
     }
 
     public synchronized String getClassifier()
@@ -262,4 +287,91 @@ public class DependencyView
         }
     }
 
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        final String artifactId = getArtifactId();
+        final String groupId = getGroupId();
+        final String type = getType();
+        final String classifier = getClassifier();
+
+        result = prime * result + ( ( artifactId == null ) ? 0 : artifactId.hashCode() );
+        result = prime * result + ( ( groupId == null ) ? 0 : groupId.hashCode() );
+        result = prime * result + ( ( type.equals( "jar" ) ) ? 0 : type.hashCode() );
+        result = prime * result + ( ( classifier == null ) ? 0 : classifier.hashCode() );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final String artifactId = getArtifactId();
+        final String groupId = getGroupId();
+        final String type = getType();
+        final String classifier = getClassifier();
+
+        final DependencyView other = (DependencyView) obj;
+        final String oArtifactId = other.getArtifactId();
+        final String oGroupId = other.getGroupId();
+        final String otype = other.getType();
+        final String oclassifier = other.getClassifier();
+
+        if ( artifactId == null )
+        {
+            if ( oArtifactId != null )
+            {
+                return false;
+            }
+        }
+        else if ( !artifactId.equals( oArtifactId ) )
+        {
+            return false;
+        }
+
+        if ( groupId == null )
+        {
+            if ( oGroupId != null )
+            {
+                return false;
+            }
+        }
+        else if ( !groupId.equals( oGroupId ) )
+        {
+            return false;
+        }
+
+        if ( classifier == null )
+        {
+            if ( oclassifier != null )
+            {
+                return false;
+            }
+        }
+        else if ( !classifier.equals( oclassifier ) )
+        {
+            return false;
+        }
+
+        if ( !type.equals( otype ) )
+        {
+            return false;
+        }
+
+        other.addElement( this.getElement() );
+        return true;
+    }
 }
