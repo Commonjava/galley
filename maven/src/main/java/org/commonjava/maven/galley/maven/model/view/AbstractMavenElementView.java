@@ -23,21 +23,20 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 {
 
     //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    protected Element element;
+    protected final Element element;
 
     protected final JXPathContext elementContext;
 
     protected final T xmlView;
 
+    // all the overlapping elements found in current, parent, grandparent, ancestor poms, default is empty.
     protected ArrayList<Element> elements;
 
     public AbstractMavenElementView( final T xmlView, final Element element )
@@ -47,24 +46,63 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         this.elementContext = JXPathUtils.newContext( element );
     }
 
-    public Element getElement()
+    public final Element getElement()
     {
-        return element;
-    }
-
-    public void addElement( Element element )
-    {
-        if ( null == elements || elements.isEmpty() )
+        if ( isElementsEmpty() )
         {
-            elements = new ArrayList<Element>();
-            elements.add( this.element );
-            elements.add( element );
+            return element;
         }
         else
         {
-            elements.add( element );
+            return getCollapsedElement();
         }
-        appendElement();
+    }
+
+    protected Element getCollapsedElement()
+    {
+        Element result = element;
+        String textContent = getFirstValueInOverlappingElements( result );
+        if ( null != textContent )
+        {
+            result.setTextContent( textContent );
+        }
+        else
+        {
+            NodeList nodeList = result.getChildNodes();
+            for ( int i = 0; i <= nodeList.getLength(); i++ )
+            {
+                Node node = nodeList.item( i );
+                Element ele = node instanceof Element ? (Element) node : null;
+                if ( null == ele )
+                {
+                    continue;
+                }
+                String childText = getFirstValueInOverlappingElements( ele );
+                if ( null != childText )
+                {
+                    node.setTextContent( childText );
+                }
+            }
+            addToCollapsedChildElements( result, 0 );
+        }
+        return result;
+    }
+
+    public void addElements( Element element )
+    {
+        elements.add( element );
+    }
+
+    public boolean isElementsEmpty()
+    {
+        if ( null == elements || elements.isEmpty() )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public final T getXmlView()
@@ -74,14 +112,17 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 
     protected String getValue( final String path )
     {
-        final Node node = xmlView.resolveXPathToNodeFrom( elementContext, path, false );
+        final Node node = xmlView.resolveXPathToNodeFrom( JXPathUtils.newContext( getElement() ), path, false );
         if ( node == null )
         {
             return null;
         }
-
-        return node.getTextContent()
-                .trim();
+        String reTextContent = getFirstValueInOverlappingElements( node );
+        if ( null != reTextContent )
+        {
+            return reTextContent;
+        }
+        return node.getTextContent().trim();
     }
 
     protected final Element getElement( final String path )
@@ -92,7 +133,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         }
         else
         {
-            final NodeList nl = element.getElementsByTagName( path );
+            final NodeList nl = getElement().getElementsByTagName( path );
             if ( nl.getLength() > 0 )
             {
                 return (Element) nl.item( 0 );
@@ -120,7 +161,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         }
         else
         {
-            final NodeList nl = element.getChildNodes();
+            final NodeList nl = getElement().getChildNodes();
             final List<Element> elements = new ArrayList<Element>();
             for ( int i = 0; i < nl.getLength(); i++ )
             {
@@ -128,8 +169,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
                 if ( node.getNodeType() == Node.ELEMENT_NODE )
                 {
                     final Element e = (Element) node;
-                    if ( "*".equals( path ) || e.getTagName()
-                                                .equals( path ) )
+                    if ( "*".equals( path ) || e.getTagName().equals( path ) )
                     {
                         elements.add( (Element) node );
                     }
@@ -144,13 +184,28 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 
     protected final Node getNode( final String path )
     {
-        return (Node) elementContext.selectSingleNode( path );
+        Node node = (Node) JXPathUtils.newContext( getElement() ).selectSingleNode( path );
+        String textContent = getFirstValueInOverlappingElements( node );
+        if ( textContent != null )
+        {
+            node.setTextContent( textContent );
+        }
+        return node;
     }
 
     @SuppressWarnings( "unchecked" )
     protected final List<Node> getNodes( final String path )
     {
-        return elementContext.selectNodes( path );
+        List<Node> nodes = JXPathUtils.newContext( getElement() ).selectNodes( path );
+        for ( Node node : nodes )
+        {
+            String textContent = getFirstValueInOverlappingElements( node );
+            if ( textContent != null )
+            {
+                node.setTextContent( textContent );
+            }
+        }
+        return nodes;
     }
 
     public final String toXML()
@@ -158,49 +213,90 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         return xmlView.toXML( element );
     }
 
-    private void appendElement()
+    protected void addAsOverlappingElements( List<? extends AbstractMavenElementView> list )
     {
-        Map<String, Element> seen = new HashMap<String, Element>();
-        NodeList nodeList = element.getChildNodes();
-        for ( int i = 0; i <= nodeList.getLength(); i++ )
+        for ( AbstractMavenElementView dv : list )
         {
-            Node node = nodeList.item( i );
-            Element e = node instanceof Element ? (Element) node : null;
-            if ( null == e )
+            if ( this.equals( dv ) )
             {
-                continue;
+                if ( dv.isElementsEmpty() )
+                {
+                    dv.elements = new ArrayList<Element>();
+                    dv.addElements( dv.getElement() );
+                }
+                dv.addElements( this.getElement() );
+                break;
             }
-            seen.put( e.getNodeName(), e );
+        }
+    }
+
+    private String getFirstValueInOverlappingElements( Node child )
+    {
+        if ( null == child || isElementsEmpty() )
+        {
+            return null;
         }
 
-        for ( int i = 1; i < elements.size(); i++ )
+        String nodeName = child.getNodeName();
+        for ( Element e : elements )
         {
-            NodeList addList = elements.get( i ).getChildNodes();
-
-            for ( int j = 0; j < addList.getLength(); j++ )
+            NodeList nodeList = e.getChildNodes();
+            for ( int i = 0; i <= nodeList.getLength(); i++ )
             {
-                Node node = addList.item( j );
-                Element e = node instanceof Element ? (Element) node : null;
-                if ( null == e )
+                Node node = nodeList.item( i );
+                Element ele = node instanceof Element ? (Element) node : null;
+                if ( null == ele )
                 {
                     continue;
                 }
-
-                Document document = element.getOwnerDocument();
-                Element child = document.createElement( e.getNodeName() );
-                child.setTextContent( e.getTextContent() );
-
-                if ( !seen.keySet().contains( child.getNodeName() ) )
+                String textContent = ele.getTextContent().trim();
+                if ( ele.getNodeName().equals( nodeName ) && !textContent.isEmpty() )
                 {
-                    element.appendChild( child );
+                    return textContent;
                 }
-                else if ( seen.get( child.getNodeName() ).getTextContent().isEmpty() )
-                {
-                    element.removeChild( seen.get( child.getNodeName() ) );
-                    element.appendChild( child );
-                }
-                seen.put( child.getNodeName(), child );
             }
         }
+        return null;
+    }
+
+    private Element addToCollapsedChildElements( Element current, int step )
+    {
+        List<Element> parents = elements;
+        while ( !isElementsEmpty() && step < parents.size() - 1 )
+        {
+            NodeList originalElementChildNodeList = current.getChildNodes();
+            List<String> originalElementChildNameList = new ArrayList<String>();
+            for ( int i = 0; i <= originalElementChildNodeList.getLength(); i++ )
+            {
+                Node node = originalElementChildNodeList.item( i );
+                Element ele = node instanceof Element ? (Element) node : null;
+                if ( null == ele )
+                {
+                    continue;
+                }
+                originalElementChildNameList.add( ele.getNodeName() );
+            }
+
+            NodeList nodeList = parents.get( step + 1 ).getChildNodes();
+            for ( int i = 0; i <= nodeList.getLength(); i++ )
+            {
+                Node node = nodeList.item( i );
+                Element ele = node instanceof Element ? (Element) node : null;
+                if ( null == ele )
+                {
+                    continue;
+                }
+                if ( !originalElementChildNameList.contains( ele.getNodeName() ) )
+                {
+                    Document dom = current.getOwnerDocument();
+                    Element child = dom.createElement( ele.getNodeName() );
+                    child.setTextContent( ele.getTextContent() );
+                    current.appendChild( child );
+                }
+            }
+            step++;
+            addToCollapsedChildElements( current, step );
+        }
+        return current;
     }
 }

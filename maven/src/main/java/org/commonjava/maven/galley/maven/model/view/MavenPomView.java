@@ -238,9 +238,14 @@ public class MavenPomView
         for ( final MavenPomElementView node : depNodes )
         {
             DependencyView dv = new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() );
+
             if ( seen.add( dv ) )
             {
                 depViews.add( dv );
+            }
+            else
+            {
+                dv.addAsOverlappingElements( depViews );
             }
         }
 
@@ -284,6 +289,10 @@ public class MavenPomView
             if ( seen.add( dv ) )
             {
                 depViews.add( dv );
+            }
+            else
+            {
+                dv.addAsOverlappingElements( depViews );
             }
         }
 

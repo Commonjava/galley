@@ -152,7 +152,6 @@ public class MavenGAView
             return false;
         }
 
-        other.addElement( this.getElement() );
         return true;
     }
 

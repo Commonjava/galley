@@ -126,7 +126,6 @@ public class RepositoryView
             return false;
         }
 
-        other.addElement( this.getElement() );
         return true;
     }
 }

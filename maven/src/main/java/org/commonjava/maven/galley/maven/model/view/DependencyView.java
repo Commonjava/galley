@@ -24,41 +24,34 @@ import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationExcep
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.AND;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.C;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.END_PAREN;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.EQQUOTE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.NOT;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.OPEN_PAREN;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.OR;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.QUOTE;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.RESOLVE;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.T;
 import static org.commonjava.maven.galley.maven.model.view.XPathManager.TEXT;
 
 public class DependencyView
     extends MavenGAVView
 {
 
-    private static final String G = "groupId";
-
-    private static final String A = "artifactId";
-
-    private static final String C = "classifier";
-
-    private static final String T = "type";
-
     private static final String S = "scope";
 
     private static final String OPTIONAL = "optional";
 
     private static final String EXCLUSIONS = "exclusions/exclusion";
-
-    private String groupId;
-
-    private String artifactId;
 
     private String classifier;
 
@@ -79,26 +72,6 @@ public class DependencyView
         throws GalleyMavenException
     {
         return xmlView.resolveXPathToNodeFrom( elementContext, "ancestor::dependencyManagement", true ) != null;
-    }
-
-    public synchronized String getGroupId()
-    {
-        if ( groupId == null )
-        {
-            groupId = getValue( G );
-        }
-
-        return groupId;
-    }
-
-    public synchronized String getArtifactId()
-    {
-        if ( artifactId == null )
-        {
-            artifactId = getValue( A );
-        }
-
-        return artifactId;
     }
 
     public synchronized String getClassifier()
@@ -371,7 +344,6 @@ public class DependencyView
             return false;
         }
 
-        other.addElement( this.getElement() );
         return true;
     }
 }
