@@ -237,7 +237,7 @@ public class MavenPomView
         final Set<DependencyView> seen = new HashSet<DependencyView>();
         for ( final MavenPomElementView node : depNodes )
         {
-            DependencyView dv = new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() );
+            DependencyView dv = new DependencyView( node.getPomView(), node.getCollapsedElement(), node.getOriginInfo() );
 
             if ( seen.add( dv ) )
             {
@@ -245,7 +245,8 @@ public class MavenPomView
             }
             else
             {
-                dv.addAsOverlappingElements( depViews );
+                DependencyView original = depViews.get( depViews.indexOf( dv ));
+                original.addOverlappingElements( dv );
             }
         }
 
@@ -266,7 +267,7 @@ public class MavenPomView
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
-            depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
+            depViews.add( new DependencyView( node.getPomView(), node.getCollapsedElement(), node.getOriginInfo() ) );
         }
 
         return depViews;
@@ -292,7 +293,8 @@ public class MavenPomView
             }
             else
             {
-                dv.addAsOverlappingElements( depViews );
+                DependencyView original = depViews.get( depViews.indexOf( dv ));
+                original.addOverlappingElements( dv );
             }
         }
 

@@ -32,7 +32,11 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 
     protected final Element element;
 
+    protected Element collapsed;
+
     protected final JXPathContext elementContext;
+
+    protected JXPathContext collapsedElementContext;
 
     protected final T xmlView;
 
@@ -44,65 +48,46 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         this.xmlView = xmlView;
         this.element = element;
         this.elementContext = JXPathUtils.newContext( element );
+        this.collapsed = element;
+        this.collapsedElementContext = elementContext;
     }
 
     public final Element getElement()
     {
-        if ( isElementsEmpty() )
-        {
-            return element;
-        }
-        else
-        {
-            return getCollapsedElement();
-        }
+        return element;
     }
 
-    protected Element getCollapsedElement()
+    public Element getCollapsedElement()
     {
-        Element result = element;
-        String textContent = getFirstValueInOverlappingElements( result );
+        if ( isElementStackEmpty() )
+        {
+            return collapsed;
+        }
+
+        String textContent = getFirstValueInOverlappingElements( collapsed );
         if ( null != textContent )
         {
-            result.setTextContent( textContent );
+            collapsed.setTextContent( textContent );
         }
         else
         {
-            NodeList nodeList = result.getChildNodes();
+            NodeList nodeList = collapsed.getChildNodes();
             for ( int i = 0; i <= nodeList.getLength(); i++ )
             {
                 Node node = nodeList.item( i );
-                Element ele = node instanceof Element ? (Element) node : null;
-                if ( null == ele )
+                if ( !(node instanceof Element) )
                 {
                     continue;
                 }
-                String childText = getFirstValueInOverlappingElements( ele );
+                String childText = getFirstValueInOverlappingElements( node );
                 if ( null != childText )
                 {
                     node.setTextContent( childText );
                 }
             }
-            addToCollapsedChildElements( result, 0 );
+            addToCollapsedChildElements( collapsed, 0 );
         }
-        return result;
-    }
-
-    public void addElements( Element element )
-    {
-        elements.add( element );
-    }
-
-    public boolean isElementsEmpty()
-    {
-        if ( null == elements || elements.isEmpty() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return collapsed;
     }
 
     public final T getXmlView()
@@ -110,9 +95,21 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         return xmlView;
     }
 
+
+    public final String toXML()
+    {
+        return xmlView.toXML( element );
+    }
+
+    protected JXPathContext getCollapsedElementContext()
+    {
+        collapsedElementContext = JXPathUtils.newContext( getCollapsedElement() );
+        return collapsedElementContext;
+    }
+
     protected String getValue( final String path )
     {
-        final Node node = xmlView.resolveXPathToNodeFrom( JXPathUtils.newContext( getElement() ), path, false );
+        final Node node = xmlView.resolveXPathToNodeFrom( getCollapsedElementContext(), path, false );
         if ( node == null )
         {
             return null;
@@ -133,7 +130,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         }
         else
         {
-            final NodeList nl = getElement().getElementsByTagName( path );
+            final NodeList nl = getCollapsedElement().getElementsByTagName( path );
             if ( nl.getLength() > 0 )
             {
                 return (Element) nl.item( 0 );
@@ -161,7 +158,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         }
         else
         {
-            final NodeList nl = getElement().getChildNodes();
+            final NodeList nl = getCollapsedElement().getChildNodes();
             final List<Element> elements = new ArrayList<Element>();
             for ( int i = 0; i < nl.getLength(); i++ )
             {
@@ -184,7 +181,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 
     protected final Node getNode( final String path )
     {
-        Node node = (Node) JXPathUtils.newContext( getElement() ).selectSingleNode( path );
+        Node node = (Node) getCollapsedElementContext().selectSingleNode( path );
         String textContent = getFirstValueInOverlappingElements( node );
         if ( textContent != null )
         {
@@ -196,7 +193,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
     @SuppressWarnings( "unchecked" )
     protected final List<Node> getNodes( final String path )
     {
-        List<Node> nodes = JXPathUtils.newContext( getElement() ).selectNodes( path );
+        List<Node> nodes = getCollapsedElementContext().selectNodes( path );
         for ( Node node : nodes )
         {
             String textContent = getFirstValueInOverlappingElements( node );
@@ -208,31 +205,32 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         return nodes;
     }
 
-    public final String toXML()
+    /**
+     * This is used to add overlapping parent element found when the key was matched as equal.
+     *
+     * @param other The one which will be appended as current's overlapping elements.
+    */
+    protected void addOverlappingElements( AbstractMavenElementView other)
     {
-        return xmlView.toXML( element );
-    }
-
-    protected void addAsOverlappingElements( List<? extends AbstractMavenElementView> list )
-    {
-        for ( AbstractMavenElementView dv : list )
+        if ( this. isElementStackEmpty())
         {
-            if ( this.equals( dv ) )
-            {
-                if ( dv.isElementsEmpty() )
-                {
-                    dv.elements = new ArrayList<Element>();
-                    dv.addElements( dv.getElement() );
-                }
-                dv.addElements( this.getElement() );
-                break;
-            }
+            this.elements = new ArrayList<Element>();
+            this.addElementToStack( this.getCollapsedElement() );
         }
+        this.addElementToStack( other.getCollapsedElement() );
     }
 
+    /**
+     * Check if there is element's content need to be replaced among the overlapping parents elements list
+     * for the same original element's node name / original element's children's nodes names.
+     *
+     * @param child The node need to be verified if there is element's node name
+     *              first matched among its overlapping parents elements.
+     * @return The node's textContent value which is first matched, NULL if no matched.
+     */
     private String getFirstValueInOverlappingElements( Node child )
     {
-        if ( null == child || isElementsEmpty() )
+        if ( null == child || isElementStackEmpty() )
         {
             return null;
         }
@@ -244,13 +242,13 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
             for ( int i = 0; i <= nodeList.getLength(); i++ )
             {
                 Node node = nodeList.item( i );
-                Element ele = node instanceof Element ? (Element) node : null;
-                if ( null == ele )
+                if ( !(node instanceof Element) )
                 {
                     continue;
                 }
-                String textContent = ele.getTextContent().trim();
-                if ( ele.getNodeName().equals( nodeName ) && !textContent.isEmpty() )
+
+                String textContent = node.getTextContent().trim();
+                if ( node.getNodeName().equals( nodeName ) && !textContent.isEmpty() )
                 {
                     return textContent;
                 }
@@ -259,38 +257,45 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         return null;
     }
 
+    /**
+     * Append new children elements to the final result(collapsed) when there are children ones found in
+     * overlapping parents elements, but not found in current element children.
+     *
+     * @param current The element which will be collapsed during this process.
+     * @param step Iteration counter.
+     * @return Final collapsed element.
+     */
     private Element addToCollapsedChildElements( Element current, int step )
     {
         List<Element> parents = elements;
-        while ( !isElementsEmpty() && step < parents.size() - 1 )
+        while ( !isElementStackEmpty() && step < parents.size() - 1 )
         {
             NodeList originalElementChildNodeList = current.getChildNodes();
             List<String> originalElementChildNameList = new ArrayList<String>();
             for ( int i = 0; i <= originalElementChildNodeList.getLength(); i++ )
             {
                 Node node = originalElementChildNodeList.item( i );
-                Element ele = node instanceof Element ? (Element) node : null;
-                if ( null == ele )
+                if ( !(node instanceof Element) )
                 {
                     continue;
                 }
-                originalElementChildNameList.add( ele.getNodeName() );
+                originalElementChildNameList.add( node.getNodeName() );
             }
 
             NodeList nodeList = parents.get( step + 1 ).getChildNodes();
             for ( int i = 0; i <= nodeList.getLength(); i++ )
             {
                 Node node = nodeList.item( i );
-                Element ele = node instanceof Element ? (Element) node : null;
-                if ( null == ele )
+                if ( !(node instanceof Element) )
                 {
                     continue;
                 }
-                if ( !originalElementChildNameList.contains( ele.getNodeName() ) )
+
+                if ( !originalElementChildNameList.contains( node.getNodeName() ) )
                 {
                     Document dom = current.getOwnerDocument();
-                    Element child = dom.createElement( ele.getNodeName() );
-                    child.setTextContent( ele.getTextContent() );
+                    Element child = dom.createElement( node.getNodeName() );
+                    child.setTextContent( node.getTextContent() );
                     current.appendChild( child );
                 }
             }
@@ -298,5 +303,22 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
             addToCollapsedChildElements( current, step );
         }
         return current;
+    }
+
+    private void addElementToStack( Element element )
+    {
+        elements.add( element );
+    }
+
+    private boolean isElementStackEmpty()
+    {
+        if ( null == elements || elements.isEmpty() )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
