@@ -74,9 +74,11 @@ public interface CacheProvider
     void mkdirs( ConcreteResource resource )
         throws IOException;
 
+    @Deprecated
     void createFile( ConcreteResource resource )
         throws IOException;
 
+    @Deprecated
     void createAlias( ConcreteResource from, ConcreteResource to )
         throws IOException;
 
