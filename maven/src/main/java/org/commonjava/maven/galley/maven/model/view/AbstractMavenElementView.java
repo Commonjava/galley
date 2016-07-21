@@ -64,7 +64,6 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
     {
         if ( isElementStackEmpty( elementsAwaitingCollapse ) )
         {
-            collapsedElementContext = JXPathUtils.newContext( collapsed );
             return collapsed;
         }
 
