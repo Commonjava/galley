@@ -108,7 +108,7 @@ public abstract class AbstractHttpJob
 
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
-            logger.debug( "HEAD {} : {}", line, url );
+            logger.debug( "{} {} : {}", request.getMethod(), line, url );
             if ( !successStatuses.contains( sc ) )
             {
                 logger.debug( "Detected failure response: " + sc );
