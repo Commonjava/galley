@@ -85,4 +85,47 @@ public class RepositoryView
         return value != null && Boolean.parseBoolean( value );
     }
 
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        final String repositoryId = getId();
+        result = prime * result + ( ( repositoryId == null ) ? 0 : repositoryId.hashCode() );
+        return result;
+    }
+
+    @Override
+    public boolean equals( final Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+        if ( obj == null )
+        {
+            return false;
+        }
+        if ( getClass() != obj.getClass() )
+        {
+            return false;
+        }
+        final String repositoryId = getId();
+        final RepositoryView other = (RepositoryView) obj;
+        final String oRepositoryId = other.getId();
+
+        if ( repositoryId == null )
+        {
+            if ( oRepositoryId != null )
+            {
+                return false;
+            }
+        }
+        else if ( !repositoryId.equals( oRepositoryId ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

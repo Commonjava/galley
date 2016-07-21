@@ -15,13 +15,13 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
-import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
-
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
+
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.A;
+import static org.commonjava.maven.galley.maven.model.view.XPathManager.G;
 
 public class MavenGAView
     extends MavenPomElementView
@@ -151,6 +151,7 @@ public class MavenGAView
         {
             return false;
         }
+
         return true;
     }
 

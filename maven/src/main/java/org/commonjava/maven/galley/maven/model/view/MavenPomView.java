@@ -21,7 +21,6 @@ import org.codehaus.plexus.interpolation.Interpolator;
 import org.codehaus.plexus.interpolation.StringSearchInterpolator;
 import org.codehaus.plexus.interpolation.ValueSource;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.JXPathUtils;
@@ -235,9 +234,20 @@ public class MavenPomView
         //        final String xp = "./project/dependencies/dependency";
         final List<MavenPomElementView> depNodes = resolveXPathToAggregatedElementViewList( xp, true, -1 );
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
+        final Set<DependencyView> seen = new HashSet<DependencyView>();
         for ( final MavenPomElementView node : depNodes )
         {
-            depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
+            DependencyView dv = new DependencyView( node.getPomView(), node.getCollapsedElement(), node.getOriginInfo() );
+
+            if ( seen.add( dv ) )
+            {
+                depViews.add( dv );
+            }
+            else
+            {
+                DependencyView original = depViews.get( depViews.indexOf( dv ));
+                original.addOverlappingElements( dv );
+            }
         }
 
         return depViews;
@@ -257,7 +267,7 @@ public class MavenPomView
         final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
-            depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
+            depViews.add( new DependencyView( node.getPomView(), node.getCollapsedElement(), node.getOriginInfo() ) );
         }
 
         return depViews;
@@ -274,14 +284,17 @@ public class MavenPomView
     {
         final List<DependencyView> raw = getAllManagedDependenciesUnfiltered();
         final List<DependencyView> depViews = new ArrayList<DependencyView>( raw.size() );
-        final Set<VersionlessArtifactRef> seen = new HashSet<VersionlessArtifactRef>();
+        final Set<DependencyView> seen = new HashSet<DependencyView>();
         for ( final DependencyView dv : raw )
         {
-            final VersionlessArtifactRef var = dv.asVersionlessArtifactRef();
-            if ( !seen.contains( var ) )
+            if ( seen.add( dv ) )
             {
                 depViews.add( dv );
-                seen.add( var );
+            }
+            else
+            {
+                DependencyView original = depViews.get( depViews.indexOf( dv ));
+                original.addOverlappingElements( dv );
             }
         }
 
