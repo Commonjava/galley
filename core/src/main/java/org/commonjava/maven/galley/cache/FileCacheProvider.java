@@ -186,6 +186,7 @@ public class FileCacheProvider
     public InputStream openInputStream( final ConcreteResource resource )
         throws IOException
     {
+        waitForReadUnlock( resource );
         return new FileInputStream( getDetachedFile( resource ) );
     }
 
