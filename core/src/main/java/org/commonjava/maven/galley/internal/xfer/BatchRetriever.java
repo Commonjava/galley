@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.internal.xfer;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
 import org.commonjava.maven.galley.TransferException;
@@ -30,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class BatchRetriever
-    implements Runnable
+        implements Callable<BatchRetriever>
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -44,8 +45,6 @@ public final class BatchRetriever
     private Transfer transfer;
 
     private TransferException error;
-
-    private CountDownLatch latch;
 
     private ConcreteResource lastTry;
 
@@ -72,13 +71,8 @@ public final class BatchRetriever
         }
     }
 
-    public void setLatch( final CountDownLatch latch )
-    {
-        this.latch = latch;
-    }
-
     @Override
-    public void run()
+    public BatchRetriever call()
     {
         String oldThreadName = Thread.currentThread().getName();
         Thread.currentThread().setName( "BATCH-TRY#" + tries + "@" + rootResource );
@@ -87,7 +81,7 @@ public final class BatchRetriever
             if ( !hasMoreTries() )
             {
                 logger.debug( "Out of tries for: {}. Last try was: {}. Returning.", rootResource, lastTry );
-                return;
+                return this;
             }
 
             lastTry = resources.get( tries );
@@ -103,9 +97,10 @@ public final class BatchRetriever
         {
             logger.debug( "Try #{} finishing up for: {}. Last try was: {}", tries, rootResource, lastTry );
             tries++;
-            latch.countDown();
             Thread.currentThread().setName( oldThreadName );
         }
+
+        return this;
     }
 
     public boolean hasMoreTries()
