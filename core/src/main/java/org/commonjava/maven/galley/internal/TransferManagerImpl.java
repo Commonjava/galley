@@ -49,6 +49,7 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,8 +63,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
@@ -106,7 +111,9 @@ public class TransferManagerImpl
     @Inject
     @WeftManaged
     @ExecutorConfig( threads = 12, daemon = true, named = "galley-batching", priority = 8 )
-    private ExecutorService executor;
+    private ExecutorService executorService;
+
+    private ExecutorCompletionService<BatchRetriever> batchExecutor;
 
     protected TransferManagerImpl()
     {
@@ -116,7 +123,7 @@ public class TransferManagerImpl
                                 final NotFoundCache nfc, final FileEventManager fileEventManager,
                                 final DownloadHandler downloader, final UploadHandler uploader,
                                 final ListingHandler lister, final ExistenceHandler exister,
-                                final SpecialPathManager specialPathManager, final ExecutorService executor )
+                                final SpecialPathManager specialPathManager, final ExecutorService executorService )
     {
         this.transportManager = transportManager;
         this.cacheProvider = cacheProvider;
@@ -127,7 +134,14 @@ public class TransferManagerImpl
         this.lister = lister;
         this.exister = exister;
         this.specialPathManager = specialPathManager;
-        this.executor = executor;
+        this.executorService = executorService;
+        init();
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        batchExecutor = new ExecutorCompletionService<BatchRetriever>( executorService );
     }
 
     @Override
@@ -765,31 +779,49 @@ public class TransferManagerImpl
         final Map<ConcreteResource, TransferException> errors = new HashMap<ConcreteResource, TransferException>();
         final Map<ConcreteResource, Transfer> transfers = new HashMap<ConcreteResource, Transfer>();
 
-        int tries = 1;
-        while ( !retrievers.isEmpty() )
+        do
         {
-            logger.debug( "Starting attempt #{} to retrieve batch (batch size is currently: {})", tries,
-                          retrievers.size() );
-            final CountDownLatch latch = new CountDownLatch( retrievers.size() );
             for ( final BatchRetriever retriever : retrievers )
             {
-                retriever.setLatch( latch );
-                executor.execute( retriever );
+                batchExecutor.submit( retriever );
             }
 
-            while ( latch.getCount() > 0 )
+            int count = retrievers.size();
+            for ( int i = 0; i < count; i++ )
             {
                 try
                 {
-                    latch.await( 2, TimeUnit.SECONDS );
+                    Future<BatchRetriever> pending = batchExecutor.take();
+                    BatchRetriever retriever = pending.get();
 
-                    if ( latch.getCount() > 0 )
+                    final ConcreteResource resource = retriever.getLastTry();
+                    final TransferException error = retriever.getError();
+                    if ( error != null )
                     {
-                        logger.info( "Waiting for {} more transfers in batch to complete.", latch.getCount() );
-                        for ( final BatchRetriever retriever : retrievers )
+                        logger.warn( "ERROR: {}...{}", error, resource, error.getMessage() );
+                        retrievers.remove( retriever );
+
+                        if ( !( error instanceof TransferLocationException ) )
                         {
-                            logger.info( "Batch waiting on {}", retriever.getLastTry() );
+                            errors.put( resource, error );
                         }
+
+                        continue;
+                    }
+
+                    final Transfer transfer = retriever.getTransfer();
+                    if ( transfer != null && transfer.exists() )
+                    {
+                        transfers.put( resource, transfer );
+                        retrievers.remove( retriever );
+                        logger.debug( "Completed: {}", resource );
+                        continue;
+                    }
+
+                    if ( !retriever.hasMoreTries() )
+                    {
+                        logger.debug( "Not completed, but out of tries: {}", resource );
+                        retrievers.remove( retriever );
                     }
                 }
                 catch ( final InterruptedException e )
@@ -798,43 +830,14 @@ public class TransferManagerImpl
                                                  e.getMessage() ), e );
                     break;
                 }
-            }
-
-            for ( final BatchRetriever retriever : new HashSet<BatchRetriever>( retrievers ) )
-            {
-                final ConcreteResource resource = retriever.getLastTry();
-                final TransferException error = retriever.getError();
-                if ( error != null )
+                catch ( ExecutionException e )
                 {
-                    logger.warn( "ERROR: {}...{}", error, resource, error.getMessage() );
-                    retrievers.remove( retriever );
-
-                    if ( !( error instanceof TransferLocationException) )
-                    {
-                        errors.put( resource, error );
-                    }
-
-                    continue;
-                }
-
-                final Transfer transfer = retriever.getTransfer();
-                if ( transfer != null && transfer.exists() )
-                {
-                    transfers.put( resource, transfer );
-                    retrievers.remove( retriever );
-                    logger.debug( "Completed: {}", resource );
-                    continue;
-                }
-
-                if ( !retriever.hasMoreTries() )
-                {
-                    logger.debug( "Not completed, but out of tries: {}", resource );
-                    retrievers.remove( retriever );
+                    logger.error( String.format( "Failed to retrieve next completed retrieval: %s", e.getMessage() ),
+                                  e );
                 }
             }
-
-            tries++;
         }
+        while( !retrievers.isEmpty() );
 
         batch.setErrors( errors );
         batch.setTransfers( transfers );
