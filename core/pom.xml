@@ -87,18 +87,5 @@
       <artifactId>tools</artifactId>
     </dependency>
   </dependencies>
-  <profiles>
-    <profile>
-      <id>use-toolsjar-profile</id>
-      <activation>
-        <jdk>[1.6,1.8]</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
+
 </project>

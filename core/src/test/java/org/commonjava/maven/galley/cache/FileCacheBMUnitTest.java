@@ -7,9 +7,9 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.jboss.byteman.contrib.bmunit.BMRule;
+import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
@@ -40,29 +40,26 @@ public class FileCacheBMUnitTest
 
     final ConcreteResource resource = new ConcreteResource( loc, fname );
 
+    private CacheProvider provider;
+
+    private String result = null;
+
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
-    final CacheProvider provider = getCacheProvider();
-
-    String result = "";
-
-    public FileCacheBMUnitTest()
-            throws Exception
-    {
-    }
-
-    public CacheProvider getCacheProvider()
+    @Before
+    public void getCacheProvider()
             throws Exception
     {
         temp.create();
-        return new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(),
-                                      new NoOpFileEventManager(), new NoOpTransferDecorator(), true );
+        provider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(),
+                                          new NoOpFileEventManager(), new NoOpTransferDecorator(), true );
     }
 
+
     @Test
-    public void testSimultaneousWriteReadThreadLockConsistence()
-            throws Exception
+    @BMScript( "TryToReadWhileWritingTestCase.btm" )
+    public void testTryToReadWhileWriting()
     {
         new Thread( new WriteThread() ).start();
         new Thread( new ReadThread() ).start();
@@ -78,14 +75,11 @@ public class FileCacheBMUnitTest
     }
 
     @Test
-    @BMRule( name = "test-simultaneous-write-read-without-await-all",
-             targetClass = "CountDownLatch",
-             targetMethod = "await",
-             action = "throw new java.lang.RuntimeException()" )
-    public void testSimultaneousWriteReadThreadLockWithoutAwaitAll()
+    @BMScript( "TryToWriteWhileReadingTestCase.btm" )
+    public void testTryToWriteWhileReading()
     {
-        new Thread( new WriteThread() ).start();
         new Thread( new ReadThread() ).start();
+        new Thread( new WriteThread() ).start();
         try
         {
             latch.await();
@@ -94,28 +88,7 @@ public class FileCacheBMUnitTest
         {
             System.out.println( "Threads await Exception." );
         }
-        assertNotSame( result, content );
-    }
-
-    @Ignore
-    @Test
-    @BMRule( name = "test-simultaneous-write-read-with-invalid-lock",
-             targetClass = "FileCacheProvider",
-             targetMethod = "openOutputStream(ConcreteResource)",
-             action = "throw new java.lang.RuntimeException()" )
-    public void testSimultaneousWriteReadThreadWithInvalidLock()
-    {
-        new Thread( new WriteThread() ).start();
-        new Thread( new ReadThread() ).start();
-        try
-        {
-            latch.await();
-        }
-        catch ( Exception e )
-        {
-            System.out.println( "Threads await Exception." );
-        }
-        assertNotSame( result, content );
+        assertNull( result );
     }
 
     class WriteThread
@@ -126,7 +99,6 @@ public class FileCacheBMUnitTest
         {
             try
             {
-                provider.lockRead( resource );
                 final OutputStream out = provider.openOutputStream( resource );
                 final ByteArrayInputStream bais = new ByteArrayInputStream( content.getBytes() );
                 int read = -1;
@@ -142,11 +114,13 @@ public class FileCacheBMUnitTest
             catch ( Exception e )
             {
                 System.out.println( "Write Thread Runtime Exception." );
-                System.out.println( e );
+                e.printStackTrace();
             }
             finally
             {
-                provider.unlockRead( resource );
+                System.out.println( "<<<write: start unlocking write" );
+                provider.unlockWrite( resource );
+                System.out.println( "<<<write: finish unlocking write" );
             }
         }
     }
@@ -160,6 +134,11 @@ public class FileCacheBMUnitTest
             try
             {
                 final InputStream in = provider.openInputStream( resource );
+                if ( in == null )
+                {
+                    latch.countDown();
+                    return;
+                }
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 int read = -1;
                 final byte[] buf = new byte[512];
@@ -173,7 +152,13 @@ public class FileCacheBMUnitTest
             catch ( Exception e )
             {
                 System.out.println( "Read Thread Runtime Exception." );
-                System.out.println( e );
+                e.printStackTrace();
+            }
+            finally
+            {
+                System.out.println( "<<<read: start unlocking read" );
+                provider.unlockRead( resource );
+                System.out.println( "<<<read: finish unlocking read" );
             }
         }
     }

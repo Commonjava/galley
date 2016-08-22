@@ -1,0 +1,23 @@
+RULE try to openInputStream
+CLASS FileCacheProvider
+METHOD openInputStream
+AT ENTRY
+IF TRUE
+DO
+    # hold openInputStream until service is at the end of openOutputStream
+    debug("<<<wait for service enter openOutputStream");
+    waitFor("service openOutputStream");
+    debug("<<<proceed with openInputStream")
+ENDRULE
+
+RULE service openOutputStream
+CLASS FileCacheProvider
+METHOD openOutputStream
+AT EXIT
+IF TRUE
+DO
+    # after service enters openOutputStream, wake try to openInputStream
+    debug("<<<signalling try to openInputStream");
+    signalWake("service openOutputStream", true);
+    debug("<<<signalled try ot openInputStream")
+ENDRULE

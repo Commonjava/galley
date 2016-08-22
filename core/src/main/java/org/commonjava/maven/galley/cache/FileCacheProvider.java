@@ -15,6 +15,22 @@
  */
 package org.commonjava.maven.galley.cache;
 
+import org.apache.commons.io.FileUtils;
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
+import org.commonjava.maven.galley.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.enterprise.inject.Alternative;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -28,23 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
-import javax.enterprise.inject.Alternative;
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import org.apache.commons.io.FileUtils;
-import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
-import org.commonjava.maven.galley.util.PathUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named( "file-galley-cache" )
 @Alternative
@@ -184,16 +183,25 @@ public class FileCacheProvider
 
     @Override
     public InputStream openInputStream( final ConcreteResource resource )
-        throws IOException
+            throws IOException
+
     {
         waitForReadUnlock( resource );
-        return new FileInputStream( getDetachedFile( resource ) );
+        lockRead( resource );
+        final File targetFile = getDetachedFile( resource );
+        if ( !targetFile.exists() )
+        {
+            return null;
+        }
+        return new FileInputStream( targetFile );
     }
 
     @Override
     public OutputStream openOutputStream( final ConcreteResource resource )
-        throws IOException
+            throws IOException
     {
+        waitForWriteUnlock( resource );
+        lockWrite( resource );
         final File targetFile = getDetachedFile( resource );
 
         final File dir = targetFile.getParentFile();
