@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -43,6 +44,7 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -72,7 +74,7 @@ public class FastLocalCacheProvider
     //FIXME: should we mark this as static to make it used across all instances(for lock also)?
     private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentWeakKeyHashMap<>( 10000 );
 
-    private final Map<String, Set<OutputStream>> streamHolder = new HashMap<>( 50 );
+    private final Map<String, Set<WeakReference<OutputStream>>> streamHolder = new HashMap<>( 50 );
 
     @Inject
     @Named( "partyline-galley-cache" )
@@ -236,15 +238,22 @@ public class FastLocalCacheProvider
         {
             plCacheProvider.cleanupCurrentThread();
             final String threadId = String.valueOf( Thread.currentThread().getId() );
-            final Set<OutputStream> streams = streamHolder.get( threadId );
+            final Set<WeakReference<OutputStream>> streams = streamHolder.get( threadId );
             if ( streams != null && !streams.isEmpty() )
             {
-                for ( OutputStream stream : streams )
+                Iterator<WeakReference<OutputStream>> iter = streams.iterator();
+                while ( iter.hasNext() )
                 {
+                    WeakReference<OutputStream> streamRef = iter.next();
+                    OutputStream stream = streamRef.get();
+
+                    iter.remove();
                     try
                     {
-
-                        stream.close();
+                        if ( stream != null )
+                        {
+                            stream.close();
+                        }
                     }
                     catch ( IOException e )
                     {
@@ -402,12 +411,12 @@ public class FastLocalCacheProvider
                 synchronized ( streamHolder )
                 {
                     final String threadId = String.valueOf( Thread.currentThread().getId() );
-                    Set<OutputStream> streams = streamHolder.get( threadId );
+                    Set<WeakReference<OutputStream>> streams = streamHolder.get( threadId );
                     if ( streams == null )
                     {
                         streams = new HashSet<>( 10 );
                     }
-                    streams.add( dualOut );
+                    streams.add( new WeakReference( dualOut ) );
                     streamHolder.put( threadId, streams );
                 }
             }
