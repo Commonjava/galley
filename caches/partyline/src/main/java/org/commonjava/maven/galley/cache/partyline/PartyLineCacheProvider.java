@@ -15,25 +15,6 @@
  */
 package org.commonjava.maven.galley.cache.partyline;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.enterprise.inject.Alternative;
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -47,6 +28,24 @@ import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.partyline.JoinableFileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.enterprise.inject.Alternative;
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Named( "partyline-galley-cache" )
 @Alternative
@@ -209,7 +208,12 @@ public class PartyLineCacheProvider
     public InputStream openInputStream( final ConcreteResource resource )
         throws IOException
     {
-        return fileManager.openInputStream( getDetachedFile( resource ) );
+        final File targetFile = getDetachedFile( resource );
+        if ( !targetFile.exists() )
+        {
+            return null;
+        }
+        return fileManager.openInputStream( targetFile );
     }
 
     @Override

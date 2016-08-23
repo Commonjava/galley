@@ -226,6 +226,10 @@ public class FastLocalCacheProvider
                         cacheTxMgr.begin();
                         nfsOwnerCache.getAdvancedCache().lock( pathKey );
                         File nfsFile = getNFSDetachedFile( resource );
+                        if ( !nfsFile.exists() )
+                        {
+                            return;
+                        }
                         final InputStream nfsStream = new FileInputStream( nfsFile );
                         final OutputStream localStream = plCacheProvider.openOutputStream( resource );
                         IOUtils.copy( nfsStream, localStream );
