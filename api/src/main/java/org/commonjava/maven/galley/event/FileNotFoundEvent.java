@@ -16,6 +16,9 @@
 package org.commonjava.maven.galley.event;
 
 import org.commonjava.maven.galley.model.Resource;
+import org.slf4j.MDC;
+
+import java.util.Map;
 
 public class FileNotFoundEvent
 {
@@ -24,10 +27,14 @@ public class FileNotFoundEvent
 
     private final EventMetadata eventMetadata;
 
+    private final Map<String, String> contextMap;
+
     public FileNotFoundEvent( final Resource resource, final EventMetadata eventMetadata )
     {
         this.resource = resource;
         this.eventMetadata = eventMetadata;
+        MDC.put( FileEvent.CREATION_THREAD_NAME, Thread.currentThread().getName() );
+        contextMap = MDC.getCopyOfContextMap();
     }
 
     public EventMetadata getEventMetadata()
@@ -39,4 +46,10 @@ public class FileNotFoundEvent
     {
         return resource;
     }
+
+    public Map<String, String> getMDCMap()
+    {
+        return contextMap;
+    }
+
 }

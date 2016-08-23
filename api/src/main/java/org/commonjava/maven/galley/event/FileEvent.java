@@ -15,19 +15,33 @@
  */
 package org.commonjava.maven.galley.event;
 
+import org.apache.commons.lang.StringUtils;
 import org.commonjava.maven.galley.model.Transfer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
+import java.util.Map;
 
 public class FileEvent
 {
+
+    public static final String CREATION_THREAD_NAME = "creation-thread-name";
 
     private final Transfer transfer;
 
     private final EventMetadata eventMetadata;
 
+    private final Map<String, String> contextMap;
+
     protected FileEvent( final Transfer transfer, final EventMetadata eventMetadata )
     {
         this.transfer = transfer;
         this.eventMetadata = eventMetadata;
+
+        // FIXME: We should probably be setting this elsewhere.
+        MDC.put( FileEvent.CREATION_THREAD_NAME, Thread.currentThread().getName() );
+        contextMap = MDC.getCopyOfContextMap();
     }
 
     public EventMetadata getEventMetadata()
@@ -43,6 +57,11 @@ public class FileEvent
     public String getExtraInfo()
     {
         return "";
+    }
+
+    public Map<String, String> getMDCMap()
+    {
+        return contextMap;
     }
 
     @Override

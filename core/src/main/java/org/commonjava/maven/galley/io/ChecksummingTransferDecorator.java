@@ -116,7 +116,11 @@ public final class ChecksummingTransferDecorator
     protected void decorateDeleteInternal( final Transfer transfer )
         throws IOException
     {
-        boolean delete = false;
+        if ( transfer.isDirectory() )
+        {
+            return;
+        }
+
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
         if ( specialPathInfo == null || specialPathInfo.isDeletable() )
         {

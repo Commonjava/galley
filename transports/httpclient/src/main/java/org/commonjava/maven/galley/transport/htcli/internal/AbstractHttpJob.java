@@ -157,14 +157,28 @@ public abstract class AbstractHttpJob
 
     protected void writeMetadata( final Transfer target, final ObjectMapper mapper )
     {
-        if ( request == null || response == null )
+        if ( target == null || request == null || response == null )
         {
-            logger.debug( "Cannot write HTTP exchange metadata. Request: {}. Response: {}", request, response );
+            logger.debug( "Cannot write HTTP exchange metadata. Request: {}. Response: {}. Transfer: {}", request, response, target );
             return;
         }
 
         logger.debug( "Writing HTTP exchange metadata. Request: {}. Response: {}", request, response );
-        final Transfer metaTxfr = target.getSiblingMeta( HttpExchangeMetadata.FILE_EXTENSION );
+        Transfer metaTxfr = target.getSiblingMeta( HttpExchangeMetadata.FILE_EXTENSION );
+        if ( metaTxfr == null )
+        {
+            if ( target.isDirectory() )
+            {
+                logger.debug( "DIRECTORY. Using HTTP exchange metadata file INSIDE directory called: {}", HttpExchangeMetadata.FILE_EXTENSION );
+                metaTxfr = target.getChild( HttpExchangeMetadata.FILE_EXTENSION );
+            }
+            else
+            {
+                logger.debug( "SKIP: Cannot retrieve HTTP exchange metadata Transfer instance for: {}", target );
+                return;
+            }
+        }
+
         final HttpExchangeMetadata metadata = new HttpExchangeMetadata( request, response );
         OutputStream out = null;
         try
