@@ -145,13 +145,7 @@ public class FastLocalCacheProvider
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
-        this.nfsBaseDir = nfsBaseDir;
-        if ( StringUtils.isBlank( this.nfsBaseDir ) || !new File( this.nfsBaseDir ).exists() || !new File(
-                this.nfsBaseDir ).isDirectory() )
-        {
-            this.nfsBaseDir = System.getProperty( NFS_BASE_DIR_KEY );
-        }
-        checkNfsBaseDir();
+        setNfsBaseDir(nfsBaseDir);
     }
 
     private void checkNfsBaseDir(){
@@ -165,6 +159,23 @@ public class FastLocalCacheProvider
             throw new IllegalArgumentException(
                     "[galley] The NFS root directory in your parameter or in system property \"galley.nfs.basedir\" does not exist or is not a valid directory, please have a check." );
         }
+    }
+
+    /**
+     * Sets the nfs base dir. Note that if the nfsBaseDir is not valid(empty or not a directory), then will check the system property
+     * "galley.nfs.basedir" to get the value again. If still not valid, will throw Exception
+     *
+     * @param nfsBaseDir
+     * @throws java.lang.IllegalArgumentException - the nfsBaseDir is not valid(empty or not a valid directory)
+     */
+    public void setNfsBaseDir(String nfsBaseDir){
+        this.nfsBaseDir = nfsBaseDir;
+        if ( StringUtils.isBlank( this.nfsBaseDir ) || !new File( this.nfsBaseDir ).exists() || !new File(
+                this.nfsBaseDir ).isDirectory() )
+        {
+            this.nfsBaseDir = System.getProperty( NFS_BASE_DIR_KEY );
+        }
+        checkNfsBaseDir();
     }
 
     @PostConstruct
