@@ -16,6 +16,8 @@
 package org.commonjava.maven.galley.event;
 
 import org.commonjava.maven.galley.model.Transfer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileAccessEvent
     extends FileEvent

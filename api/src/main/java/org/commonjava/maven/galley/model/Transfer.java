@@ -24,6 +24,7 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.maven.galley.util.TransferInputStream;
 import org.commonjava.maven.galley.util.TransferOutputStream;
 import org.slf4j.Logger;
@@ -363,11 +364,21 @@ public class Transfer
 
     public Transfer getSibling( final String named )
     {
+        if ( resource.isRoot() )
+        {
+            return null;
+        }
+
         return getParent().getChild( named );
     }
 
     public Transfer getSiblingMeta( final String extension )
     {
+        if ( resource.isRoot() )
+        {
+            return null;
+        }
+
         final String named = resource.getPath() + extension;
 
         final Transfer tx = this;
