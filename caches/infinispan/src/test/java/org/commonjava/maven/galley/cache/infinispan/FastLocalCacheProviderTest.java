@@ -68,6 +68,16 @@ public class FastLocalCacheProviderTest
     @Rule
     public TestName name = new TestName();
 
+    private final PathGenerator pathgen = new HashedLocationPathGenerator();
+
+    private final FileEventManager events = new TestFileEventManager();
+
+    private final TransferDecorator decorator = new TestTransferDecorator();
+
+    private Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
+
+    private final Executor executor = Executors.newFixedThreadPool( 5 );
+
     @BeforeClass
     public static void setupClass()
     {
@@ -78,15 +88,7 @@ public class FastLocalCacheProviderTest
     public void setup()
             throws Exception
     {
-        final PathGenerator pathgen = new HashedLocationPathGenerator();
-        final FileEventManager events = new TestFileEventManager();
-        final TransferDecorator decorator = new TestTransferDecorator();
-
-        Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
-
-        final String nfsBasePath = createNFSBaseDir( temp.newFolder().getAbsolutePath() );
-
-        final Executor executor = Executors.newFixedThreadPool( 5 );
+        final String nfsBasePath = createNFSBaseDir( temp.newFolder().getCanonicalPath() );
         provider =
                 new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
                                             cache, events, decorator, executor, nfsBasePath );
@@ -129,6 +131,47 @@ public class FastLocalCacheProviderTest
         assertNull( result );
     }
 
+    @Test(expected = java.lang.IllegalArgumentException.class)
+    public void testConstructorWitNoNFSSysPath(){
+        new FastLocalCacheProvider(  );
+    }
+
+    @Test(expected = java.lang.IllegalArgumentException.class)
+    public void testConstructorWitNoNFSSysPath2()throws IOException{
+        final String NON_EXISTS_PATH = "/mnt/nfs/abc/xyz";
+        System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, NON_EXISTS_PATH );
+        new FastLocalCacheProvider(  );
+    }
+
+    @Test(expected = java.lang.IllegalArgumentException.class)
+    public void testConstructorWitNoNFSSysPath3()
+            throws IOException
+    {
+        System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFile().getCanonicalPath() );
+        new FastLocalCacheProvider();
+    }
+
+    @Test(expected = java.lang.IllegalArgumentException.class)
+    public void testConstructorWitNoNFSSysPath4() throws IOException{
+        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
+                                    events, decorator, executor );
+    }
+
+    @Test(expected = java.lang.IllegalArgumentException.class)
+    public void testConstructorWitNoNFSSysPath5() throws IOException{
+        final String NON_EXISTS_PATH = "/mnt/nfs/abc/xyz";
+        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
+                                    events, decorator, executor, NON_EXISTS_PATH);
+    }
+
+    @Test
+    public void testConstructorWitNFSSysPath() throws IOException{
+        System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFolder().getCanonicalPath() );
+        new FastLocalCacheProvider();
+        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
+                                    events, decorator, executor );
+    }
+
     @Override
     protected CacheProvider getCacheProvider()
             throws Exception
@@ -136,12 +179,12 @@ public class FastLocalCacheProviderTest
         return provider;
     }
 
-    private String createNFSBaseDir( String tempBaseDir )
+    private String createNFSBaseDir( String tempBaseDir ) throws IOException
     {
         File file = new File( tempBaseDir + "/mnt/nfs" );
         file.delete();
-        file.mkdir();
-        return file.getAbsolutePath();
+        file.mkdirs();
+        return file.getCanonicalPath();
     }
 
     @After
