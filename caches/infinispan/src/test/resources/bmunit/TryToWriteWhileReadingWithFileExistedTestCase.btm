@@ -1,0 +1,23 @@
+RULE try to openOutputStream
+CLASS FastLocalCacheProvider
+METHOD openOutputStream
+AT ENTRY
+IF TRUE
+DO
+    # hold openOutputStream until service is in releaseLock
+    debug("<<<wait for service enter releaseLock");
+    waitFor("service releaseLock");
+    debug("<<<proceed with openOutputStream")
+ENDRULE
+
+RULE service releaseLock
+CLASS FastLocalCacheProvider
+METHOD openInputStream
+AT EXIT
+IF TRUE
+DO
+    # after service enters releaseLock, wake try to openOutputStream
+    debug("<<<signalling try to openOutputStream");
+    signalWake("service releaseLock", true);
+    debug("<<<signalled try ot openOutputStream")
+ENDRULE

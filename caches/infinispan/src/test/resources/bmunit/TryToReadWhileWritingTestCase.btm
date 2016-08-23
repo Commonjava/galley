@@ -1,0 +1,23 @@
+RULE try to openInputStream
+CLASS FastLocalCacheProvider
+METHOD openInputStream
+AT ENTRY
+IF TRUE
+DO
+    # hold openInputStream until service is after the init of DualOutputStreamsWrapper
+    debug("<<<wait for service enter OutputStreamWrapper");
+    waitFor("service OutputStreamWrapper");
+    debug("<<<proceed with openInputStream")
+ENDRULE
+
+RULE service OutputStreamWrapper
+CLASS DualOutputStreamsWrapper
+METHOD <init>
+AT EXIT
+IF TRUE
+DO
+    # after service enters OutputStreamWrapper, wake try to openInputStream
+    debug("<<<signalling try to openInputStream");
+    signalWake("service OutputStreamWrapper", true);
+    debug("<<<signalled try ot openInputStream")
+ENDRULE

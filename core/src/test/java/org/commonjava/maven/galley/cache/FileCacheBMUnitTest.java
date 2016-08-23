@@ -1,52 +1,34 @@
-package org.commonjava.maven.galley.cache.infinispan;
+package org.commonjava.maven.galley.cache;
 
-import org.commonjava.maven.galley.cache.CacheProviderTCK;
-import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
-import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
-import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
+import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.infinispan.Cache;
-import org.infinispan.manager.EmbeddedCacheManager;
 import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-/**
- */
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
 @BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
-public class FastLocalCacheProviderTest
-        extends CacheProviderTCK
+public class FileCacheBMUnitTest
 {
-    private static EmbeddedCacheManager CACHE_MANAGER;
 
     final String content = "This is a bmunit test";
 
@@ -58,45 +40,26 @@ public class FastLocalCacheProviderTest
 
     final ConcreteResource resource = new ConcreteResource( loc, fname );
 
-    private FastLocalCacheProvider provider;
+    private CacheProvider provider;
 
     private String result = null;
 
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
-    @Rule
-    public TestName name = new TestName();
-
-    @BeforeClass
-    public static void setupClass()
-    {
-        CACHE_MANAGER = new NFSOwnerCacheProducer().getCacheMgr();
-    }
-
     @Before
-    public void setup()
+    public void getCacheProvider()
             throws Exception
     {
-        final PathGenerator pathgen = new HashedLocationPathGenerator();
-        final FileEventManager events = new TestFileEventManager();
-        final TransferDecorator decorator = new TestTransferDecorator();
-
-        Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
-
-        final String nfsBasePath = createNFSBaseDir( temp.newFolder().getAbsolutePath() );
-
-        final Executor executor = Executors.newFixedThreadPool( 5 );
-        provider =
-                new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
-                                            cache, events, decorator, executor, nfsBasePath );
-        provider.init();
+        temp.create();
+        provider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(),
+                                          new NoOpFileEventManager(), new NoOpTransferDecorator(), true );
     }
+
 
     @Test
     @BMScript( "TryToReadWhileWritingTestCase.btm" )
     public void testTryToReadWhileWriting()
-            throws IOException, InterruptedException
     {
         new Thread( new WriteThread() ).start();
         new Thread( new ReadThread() ).start();
@@ -112,9 +75,8 @@ public class FastLocalCacheProviderTest
     }
 
     @Test
-    @BMScript( "TryToWriteWhileReadingWithFileExistedTestCase.btm" )
-    public void testTryToWriteWhileReadingWithFileExisted()
-            throws IOException, InterruptedException
+    @BMScript( "TryToWriteWhileReadingTestCase.btm" )
+    public void testTryToWriteWhileReading()
     {
         new Thread( new ReadThread() ).start();
         new Thread( new WriteThread() ).start();
@@ -127,27 +89,6 @@ public class FastLocalCacheProviderTest
             System.out.println( "Threads await Exception." );
         }
         assertNull( result );
-    }
-
-    @Override
-    protected CacheProvider getCacheProvider()
-            throws Exception
-    {
-        return provider;
-    }
-
-    private String createNFSBaseDir( String tempBaseDir )
-    {
-        File file = new File( tempBaseDir + "/mnt/nfs" );
-        file.delete();
-        file.mkdir();
-        return file.getAbsolutePath();
-    }
-
-    @After
-    public void tearDown()
-    {
-        provider.destroy();
     }
 
     class WriteThread
@@ -174,6 +115,12 @@ public class FastLocalCacheProviderTest
             {
                 System.out.println( "Write Thread Runtime Exception." );
                 e.printStackTrace();
+            }
+            finally
+            {
+                System.out.println( "<<<write: start unlocking write" );
+                provider.unlockWrite( resource );
+                System.out.println( "<<<write: finish unlocking write" );
             }
         }
     }
@@ -206,6 +153,12 @@ public class FastLocalCacheProviderTest
             {
                 System.out.println( "Read Thread Runtime Exception." );
                 e.printStackTrace();
+            }
+            finally
+            {
+                System.out.println( "<<<read: start unlocking read" );
+                provider.unlockRead( resource );
+                System.out.println( "<<<read: finish unlocking read" );
             }
         }
     }
