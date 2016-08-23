@@ -34,6 +34,7 @@ import javax.inject.Named;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -193,7 +194,7 @@ public class FileCacheProvider
         {
             return null;
         }
-        return new FileInputStream( targetFile );
+        return new UnlockInputStream( resource, this, new FileInputStream( targetFile ) );
     }
 
     @Override
@@ -420,5 +421,35 @@ public class FileCacheProvider
     public void stopReporting()
     {
         lockingSupport.stopReporting();
+    }
+
+    private class UnlockInputStream
+            extends FilterInputStream
+    {
+        private final ConcreteResource resource;
+
+        private final FileCacheProvider fileCacheProvider;
+
+        public UnlockInputStream( ConcreteResource resource, FileCacheProvider fileCacheProvider,
+                                  FileInputStream fileInputStream )
+        {
+            super( fileInputStream );
+            this.resource = resource;
+            this.fileCacheProvider = fileCacheProvider;
+        }
+
+        @Override
+        public void close()
+                throws IOException
+        {
+            try
+            {
+                super.close();
+            }
+            finally
+            {
+                fileCacheProvider.unlockRead( resource );
+            }
+        }
     }
 }
