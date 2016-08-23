@@ -27,6 +27,7 @@ import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
+import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 import java.io.File;
@@ -49,7 +50,11 @@ import java.util.concurrent.Executor;
 /**
  * This cache provider provides the ability to write the backup artifacts to an external storage(NFS) which can be mounted
  * to local system as normal storage device, and meantime keep to cache these artifacts to local storage as usual. And a cache
- * to store the usage ownership of the external storage will be hosted in this provider.
+ * to store the usage ownership of the external storage will be hosted in this provider. <br />
+ * As this cache provider will use NFS as the distributed file caching, the NFS root directory is needed. If you want use this cache
+ * provider in CDI environment, please don't forget to set the system property "galley.nfs.basedir" to specify this directory
+ * as this provider will use it to get the nfs root directory by default. If you want to set this directory by manually,
+ * use the parameterized constructor with the "nfsBaseDir" param.
  */
 @Named( "nfs-galley-cache" )
 @Alternative
@@ -63,6 +68,8 @@ public class FastLocalCacheProvider
 
     private String nfsBaseDir;
 
+    // use weak key map to avoid the memory occupy for long time of the transfer
+    //FIXME: should we mark this as static to make it used across all instances(for lock also)?
     private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentWeakKeyHashMap<>( 10000 );
 
     private final Map<String, Set<OutputStream>> streamHolder = new HashMap<>( 50 );
@@ -93,12 +100,24 @@ public class FastLocalCacheProvider
     protected FastLocalCacheProvider()
     {
         nfsBaseDir = System.getProperty( NFS_BASE_DIR_KEY );
+        checkNfsBaseDir();
     }
 
+    /**
+     * Construct the FastLocalCacheProvider with the params. Note that this constructor will set the NFS root directory using
+     * system property "galley.nfs.basedir". Please set this system property first to make it run.
+     *
+     * @param plCacheProvider - PartyLineCacheProvider to handle the local cache files
+     * @param nfsUsageCache - ISPN cache to hold the nfs artifacts owner
+     * @param fileEventManager
+     * @param transferDecorator
+     * @param executor
+     */
     public FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
                                    final Cache<String, String> nfsUsageCache, final FileEventManager fileEventManager,
                                    final TransferDecorator transferDecorator, final Executor executor )
     {
+        this();
         this.plCacheProvider = plCacheProvider;
         this.nfsOwnerCache = nfsUsageCache;
         this.fileEventManager = fileEventManager;
@@ -106,13 +125,57 @@ public class FastLocalCacheProvider
         this.executor = executor;
     }
 
+    /**
+     * Construct the FastLocalCacheProvider with the params. You can specify you own nfs base dir in this ocnstructor.
+     *
+     * @param plCacheProvider - PartyLineCacheProvider to handle the local cache files
+     * @param nfsUsageCache - ISPN cache to hold the nfs artifacts owner
+     * @param fileEventManager
+     * @param transferDecorator
+     * @param executor
+     * @param nfsBaseDir - the NFS system root dir to hold the artifacts
+     */
     public FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
                                    final Cache<String, String> nfsUsageCache, final FileEventManager fileEventManager,
                                    final TransferDecorator transferDecorator, final Executor executor,
                                    final String nfsBaseDir )
     {
-        this( plCacheProvider, nfsUsageCache, fileEventManager, transferDecorator, executor );
+        this.plCacheProvider = plCacheProvider;
+        this.nfsOwnerCache = nfsUsageCache;
+        this.fileEventManager = fileEventManager;
+        this.transferDecorator = transferDecorator;
+        this.executor = executor;
+        setNfsBaseDir(nfsBaseDir);
+    }
+
+    private void checkNfsBaseDir(){
+        if ( StringUtils.isBlank( nfsBaseDir ) )
+        {
+            throw new IllegalArgumentException(
+                    "[galley] FastLocalCacheProvider needs nfs directory to cache files, please set the parameter correctly or use system property \"galley.nfs.basedir\" first with your NFS root directory." );
+        }
+        if ( !new File( nfsBaseDir ).exists() || !new File( nfsBaseDir ).isDirectory() )
+        {
+            throw new IllegalArgumentException(
+                    "[galley] The NFS root directory in your parameter or in system property \"galley.nfs.basedir\" does not exist or is not a valid directory, please have a check." );
+        }
+    }
+
+    /**
+     * Sets the nfs base dir. Note that if the nfsBaseDir is not valid(empty or not a directory), then will check the system property
+     * "galley.nfs.basedir" to get the value again. If still not valid, will throw Exception
+     *
+     * @param nfsBaseDir
+     * @throws java.lang.IllegalArgumentException - the nfsBaseDir is not valid(empty or not a valid directory)
+     */
+    public void setNfsBaseDir(String nfsBaseDir){
         this.nfsBaseDir = nfsBaseDir;
+        if ( StringUtils.isBlank( this.nfsBaseDir ) || !new File( this.nfsBaseDir ).exists() || !new File(
+                this.nfsBaseDir ).isDirectory() )
+        {
+            this.nfsBaseDir = System.getProperty( NFS_BASE_DIR_KEY );
+        }
+        checkNfsBaseDir();
     }
 
     @PostConstruct
@@ -180,6 +243,7 @@ public class FastLocalCacheProvider
                 {
                     try
                     {
+
                         stream.close();
                     }
                     catch ( IOException e )
@@ -208,113 +272,155 @@ public class FastLocalCacheProvider
         return getDetachedFile( resource ).isFile();
     }
 
+    /**
+     * For file reading, first will check if the local cache has the file there. If yes, will directly to read the local
+     * cache. If no, then will check the NFS volume for the file, and will copy it to the local cache if found, then read
+     * from the local cache again.
+     *
+     * @param resource - the resource will be read
+     * @return - the input stream for further reading
+     * @throws IOException
+     */
     @Override
     public InputStream openInputStream( final ConcreteResource resource )
             throws IOException
     {
-        boolean localExisted = plCacheProvider.exists( resource );
-        if ( !localExisted )
+        //use "this" as lock is heavy, should think about use the transfer for the resource as the lock for each thread
+        synchronized ( getTransfer( resource ) )
         {
-            final String pathKey = getKeyForResource( resource );
-            executor.execute( new Runnable()
+            boolean localExisted = plCacheProvider.exists( resource );
+            if ( !localExisted )
             {
-                @Override
-                public void run()
+                final String pathKey = getKeyForResource( resource );
+                // will run the NFS->local copy in another thread, which can use PartyLine concurrent read/write function
+                // on the local cache to boost the i/o operation
+                executor.execute( new Runnable()
                 {
-                    try
-                    {
-                        cacheTxMgr.begin();
-                        nfsOwnerCache.getAdvancedCache().lock( pathKey );
-                        File nfsFile = getNFSDetachedFile( resource );
-                        if ( !nfsFile.exists() )
-                        {
-                            return;
-                        }
-                        final InputStream nfsStream = new FileInputStream( nfsFile );
-                        final OutputStream localStream = plCacheProvider.openOutputStream( resource );
-                        IOUtils.copy( nfsStream, localStream );
-                    }
-                    catch ( NotSupportedException | SystemException | IOException e )
-                    {
-                        final String errorMsg =
-                                String.format( "[galley] Cache TransactionManager got error, locking key is %s",
-                                               pathKey );
-                        logger.error( errorMsg, e );
-                        throw new IllegalStateException( errorMsg, e );
-                    }
-                    finally
+                    @Override
+                    public void run()
                     {
                         try
                         {
-                            cacheTxMgr.rollback();
+                            cacheTxMgr.begin();
+                            nfsOwnerCache.getAdvancedCache().lock( pathKey );
+                            File nfsFile = getNFSDetachedFile( resource );
+                            if ( !nfsFile.exists() )
+                            {
+                                return;
+                            }
+                            final InputStream nfsIn = new FileInputStream( nfsFile );
+                            final OutputStream localOut = plCacheProvider.openOutputStream( resource );
+                            IOUtils.copy( nfsIn, localOut );
                         }
-                        catch ( SystemException e )
+                        catch ( NotSupportedException | SystemException | IOException e )
                         {
-                            final String errorMsg = String.format(
-                                    "[galley] Cache TransactionManager rollback got error, locking key is %s",
-                                    pathKey );
+                            String errorMsg = "";
+                            if ( e instanceof IOException )
+                            {
+                                errorMsg = String.format(
+                                        "[galley] got i/o error when doing the NFS->Local copy for resource %s",
+                                        resource.toString() );
+                            }
+                            else
+                            {
+                                errorMsg = String.format(
+                                        "[galley] Cache TransactionManager got error, locking key is %s, resource is %s",
+                                        pathKey, resource.toString() );
+                            }
                             logger.error( errorMsg, e );
+                            throw new IllegalStateException( errorMsg, e );
+                        }
+                        finally
+                        {
+                            try
+                            {
+                                cacheTxMgr.rollback();
+                            }
+                            catch ( SystemException e )
+                            {
+                                final String errorMsg = String.format(
+                                        "[galley] Cache TransactionManager rollback got error, locking key is %s",
+                                        pathKey );
+                                logger.error( errorMsg, e );
+                            }
                         }
                     }
-                }
-            } );
+                } );
 
+            }
+            return plCacheProvider.openInputStream( resource );
         }
-        return plCacheProvider.openInputStream( resource );
     }
 
+    /**
+     * For file writing, will wrapping two output streams to caller - one for local cache file, another for nfs file -,
+     * and the caller can write to these two streams in the meantime. <br />
+     * For the local part, because it uses {@link org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider} as
+     * i/o provider, this supports the R/W on the same resource in the meantime. For details, please see
+     * {@link org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider}.
+     *
+     * @param resource - the resource will be read
+     * @return - the output stream for further reading
+     * @throws IOException
+     */
     @Override
     public OutputStream openOutputStream( ConcreteResource resource )
             throws IOException
     {
         OutputStream dualOut;
-        try
+        final String nodeIp = getCurrentNodeIp();
+        final String pathKey = getKeyForResource( resource );
+        final File nfsFile = getNFSDetachedFile( resource );
+        synchronized ( getTransfer( resource ) )
         {
-            cacheTxMgr.begin();
-            final String nodeIp = getCurrentNodeIp();
-            final String pathKey = getKeyForResource( resource );
-            //FIXME: putIfAbsent?
-            nfsOwnerCache.getAdvancedCache().lock( pathKey );
-            nfsOwnerCache.put( pathKey, nodeIp );
-            final OutputStream localOutputStream = plCacheProvider.openOutputStream( resource );
-            File nfsFile = getNFSDetachedFile( resource );
-            if ( !nfsFile.exists() && !nfsFile.isDirectory() )
+            try
             {
-                try
+                cacheTxMgr.begin();
+                nfsOwnerCache.getAdvancedCache().lock( pathKey );
+                nfsOwnerCache.put( pathKey, nodeIp );
+                final OutputStream localOut = plCacheProvider.openOutputStream( resource );
+                if ( !nfsFile.exists() && !nfsFile.isDirectory() )
                 {
-                    if ( !nfsFile.getParentFile().exists() )
+                    try
                     {
-                        nfsFile.getParentFile().mkdirs();
+                        if ( !nfsFile.getParentFile().exists() )
+                        {
+                            nfsFile.getParentFile().mkdirs();
+                        }
+                        nfsFile.createNewFile();
                     }
-                    nfsFile.createNewFile();
+                    catch ( IOException e )
+                    {
+                        logger.error( "[galley] New nfs file created not properly.", e );
+                        throw e;
+                    }
                 }
-                catch ( IOException e )
+                final OutputStream nfsOutputStream = new FileOutputStream( nfsFile );
+                // will wrap the cache manager in stream wrapper, and let it do tx commit in stream close to make sure
+                // the two streams writing's consistency.
+                dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, cacheTxMgr );
+                synchronized ( streamHolder )
                 {
-                    logger.error( "[galley] New nfs file created not properly.", e );
+                    final String threadId = String.valueOf( Thread.currentThread().getId() );
+                    Set<OutputStream> streams = streamHolder.get( threadId );
+                    if ( streams == null )
+                    {
+                        streams = new HashSet<>( 10 );
+                    }
+                    streams.add( dualOut );
+                    streamHolder.put( threadId, streams );
                 }
             }
-            final OutputStream nfsOutputStream = new FileOutputStream( nfsFile );
-            dualOut = new DualOutputStreamsWrapper( localOutputStream, nfsOutputStream, cacheTxMgr );
-            synchronized ( streamHolder )
+            catch ( NotSupportedException | SystemException e )
             {
-                final String threadId = String.valueOf( Thread.currentThread().getId() );
-                Set<OutputStream> streams = streamHolder.get( threadId );
-                if ( streams == null )
-                {
-                    streams = new HashSet<>( 10 );
-                }
-                streams.add( dualOut );
-                streamHolder.put( threadId, streams );
+                logger.error( "[galley] Transaction error for nfs cache during file writing.", e );
+                throw new IllegalStateException(
+                        String.format( "[galley] Output stream for resource %s open failed.", resource.toString() ),
+                        e );
             }
-        }
-        catch ( NotSupportedException | SystemException e )
-        {
-            logger.error( "[galley] Transaction error for nfs cache during file writing.", e );
-            throw new IllegalStateException(
-                    String.format( "[galley] Output stream for resource %s open failed.", resource.toString() ), e );
-        }
 
-        return dualOut;
+            return dualOut;
+        }
     }
 
     @Override
@@ -329,6 +435,7 @@ public class FastLocalCacheProvider
     {
         final String fromNFSPath = getKeyForResource( from );
         final String toNFSPath = getKeyForResource( to );
+        //FIXME: there is no good solution here for thread locking as there are two resource needs to be locked. If handled not correctly, will cause dead lock
         try
         {
             cacheTxMgr.begin();
@@ -353,8 +460,8 @@ public class FastLocalCacheProvider
             }
             final OutputStream nfsTo = new FileOutputStream( nfsToFile );
             IOUtils.copy( nfsFrom, nfsTo );
-            //FIXME: putIfAbsent? Or no need to put?
-            nfsOwnerCache.put( toNFSPath, getCurrentNodeIp() );
+            //FIXME: need to use put?
+            nfsOwnerCache.putIfAbsent( toNFSPath, getCurrentNodeIp() );
             cacheTxMgr.commit();
         }
         catch ( NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
@@ -395,42 +502,56 @@ public class FastLocalCacheProvider
     {
         final File nfsFile = getNFSDetachedFile( resource );
         final String pathKey = getKeyForPath( nfsFile.getCanonicalPath() );
-        try
-        {
-            cacheTxMgr.begin();
-            nfsOwnerCache.getAdvancedCache().lock( pathKey );
-            final boolean localDeleted = plCacheProvider.delete( resource );
-            if ( !localDeleted )
-            {
-                logger.info( "local file deletion failed for {}", resource );
-            }
-            final boolean nfsDeleted = nfsFile.delete();
-            if ( !nfsDeleted )
-            {
-                logger.info( "nfs file deletion failed for {}", nfsFile );
-            }
-            nfsOwnerCache.remove( pathKey );
-            return localDeleted && nfsDeleted;
-        }
-        catch ( NotSupportedException | SystemException e )
-        {
-            final String errorMsg =
-                    String.format( "[galley] Cache TransactionManager got error, locking key is %s", pathKey );
-            logger.error( errorMsg, e );
-            throw new IllegalStateException( errorMsg, e );
-        }
-        finally
+        synchronized ( getTransfer( resource ) )
         {
             try
             {
-                cacheTxMgr.rollback();
+                boolean localDeleted = false;
+                // must make sure the local file is not in reading/writing status
+                if ( !plCacheProvider.isWriteLocked( resource ) && !plCacheProvider.isReadLocked( resource ) )
+                {
+                    localDeleted = plCacheProvider.delete( resource );
+                }
+                else
+                {
+                    logger.warn(
+                            "Resource {} is locked by other threads for waiting and writing, can not be deleted now",
+                            resource );
+                }
+                if ( !localDeleted )
+                {
+                    // if local deletion not success, no need to delete NFS to keep data consistency
+                    logger.info( "local file deletion failed for {}", resource );
+                    return false;
+                }
+                cacheTxMgr.begin();
+                nfsOwnerCache.getAdvancedCache().lock( pathKey );
+                nfsOwnerCache.remove( pathKey );
+                final boolean nfsDeleted = nfsFile.delete();
+                if ( !nfsDeleted )
+                {
+                    logger.info( "nfs file deletion failed for {}", nfsFile );
+                }
+                return nfsDeleted;
             }
-            catch ( SystemException e )
+            catch ( NotSupportedException | SystemException e )
             {
-                final String errorMsg =
-                        String.format( "[galley] Cache TransactionManager rollback got error, locking key is %s",
-                                       pathKey );
+                final String errorMsg = String.format( "[galley] Cache TransactionManager got error, locking key is %s", pathKey );
                 logger.error( errorMsg, e );
+                throw new IllegalStateException( errorMsg, e );
+            }
+            finally
+            {
+                try
+                {
+                    cacheTxMgr.rollback();
+                }
+                catch ( SystemException e )
+                {
+                    final String errorMsg = String.format( "[galley] Cache TransactionManager rollback got error, locking key is %s",
+                                                           pathKey );
+                    logger.error( errorMsg, e );
+                }
             }
         }
     }
@@ -569,14 +690,47 @@ public class FastLocalCacheProvider
     @Override
     public boolean isReadLocked( ConcreteResource resource )
     {
-        return nfsOwnerCache.getAdvancedCache().getLockManager().isLocked( getKeyForResource( resource ) );
+        try
+        {
+            //FIXME: potential dead lock?
+            synchronized ( getTransfer( resource ) )
+            {
+                return plCacheProvider.isReadLocked( resource ) || nfsOwnerCache.getAdvancedCache()
+                                                                                .getLockManager()
+                                                                                .isLocked(
+                                                                                        getKeyForResource( resource ) );
+            }
+        }
+        catch ( IOException e )
+        {
+            final String errorMsg = String.format( "[galley] When get NFS cache key for resource: %s, got I/O error.",
+                                                   resource.toString() );
+            logger.error( errorMsg, e );
+            throw new IllegalStateException( errorMsg, e );
+        }
     }
 
     @Override
     public boolean isWriteLocked( ConcreteResource resource )
     {
-        // Use the same lock supplied by ISPN between write and read.
-        return isReadLocked( resource );
+        try
+        {
+            //FIXME: potential dead lock?
+            synchronized ( getTransfer( resource ) )
+            {
+                return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.getAdvancedCache()
+                                                                                 .getLockManager()
+                                                                                 .isLocked( getKeyForResource(
+                                                                                         resource ) );
+            }
+        }
+        catch ( IOException e )
+        {
+            final String errorMsg = String.format( "[galley] When get NFS cache key for resource: %s, got I/O error.",
+                                                   resource.toString() );
+            logger.error( errorMsg, e );
+            throw new IllegalStateException( errorMsg, e );
+        }
     }
 
     @Override
@@ -606,15 +760,47 @@ public class FastLocalCacheProvider
     @Override
     public void waitForReadUnlock( ConcreteResource resource )
     {
-        while ( isReadLocked( resource ) )
+        //FIXME: potential dead lock?
+        synchronized ( getTransfer( resource ) )
         {
-            logger.debug( "lock is still held for key {} by ISPN locker", getKeyForResource( resource ) );
+            plCacheProvider.waitForReadUnlock( resource );
+            waitForISPNLock( resource, isReadLocked( resource ) );
+        }
+
+    }
+
+    @Override
+    public void waitForWriteUnlock( ConcreteResource resource )
+    {
+        //FIXME: potential dead lock?
+        synchronized ( getTransfer( resource ) )
+        {
+            plCacheProvider.waitForWriteUnlock( resource );
+            waitForISPNLock( resource, isWriteLocked( resource ) );
+        }
+    }
+
+    private void waitForISPNLock(ConcreteResource resource, boolean locked){
+        while ( locked )
+        {
+            String key = "";
+            try
+            {
+                key = getKeyForResource( resource );
+            }
+            catch ( IOException e )
+            {
+                final String errorMsg =
+                        String.format( "[galley] When get NFS cache key for resource: %s, got I/O error.", resource.toString() );
+                logger.error( errorMsg, e );
+                throw new IllegalStateException( errorMsg, e );
+            }
+            logger.debug( "lock is still held for key {} by ISPN locker", key );
             try
             {
                 // Use ISPN lock owner for resource to wait until lock is released. Note that if the lock has no owner,
                 // means lock has been released
-                final Object owner =
-                        nfsOwnerCache.getAdvancedCache().getLockManager().getOwner( getKeyForResource( resource ) );
+                final Object owner = nfsOwnerCache.getAdvancedCache().getLockManager().getOwner( key );
                 if ( owner == null )
                 {
                     break;
@@ -626,13 +812,6 @@ public class FastLocalCacheProvider
                 Thread.currentThread().interrupt();
             }
         }
-    }
-
-    @Override
-    public void waitForWriteUnlock( ConcreteResource resource )
-    {
-        // Use the same lock supplied by ISPN between write and read.
-        waitForReadUnlock( resource );
     }
 
     private String getCurrentNodeIp()
@@ -658,22 +837,13 @@ public class FastLocalCacheProvider
         throw new IllegalStateException( "[galley] IP not found." );
     }
 
-    private String getKeyForResource( ConcreteResource resource )
+    private String getKeyForResource( ConcreteResource resource ) throws IOException
     {
-        try
-        {
-            File nfsFile = getNFSDetachedFile( resource );
-            // Need the key as a parent folder level to lock all files I/O with some derivative files like checksum files
-            return getKeyForPath(
-                    nfsFile.isDirectory() ? nfsFile.getCanonicalPath() : nfsFile.getParentFile().getCanonicalPath() );
-        }
-        catch ( IOException e )
-        {
-            final String errorMsg = String.format( "[galley] When get NFS cache key for resource: %s, got I/O error.",
-                                                   resource.toString() );
-            logger.error( errorMsg, e );
-            throw new IllegalStateException( errorMsg, e );
-        }
+        File nfsFile = getNFSDetachedFile( resource );
+        // Need the key as a parent folder level to lock all files I/O with some derivative files like checksum files
+        return getKeyForPath(
+                nfsFile.isDirectory() ? nfsFile.getCanonicalPath() : nfsFile.getParentFile().getCanonicalPath() );
+
     }
 
     private String getKeyForPath( String path )
@@ -681,4 +851,92 @@ public class FastLocalCacheProvider
         //TODO: will directly return path now, may change some other way future(like digesting?)
         return path;
     }
+
+
+    /**
+     * A output stream wrapper to let the stream writing to dual output stream
+     */
+    private final class DualOutputStreamsWrapper
+            extends OutputStream
+    {
+
+        private OutputStream out1;
+
+        private OutputStream out2;
+
+        private TransactionManager cacheTxMgr;
+
+        public DualOutputStreamsWrapper( final OutputStream out1, final OutputStream out2,
+                                         final TransactionManager cacheTxMgr )
+        {
+            this.out1 = out1;
+            this.out2 = out2;
+            this.cacheTxMgr = cacheTxMgr;
+        }
+
+        @Override
+        public void write( int b )
+                throws IOException
+        {
+            out1.write( b );
+            out2.write( b );
+        }
+
+        public void write( byte b[] )
+                throws IOException
+        {
+            write( b, 0, b.length );
+        }
+
+        @Override
+        public void write( byte b[], int off, int len )
+                throws IOException
+        {
+            out1.write( b, off, len );
+            out2.write( b, off, len );
+        }
+
+        public void flush()
+                throws IOException
+        {
+            out1.flush();
+            out2.flush();
+        }
+
+        public void close()
+                throws IOException
+        {
+            try
+            {
+                if ( cacheTxMgr == null || cacheTxMgr.getStatus() == Status.STATUS_NO_TRANSACTION )
+                {
+                    throw new IllegalStateException(
+                            "[galley] ISPN transaction not started correctly. May be it is not set correctly, please have a check. " );
+                }
+                out1.close();
+                out2.close();
+                cacheTxMgr.commit();
+            }
+            catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | IOException e )
+            {
+                logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
+
+                try
+                {
+                    cacheTxMgr.rollback();
+                }
+                catch ( SystemException se )
+                {
+                    final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
+                    logger.error( errorMsg, se );
+                    throw new IllegalStateException( errorMsg, se );
+                }
+                if ( e instanceof IOException )
+                {
+                    throw (IOException) e;
+                }
+            }
+        }
+    }
+
 }
