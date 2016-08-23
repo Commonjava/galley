@@ -10,6 +10,7 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -59,6 +60,7 @@ public class FileCacheBMUnitTest
 
     @Test
     @BMScript( "TryToReadWhileWritingTestCase.btm" )
+    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
     public void testTryToReadWhileWriting()
     {
         new Thread( new WriteThread() ).start();
@@ -76,6 +78,7 @@ public class FileCacheBMUnitTest
 
     @Test
     @BMScript( "TryToWriteWhileReadingTestCase.btm" )
+    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
     public void testTryToWriteWhileReading()
     {
         new Thread( new ReadThread() ).start();
