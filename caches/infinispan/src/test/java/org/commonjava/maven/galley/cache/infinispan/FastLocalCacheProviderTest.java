@@ -19,6 +19,7 @@ import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -97,6 +98,7 @@ public class FastLocalCacheProviderTest
 
     @Test
     @BMScript( "TryToReadWhileWritingTestCase.btm" )
+    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
     public void testTryToReadWhileWriting()
             throws IOException, InterruptedException
     {
@@ -115,6 +117,7 @@ public class FastLocalCacheProviderTest
 
     @Test
     @BMScript( "TryToWriteWhileReadingWithFileExistedTestCase.btm" )
+    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
     public void testTryToWriteWhileReadingWithFileExisted()
             throws IOException, InterruptedException
     {
