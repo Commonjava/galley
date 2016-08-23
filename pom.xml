@@ -54,6 +54,9 @@
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
+
+    <test-forkCount>2</test-forkCount>
+    <test-redirectOutput>true</test-redirectOutput>
   </properties>
 
   <dependencyManagement>
@@ -356,6 +359,15 @@
             <!-- override javaVersion above so we can include this in PME, which has to run in JDK 1.6 environments still. -->
             <source>1.7</source>
             <target>1.7</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.19.1</version>
+          <configuration>
+            <redirectTestOutputToFile>${test-redirectOutput}</redirectTestOutputToFile>
+            <forkCount>${test-forkCount}</forkCount>
+            <reuseForks>false</reuseForks>
           </configuration>
         </plugin>
       </plugins>
