@@ -11,7 +11,7 @@ DO
 ENDRULE
 
 RULE service OutputStreamWrapper
-CLASS DualOutputStreamsWrapper
+CLASS FastLocalCacheProvider$DualOutputStreamsWrapper
 METHOD <init>
 AT EXIT
 IF TRUE
