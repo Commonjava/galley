@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Named( "partyline-galley-cache" )
+@Named
 @Alternative
 public class PartyLineCacheProvider
     implements CacheProvider, CacheProvider.AdminView

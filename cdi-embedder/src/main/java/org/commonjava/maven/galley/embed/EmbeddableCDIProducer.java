@@ -18,8 +18,8 @@ package org.commonjava.maven.galley.embed;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
-import org.commonjava.maven.galley.cache.FileCacheProvider;
-import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
@@ -60,7 +60,7 @@ public class EmbeddableCDIProducer
 {
 
     @Inject
-    private FileCacheProviderConfig cacheConfig;
+    private PartyLineCacheProviderConfig cacheConfig;
 
     @Inject
     private TransportManager transportManager;
@@ -102,7 +102,7 @@ public class EmbeddableCDIProducer
         fileEventManager = new NoOpFileEventManager();
         transferDecorator = new NoOpTransferDecorator();
         pathGenerator = new HashedLocationPathGenerator();
-        cacheProvider = new FileCacheProvider( cacheConfig, pathGenerator, fileEventManager, transferDecorator );
+        cacheProvider = new PartyLineCacheProvider( cacheConfig, pathGenerator, fileEventManager, transferDecorator );
         nfc = new MemoryNotFoundCache();
         locationExpander = new NoOpLocationExpander();
         locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );

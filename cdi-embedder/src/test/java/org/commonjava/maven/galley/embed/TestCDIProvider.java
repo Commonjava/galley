@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.embed;
 
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
@@ -34,7 +35,7 @@ public class TestCDIProvider
 {
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private FileCacheProviderConfig config;
+    private PartyLineCacheProviderConfig config;
 
     @PostConstruct
     public void start()
@@ -42,7 +43,7 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            config = new FileCacheProviderConfig( temp.newFolder() ).withAliasLinking( true );
+            config = new PartyLineCacheProviderConfig( temp.newFolder() );
         }
         catch ( IOException e )
         {
@@ -58,7 +59,7 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public FileCacheProviderConfig getConfig()
+    public PartyLineCacheProviderConfig getConfig()
     {
         return config;
     }
