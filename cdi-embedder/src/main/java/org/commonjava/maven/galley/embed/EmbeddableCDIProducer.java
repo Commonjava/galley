@@ -70,9 +70,9 @@ public class EmbeddableCDIProducer
 
     private NotFoundCache nfc;
 
-    private LocationExpander locationExpander;
-
-    private LocationResolver locationResolver;
+//    private LocationExpander locationExpander;
+//
+//    private LocationResolver locationResolver;
 
     private ObjectMapper objectMapper;
 
@@ -104,8 +104,8 @@ public class EmbeddableCDIProducer
         pathGenerator = new HashedLocationPathGenerator();
         cacheProvider = new PartyLineCacheProvider( cacheConfig, pathGenerator, fileEventManager, transferDecorator );
         nfc = new MemoryNotFoundCache();
-        locationExpander = new NoOpLocationExpander();
-        locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
+//        locationExpander = new NoOpLocationExpander();
+//        locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
         transportManagerConfig = new TransportManagerConfig();
 
         passwordManager = new MemoryPasswordManager();
@@ -174,12 +174,12 @@ public class EmbeddableCDIProducer
         return objectMapper;
     }
 
-    @Default
-    @Produces
-    public LocationResolver getLocationResolver()
-    {
-        return locationResolver;
-    }
+//    @Default
+//    @Produces
+//    public LocationResolver getLocationResolver()
+//    {
+//        return locationResolver;
+//    }
 
     @Default
     @Produces
@@ -188,13 +188,13 @@ public class EmbeddableCDIProducer
         return cacheProvider;
     }
 
-    @Default
-    @Produces
-    public LocationExpander getLocationExpander()
-    {
-        return locationExpander;
-    }
-
+//    @Default
+//    @Produces
+//    public LocationExpander getLocationExpander()
+//    {
+//        return locationExpander;
+//    }
+//
     @Default
     @Produces
     public NotFoundCache getNotFoundCache()

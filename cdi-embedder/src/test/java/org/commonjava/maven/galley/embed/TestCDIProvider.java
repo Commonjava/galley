@@ -17,6 +17,11 @@ package org.commonjava.maven.galley.embed;
 
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
+import org.commonjava.maven.galley.spi.transport.LocationExpander;
+import org.commonjava.maven.galley.spi.transport.LocationResolver;
+import org.commonjava.maven.galley.spi.transport.TransportManager;
+import org.commonjava.maven.galley.transport.NoOpLocationExpander;
+import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
@@ -25,6 +30,7 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import java.io.IOException;
 
 /**
@@ -36,6 +42,13 @@ public class TestCDIProvider
     private TemporaryFolder temp = new TemporaryFolder();
 
     private PartyLineCacheProviderConfig config;
+
+    private LocationExpander locationExpander;
+
+    private LocationResolver locationResolver;
+
+    @Inject
+    private TransportManager transportManager;
 
     @PostConstruct
     public void start()
@@ -49,6 +62,9 @@ public class TestCDIProvider
         {
             Assert.fail( "Failed to init temp folder fro file cache." );
         }
+
+        locationExpander = new NoOpLocationExpander();
+        locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
     }
 
     @PreDestroy
@@ -62,5 +78,19 @@ public class TestCDIProvider
     public PartyLineCacheProviderConfig getConfig()
     {
         return config;
+    }
+
+    @Produces
+    @Default
+    public LocationExpander getLocationExpander()
+    {
+        return locationExpander;
+    }
+
+    @Produces
+    @Default
+    public LocationResolver getLocationResolver()
+    {
+        return locationResolver;
     }
 }
