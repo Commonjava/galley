@@ -15,16 +15,9 @@
  */
 package org.commonjava.maven.galley;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.commonjava.cdi.util.weft.NamedThreadFactory;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
-import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.internal.TransferManagerImpl;
@@ -32,13 +25,13 @@ import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
@@ -51,6 +44,12 @@ import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class GalleyCoreBuilder
 {
@@ -83,30 +82,36 @@ public class GalleyCoreBuilder
 
     private ExecutorService batchExecutor;
 
-    private File cacheDir;
-
     private PasswordManager passwordManager;
 
-    public GalleyCoreBuilder( final CacheProvider cache )
-    {
-        this.cache = cache;
-    }
+    private PathGenerator pathGenerator;
 
-    public GalleyCoreBuilder( final File cacheDir )
+    private CacheProviderFactory cacheProviderFactory;
+
+    public GalleyCoreBuilder(){}
+
+    public GalleyCoreBuilder( CacheProviderFactory cacheProviderFactory )
     {
-        this.cacheDir = cacheDir;
+        this.cacheProviderFactory = cacheProviderFactory;
     }
 
     public GalleyCore build()
-        throws GalleyInitException
+            throws GalleyInitException
     {
         initMissingComponents();
+
+        if ( cache == null )
+        {
+            throw new GalleyInitException(
+                    "No CacheProvider or cache directory supplied before calling initMissingComponents()!" );
+        }
+
         return new GalleyCore( locationExpander, locationResolver, decorator, events, cache, nfc, transportManager,
                                transferManager, transports, handlerExecutor, batchExecutor, passwordManager );
     }
 
     public void initMissingComponents()
-        throws GalleyInitException
+            throws GalleyInitException
     {
         if ( transportManager == null )
         {
@@ -126,19 +131,6 @@ public class GalleyCoreBuilder
             events = new NoOpFileEventManager();
         }
 
-        if ( cache == null )
-        {
-            if ( cacheDir != null )
-            {
-                cache = new FileCacheProvider( cacheDir, new HashedLocationPathGenerator(), events, decorator );
-            }
-            else
-            {
-                throw new GalleyInitException(
-                                               "No CacheProvider or cache directory supplied before calling initMissingComponents()!" );
-            }
-        }
-
         if ( nfc == null )
         {
             nfc = new MemoryNotFoundCache();
@@ -148,7 +140,7 @@ public class GalleyCoreBuilder
         {
             transportManagerConfig = new TransportManagerConfig();
         }
-        
+
         final DownloadHandler dh = new DownloadHandler( getNfc(), transportManagerConfig, handlerExecutor );
         final UploadHandler uh = new UploadHandler( getNfc(), transportManagerConfig, handlerExecutor );
         final ListingHandler lh = new ListingHandler( getNfc() );
@@ -159,11 +151,23 @@ public class GalleyCoreBuilder
             specialPathManager = new SpecialPathManagerImpl();
         }
 
+        if ( cache == null )
+        {
+            if ( cacheProviderFactory != null )
+            {
+                cache = cacheProviderFactory.create( pathGenerator, decorator, events );
+            }
+            else
+            {
+                throw new GalleyInitException( "No CacheProvider / CacheProviderFactory specified!" );
+            }
+        }
+
         if ( transferManager == null )
         {
             transferManager =
-                new TransferManagerImpl( transportManager, getCache(), getNfc(), getFileEvents(), dh, uh, lh, eh, specialPathManager,
-                                         batchExecutor );
+                    new TransferManagerImpl( transportManager, getCache(), getNfc(), getFileEvents(), dh, uh, lh, eh,
+                                             specialPathManager, batchExecutor );
         }
 
         if ( locationExpander == null )
@@ -181,6 +185,17 @@ public class GalleyCoreBuilder
         {
             passwordManager = new MemoryPasswordManager();
         }
+    }
+
+    public CacheProviderFactory getCacheProviderFactory()
+    {
+        return cacheProviderFactory;
+    }
+
+    public GalleyCoreBuilder withCacheProviderFactory( CacheProviderFactory cacheProviderFactory )
+    {
+        this.cacheProviderFactory = cacheProviderFactory;
+        return this;
     }
 
     public PasswordManager getPasswordManager()
@@ -322,17 +337,6 @@ public class GalleyCoreBuilder
         return this;
     }
 
-    public File getCacheDir()
-    {
-        return cacheDir;
-    }
-
-    public GalleyCoreBuilder withCacheDir( final File cacheDir )
-    {
-        this.cacheDir = cacheDir;
-        return this;
-    }
-
     public LocationResolver getLocationResolver()
     {
         return locationResolver;
@@ -366,4 +370,16 @@ public class GalleyCoreBuilder
         this.transportManagerConfig = transportManagerConfig;
         return this;
     }
+
+    public PathGenerator getPathGenerator()
+    {
+        return pathGenerator;
+    }
+
+    public GalleyCoreBuilder withPathGenerator( PathGenerator pathGenerator )
+    {
+        this.pathGenerator = pathGenerator;
+        return this;
+    }
+
 }

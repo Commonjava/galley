@@ -15,9 +15,6 @@
  */
 package org.commonjava.maven.galley;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
@@ -38,6 +35,9 @@ import org.commonjava.maven.galley.transport.TransportManagerImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Unit tests for the {@link TransferManagerImpl} itself. As far as possible, uses 

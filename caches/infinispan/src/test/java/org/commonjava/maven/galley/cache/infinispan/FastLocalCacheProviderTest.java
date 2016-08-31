@@ -107,7 +107,7 @@ public class FastLocalCacheProviderTest
         final String nfsBasePath = createNFSBaseDir( temp.newFolder().getCanonicalPath() );
         provider =
                 new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
-                                            cache, events, decorator, executor, nfsBasePath );
+                                            cache, pathgen, events, decorator, executor, nfsBasePath );
         provider.init();
     }
 
@@ -172,14 +172,14 @@ public class FastLocalCacheProviderTest
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void testConstructorWitNoNFSSysPath4() throws IOException{
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
-                                    events, decorator, executor );
+                                    pathgen, events, decorator, executor );
     }
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void testConstructorWitNoNFSSysPath5() throws IOException{
         final String NON_EXISTS_PATH = "/mnt/nfs/abc/xyz";
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
-                                    events, decorator, executor, NON_EXISTS_PATH);
+                                    pathgen, events, decorator, executor, NON_EXISTS_PATH);
     }
 
     @Test
@@ -187,7 +187,7 @@ public class FastLocalCacheProviderTest
         System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFolder().getCanonicalPath() );
         new FastLocalCacheProvider();
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
-                                    events, decorator, executor );
+                                    pathgen, events, decorator, executor );
     }
 
     @Override

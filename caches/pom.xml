@@ -31,6 +31,7 @@
   <name>Galley :: Caches :: Parent</name>
   
   <modules>
+    <module>simple</module>
     <module>infinispan</module>
     <module>partyline</module>
     <module>tck</module>

@@ -23,6 +23,8 @@ import java.util.concurrent.ExecutorService;
 import org.commonjava.maven.galley.GalleyCore;
 import org.commonjava.maven.galley.GalleyCoreBuilder;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.cache.FileCacheProviderFactory;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
@@ -50,6 +52,8 @@ public class CoreFixture
     private TestTransport testTransport;
 
     private final boolean autoInit;
+
+    private File cacheDir;
 
     public CoreFixture()
     {
@@ -79,7 +83,7 @@ public class CoreFixture
         throws IOException
     {
         temp.create();
-        coreBuilder = new GalleyCoreBuilder( temp.newFolder( "cache" ) );
+        coreBuilder = new GalleyCoreBuilder( new FileCacheProviderFactory( temp.newFolder( "cache" ) ) );
     }
 
     public void initTestTransport()
@@ -105,6 +109,14 @@ public class CoreFixture
         }
 
         coreBuilder.initMissingComponents();
+        if ( temp != null && cacheDir == null )
+        {
+            cacheDir = temp.newFolder( "cache" );
+        }
+
+        coreBuilder.withCache( new FileCacheProvider( cacheDir, coreBuilder.getPathGenerator(),
+                                                      coreBuilder.getFileEvents(),
+                                                      coreBuilder.getTransferDecorator() ) );
     }
 
     @Override
@@ -287,13 +299,13 @@ public class CoreFixture
 
     public File getCacheDir()
     {
-        return coreBuilder.getCacheDir();
+        return cacheDir;
     }
 
     public CoreFixture withCacheDir( final File cacheDir )
     {
         checkInitialized();
-        coreBuilder.withCacheDir( cacheDir );
+        this.cacheDir = cacheDir;
         return this;
     }
 

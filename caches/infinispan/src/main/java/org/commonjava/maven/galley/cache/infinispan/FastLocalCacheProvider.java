@@ -25,6 +25,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.infinispan.Cache;
@@ -114,6 +115,8 @@ public class FastLocalCacheProvider
     @Inject
     private Executor executor;
 
+    private PathGenerator pathGenerator;
+
     protected FastLocalCacheProvider()
     {
         nfsBaseDir = System.getProperty( NFS_BASE_DIR_KEY );
@@ -131,12 +134,14 @@ public class FastLocalCacheProvider
      * @param executor
      */
     public FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
-                                   final Cache<String, String> nfsUsageCache, final FileEventManager fileEventManager,
-                                   final TransferDecorator transferDecorator, final Executor executor )
+                                   final Cache<String, String> nfsUsageCache, final PathGenerator pathGenerator,
+                                   final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
+                                   final Executor executor )
     {
         this();
         this.plCacheProvider = plCacheProvider;
         this.nfsOwnerCache = nfsUsageCache;
+        this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
@@ -153,16 +158,18 @@ public class FastLocalCacheProvider
      * @param nfsBaseDir - the NFS system root dir to hold the artifacts
      */
     public FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
-                                   final Cache<String, String> nfsUsageCache, final FileEventManager fileEventManager,
-                                   final TransferDecorator transferDecorator, final Executor executor,
-                                   final String nfsBaseDir )
+                                   final Cache<String, String> nfsUsageCache, final PathGenerator pathGenerator,
+                                   final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
+                                   final Executor executor, final String nfsBaseDir )
     {
+
         this.plCacheProvider = plCacheProvider;
         this.nfsOwnerCache = nfsUsageCache;
+        this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
-        setNfsBaseDir(nfsBaseDir);
+        setNfsBaseDir( nfsBaseDir );
     }
 
     private void checkNfsBaseDir(){
@@ -506,18 +513,17 @@ public class FastLocalCacheProvider
     }
 
     @Override
-    public String getFilePath( ConcreteResource resource )
+    public String getFilePath( final ConcreteResource resource )
     {
-        try
+        String dir = resource.getLocation()
+                             .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
+
+        if ( dir == null )
         {
-            return getDetachedFile( resource ).getCanonicalPath();
+            dir = nfsBaseDir;
         }
-        catch ( IOException e )
-        {
-            final String errorMsg = "[galley] File path not correctly got.";
-            logger.error( errorMsg, e );
-            throw new IllegalStateException( errorMsg, e );
-        }
+
+        return PathUtils.normalize( dir, pathGenerator.getFilePath( resource ) );
     }
 
     @Override

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
@@ -18,57 +18,49 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
-    <artifactId>galley-testing</artifactId>
+    <artifactId>galley-caches</artifactId>
     <version>0.13.2-SNAPSHOT</version>
   </parent>
-
-  <artifactId>galley-test-harness-maven</artifactId>
-  <name>Galley :: Test Harness for Maven API</name>
+  
+  <artifactId>galley-cache-simple</artifactId>
+  
+  <name>Galley :: Caches :: Simple (File-Based)</name>
   
   <dependencies>
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-core</artifactId>
+      <artifactId>galley-cache-tck</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-test-harness-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-cache-simple</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-test-harness-api</artifactId>
-      <scope>compile</scope>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
+      <groupId>org.jboss.byteman</groupId>
+      <artifactId>byteman</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-cache-tck</artifactId>
+      <groupId>org.jboss.byteman</groupId>
+      <artifactId>byteman-submit</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jboss.weld.se</groupId>
-      <artifactId>weld-se-core</artifactId>
-      <scope>compile</scope>
+      <groupId>org.jboss.byteman</groupId>
+      <artifactId>byteman-install</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.cdi.util</groupId>
-      <artifactId>weft</artifactId>
+      <groupId>org.jboss.byteman</groupId>
+      <artifactId>byteman-bmunit</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-maven</artifactId>
+      <groupId>com.sun</groupId>
+      <artifactId>tools</artifactId>
     </dependency>
   </dependencies>
 </project>
