@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +41,7 @@ import static org.junit.Assert.assertThat;
  * Created by jdcasey on 9/14/15.
  */
 @RunWith(WeldJUnit4Runner.class)
+@ApplicationScoped
 public class EmbeddableCDI_HTTPArtifactDownload_Test
         extends AbstractEmbeddableCDIProducerTest
 {

@@ -26,7 +26,12 @@ import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.AbstractMavenPluginImplications;
 
+import javax.enterprise.inject.Alternative;
+import javax.inject.Named;
+
 // TODO: Flesh out the implied artifacts!!
+@Alternative
+@Named
 public class StandardMavenPluginImplications
     extends AbstractMavenPluginImplications
 {

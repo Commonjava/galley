@@ -46,8 +46,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Named
-@Alternative
 public class FileCacheProvider
     implements CacheProvider, CacheProvider.AdminView
 {
@@ -56,23 +54,15 @@ public class FileCacheProvider
 
     private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<ConcreteResource, Transfer>( 10000 );
 
-    @Inject
     private FileCacheProviderConfig config;
 
-    @Inject
     private PathGenerator pathGenerator;
 
-    @Inject
     private FileEventManager fileEventManager;
 
-    @Inject
     private TransferDecorator transferDecorator;
 
     private final SimpleLockingSupport lockingSupport = new SimpleLockingSupport();
-
-    protected FileCacheProvider()
-    {
-    }
 
     public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
                               final TransferDecorator transferDecorator, final boolean aliasLinking )

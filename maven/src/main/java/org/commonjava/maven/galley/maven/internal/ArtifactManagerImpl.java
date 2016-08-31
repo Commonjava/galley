@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.*;
@@ -48,6 +49,7 @@ import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class ArtifactManagerImpl
     implements ArtifactManager
 {

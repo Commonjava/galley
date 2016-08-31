@@ -26,7 +26,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 
-@Named( "no-op-galley-nfc" )
+@Named
 @Alternative
 public class NoOpNotFoundCache
     implements NotFoundCache

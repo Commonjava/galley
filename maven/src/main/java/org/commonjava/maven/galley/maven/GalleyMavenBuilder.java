@@ -15,13 +15,10 @@
  */
 package org.commonjava.maven.galley.maven;
 
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-
 import org.commonjava.maven.galley.GalleyCoreBuilder;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
@@ -39,12 +36,16 @@ import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 public class GalleyMavenBuilder
 {
@@ -71,18 +72,23 @@ public class GalleyMavenBuilder
 
     private VersionResolver versionResolver;
 
-    public GalleyMavenBuilder( final CacheProvider cache )
+    public GalleyMavenBuilder()
     {
-        this.coreBuilder = new GalleyCoreBuilder( cache );
+        this.coreBuilder = new GalleyCoreBuilder();
     }
 
-    public GalleyMavenBuilder( final File cacheDir )
+    public GalleyMavenBuilder( CacheProvider cache )
     {
-        this.coreBuilder = new GalleyCoreBuilder( cacheDir );
+        this.coreBuilder = new GalleyCoreBuilder().withCache(cache);
+    }
+
+    public GalleyMavenBuilder( CacheProviderFactory cacheProviderFactory )
+    {
+        this.coreBuilder = new GalleyCoreBuilder( cacheProviderFactory );
     }
 
     public GalleyMaven build()
-        throws GalleyInitException
+            throws GalleyInitException
     {
         initMissingComponents();
         return new GalleyMaven( coreBuilder.build(), artifactManager, metadata, mapper, pomReader, pluginDefaults,
@@ -90,7 +96,7 @@ public class GalleyMavenBuilder
     }
 
     public void initMissingComponents()
-        throws GalleyInitException
+            throws GalleyInitException
     {
         coreBuilder.initMissingComponents();
 
@@ -101,8 +107,8 @@ public class GalleyMavenBuilder
 
         if ( metadata == null )
         {
-            this.metadata =
-                new ArtifactMetadataManagerImpl( coreBuilder.getTransferManager(), coreBuilder.getLocationExpander() );
+            this.metadata = new ArtifactMetadataManagerImpl( coreBuilder.getTransferManager(),
+                                                             coreBuilder.getLocationExpander() );
         }
 
         if ( xmlInfra == null )
@@ -123,8 +129,8 @@ public class GalleyMavenBuilder
         if ( artifactManager == null )
         {
             this.artifactManager =
-                new ArtifactManagerImpl( coreBuilder.getTransferManager(), coreBuilder.getLocationExpander(), mapper,
-                                         versionResolver );
+                    new ArtifactManagerImpl( coreBuilder.getTransferManager(), coreBuilder.getLocationExpander(),
+                                             mapper, versionResolver );
         }
 
         if ( pluginDefaults == null )
@@ -144,10 +150,8 @@ public class GalleyMavenBuilder
 
         if ( pomReader == null && artifactManager != null )
         {
-            pomReader =
-                new MavenPomReader( xmlInfra, coreBuilder.getLocationExpander(), artifactManager, xpathManager,
-                                    pluginDefaults,
-                                    pluginImplications );
+            pomReader = new MavenPomReader( xmlInfra, coreBuilder.getLocationExpander(), artifactManager, xpathManager,
+                                            pluginDefaults, pluginImplications );
         }
     }
 
@@ -405,20 +409,31 @@ public class GalleyMavenBuilder
         return this;
     }
 
-    public File getCacheDir()
-    {
-        return coreBuilder.getCacheDir();
-    }
-
-    public GalleyMavenBuilder withCacheDir( final File cacheDir )
-    {
-        coreBuilder.withCacheDir( cacheDir );
-        return this;
-    }
-
     public GalleyMavenBuilder withAdditionalTransport( final Transport transport )
     {
         coreBuilder.withAdditionalTransport( transport );
         return this;
+    }
+
+    public PathGenerator getPathGenerator()
+    {
+        return coreBuilder.getPathGenerator();
+    }
+
+    public GalleyMavenBuilder withPathGenerator( PathGenerator pathGenerator )
+    {
+        coreBuilder.withPathGenerator( pathGenerator );
+        return this;
+    }
+
+    public GalleyMavenBuilder withCacheProviderFactory( CacheProviderFactory cacheProviderFactory )
+    {
+        coreBuilder.withCacheProviderFactory( cacheProviderFactory );
+        return this;
+    }
+
+    public CacheProviderFactory getCacheProviderFactory()
+    {
+        return coreBuilder.getCacheProviderFactory();
     }
 }
