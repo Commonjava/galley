@@ -35,10 +35,6 @@
     </dependency>
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-cache-simple</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-test-harness-api</artifactId>
       <scope>compile</scope>
     </dependency>
@@ -66,6 +62,10 @@
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
   </dependencies>
 </project>

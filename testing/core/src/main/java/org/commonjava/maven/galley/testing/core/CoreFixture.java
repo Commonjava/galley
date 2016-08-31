@@ -38,6 +38,8 @@ import org.commonjava.maven.galley.testing.core.cache.TestCacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CoreFixture
     extends ExternalResource
@@ -113,6 +115,12 @@ public class CoreFixture
         {
             cacheDir = temp.newFolder( "cache" );
         }
+
+        Logger logger = LoggerFactory.getLogger( getClass() );
+        logger.debug(
+                "Initializing FileCacheProvider with:\n  Cache directory: {}\n  PathGenerator: {}\n  FileEventManager: {}\n  TransferDecorator: {}",
+                cacheDir, coreBuilder.getPathGenerator(), coreBuilder.getFileEvents(),
+                coreBuilder.getTransferDecorator() );
 
         coreBuilder.withCache( new FileCacheProvider( cacheDir, coreBuilder.getPathGenerator(),
                                                       coreBuilder.getFileEvents(),

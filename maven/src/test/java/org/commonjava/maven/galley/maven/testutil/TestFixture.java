@@ -34,6 +34,8 @@ import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.testing.core.CoreFixture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestFixture
     extends CoreFixture
@@ -110,8 +112,18 @@ public class TestFixture
 
         if ( artifactManager == null )
         {
+            Logger logger = LoggerFactory.getLogger( getClass() );
+            logger.debug(
+                    "Initializing ArtifactManagerImpl using:\n  TransferManager: {}\n  LocationExpander: {}\n  TypeMapper: {}\n  VersionResolver: {}",
+                    getTransferManager(), getLocationExpander(), typeMapper, versionResolver );
+
             artifactManager =
                     new ArtifactManagerImpl( getTransferManager(), getLocationExpander(), typeMapper, versionResolver );
+        }
+        else
+        {
+            Logger logger = LoggerFactory.getLogger( getClass() );
+            logger.debug( "Using passed-in ArtifactManager instance: {}", artifactManager );
         }
 
         if ( pluginDefaults == null )

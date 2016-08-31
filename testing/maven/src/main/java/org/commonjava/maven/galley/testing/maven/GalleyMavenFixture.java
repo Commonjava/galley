@@ -22,7 +22,9 @@ import java.util.concurrent.ExecutorService;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.cache.FileCacheProviderFactory;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMaven;
@@ -102,6 +104,7 @@ public class GalleyMavenFixture
 
         temp.create();
         mavenBuilder = new GalleyMavenBuilder();
+        mavenBuilder.withCacheProviderFactory( new FileCacheProviderFactory( temp.newFolder( "cache" ) ) );
     }
 
     public GalleyMaven getGalleyMaven()
@@ -147,7 +150,7 @@ public class GalleyMavenFixture
             if ( maven == null )
             {
                 initMissingComponents();
-                if ( temp != null && cacheDir == null )
+                if ( mavenBuilder.getCacheProviderFactory() == null && mavenBuilder.getCache() == null && temp != null && cacheDir == null )
                 {
                     cacheDir = temp.newFolder( "cache" );
                 }
@@ -738,9 +741,21 @@ public class GalleyMavenFixture
         return this;
     }
 
+    public GalleyMavenFixture withCacheProviderFactory( CacheProviderFactory cacheProviderFactory )
+    {
+        mavenBuilder.withCacheProviderFactory( cacheProviderFactory );
+        return this;
+    }
+
+    public CacheProviderFactory getCacheProviderFactory()
+    {
+        return mavenBuilder.getCacheProviderFactory();
+    }
+
     @Deprecated
     public XPathManager getXpathManager()
     {
         return getXPathManager();
     }
+
 }

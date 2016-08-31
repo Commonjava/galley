@@ -25,6 +25,7 @@ import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
+import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
@@ -149,6 +150,11 @@ public class GalleyCoreBuilder
         if ( specialPathManager == null )
         {
             specialPathManager = new SpecialPathManagerImpl();
+        }
+
+        if ( pathGenerator == null )
+        {
+            pathGenerator = new HashedLocationPathGenerator();
         }
 
         if ( cache == null )
