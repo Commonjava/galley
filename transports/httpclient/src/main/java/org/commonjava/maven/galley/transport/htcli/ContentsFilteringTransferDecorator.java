@@ -33,7 +33,7 @@ import org.commonjava.maven.galley.io.AbstractTransferDecorator;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.io.OverriddenBooleanValue;
+import org.commonjava.maven.galley.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author pkocandr
  */
-@Named( "contents-filtering-galley-decorator" )
+@Named
 @Alternative
 public class ContentsFilteringTransferDecorator
 extends AbstractTransferDecorator

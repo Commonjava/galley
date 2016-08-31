@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,6 +76,7 @@ import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 
+@ApplicationScoped
 public class TransferManagerImpl
     implements TransferManager
 {

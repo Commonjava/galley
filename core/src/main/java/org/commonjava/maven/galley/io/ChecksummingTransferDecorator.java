@@ -34,6 +34,11 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.inject.Alternative;
+import javax.inject.Named;
+
+@Alternative
+@Named
 public final class ChecksummingTransferDecorator
     extends AbstractTransferDecorator
 {

@@ -47,8 +47,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Named
-@Alternative
 public class PartyLineCacheProvider
     implements CacheProvider, CacheProvider.AdminView
 {
@@ -60,21 +58,13 @@ public class PartyLineCacheProvider
 
     private final JoinableFileManager fileManager = new JoinableFileManager();
 
-    @Inject
     private PartyLineCacheProviderConfig config;
 
-    @Inject
     private PathGenerator pathGenerator;
 
-    @Inject
     private FileEventManager fileEventManager;
 
-    @Inject
     private TransferDecorator transferDecorator;
-
-    protected PartyLineCacheProvider()
-    {
-    }
 
     public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator,
                                    final FileEventManager fileEventManager, final TransferDecorator transferDecorator,

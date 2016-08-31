@@ -24,7 +24,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.util.PathUtils;
 
-@Named( "hashed-location-galley-pathgen" )
+@Named
 @Alternative
 public class HashedLocationPathGenerator
     implements PathGenerator

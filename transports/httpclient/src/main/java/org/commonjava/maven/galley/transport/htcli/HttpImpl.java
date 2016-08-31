@@ -38,9 +38,11 @@ import org.commonjava.util.jhttpc.model.SiteConfig;
 import org.commonjava.util.jhttpc.model.SiteConfigBuilder;
 import org.commonjava.util.jhttpc.model.SiteTrustType;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.io.Closeable;
 import java.io.IOException;
 
+@ApplicationScoped
 public class HttpImpl
         implements Http, Closeable
 {

@@ -6,6 +6,8 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
+import javax.enterprise.inject.Alternative;
+import javax.inject.Named;
 import java.io.File;
 
 /**

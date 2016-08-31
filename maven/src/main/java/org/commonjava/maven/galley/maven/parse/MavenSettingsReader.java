@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.galley.maven.GalleyMavenException;
@@ -27,6 +28,7 @@ import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.maven.model.view.settings.MavenSettingsView;
 import org.w3c.dom.Document;
 
+@ApplicationScoped
 public class MavenSettingsReader
 {
 

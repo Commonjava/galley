@@ -18,8 +18,6 @@ package org.commonjava.maven.galley.embed;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
-import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
-import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
@@ -30,19 +28,13 @@ import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginIm
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
-import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
-import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
-import org.commonjava.maven.galley.spi.transport.LocationExpander;
-import org.commonjava.maven.galley.spi.transport.LocationResolver;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.maven.galley.transport.NoOpLocationExpander;
-import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 
@@ -60,9 +52,6 @@ public class EmbeddableCDIProducer
 {
 
     @Inject
-    private PartyLineCacheProviderConfig cacheConfig;
-
-    @Inject
     private TransportManager transportManager;
 
     @Inject
@@ -77,8 +66,6 @@ public class EmbeddableCDIProducer
     private ObjectMapper objectMapper;
 
     private Http http;
-
-    private CacheProvider cacheProvider;
 
     private FileEventManager fileEventManager;
 
@@ -102,7 +89,6 @@ public class EmbeddableCDIProducer
         fileEventManager = new NoOpFileEventManager();
         transferDecorator = new NoOpTransferDecorator();
         pathGenerator = new HashedLocationPathGenerator();
-        cacheProvider = new PartyLineCacheProvider( cacheConfig, pathGenerator, fileEventManager, transferDecorator );
         nfc = new MemoryNotFoundCache();
 //        locationExpander = new NoOpLocationExpander();
 //        locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
@@ -180,13 +166,6 @@ public class EmbeddableCDIProducer
 //    {
 //        return locationResolver;
 //    }
-
-    @Default
-    @Produces
-    public CacheProvider getCacheProvider()
-    {
-        return cacheProvider;
-    }
 
 //    @Default
 //    @Produces

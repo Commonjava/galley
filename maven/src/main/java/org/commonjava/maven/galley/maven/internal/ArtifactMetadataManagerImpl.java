@@ -20,6 +20,7 @@ import static org.commonjava.maven.galley.maven.util.ArtifactPathUtils.formatMet
 import java.io.InputStream;
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
@@ -36,6 +37,7 @@ import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class ArtifactMetadataManagerImpl
     implements ArtifactMetadataManager
 {

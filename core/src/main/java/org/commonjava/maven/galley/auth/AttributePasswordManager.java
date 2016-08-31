@@ -21,7 +21,7 @@ import javax.inject.Named;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 
-@Named( "attribute-galley-passwd" )
+@Named
 @Alternative
 public class AttributePasswordManager
     implements PasswordManager

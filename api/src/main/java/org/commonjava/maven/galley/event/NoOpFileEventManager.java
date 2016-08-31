@@ -20,7 +20,7 @@ import javax.inject.Named;
 
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 
-@Named( "no-op-galley-events" )
+@Named
 @Alternative
 public class NoOpFileEventManager
     implements FileEventManager

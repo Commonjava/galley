@@ -32,7 +32,7 @@ import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named( "no-op-galley-location-expander" )
+@Named
 @Alternative
 public class NoOpLocationExpander
     implements LocationExpander

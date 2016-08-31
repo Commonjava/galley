@@ -16,12 +16,18 @@
 package org.commonjava.maven.galley.embed;
 
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
+import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
+import org.commonjava.maven.galley.filearc.FileTransportConfig;
+import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
+import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
@@ -41,11 +47,24 @@ public class TestCDIProvider
 {
     private TemporaryFolder temp = new TemporaryFolder();
 
-    private PartyLineCacheProviderConfig config;
-
     private LocationExpander locationExpander;
 
     private LocationResolver locationResolver;
+
+    private PartyLineCacheProvider cacheProvider;
+
+    private FileTransportConfig fileTransportConfig;
+
+    private GlobalHttpConfiguration globalHttpConfiguration;
+
+    @Inject
+    private PathGenerator pathGenerator;
+
+    @Inject
+    private FileEventManager eventManager;
+
+    @Inject
+    private TransferDecorator transferDecorator;
 
     @Inject
     private TransportManager transportManager;
@@ -56,7 +75,8 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            config = new PartyLineCacheProviderConfig( temp.newFolder() );
+            cacheProvider = new PartyLineCacheProvider( temp.newFolder(), pathGenerator, eventManager, transferDecorator );
+            fileTransportConfig = new FileTransportConfig( temp.newFolder(), pathGenerator );
         }
         catch ( IOException e )
         {
@@ -65,6 +85,7 @@ public class TestCDIProvider
 
         locationExpander = new NoOpLocationExpander();
         locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
+        globalHttpConfiguration = new GlobalHttpConfiguration();
     }
 
     @PreDestroy
@@ -75,9 +96,9 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public PartyLineCacheProviderConfig getConfig()
+    public PartyLineCacheProvider getCacheProvider()
     {
-        return config;
+        return cacheProvider;
     }
 
     @Produces
@@ -92,5 +113,19 @@ public class TestCDIProvider
     public LocationResolver getLocationResolver()
     {
         return locationResolver;
+    }
+
+    @Produces
+    @Default
+    public FileTransportConfig getFileTransportConfig()
+    {
+        return fileTransportConfig;
+    }
+
+    @Produces
+    @Default
+    public GlobalHttpConfiguration getGlobalHttpConfiguration()
+    {
+        return globalHttpConfiguration;
     }
 }

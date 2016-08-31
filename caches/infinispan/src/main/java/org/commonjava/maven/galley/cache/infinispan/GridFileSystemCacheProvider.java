@@ -39,29 +39,19 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-@Named( "partyline-galley-cache" )
-@Alternative
 public class GridFileSystemCacheProvider
         implements CacheProvider, CacheProvider.AdminView
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    @Inject
     private GridFilesystem filesystem;
 
-    @Inject
     private PathGenerator pathGenerator;
 
-    @Inject
     private FileEventManager fileEventManager;
 
-    @Inject
     private TransferDecorator transferDecorator;
-
-    protected GridFileSystemCacheProvider()
-    {
-    }
 
     public GridFileSystemCacheProvider( final PathGenerator pathGenerator, final FileEventManager fileEventManager,
                                         final TransferDecorator transferDecorator, GridFilesystem filesystem )
