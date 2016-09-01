@@ -87,13 +87,13 @@ public class FastLocalCacheProviderConcurrentTest
         plProvider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator );
         provider =
                 new FastLocalCacheProvider( plProvider,
-                                            cache, events, decorator, executor, nfsBasePath );
+                                            cache, pathgen, events, decorator, executor, nfsBasePath );
         provider.init();
     }
 
     @Test
     @BMScript( "TryToReadWhileWriting.btm" )
-    public void testTryToReadWhileWriting()
+    public void testReadWrite()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_read_write.txt" );
@@ -111,7 +111,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToWriteWhileReading.btm" )
-    public void testTryToWriteWhileReadingWithLocalCacheExisted()
+    public void tesWriteReadWithLocal()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_write_read.txt" );
@@ -129,7 +129,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToWriteWhileReading.btm" )
-    public void testTryToWriteWhileReadingWithNFSExistedButLocalNot() throws Exception{
+    public void testWriteReadWithNFS() throws Exception{
         final ConcreteResource resource = createTestResource( "file_write_read_has_only_NFS.txt" );
         prepareNFSResource( resource, content );
         testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
@@ -145,13 +145,14 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToWriteThenWaitReadingStreamOpen.btm" )
-    @Ignore
-    public void testTryToWriteThenWaitReadingStreamOpenWithNFSExistedButLocalNot()
+    public void testWriteWhenReadOpenWithNFS()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_write_wait_read_has_only_NFS.txt" );
         prepareNFSResource( resource, content );
         testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
+        //make sure write task execute first
+        Thread.sleep( 500 );
         final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch, 500 ) );
 
         latchWait( latch );
@@ -164,7 +165,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToWriteWhileReading.btm" )
-    public void testTryToWriteWhileReadingWithNoResource() throws Exception{
+    public void testWriteReadWithNoResource() throws Exception{
         final ConcreteResource resource = createTestResource( "file_write_read_no_both_resource.txt" );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
         final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
@@ -178,7 +179,7 @@ public class FastLocalCacheProviderConcurrentTest
     }
 
     @Test
-    public void testTryToBothWrite() throws Exception{
+    public void testBothWrite() throws Exception{
         final ConcreteResource resource = createTestResource( "file_both_write.txt" );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
         testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
@@ -191,7 +192,7 @@ public class FastLocalCacheProviderConcurrentTest
     }
 
     @Test
-    public void testTryToBothReadWithNFSExistedButLocalNot() throws Exception{
+    public void testBothReadWithNFS() throws Exception{
         final ConcreteResource resource = createTestResource( "file_both_read_has_only_NFS.txt" );
         prepareNFSResource( resource, content );
         final Future<String> readingFuture1 = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
@@ -207,7 +208,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToDeleteWhileReadingCompleted.btm" )
-    public void testTryToDeleteWhileReadingCompleted()
+    public void testDeleteWhenReadCompleted()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_delete_read.txt" );
@@ -227,7 +228,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToDeleteWhileReadingNotCompleted.btm" )
-    public void testTryToDeleteWhileReadingNotCompleted()
+    public void testDeleteWhenReadNotCompleted()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_delete_read_not_completed.txt" );
@@ -247,7 +248,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToDeleteWhileReadingNotCompleted.btm" )
-    public void testTryToDeleteWhileReadingNotCompletedWithNFSExistedButLocalNot()
+    public void testDeleteWhenReadNotCompletedWithNFS()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_delete_read_not_completed_nfs_only.txt" );
@@ -267,7 +268,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToReadWhileDeleteCompleted.btm" )
-    public void testTryToReadWhileDeleteCompleted()
+    public void testReadWhileDeleteCompleted()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_read_delete_completed.txt" );
@@ -287,7 +288,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToDeleteWhileWritingCompleted.btm" )
-    public void testTryToDeleteWhileWritingCompleted()
+    public void testDeleteWhenWriteCompleted()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_delete_write_completed.txt" );
@@ -304,7 +305,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToDeleteWhileWritingNotCompleted.btm" )
-    public void testTryToDeleteWhileWritingNotCompleted()
+    public void testDeleteWhenWriteNotCompleted()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_delete_write_not_completed.txt" );
@@ -321,7 +322,7 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     @BMScript( "TryToWriteWhileDeleteCompleted.btm" )
-    public void testTryToWriteWhileDeleteCompleted()
+    public void testWriteWhenDeleteCompleted()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_write_delete_completed.txt" );
@@ -338,7 +339,7 @@ public class FastLocalCacheProviderConcurrentTest
     }
 
     @Test
-    public void testTryToBothDelete()
+    public void testBothDelete()
             throws Exception
     {
         final ConcreteResource resource = createTestResource( "file_both_delete.txt" );
@@ -503,10 +504,10 @@ public class FastLocalCacheProviderConcurrentTest
                     }
                     out.write( buf, 0, read );
                 }
+                out.close();
                 System.out.println(
                         String.format( "<<<WriteTask>>> writing to the resource done with outputStream %s",
                                        out.getClass().getName() ) );
-                out.close();
                 controlLatch.countDown();
             }
             catch ( Exception e )
@@ -543,7 +544,7 @@ public class FastLocalCacheProviderConcurrentTest
                 if ( in == null )
                 {
                     System.out.println( "Can not read content as the input stream is null." );
-                    latch.countDown();
+                    controlLatch.countDown();
                     return;
                 }
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -560,13 +561,13 @@ public class FastLocalCacheProviderConcurrentTest
                     }
                     baos.write( buf, 0, read );
                 }
+                baos.close();
+                in.close();
                 System.out.println(
                         String.format( "<<<ReadTask>>> reading from the resource done with inputStream %s",
                                        in.getClass().getName() ) );
                 readingResult = new String( baos.toByteArray(), "UTF-8" );
                 controlLatch.countDown();
-                baos.close();
-                in.close();
             }
             catch ( Exception e )
             {

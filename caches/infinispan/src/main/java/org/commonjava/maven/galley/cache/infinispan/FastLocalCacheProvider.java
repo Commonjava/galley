@@ -98,7 +98,7 @@ public class FastLocalCacheProvider
 
     // This NFS owner cache will be shared during nodes(indy?), it will record the which node is storing which file
     // in NFS. Used as <path, ip> cache to collect nfs ownership of the file storage
-    @ConfigureCache( "nfs-owner-cache" )
+    @ConfigureCache( NFSOwnerCacheProducer.CACHE_NAME )
     @NFSOwnerCache
     private Cache<String, String> nfsOwnerCache;
 
@@ -333,54 +333,56 @@ public class FastLocalCacheProvider
             {
                 InputStream nfsIn = null;
                 OutputStream localOut = null;
-                synchronized ( copyLock )
+
+                try
+                {
+                    cacheTxMgr.begin();
+                    nfsOwnerCache.getAdvancedCache().lock( pathKey );
+                    File nfsFile = getNFSDetachedFile( resource );
+                    if ( !nfsFile.exists() )
+                    {
+                        logger.debug( "NFS cache does not exist too." );
+                        return;
+                    }
+                    nfsIn = new FileInputStream( nfsFile );
+                    localOut = plCacheProvider.openOutputStream( resource );
+                    IOUtils.copy( nfsIn, localOut );
+                    logger.debug( "NFS copy to local cache done." );
+                }
+                catch ( NotSupportedException | SystemException | IOException e )
+                {
+                    if ( e instanceof IOException )
+                    {
+                        final String errorMsg =
+                                String.format( "[galley] got i/o error when doing the NFS->Local copy for resource %s",
+                                               resource.toString() );
+                        logger.warn( errorMsg, e );
+                    }
+                    else
+                    {
+                        final String errorMsg = String.format(
+                                "[galley] Cache TransactionManager got error, locking key is %s, resource is %s",
+                                pathKey, resource.toString() );
+                        logger.error( errorMsg, e );
+                        throw new IllegalStateException( errorMsg, e );
+                    }
+                }
+                finally
                 {
                     try
                     {
-                        cacheTxMgr.begin();
-                        nfsOwnerCache.getAdvancedCache().lock( pathKey );
-                        File nfsFile = getNFSDetachedFile( resource );
-                        if ( !nfsFile.exists() )
-                        {
-                            logger.debug( "NFS cache does not exist too." );
-                            return;
-                        }
-                        nfsIn = new FileInputStream( nfsFile );
-                        localOut = plCacheProvider.openOutputStream( resource );
-                        IOUtils.copy( nfsIn, localOut );
-                        logger.debug( "NFS copy to local cache done." );
+                        cacheTxMgr.rollback();
                     }
-                    catch ( NotSupportedException | SystemException | IOException e )
+                    catch ( SystemException e )
                     {
-                        if ( e instanceof IOException )
-                        {
-                            final String errorMsg = String.format(
-                                    "[galley] got i/o error when doing the NFS->Local copy for resource %s", resource.toString() );
-                            logger.warn( errorMsg, e );
-                        }
-                        else
-                        {
-                            final String errorMsg = String.format(
-                                    "[galley] Cache TransactionManager got error, locking key is %s, resource is %s",
-                                    pathKey, resource.toString() );
-                            logger.error( errorMsg, e );
-                            throw new IllegalStateException( errorMsg, e );
-                        }
+                        final String errorMsg = String.format(
+                                "[galley] Cache TransactionManager rollback got error, locking key is %s", pathKey );
+                        logger.error( errorMsg, e );
                     }
-                    finally
+                    IOUtils.closeQuietly( nfsIn );
+                    IOUtils.closeQuietly( localOut );
+                    synchronized ( copyLock )
                     {
-                        try
-                        {
-                            cacheTxMgr.rollback();
-                        }
-                        catch ( SystemException e )
-                        {
-                            final String errorMsg = String.format(
-                                    "[galley] Cache TransactionManager rollback got error, locking key is %s", pathKey );
-                            logger.error( errorMsg, e );
-                        }
-                        IOUtils.closeQuietly( nfsIn );
-                        IOUtils.closeQuietly( localOut );
                         canStreamOpen.set( true );
                         copyLock.notifyAll();
                     }
@@ -469,6 +471,7 @@ public class FastLocalCacheProvider
                     }
                 }
                 final OutputStream nfsOutputStream = new FileOutputStream( nfsFile );
+                logger.debug( "The output stream from NFS is got successfully" );
                 // will wrap the cache manager in stream wrapper, and let it do tx commit in stream close to make sure
                 // the two streams writing's consistency.
                 dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, cacheTxMgr );
@@ -491,7 +494,7 @@ public class FastLocalCacheProvider
                         String.format( "[galley] Output stream for resource %s open failed.", resource.toString() ),
                         e );
             }
-
+            logger.debug( "The dual output stream wrapped and returned successfully" );
             return dualOut;
         }
     }
