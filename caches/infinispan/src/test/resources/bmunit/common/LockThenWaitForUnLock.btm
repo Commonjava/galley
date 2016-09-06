@@ -1,0 +1,21 @@
+RULE service lockWrite
+CLASS FastLocalCacheProvider
+METHOD lockWrite
+AT ENTRY
+IF TRUE
+DO
+    debug("<<<lockWrite is waiting for service enter waitForReadUnlock");
+    waitFor("service waitForReadUnlock");
+    debug("<<<proceed with lockWrite")
+ENDRULE
+
+RULE service waitForReadUnlock
+CLASS FastLocalCacheProvider
+METHOD waitForReadUnlock
+AT EXIT
+IF TRUE
+DO
+    debug("<<<service exit at waitForReadUnlock, and signalling service lockWrite");
+    signalWake("service waitForReadUnlock", true);
+    debug("<<<signalled service lockWrite")
+ENDRULE

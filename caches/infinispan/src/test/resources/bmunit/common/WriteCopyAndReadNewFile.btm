@@ -1,0 +1,21 @@
+RULE service copyFile
+CLASS FastLocalCacheProvider
+METHOD copy
+AT ENTRY
+IF TRUE
+DO
+    debug("<<<copyFile is waiting for service enter writeFile");
+    waitFor("service writeFile");
+    debug("<<<proceed with copyFile")
+ENDRULE
+
+RULE service writeFile
+CLASS FastLocalCacheProvider
+METHOD unlockWrite
+AT EXIT
+IF TRUE
+DO
+    debug("<<<service exit at writeFile, and signalling service copyFile");
+    signalWake("service writeFile", true);
+    debug("<<<signalled service copyFile")
+ENDRULE

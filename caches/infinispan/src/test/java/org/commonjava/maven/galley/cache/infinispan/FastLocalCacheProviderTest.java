@@ -15,138 +15,129 @@
  */
 package org.commonjava.maven.galley.cache.infinispan;
 
-import org.commonjava.maven.galley.cache.CacheProviderTCK;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
-import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
-import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.infinispan.Cache;
-import org.infinispan.manager.EmbeddedCacheManager;
 import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-/**
- */
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
-@BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
+@BMUnitConfig( loadDirectory = "target/test-classes/bmunit/common", debug = true )
 public class FastLocalCacheProviderTest
-        extends CacheProviderTCK
+        extends AbstractFastLocalCacheBMUnitTest
 {
-    private static EmbeddedCacheManager CACHE_MANAGER;
-
-    final String content = "This is a bmunit test";
-
-    final Location loc = new SimpleLocation( "http://foo.com" );
-
-    final String fname = "/path/to/my/file.txt";
-
-    final CountDownLatch latch = new CountDownLatch( 2 );
-
-    final ConcreteResource resource = new ConcreteResource( loc, fname );
-
-    private FastLocalCacheProvider provider;
-
-    private String result = null;
-
-    @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
-
-    @Rule
-    public TestName name = new TestName();
-
-    private final PathGenerator pathgen = new HashedLocationPathGenerator();
-
-    private final FileEventManager events = new TestFileEventManager();
-
-    private final TransferDecorator decorator = new TestTransferDecorator();
-
-    private Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
-
-    private final Executor executor = Executors.newFixedThreadPool( 5 );
-
-    @BeforeClass
-    public static void setupClass()
-    {
-        CACHE_MANAGER = new NFSOwnerCacheProducer().getCacheMgr();
-    }
-
-    @Before
-    public void setup()
+    @Test
+    @BMScript( "LockThenWaitForUnLock.btm" )
+    public void testLockThenWaitForUnLock()
             throws Exception
     {
-        final String nfsBasePath = createNFSBaseDir( temp.newFolder().getCanonicalPath() );
-        provider =
-                new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
-                                            cache, pathgen, events, decorator, executor, nfsBasePath );
-        provider.init();
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String path = "my/path.txt";
+        final ConcreteResource res = new ConcreteResource( loc, path );
+
+        CountDownLatch latch = new CountDownLatch( 2 );
+
+        new Thread( new WriteLockThread( res, latch ) ).start();
+        new Thread( new ReadLockThread( res, latch ) ).start();
+        latchWait( latch );
+
+        assertThat( provider.isWriteLocked( res ), equalTo( false ) );
+        assertThat( provider.isReadLocked( res ), equalTo( false ) );
     }
 
     @Test
-    @BMScript( "TryToReadWhileWritingTestCase.btm" )
-    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
-    public void testTryToReadWhileWriting()
-            throws IOException, InterruptedException
+    @BMScript( "SimultaneousWritesResourceExistence.btm" )
+    public void testSimultaneousWritesResourceExistence()
+            throws Exception
     {
-        new Thread( new WriteThread() ).start();
-        new Thread( new ReadThread() ).start();
-        try
-        {
-            latch.await();
-        }
-        catch ( Exception e )
-        {
-            System.out.println( "Threads await Exception." );
-        }
+        final String content = "This is a test";
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String dir = "/path/to/my/";
+        final String fname1 = dir + "file1.txt";
+        final String fname2 = dir + "file2.txt";
+
+        CountDownLatch latch = new CountDownLatch( 2 );
+
+        new Thread( new WriteFileThread( content, loc, fname1, latch ) ).start();
+        new Thread( new WriteFileThread( content, loc, fname2, latch ) ).start();
+        latchWait( latch );
+
+        assertThat( provider.exists( new ConcreteResource( loc, fname1 ) ), equalTo( true ) );
+        assertThat( provider.exists( new ConcreteResource( loc, fname2 ) ), equalTo( true ) );
+        assertThat( provider.isDirectory( new ConcreteResource( loc, dir ) ), equalTo( true ) );
+
+        final Set<String> listing =
+                new HashSet<String>( Arrays.asList( provider.list( new ConcreteResource( loc, dir ) ) ) );
+        assertThat( listing.size() > 1, equalTo( true ) );
+        assertThat( listing.contains( "file1.txt" ), equalTo( true ) );
+        assertThat( listing.contains( "file2.txt" ), equalTo( true ) );
+    }
+
+    @Test
+    @BMScript( "WriteDeleteAndVerifyNonExistence.btm" )
+    public void testWriteDeleteAndVerifyNonExistence()
+            throws Exception
+    {
+        final String content = "This is a test";
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String fname = "/path/to/my/file.txt";
+
+        CountDownLatch latch = new CountDownLatch( 2 );
+
+        new Thread( new WriteFileThread( content, loc, fname, latch ) ).start();
+        new Thread( new DeleteFileThread( loc, fname, latch ) ).start();
+        latchWait( latch );
+
+        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), equalTo( false ) );
+    }
+
+    @Test
+    @BMScript( "ConcurrentWriteAndReadFile.btm" )
+    public void ConcurrentWriteAndReadFile()
+            throws Exception
+    {
+        final String content = "This is a test";
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String fname = "/path/to/my/file.txt";
+
+        CountDownLatch latch = new CountDownLatch( 2 );
+
+        new Thread( new ReadFileThread( loc, fname, latch ) ).start();
+        new Thread( new WriteFileThread( content, loc, fname, latch ) ).start();
+        latchWait( latch );
+
         assertThat( result, equalTo( content ) );
     }
 
     @Test
-    @BMScript( "TryToWriteWhileReadingWithFileExistedTestCase.btm" )
-    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
-    public void testTryToWriteWhileReadingWithFileExisted()
-            throws IOException, InterruptedException
+    @BMScript( "WriteCopyAndReadNewFile.btm" )
+    public void writeCopyAndReadNewFile()
+            throws Exception
     {
-        new Thread( new ReadThread() ).start();
-        new Thread( new WriteThread() ).start();
-        try
-        {
-            latch.await();
-        }
-        catch ( Exception e )
-        {
-            System.out.println( "Threads await Exception." );
-        }
-        assertNull( result );
+        final String content = "This is a test";
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String fname = "/path/to/my/file.txt";
+        final Location loc2 = new SimpleLocation( "http://bar.com" );
+
+        CountDownLatch latch = new CountDownLatch( 2 );
+
+        new Thread( new CopyFileThread( loc, loc2, fname, latch ) ).start();
+        new Thread( new WriteFileThread( content, loc, fname, latch ) ).start();
+        latchWait( latch );
+
+        assertThat( result, equalTo( content ) );
     }
 
     @Test(expected = java.lang.IllegalArgumentException.class)
@@ -190,84 +181,4 @@ public class FastLocalCacheProviderTest
                                     pathgen, events, decorator, executor );
     }
 
-    @Override
-    protected CacheProvider getCacheProvider()
-            throws Exception
-    {
-        return provider;
-    }
-
-    private String createNFSBaseDir( String tempBaseDir ) throws IOException
-    {
-        File file = new File( tempBaseDir + "/mnt/nfs" );
-        file.delete();
-        file.mkdirs();
-        return file.getCanonicalPath();
-    }
-
-    @After
-    public void tearDown()
-    {
-        provider.destroy();
-    }
-
-    class WriteThread
-            implements Runnable
-    {
-        @Override
-        public void run()
-        {
-            try
-            {
-                final OutputStream out = provider.openOutputStream( resource );
-                final ByteArrayInputStream bais = new ByteArrayInputStream( content.getBytes() );
-                int read = -1;
-                final byte[] buf = new byte[512];
-                while ( ( read = bais.read( buf ) ) > -1 )
-                {
-                    Thread.sleep( 1000 );
-                    out.write( buf, 0, read );
-                }
-                out.close();
-                latch.countDown();
-            }
-            catch ( Exception e )
-            {
-                System.out.println( "Write Thread Runtime Exception." );
-                e.printStackTrace();
-            }
-        }
-    }
-
-    class ReadThread
-            implements Runnable
-    {
-        @Override
-        public void run()
-        {
-            try
-            {
-                final InputStream in = provider.openInputStream( resource );
-                if ( in == null )
-                {
-                    latch.countDown();
-                    return;
-                }
-                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                int read = -1;
-                final byte[] buf = new byte[512];
-                while ( ( read = in.read( buf ) ) > -1 )
-                {
-                    baos.write( buf, 0, read );
-                }
-                result = new String( baos.toByteArray(), "UTF-8" );
-                latch.countDown();
-            }
-            catch ( Exception e )
-            {
-                System.out.println( "Read Thread Runtime Exception." );
-                e.printStackTrace();
-            }
-        }
-    }
 }
