@@ -16,11 +16,13 @@
 package org.commonjava.maven.galley.config;
 
 import javax.enterprise.inject.Alternative;
+import javax.inject.Named;
 
 /**
  * Created by jdcasey on 3/7/16.
  */
 @Alternative
+@Named
 public class TransportManagerConfig
 {
     long DEFAULT_THRESHOLD_WAIT_RETRY_SIZE = 10 * 1024 * 1024; // 10 MB files get retried.

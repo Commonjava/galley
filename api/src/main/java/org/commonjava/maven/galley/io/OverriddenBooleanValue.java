@@ -13,42 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.commonjava.maven.galley.event;
+package org.commonjava.maven.galley.io;
 
-import javax.enterprise.inject.Alternative;
-import javax.inject.Named;
-
-import org.commonjava.maven.galley.spi.event.FileEventManager;
-
-@Named( "no-op-galley-events" )
-@Alternative
-public class NoOpFileEventManager
-    implements FileEventManager
+public enum OverriddenBooleanValue
 {
 
-    @Override
-    public void fire( final FileNotFoundEvent evt )
+    OVERRIDE_TRUE( true, true ),
+    OVERRIDE_FALSE( true, false ),
+    DEFER( false, null );
+
+    private boolean overrides;
+
+    private Boolean result;
+
+
+    private OverriddenBooleanValue( final boolean overrides, final Boolean result )
     {
+        this.overrides = overrides;
+        this.result = result;
     }
 
-    @Override
-    public void fire( final FileStorageEvent evt )
+
+    public boolean overrides()
     {
+        return overrides;
     }
 
-    @Override
-    public void fire( final FileAccessEvent evt )
+    public boolean getResult()
     {
-    }
-
-    @Override
-    public void fire( final FileDeletionEvent evt )
-    {
-    }
-
-    @Override
-    public void fire( final FileErrorEvent evt )
-    {
+        return result;
     }
 
 }

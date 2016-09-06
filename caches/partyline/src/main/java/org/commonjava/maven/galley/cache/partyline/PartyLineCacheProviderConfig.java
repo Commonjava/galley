@@ -19,7 +19,6 @@ import java.io.File;
 
 import javax.inject.Named;
 
-@Named
 public class PartyLineCacheProviderConfig
 {
     private static final int DEFAULT_TIMEOUT_SECONDS = 86400;

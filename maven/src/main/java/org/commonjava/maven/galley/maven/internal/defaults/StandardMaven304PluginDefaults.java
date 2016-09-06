@@ -20,11 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.inject.Alternative;
+import javax.inject.Named;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 
+@Named
 @Alternative
 public class StandardMaven304PluginDefaults
     implements MavenPluginDefaults

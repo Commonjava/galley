@@ -21,7 +21,6 @@ import java.io.OutputStream;
 
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 public abstract class AbstractTransferDecorator

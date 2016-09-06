@@ -15,12 +15,16 @@
  */
 package org.commonjava.maven.galley.testing.maven;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.cache.CacheProviderFactory;
+import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.cache.FileCacheProviderFactory;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMaven;
@@ -66,6 +70,8 @@ public class GalleyMavenFixture
 
     private final boolean autoInit;
 
+    private File cacheDir;
+
     public GalleyMavenFixture( final TemporaryFolder temp )
     {
         this.autoInit = true;
@@ -97,7 +103,8 @@ public class GalleyMavenFixture
         }
 
         temp.create();
-        mavenBuilder = new GalleyMavenBuilder( temp.newFolder( "cache" ) );
+        mavenBuilder = new GalleyMavenBuilder();
+        mavenBuilder.withCacheProviderFactory( new FileCacheProviderFactory( temp.newFolder( "cache" ) ) );
     }
 
     public GalleyMaven getGalleyMaven()
@@ -143,6 +150,14 @@ public class GalleyMavenFixture
             if ( maven == null )
             {
                 initMissingComponents();
+                if ( mavenBuilder.getCacheProviderFactory() == null && mavenBuilder.getCache() == null && temp != null && cacheDir == null )
+                {
+                    cacheDir = temp.newFolder( "cache" );
+                }
+
+                mavenBuilder.withCache( new FileCacheProvider( cacheDir, mavenBuilder.getPathGenerator(),
+                                                               mavenBuilder.getFileEvents(),
+                                                               mavenBuilder.getTransferDecorator() ) );
                 maven = mavenBuilder.build();
             }
         }
@@ -726,9 +741,21 @@ public class GalleyMavenFixture
         return this;
     }
 
+    public GalleyMavenFixture withCacheProviderFactory( CacheProviderFactory cacheProviderFactory )
+    {
+        mavenBuilder.withCacheProviderFactory( cacheProviderFactory );
+        return this;
+    }
+
+    public CacheProviderFactory getCacheProviderFactory()
+    {
+        return mavenBuilder.getCacheProviderFactory();
+    }
+
     @Deprecated
     public XPathManager getXpathManager()
     {
         return getXPathManager();
     }
+
 }

@@ -17,9 +17,9 @@ package org.commonjava.maven.galley.cache;
 
 import java.io.File;
 
+import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
-@Named
 public class FileCacheProviderConfig
 {
     private Boolean aliasLinking;

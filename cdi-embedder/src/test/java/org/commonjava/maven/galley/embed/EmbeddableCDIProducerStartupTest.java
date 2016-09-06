@@ -19,10 +19,13 @@ import org.commonjava.test.http.expect.ExpectationServer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.enterprise.context.ApplicationScoped;
+
 /**
  * Created by jdcasey on 9/14/15.
  */
 @RunWith( WeldJUnit4Runner.class )
+@ApplicationScoped
 public class EmbeddableCDIProducerStartupTest
         extends AbstractEmbeddableCDIProducerTest
 {

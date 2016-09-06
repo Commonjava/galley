@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ApplicationScoped
-@Named( "httpclient-galley-transport" )
+@Named
 public class HttpClientTransport
     implements Transport
 {

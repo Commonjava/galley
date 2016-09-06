@@ -18,7 +18,7 @@ package org.commonjava.maven.galley.io;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
-@Named( "no-op-galley-decorator" )
+@Named
 @Alternative
 public class NoOpTransferDecorator
     extends AbstractTransferDecorator

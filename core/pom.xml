@@ -54,11 +54,6 @@
       <artifactId>weld-se-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.cdi.util</groupId>
-      <artifactId>weft</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-test-harness-api</artifactId>
     </dependency>
@@ -66,6 +61,7 @@
       <groupId>org.commonjava.cdi.util</groupId>
       <artifactId>weft</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.jboss.byteman</groupId>
       <artifactId>byteman</artifactId>
