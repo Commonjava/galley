@@ -22,14 +22,9 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
-import org.jboss.byteman.contrib.bmunit.BMScript;
-import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,31 +32,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-
-@RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
-@BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
-public class FileCacheBMUnitTest
+public abstract class AbstractFileCacheBMUnitTest
 {
+    protected final String content = "This is a bmunit test";
 
-    final String content = "This is a bmunit test";
+    protected final Location loc = new SimpleLocation( "http://foo.com" );
 
-    final Location loc = new SimpleLocation( "http://foo.com" );
+    protected final String fname = "/path/to/my/file.txt";
 
-    final String fname = "/path/to/my/file.txt";
-
-    final CountDownLatch latch = new CountDownLatch( 2 );
-
-    final ConcreteResource resource = new ConcreteResource( loc, fname );
-
-    private CacheProvider provider;
-
-    private String result = null;
+    protected final ConcreteResource resource = new ConcreteResource( loc, fname );
 
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
+
+    protected CountDownLatch latch = new CountDownLatch( 2 );
+
+    protected CacheProvider provider;
+
+    protected String result = null;
 
     @Before
     public void getCacheProvider()
@@ -72,44 +60,7 @@ public class FileCacheBMUnitTest
                                           new NoOpFileEventManager(), new NoOpTransferDecorator(), true );
     }
 
-
-    @Test
-    @BMScript( "TryToReadWhileWritingTestCase.btm" )
-    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
-    public void testTryToReadWhileWriting()
-    {
-        new Thread( new WriteThread() ).start();
-        new Thread( new ReadThread() ).start();
-        try
-        {
-            latch.await();
-        }
-        catch ( Exception e )
-        {
-            System.out.println( "Threads await Exception." );
-        }
-        assertThat( result, equalTo( content ) );
-    }
-
-    @Test
-    @BMScript( "TryToWriteWhileReadingTestCase.btm" )
-    @Ignore( "Needs to be in a separate class to avoid BindException on byteman JVM agent")
-    public void testTryToWriteWhileReading()
-    {
-        new Thread( new ReadThread() ).start();
-        new Thread( new WriteThread() ).start();
-        try
-        {
-            latch.await();
-        }
-        catch ( Exception e )
-        {
-            System.out.println( "Threads await Exception." );
-        }
-        assertNull( result );
-    }
-
-    class WriteThread
+    protected class WriteThread
             implements Runnable
     {
         @Override
@@ -143,7 +94,7 @@ public class FileCacheBMUnitTest
         }
     }
 
-    class ReadThread
+    protected class ReadThread
             implements Runnable
     {
         @Override

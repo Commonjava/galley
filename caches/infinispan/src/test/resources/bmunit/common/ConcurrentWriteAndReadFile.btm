@@ -1,0 +1,21 @@
+RULE service readFile
+CLASS FastLocalCacheProvider
+METHOD openInputStream
+AT ENTRY
+IF TRUE
+DO
+    debug("<<<readFile is waiting for service enter writeFile");
+    waitFor("service writeFile");
+    debug("<<<proceed with readFile")
+ENDRULE
+
+RULE service writeFile
+CLASS FastLocalCacheProvider
+METHOD unlockWrite
+AT EXIT
+IF TRUE
+DO
+    debug("<<<service exit at writeFile, and signalling service readFile");
+    signalWake("service writeFile", true);
+    debug("<<<signalled service readFile")
+ENDRULE
