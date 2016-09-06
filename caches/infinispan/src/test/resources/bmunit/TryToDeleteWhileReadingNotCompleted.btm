@@ -1,0 +1,22 @@
+RULE try to delete
+CLASS FastLocalCacheProvider
+METHOD delete
+AT ENTRY
+IF TRUE
+DO
+    # hold delete until service is after the execution of openInputStream
+    debug("<<<wait for service enter openInputStream");
+    waitFor("service openInputStream");
+    debug("<<<openInputStream should be done");
+ENDRULE
+
+RULE service openInputStream
+CLASS FastLocalCacheProvider
+METHOD openInputStream
+AT EXIT
+IF TRUE
+DO
+    debug("<<<signalling try to delete");
+    signalWake("service openInputStream", true);
+    debug("<<<signalled try ot delete");
+ENDRULE

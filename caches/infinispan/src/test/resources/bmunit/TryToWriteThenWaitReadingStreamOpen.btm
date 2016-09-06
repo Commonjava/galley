@@ -1,0 +1,23 @@
+RULE try to write OutputStream
+CLASS FastLocalCacheProvider$DualOutputStreamsWrapper
+METHOD write
+AT ENTRY
+IF TRUE
+DO
+    # hold outputStream write until service openInputStream is done
+    debug("<<<wait for service openInputStream done");
+    waitFor("service openInputStream");
+    debug("<<<proceed with openOutputStream");
+ENDRULE
+
+RULE service openInputStream
+CLASS FastLocalCacheProvider
+METHOD openInputStream
+AT EXIT
+IF waiting("service openInputStream")
+DO
+    # after service openInputStream done, wake outputStream write
+    debug("<<<signalling try to write OutputStream");
+    signalWake("service openInputStream", true);
+    debug("<<<signalled try to write OutputStream");
+ENDRULE
