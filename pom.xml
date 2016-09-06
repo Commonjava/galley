@@ -55,7 +55,7 @@
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
 
-    <test-forkCount>2</test-forkCount>
+    <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
   </properties>
 
