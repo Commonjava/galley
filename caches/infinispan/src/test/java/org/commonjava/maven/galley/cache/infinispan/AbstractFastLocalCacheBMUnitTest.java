@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AbstractFastLocalCacheBMUnitTest
@@ -39,7 +40,7 @@ public class AbstractFastLocalCacheBMUnitTest
 
     protected final TransferDecorator decorator = new TestTransferDecorator();
 
-    protected final Executor executor = Executors.newFixedThreadPool( 5 );
+    protected final ExecutorService executor = Executors.newFixedThreadPool( 5 );
 
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
