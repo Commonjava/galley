@@ -103,8 +103,13 @@ public class GalleyMavenFixture
         }
 
         temp.create();
+        if ( cacheDir == null )
+        {
+            cacheDir = temp.newFolder( "cache" );
+        }
+
         mavenBuilder = new GalleyMavenBuilder();
-        mavenBuilder.withCacheProviderFactory( new FileCacheProviderFactory( temp.newFolder( "cache" ) ) );
+        mavenBuilder.withCacheProviderFactory( new FileCacheProviderFactory( cacheDir ) );
     }
 
     public GalleyMaven getGalleyMaven()

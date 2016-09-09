@@ -85,7 +85,12 @@ public class CoreFixture
         throws IOException
     {
         temp.create();
-        coreBuilder = new GalleyCoreBuilder( new FileCacheProviderFactory( temp.newFolder( "cache" ) ) );
+        if ( cacheDir == null )
+        {
+            cacheDir = temp.newFolder( "cache" );
+        }
+
+        coreBuilder = new GalleyCoreBuilder( new FileCacheProviderFactory( cacheDir ) );
     }
 
     public void initTestTransport()
