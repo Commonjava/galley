@@ -12,7 +12,7 @@ ENDRULE
 RULE service writeFile
 CLASS FastLocalCacheProvider
 METHOD unlockWrite
-AT EXIT
+AT ENTRY
 IF TRUE
 DO
     debug("<<<service exit at writeFile, and signalling service deleteFile");

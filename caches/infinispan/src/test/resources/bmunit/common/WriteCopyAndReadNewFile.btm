@@ -10,12 +10,12 @@ DO
 ENDRULE
 
 RULE service writeFile
-CLASS FastLocalCacheProvider
-METHOD unlockWrite
+CLASS FastLocalCacheProvider$DualOutputStreamsWrapper
+METHOD <init>
 AT EXIT
 IF TRUE
 DO
-    debug("<<<service exit at writeFile, and signalling service copyFile");
+    debug("<<<service is in writeFile, and signalling service copyFile");
     signalWake("service writeFile", true);
     debug("<<<signalled service copyFile")
 ENDRULE

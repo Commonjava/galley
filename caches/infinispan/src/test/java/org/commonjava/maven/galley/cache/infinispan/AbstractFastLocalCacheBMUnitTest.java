@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -111,6 +110,11 @@ public class AbstractFastLocalCacheBMUnitTest
         }
     }
 
+    protected void start( Runnable r )
+    {
+        new Thread( r ).start();
+    }
+
     private String createNFSBaseDir( String tempBaseDir )
             throws IOException
     {
@@ -136,8 +140,9 @@ public class AbstractFastLocalCacheBMUnitTest
         @Override
         public void run()
         {
-            provider.lockWrite( res );
             provider.waitForWriteUnlock( res );
+            provider.lockWrite( res );
+            provider.unlockWrite( res );
             latch.countDown();
         }
     }
@@ -158,8 +163,9 @@ public class AbstractFastLocalCacheBMUnitTest
         @Override
         public void run()
         {
-            provider.lockRead( res );
             provider.waitForReadUnlock( res );
+            provider.lockRead( res );
+            provider.unlockRead( res );
             latch.countDown();
         }
     }
