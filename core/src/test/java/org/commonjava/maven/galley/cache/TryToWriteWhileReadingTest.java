@@ -29,8 +29,8 @@ public class TryToWriteWhileReadingTest
     @Test
     public void run()
     {
-        new Thread( new ReadThread() ).start();
-        new Thread( new WriteThread() ).start();
+        start( new ReadThread() );
+        start( new WriteThread() );
         try
         {
             latch.await();

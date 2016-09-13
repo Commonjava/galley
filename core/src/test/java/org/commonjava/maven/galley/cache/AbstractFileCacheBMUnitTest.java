@@ -60,6 +60,11 @@ public abstract class AbstractFileCacheBMUnitTest
                                           new NoOpFileEventManager(), new NoOpTransferDecorator(), true );
     }
 
+    protected void start( Runnable r )
+    {
+        new Thread( r ).start();
+    }
+
     protected class WriteThread
             implements Runnable
     {

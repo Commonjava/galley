@@ -30,8 +30,8 @@ public class TryToReadWhileWritingTest
     @Test
     public void run()
     {
-        new Thread( new WriteThread() ).start();
-        new Thread( new ReadThread() ).start();
+        start( new WriteThread() );
+        start( new ReadThread() );
         try
         {
             latch.await();
