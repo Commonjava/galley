@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 @ApplicationScoped
 public class NFSOwnerCacheProducer
 {
-    static final String CACHE_NAME = "nfs-cache";
+    public static final String CACHE_NAME = "nfs-cache";
 
     @ConfigureCache( CACHE_NAME )
     @NFSOwnerCache

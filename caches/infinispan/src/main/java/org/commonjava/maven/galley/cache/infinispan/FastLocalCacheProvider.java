@@ -75,8 +75,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * as this provider will use it to get the nfs root directory by default. If you want to set this directory by manually,
  * use the parameterized constructor with the "nfsBaseDir" param.
  */
-@Named( "nfs-galley-cache" )
-@Alternative
 public class FastLocalCacheProvider
         implements CacheProvider, CacheProvider.AdminView
 {
@@ -92,36 +90,21 @@ public class FastLocalCacheProvider
 
     private final Map<String, Set<WeakReference<OutputStream>>> streamHolder = new HashMap<>( 50 );
 
-    @Inject
-    @Named( "partyline-galley-cache" )
     private PartyLineCacheProvider plCacheProvider;
 
     // This NFS owner cache will be shared during nodes(indy?), it will record the which node is storing which file
     // in NFS. Used as <path, ip> cache to collect nfs ownership of the file storage
-    @ConfigureCache( NFSOwnerCacheProducer.CACHE_NAME )
-    @NFSOwnerCache
     private Cache<String, String> nfsOwnerCache;
 
     private TransactionManager cacheTxMgr;
 
-    @Inject
     private FileEventManager fileEventManager;
 
-    @Inject
     private TransferDecorator transferDecorator;
 
-    @ExecutorConfig( named = "fast-local-executor", threads = 5, priority = 2, daemon = true )
-    @WeftManaged
-    @Inject
     private ExecutorService executor;
 
     private PathGenerator pathGenerator;
-
-    protected FastLocalCacheProvider()
-    {
-        nfsBaseDir = System.getProperty( NFS_BASE_DIR_KEY );
-        checkNfsBaseDir();
-    }
 
     /**
      * Construct the FastLocalCacheProvider with the params. Note that this constructor will set the NFS root directory using
@@ -138,7 +121,6 @@ public class FastLocalCacheProvider
                                    final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
                                    final ExecutorService executor )
     {
-        this();
         this.plCacheProvider = plCacheProvider;
         this.nfsOwnerCache = nfsUsageCache;
         this.pathGenerator = pathGenerator;
