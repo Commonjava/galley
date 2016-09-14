@@ -145,39 +145,9 @@ public class FastLocalCacheProviderTest
         assertThat( result, equalTo( content ) );
     }
 
+
     @Test( expected = java.lang.IllegalArgumentException.class )
     public void testConstructorWitNoNFSSysPath()
-    {
-        new FastLocalCacheProvider();
-    }
-
-    @Test( expected = java.lang.IllegalArgumentException.class )
-    public void testConstructorWitNoNFSSysPath2()
-            throws IOException
-    {
-        final String NON_EXISTS_PATH = "/mnt/nfs/abc/xyz";
-        System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, NON_EXISTS_PATH );
-        new FastLocalCacheProvider();
-    }
-
-    @Test( expected = java.lang.IllegalArgumentException.class )
-    public void testConstructorWitNoNFSSysPath3()
-            throws IOException
-    {
-        System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFile().getCanonicalPath() );
-        new FastLocalCacheProvider();
-    }
-
-    @Test( expected = java.lang.IllegalArgumentException.class )
-    public void testConstructorWitNoNFSSysPath4()
-            throws IOException
-    {
-        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
-                                    pathgen, events, decorator, executor );
-    }
-
-    @Test( expected = java.lang.IllegalArgumentException.class )
-    public void testConstructorWitNoNFSSysPath5()
             throws IOException
     {
         final String NON_EXISTS_PATH = "/mnt/nfs/abc/xyz";
@@ -190,7 +160,6 @@ public class FastLocalCacheProviderTest
             throws IOException
     {
         System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFolder().getCanonicalPath() );
-        new FastLocalCacheProvider();
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
                                     pathgen, events, decorator, executor );
     }
