@@ -19,6 +19,8 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Alternative;
 import java.io.IOException;
@@ -30,6 +32,8 @@ import java.util.Map;
 public class RoutingCacheProviderWrapper
         implements CacheProvider
 {
+    private final Logger logger = LoggerFactory.getLogger( this.getClass() );
+
     private final CacheProvider safe;
 
     private final CacheProvider disposable;
@@ -50,10 +54,11 @@ public class RoutingCacheProviderWrapper
         {
             if ( selector.isDisposable( resource ) )
             {
+                logger.debug("Used disposable cache provider {}", disposable);
                 return disposable;
             }
-
         }
+        logger.debug("Used safe cache provider {}", safe);
         return safe;
     }
 

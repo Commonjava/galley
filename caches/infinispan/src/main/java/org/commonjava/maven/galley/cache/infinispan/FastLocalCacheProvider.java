@@ -127,6 +127,7 @@ public class FastLocalCacheProvider
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
+        init();
     }
 
     /**
@@ -152,18 +153,15 @@ public class FastLocalCacheProvider
         this.transferDecorator = transferDecorator;
         this.executor = executor;
         setNfsBaseDir( nfsBaseDir );
+        init();
     }
 
     private void checkNfsBaseDir(){
         if ( StringUtils.isBlank( nfsBaseDir ) )
         {
+            logger.debug( ">>>[galley] the nfs basedir is {}", nfsBaseDir );
             throw new IllegalArgumentException(
                     "[galley] FastLocalCacheProvider needs nfs directory to cache files, please set the parameter correctly or use system property \"galley.nfs.basedir\" first with your NFS root directory." );
-        }
-        if ( !new File( nfsBaseDir ).exists() || !new File( nfsBaseDir ).isDirectory() )
-        {
-            throw new IllegalArgumentException(
-                    "[galley] The NFS root directory in your parameter or in system property \"galley.nfs.basedir\" does not exist or is not a valid directory, please have a check." );
         }
     }
 
@@ -174,11 +172,12 @@ public class FastLocalCacheProvider
      * @param nfsBaseDir -
      * @throws java.lang.IllegalArgumentException - the nfsBaseDir is not valid(empty or not a valid directory)
      */
-    public void setNfsBaseDir(String nfsBaseDir){
+    public void setNfsBaseDir( String nfsBaseDir )
+    {
         this.nfsBaseDir = nfsBaseDir;
-        if ( StringUtils.isBlank( this.nfsBaseDir ) || !new File( this.nfsBaseDir ).exists() || !new File(
-                this.nfsBaseDir ).isDirectory() )
+        if ( StringUtils.isBlank( this.nfsBaseDir )  )
         {
+            logger.warn( "[galley] nfs basedir {} is not valid directory", this.nfsBaseDir );
             this.nfsBaseDir = System.getProperty( NFS_BASE_DIR_KEY );
         }
         checkNfsBaseDir();
@@ -220,7 +219,16 @@ public class FastLocalCacheProvider
     File getNFSDetachedFile( ConcreteResource resource )
     {
         String path = PathUtils.normalize( nfsBaseDir, getFilePath( resource ) );
-        return new File( path );
+        File f = new File( path );
+
+        synchronized ( this )
+        {
+            if ( resource.isRoot() && !f.isDirectory() )
+            {
+                f.mkdirs();
+            }
+        }
+        return f;
     }
 
     @Override
@@ -786,6 +794,10 @@ public class FastLocalCacheProvider
             //FIXME: potential dead lock?
             synchronized ( getTransfer( resource ) )
             {
+                logger.debug( ">>>>>>plCacheProvider {}",plCacheProvider );
+                logger.debug( ">>>>>>nfsOwnerCache {}", nfsOwnerCache );
+                logger.debug(">>>>>>nfsOwnerCache.getAdvancedCache {}", nfsOwnerCache.getAdvancedCache());
+                logger.debug(">>>>>>nfsOwnerCache.getAdvancedCache().getLockManager() {}", nfsOwnerCache.getAdvancedCache().getLockManager());
                 return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.getAdvancedCache()
                                                                                  .getLockManager()
                                                                                  .isLocked(
@@ -978,14 +990,15 @@ public class FastLocalCacheProvider
             {
                 if ( cacheTxMgr == null || cacheTxMgr.getStatus() == Status.STATUS_NO_TRANSACTION )
                 {
+                    logger.debug( ">>>>>> cacheTxMgr is {}", cacheTxMgr );
+                    logger.debug( ">>>>>> cacheTxMgr status is {}",
+                                  cacheTxMgr == null ? "null" : cacheTxMgr.getStatus() );
                     throw new IllegalStateException(
                             "[galley] ISPN transaction not started correctly. May be it is not set correctly, please have a check. " );
                 }
-                out1.close();
-                out2.close();
                 cacheTxMgr.commit();
             }
-            catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException | IOException e )
+            catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
             {
                 logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
 
@@ -999,10 +1012,12 @@ public class FastLocalCacheProvider
                     logger.error( errorMsg, se );
                     throw new IllegalStateException( errorMsg, se );
                 }
-                if ( e instanceof IOException )
-                {
-                    throw (IOException) e;
-                }
+            }
+            finally
+            {
+                //For safe, we should always let the stream closed, even if the transaction failed.
+                IOUtils.closeQuietly( out1 );
+                IOUtils.closeQuietly( out2 );
             }
         }
     }

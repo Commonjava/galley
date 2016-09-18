@@ -55,7 +55,7 @@ public class NFSOwnerCacheProducer
     protected EmbeddedCacheManager getCacheMgr()
     {
         final EmbeddedCacheManager cacheManager = new DefaultCacheManager(
-                new GlobalConfigurationBuilder().globalJmxStatistics().jmxDomain( "org.commonjava" ).build() );
+                new GlobalConfigurationBuilder().globalJmxStatistics().jmxDomain( "org.commonjava.maven.galley" ).build() );
         // Want to enable dead lock check as lock will be used in FastLocalCacheProvider
         // and also set transaction mode to PESSIMISTIC with DummyTransactionManger.
         final Configuration configuration = new ConfigurationBuilder().eviction()
