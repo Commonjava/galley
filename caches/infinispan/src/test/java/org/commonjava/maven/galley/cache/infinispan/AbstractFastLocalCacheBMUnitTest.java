@@ -82,7 +82,6 @@ public class AbstractFastLocalCacheBMUnitTest
         provider =
                 new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
                                             cache, pathgen, events, decorator, executor, nfsBasePath );
-        provider.init();
     }
 
     @After

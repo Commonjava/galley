@@ -103,7 +103,6 @@ public class FastLocalCacheProviderConcurrentTest
         provider =
                 new FastLocalCacheProvider( plProvider,
                                             cache, pathgen, events, decorator, executor, nfsBasePath );
-        provider.init();
     }
 
     @Test

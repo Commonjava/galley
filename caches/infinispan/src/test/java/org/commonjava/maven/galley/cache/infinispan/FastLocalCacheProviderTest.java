@@ -150,7 +150,7 @@ public class FastLocalCacheProviderTest
     public void testConstructorWitNoNFSSysPath()
             throws IOException
     {
-        final String NON_EXISTS_PATH = "/mnt/nfs/abc/xyz";
+        final String NON_EXISTS_PATH = "";
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
                                     pathgen, events, decorator, executor, NON_EXISTS_PATH );
     }
