@@ -43,7 +43,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AbstractFastLocalCacheBMUnitTest
+public abstract class AbstractFastLocalCacheBMUnitTest
         extends CacheProviderTCK
 {
     protected static EmbeddedCacheManager CACHE_MANAGER;
