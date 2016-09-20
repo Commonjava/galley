@@ -107,47 +107,29 @@ public class FastLocalCacheProvider
     private PathGenerator pathGenerator;
 
     /**
-     * Construct the FastLocalCacheProvider with the params. Note that this constructor will set the NFS root directory using
-     * system property "galley.nfs.basedir". Please set this system property first to make it run.
+     * Construct the FastLocalCacheProvider with the params. You can specify you own nfs base dir in this constructor.
      *
      * @param plCacheProvider - PartyLineCacheProvider to handle the local cache files
-     * @param nfsUsageCache - ISPN cache to hold the nfs artifacts owner
+     * @param nfsUsageCache - ISPN cache to hold the nfs artifacts owner. If null, will use a galley provided one
      * @param fileEventManager -
      * @param transferDecorator -
-     * @param executor -
+     * @param executor - The thread pool for executing reading task concurrently.
+     * @param nfsBaseDir - The NFS system root dir to hold the artifacts
      */
-    public FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
-                                   final Cache<String, String> nfsUsageCache, final PathGenerator pathGenerator,
-                                   final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
-                                   final ExecutorService executor )
-    {
-        this.plCacheProvider = plCacheProvider;
-        this.nfsOwnerCache = nfsUsageCache;
-        this.pathGenerator = pathGenerator;
-        this.fileEventManager = fileEventManager;
-        this.transferDecorator = transferDecorator;
-        this.executor = executor;
-        init();
-    }
-
-    /**
-     * Construct the FastLocalCacheProvider with the params. You can specify you own nfs base dir in this ocnstructor.
-     *
-     * @param plCacheProvider - PartyLineCacheProvider to handle the local cache files
-     * @param nfsUsageCache - ISPN cache to hold the nfs artifacts owner
-     * @param fileEventManager -
-     * @param transferDecorator -
-     * @param executor -
-     * @param nfsBaseDir - the NFS system root dir to hold the artifacts
-     */
-    public FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
+    protected FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
                                    final Cache<String, String> nfsUsageCache, final PathGenerator pathGenerator,
                                    final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
                                    final ExecutorService executor, final String nfsBaseDir )
     {
-
         this.plCacheProvider = plCacheProvider;
-        this.nfsOwnerCache = nfsUsageCache;
+        if ( nfsUsageCache != null )
+        {
+            this.nfsOwnerCache = nfsUsageCache;
+        }
+        else
+        {
+            this.nfsOwnerCache = new NFSOwnerCacheProducer().getCacheMgr().getCache( NFSOwnerCacheProducer.CACHE_NAME );
+        }
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
