@@ -655,6 +655,10 @@ public class MavenPomView
         return result;
     }
 
+    /**
+     * Return an ordered list of {@link RepositoryView} instances for Repositories, while the ones
+     * in Profiles are skipped here since they are not reachable when used as artifact as dep.
+     */
     public List<RepositoryView> getAllRepositories()
     {
         final List<MavenPomElementView> list =
@@ -668,7 +672,13 @@ public class MavenPomView
                 continue;
             }
 
-            result.add( new RepositoryView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
+            RepositoryView repoDeclaration =
+                    new RepositoryView( node.getPomView(), node.getElement(), node.getOriginInfo() );
+            if ( repoDeclaration.getProfileId() != null )
+            {
+                continue;
+            }
+            result.add( repoDeclaration );
         }
 
         return result;

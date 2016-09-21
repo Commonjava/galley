@@ -1,0 +1,65 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.foo</groupId>
+  <artifactId>bar</artifactId>
+  <version>1</version>
+  <repositories>
+    <repository>
+      <id>main.repository</id>
+      <name>Main Repository</name>
+      <url>http://snapshots.maven.codehaus.org/maven2</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+  
+  <profiles>
+    <profile>
+      <id>test-profile-without-repo</id>
+      <activation>
+        <property>
+          <name>test-profile-without-repo</name>
+        </property>
+      </activation>
+      <dependencies>
+         <dependency>
+           <groupId>dep.group</groupId>
+            <artifactId>dep-artifact</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
+          </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>test-profile-with-repo</id>
+      <activation>
+        <property>
+          <name>test-profile-with-repo</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>dep.group</groupId>
+          <artifactId>dep-artifact</artifactId>
+          <version>1.0</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <repositories>
+        <repository>
+          <id>profile.repository</id>
+          <name>Profile Repository</name>
+          <layout>default</layout>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <releases>
+            <enabled>true</enabled>
+            <checksumPolicy>ignore</checksumPolicy>
+          </releases>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+</project>

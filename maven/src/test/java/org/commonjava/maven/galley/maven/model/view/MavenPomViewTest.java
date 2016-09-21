@@ -21,6 +21,7 @@ import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.GalleyMavenXMLException;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -28,6 +29,7 @@ import java.util.Set;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -363,5 +365,26 @@ public class MavenPomViewTest
 
             assertTrue( !pv.getVersion().contains( "${" ) );
         }
+    }
+
+    @Test
+    public void impliedRepositoriesWithProfileSkipped()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-profiles-repos.xml" );
+
+        List<RepositoryView> rvs = pomView.getAllRepositories();
+
+        List<String> repoId = new ArrayList<String>();
+
+        for ( RepositoryView rv : rvs )
+        {
+            System.out.println( "rv " + rv.getId() );
+            repoId.add( rv.getId() );
+        }
+
+        assertTrue( repoId.contains( "main.repository" ) );
+        assertFalse( repoId.contains( "profile.repository" ) );
+        assertEquals( 1, repoId.size() );
     }
 }
