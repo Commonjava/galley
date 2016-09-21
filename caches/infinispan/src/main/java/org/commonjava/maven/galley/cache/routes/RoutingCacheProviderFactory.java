@@ -17,16 +17,10 @@ package org.commonjava.maven.galley.cache.routes;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
-import org.commonjava.maven.galley.cache.infinispan.FastLocalCacheProvider;
-import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.infinispan.Cache;
-
-import java.io.File;
-import java.util.concurrent.ExecutorService;
 
 public class RoutingCacheProviderFactory
         implements CacheProviderFactory

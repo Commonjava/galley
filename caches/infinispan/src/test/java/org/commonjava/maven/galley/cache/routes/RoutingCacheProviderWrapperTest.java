@@ -16,10 +16,7 @@
 package org.commonjava.maven.galley.cache.routes;
 
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
-import org.commonjava.maven.galley.cache.infinispan.FastLocalCacheProvider;
 import org.commonjava.maven.galley.cache.infinispan.FastLocalCacheProviderFactory;
-import org.commonjava.maven.galley.cache.infinispan.NFSOwnerCacheProducer;
-import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderFactory;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
@@ -27,7 +24,6 @@ import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.maven.galley.model.SpecialPathMatcher;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
@@ -39,10 +35,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.hamcrest.CoreMatchers.equalTo;

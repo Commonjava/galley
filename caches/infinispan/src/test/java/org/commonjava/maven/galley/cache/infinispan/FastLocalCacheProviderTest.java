@@ -161,7 +161,7 @@ public class FastLocalCacheProviderTest
     {
         System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFolder().getCanonicalPath() );
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
-                                    pathgen, events, decorator, executor );
+                                    pathgen, events, decorator, executor, null );
     }
 
 }
