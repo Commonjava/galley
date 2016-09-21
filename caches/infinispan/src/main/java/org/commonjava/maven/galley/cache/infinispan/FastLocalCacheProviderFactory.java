@@ -51,10 +51,6 @@ public class FastLocalCacheProviderFactory
         this.executor = executor;
     }
 
-    public FastLocalCacheProviderFactory(File cacheDir, File nfsDir, ExecutorService executor){
-        this(cacheDir, nfsDir, null, executor);
-    }
-
     @Override
     public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecorator transferDecorator,
                                  FileEventManager fileEventManager )

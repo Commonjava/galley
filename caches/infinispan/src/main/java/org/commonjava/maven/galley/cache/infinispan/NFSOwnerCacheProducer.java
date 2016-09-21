@@ -30,11 +30,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * Used to create the nfs cache using pre-defined cache configuration.
  */
-class NFSOwnerCacheProducer
+public class NFSOwnerCacheProducer
 {
-    static final String CACHE_NAME = "nfs-cache";
+    public static final String CACHE_NAME = "nfs-cache";
 
-    EmbeddedCacheManager getCacheMgr()
+    public EmbeddedCacheManager getCacheMgr()
     {
         final EmbeddedCacheManager cacheManager = new DefaultCacheManager(
                 new GlobalConfigurationBuilder().globalJmxStatistics().jmxDomain( "org.commonjava.maven.galley" ).build() );
