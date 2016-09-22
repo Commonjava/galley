@@ -368,12 +368,12 @@ public class MavenPomViewTest
     }
 
     @Test
-    public void impliedRepositoriesWithProfileSkipped()
+    public void repositoriesWithNonProfiles()
             throws Exception
     {
         MavenPomView pomView = loadPoms( "pom-with-profiles-repos.xml" );
 
-        List<RepositoryView> rvs = pomView.getAllRepositories();
+        List<RepositoryView> rvs = pomView.getNonProfileRepositories();
 
         List<String> repoId = new ArrayList<String>();
 
