@@ -655,6 +655,9 @@ public class MavenPomView
         return result;
     }
 
+    /**
+     * Return an ordered list of {@link RepositoryView} instances for all the declared repositories.
+     */
     public List<RepositoryView> getAllRepositories()
     {
         final List<MavenPomElementView> list =
@@ -667,8 +670,27 @@ public class MavenPomView
             {
                 continue;
             }
-
             result.add( new RepositoryView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
+        }
+
+        return result;
+    }
+
+    /**
+     * Return an ordered list of {@link RepositoryView} instances for the non profile repositories,
+     * the ones in profiles will be skipped here.
+     */
+    public List<RepositoryView> getNonProfileRepositories()
+    {
+        List <RepositoryView> repos = getAllRepositories();
+        final List<RepositoryView> result = new ArrayList<>();
+        for ( final RepositoryView rv : repos )
+        {
+            if ( rv.getProfileId() != null )
+            {
+                continue;
+            }
+            result.add( rv );
         }
 
         return result;
