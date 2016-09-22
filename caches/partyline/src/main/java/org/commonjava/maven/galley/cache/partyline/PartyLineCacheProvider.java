@@ -31,9 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.enterprise.inject.Alternative;
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -171,7 +168,7 @@ public class PartyLineCacheProvider
                     }
                     catch ( final IOException e )
                     {
-                        logger.error( String.format( "Failed to delete: %s.", f ), e );
+                        logger.error( String.format( "Failed to tryDelete: %s.", f ), e );
                     }
                 }
             }
@@ -283,7 +280,8 @@ public class PartyLineCacheProvider
     public boolean delete( final ConcreteResource resource )
         throws IOException
     {
-        return getDetachedFile( resource ).delete();
+        return fileManager.tryDelete( getDetachedFile( resource ) );
+//        return getDetachedFile( resource ).tryDelete();
     }
 
     @Override
