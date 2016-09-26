@@ -17,8 +17,6 @@ package org.commonjava.maven.galley.cache.infinispan;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.commonjava.cdi.util.weft.ExecutorConfig;
-import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -29,16 +27,12 @@ import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.infinispan.Cache;
-import org.infinispan.cdi.ConfigureCache;
 import org.infinispan.commons.util.concurrent.ConcurrentWeakKeyHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.enterprise.inject.Alternative;
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -193,9 +187,7 @@ public class FastLocalCacheProvider
 
     File getNFSDetachedFile( ConcreteResource resource )
     {
-        String path = PathUtils.normalize( nfsBaseDir, getFilePath( resource ) );
-        File f = new File( path );
-
+        File f = new File( getNFSFilePath( resource ) );
         synchronized ( this )
         {
             if ( resource.isRoot() && !f.isDirectory() )
@@ -535,12 +527,13 @@ public class FastLocalCacheProvider
         String dir = resource.getLocation()
                              .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
 
-        if ( dir == null )
-        {
-            dir = nfsBaseDir;
-        }
+        return dir != null ?
+                PathUtils.normalize( dir, pathGenerator.getFilePath( resource ) ) :
+                getNFSFilePath( resource );
+    }
 
-        return PathUtils.normalize( dir, pathGenerator.getFilePath( resource ) );
+    private String getNFSFilePath(final ConcreteResource resource){
+        return PathUtils.normalize( nfsBaseDir, pathGenerator.getFilePath( resource ) );
     }
 
     @Override
@@ -769,10 +762,6 @@ public class FastLocalCacheProvider
             //FIXME: potential dead lock?
             synchronized ( getTransfer( resource ) )
             {
-                logger.debug( ">>>>>>plCacheProvider {}",plCacheProvider );
-                logger.debug( ">>>>>>nfsOwnerCache {}", nfsOwnerCache );
-                logger.debug(">>>>>>nfsOwnerCache.getAdvancedCache {}", nfsOwnerCache.getAdvancedCache());
-                logger.debug(">>>>>>nfsOwnerCache.getAdvancedCache().getLockManager() {}", nfsOwnerCache.getAdvancedCache().getLockManager());
                 return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.getAdvancedCache()
                                                                                  .getLockManager()
                                                                                  .isLocked(
@@ -965,9 +954,6 @@ public class FastLocalCacheProvider
             {
                 if ( cacheTxMgr == null || cacheTxMgr.getStatus() == Status.STATUS_NO_TRANSACTION )
                 {
-                    logger.debug( ">>>>>> cacheTxMgr is {}", cacheTxMgr );
-                    logger.debug( ">>>>>> cacheTxMgr status is {}",
-                                  cacheTxMgr == null ? "null" : cacheTxMgr.getStatus() );
                     throw new IllegalStateException(
                             "[galley] ISPN transaction not started correctly. May be it is not set correctly, please have a check. " );
                 }
