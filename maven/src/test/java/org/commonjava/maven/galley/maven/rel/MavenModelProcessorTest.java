@@ -24,6 +24,7 @@ import org.commonjava.maven.atlas.ident.util.JoinString;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;
 import org.commonjava.maven.galley.maven.model.view.PluginView;
+import org.commonjava.maven.galley.maven.model.view.RepositoryView;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -298,4 +299,57 @@ public class MavenModelProcessorTest
         }
     }
 
+    @Test
+    public void resolveRepositoriesExpressionFromPropertyInProfile()
+            throws Exception
+    {
+        final URI src = new URI( "http://nowhere.com/path/to/repo" );
+
+        final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-pom", "1.0" );
+
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        lineage.put( childRef, "test-pom-1.0.pom.xml" );
+
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+
+        final String base = PROJ_BASE + "repositories-expression-in-a-profile/";
+
+        for ( final Entry<ProjectVersionRef, String> entry : lineage.entrySet() )
+        {
+            final ProjectVersionRef ref = entry.getKey();
+            final String filename = entry.getValue();
+
+            final String path = ArtifactPathUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getTypeMapper() );
+
+            fixture.getTransport()
+                   .registerDownload( new ConcreteResource( location, path ), new TestDownload( base + filename ) );
+        }
+
+        final Transfer transfer = fixture.getArtifactManager().retrieve( location, childRef.asPomArtifact() );
+
+        final MavenPomView pomView =
+                fixture.getPomReader().read( childRef, transfer, Collections.singletonList( location ) );
+
+        final List<RepositoryView> rvs = pomView.getAllRepositories();
+
+        assertThat( rvs, notNullValue() );
+        assertThat( rvs.size(), equalTo( 3 ) );
+
+        for ( RepositoryView rv : rvs )
+        {
+            assertThat( rv, notNullValue() );
+            if ( rv.getName().equals( "repo.one" ) )
+            {
+                assertThat( rv.getUrl(), equalTo( "http://www.bar.com/repo" ) );
+            }
+            if ( rv.getName().equals( "test.oracle" ) )
+            {
+                assertThat( rv.getUrl(), equalTo( "http://test.oracle.repository" ) );
+            }
+            if ( rv.getName().equals( "test.two.oracle" ) )
+            {
+                assertThat( rv.getUrl(), equalTo( "http://test.two.oracle.repository" ) );
+            }
+        }
+    }
 }

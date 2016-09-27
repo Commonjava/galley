@@ -387,4 +387,28 @@ public class MavenPomViewTest
         assertFalse( repoId.contains( "profile.repository" ) );
         assertEquals( 1, repoId.size() );
     }
+
+    @Test
+    public void repositoriesWithUrlPropertyInProfile()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-repo-property-in-profile.xml" );
+        List<RepositoryView> rvs = pomView.getAllRepositories();
+
+        for ( RepositoryView rv : rvs )
+        {
+            if ( rv.getName().equals( "repo.one" ) )
+            {
+                assertThat( rv.getUrl(), equalTo( "http://www.bar.com/repo" ) );
+            }
+            if ( rv.getName().equals( "test.oracle" ) )
+            {
+                assertThat( rv.getUrl(), equalTo( "http://test.oracle.repository" ) );
+            }
+            if ( rv.getName().equals( "test.two.oracle" ) )
+            {
+                assertThat( rv.getUrl(), equalTo( "http://test.two.oracle.repository" ) );
+            }
+        }
+    }
 }

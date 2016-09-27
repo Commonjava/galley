@@ -1047,8 +1047,8 @@ public class MavenPomView
             if ( ssi == null )
             {
                 ssi = new StringSearchInterpolator();
-                ssi.addValueSource( new MavenPomViewVS( this, activeProfileIds ) );
             }
+            ssi.addValueSource( new MavenPomViewVS( this, activeProfileIds ) );
         }
 
         try

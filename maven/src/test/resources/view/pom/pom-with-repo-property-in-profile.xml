@@ -1,0 +1,48 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.test</groupId>
+  <artifactId>one-repo</artifactId>
+  <version>1</version>
+
+  <properties>
+    <repo.one.url>http://www.bar.com/repo</repo.one.url>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>repo.one</id>
+      <name>test1</name>
+      <url>${repo.one.url}</url>
+    </repository>
+  </repositories>
+
+  <profiles>
+    <profile>
+      <id>test.oracle</id>
+      <properties>
+        <oracle.maven.repo>http://test.oracle.repository</oracle.maven.repo>
+      </properties>
+      <repositories>
+        <repository>
+          <id>oracle.repository</id>
+          <name>test2</name>
+          <url>${oracle.maven.repo}</url>
+        </repository>
+      </repositories>
+    </profile>
+    <profile>
+      <id>test.two.oracle</id>
+      <properties>
+        <oracle.two.maven.repo>http://test.two.oracle.repository</oracle.two.maven.repo>
+      </properties>
+      <repositories>
+        <repository>
+          <id>oracle.two.repository</id>
+          <name>test3</name>
+          <url>${oracle.two.maven.repo}</url>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+</project>
