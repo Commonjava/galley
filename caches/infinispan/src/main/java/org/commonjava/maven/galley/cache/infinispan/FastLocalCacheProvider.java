@@ -126,7 +126,7 @@ public class FastLocalCacheProvider
     }
 
     private void checkNfsBaseDir(){
-        if ( StringUtils.isBlank( nfsBaseDir ) )
+        if ( StringUtils.isEmpty( nfsBaseDir ) )
         {
             logger.debug( ">>>[galley] the nfs basedir is {}", nfsBaseDir );
             throw new IllegalArgumentException(

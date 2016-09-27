@@ -151,10 +151,7 @@ public class FastLocalCacheProviderTest
     public void testConstructorWitNoNFSSysPath()
             throws IOException
     {
-        File file = temp.newFile( "doesnt.exist" );
-        assertThat( "Cannot delete file: " + file, !file.exists() || file.delete(), equalTo( true ) );
-
-        final String NON_EXISTS_PATH = file.getAbsolutePath();
+        final String NON_EXISTS_PATH = "";
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
                                     pathgen, events, decorator, executor, NON_EXISTS_PATH );
     }
