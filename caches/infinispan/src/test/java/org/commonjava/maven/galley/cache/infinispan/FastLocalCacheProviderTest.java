@@ -24,6 +24,7 @@ import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -150,7 +151,10 @@ public class FastLocalCacheProviderTest
     public void testConstructorWitNoNFSSysPath()
             throws IOException
     {
-        final String NON_EXISTS_PATH = "";
+        File file = temp.newFile( "doesnt.exist" );
+        assertThat( "Cannot delete file: " + file, !file.exists() || file.delete(), equalTo( true ) );
+
+        final String NON_EXISTS_PATH = file.getAbsolutePath();
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
                                     pathgen, events, decorator, executor, NON_EXISTS_PATH );
     }
