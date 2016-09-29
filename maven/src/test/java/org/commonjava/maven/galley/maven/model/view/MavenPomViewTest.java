@@ -395,20 +395,28 @@ public class MavenPomViewTest
         MavenPomView pomView = loadPoms( "pom-with-repo-property-in-profile.xml" );
         List<RepositoryView> rvs = pomView.getAllRepositories();
 
-        for ( RepositoryView rv : rvs )
-        {
-            if ( rv.getName().equals( "repo.one" ) )
-            {
-                assertThat( rv.getUrl(), equalTo( "http://www.bar.com/repo" ) );
-            }
-            if ( rv.getName().equals( "test.oracle" ) )
-            {
-                assertThat( rv.getUrl(), equalTo( "http://test.oracle.repository" ) );
-            }
-            if ( rv.getName().equals( "test.two.oracle" ) )
-            {
-                assertThat( rv.getUrl(), equalTo( "http://test.two.oracle.repository" ) );
-            }
-        }
+        assertThat( rvs.get( 0 ).getName(), equalTo( "repo.one" ) );
+        assertThat( rvs.get( 0 ).getUrl(), equalTo( "http://repo.one.repository" ) );
+        assertThat( rvs.get( 1 ).getName(), equalTo( "test.oracle.repo" ) );
+        assertThat( rvs.get( 1 ).getUrl(), equalTo( "http://test.oracle.repository" ) );
+        assertThat( rvs.get( 2 ).getName(), equalTo( "test.second.oracle.repo" ) );
+        assertThat( rvs.get( 2 ).getUrl(), equalTo( "http://another.test.two.oracle.repository" ) );
+    }
+
+    @Test
+    public void resolveExpressionsBothInDepAndProfile()
+            throws Exception
+    {
+        MavenPomView pomView = loadPoms( "pom-with-repo-property-in-profile.xml" );
+        String url = pomView.resolveExpressions( "${repo.url}", "test.oracle" );
+
+        assertTrue( pomView.containsExpression( "${repo.url}" ) );
+        assertThat( url, equalTo( "http://test.oracle.repository" ) );
+
+        List<DependencyView> dvs = pomView.getAllDirectDependencies();
+        assertThat( dvs.get( 0 ).getVersion(), equalTo( "2.5" ) );
+
+        String version = pomView.resolveExpressions( "${commons.lang.value}" );
+        assertThat( version, equalTo( "2.5" ) );
     }
 }

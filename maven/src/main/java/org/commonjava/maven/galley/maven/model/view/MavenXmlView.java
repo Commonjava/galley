@@ -15,22 +15,21 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.jxpath.JXPathContext;
 import org.apache.commons.jxpath.JXPathException;
 import org.apache.commons.jxpath.JXPathInvalidSyntaxException;
-import org.codehaus.plexus.interpolation.StringSearchInterpolator;
 import org.commonjava.maven.galley.maven.GalleyMavenRuntimeException;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Base class for objects parsed from XML documents that can have inheritance or mix-ins (eg. merged Maven 
@@ -49,8 +48,6 @@ public class MavenXmlView<T>
     protected final List<DocRef<T>> stack;
 
     //    protected final XPathManager xpath;
-
-    protected StringSearchInterpolator ssi;
 
     protected final List<MavenXmlMixin<T>> mixins = new ArrayList<MavenXmlMixin<T>>();
 

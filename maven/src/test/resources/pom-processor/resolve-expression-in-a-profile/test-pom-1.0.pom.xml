@@ -16,41 +16,53 @@
   <version>1.0</version>
 
   <properties>
-    <repo.one.url>http://www.bar.com/repo</repo.one.url>
+    <repo.url>http://repo.one.repository</repo.url>
+    <another.url>http://another.test.two.oracle.repository</another.url>
+    <commons.lang.value>2.5</commons.lang.value>
   </properties>
 
   <repositories>
     <repository>
       <id>repo.one</id>
-      <name>test1</name>
-      <url>${repo.one.url}</url>
+      <name>repo.one</name>
+      <url>${repo.url}</url>
     </repository>
   </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${commons.lang.value}</version>
+    </dependency>
+  </dependencies>
 
   <profiles>
     <profile>
       <id>test.oracle</id>
       <properties>
-        <oracle.maven.repo>http://test.oracle.repository</oracle.maven.repo>
+        <repo.url>http://test.oracle.repository</repo.url>
+        <another.url>http://non.test.two.oracle.repository</another.url>
+        <commons.lang.value>2.6</commons.lang.value>
       </properties>
       <repositories>
         <repository>
           <id>oracle.repository</id>
-          <name>test2</name>
-          <url>${oracle.maven.repo}</url>
+          <name>test.oracle.repo</name>
+          <url>${repo.url}</url>
         </repository>
       </repositories>
     </profile>
     <profile>
-      <id>test.two.oracle</id>
+      <id>test.second.oracle</id>
       <properties>
-        <oracle.two.maven.repo>http://test.two.oracle.repository</oracle.two.maven.repo>
+        <repo.url>http://test.two.oracle.repository</repo.url>
       </properties>
       <repositories>
         <repository>
-          <id>oracle.two.repository</id>
-          <name>test3</name>
-          <url>${oracle.two.maven.repo}</url>
+          <id>oracle.second.repository</id>
+          <name>test.second.oracle.repo</name>
+          <url>${another.url}</url>
         </repository>
       </repositories>
     </profile>
