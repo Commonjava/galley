@@ -34,6 +34,7 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -196,11 +197,20 @@ public class PartyLineCacheProvider
         throws IOException
     {
         final File targetFile = getDetachedFile( resource );
-        if ( !targetFile.exists() )
+        if ( targetFile.exists() )
         {
-            return null;
+            try
+            {
+                return fileManager.openInputStream( targetFile )
+                        ;
+            }
+            catch ( InterruptedException e )
+            {
+                logger.warn( "Interrupted: " + e.getMessage() );
+            }
         }
-        return fileManager.openInputStream( targetFile );
+
+        return null;
     }
 
     @Override
@@ -220,7 +230,16 @@ public class PartyLineCacheProvider
             }
         }
 
-        return fileManager.openOutputStream( targetFile );
+        try
+        {
+            return fileManager.openOutputStream( targetFile );
+        }
+        catch ( InterruptedException e )
+        {
+            logger.warn( "Interrupted: " + e.getMessage() );
+        }
+
+        return null;
 
         //        fileManager.lock( targetFile );
 
@@ -269,6 +288,10 @@ public class PartyLineCacheProvider
             out = fileManager.openOutputStream( to );
             IOUtils.copy( in, out );
         }
+        catch ( InterruptedException e )
+        {
+            logger.warn( "Interrupted: ", e.getMessage() );
+        }
         finally
         {
             IOUtils.closeQuietly( in );
@@ -280,8 +303,17 @@ public class PartyLineCacheProvider
     public boolean delete( final ConcreteResource resource )
         throws IOException
     {
-        return fileManager.tryDelete( getDetachedFile( resource ) );
-//        return getDetachedFile( resource ).tryDelete();
+        try
+        {
+            return fileManager.tryDelete( getDetachedFile( resource ) );
+        }
+        catch ( InterruptedException e )
+        {
+            logger.warn( "Interrupted: " + e.getMessage() );
+        }
+
+        return false;
+        //        return getDetachedFile( resource ).tryDelete();
     }
 
     @Override
@@ -432,13 +464,27 @@ public class PartyLineCacheProvider
     @Override
     public void waitForWriteUnlock( final ConcreteResource resource )
     {
-        fileManager.waitForWriteUnlock( getDetachedFile( resource ) );
+        try
+        {
+            fileManager.waitForWriteUnlock( getDetachedFile( resource ) );
+        }
+        catch ( InterruptedException e )
+        {
+            logger.warn( "Interrupted: " + e.getMessage() );
+        }
     }
 
     @Override
     public void waitForReadUnlock( final ConcreteResource resource )
     {
-        fileManager.waitForReadUnlock( getDetachedFile( resource ) );
+        try
+        {
+            fileManager.waitForReadUnlock( getDetachedFile( resource ) );
+        }
+        catch ( InterruptedException e )
+        {
+            logger.warn( "Interrupted: " + e.getMessage() );
+        }
     }
 
     @Override
