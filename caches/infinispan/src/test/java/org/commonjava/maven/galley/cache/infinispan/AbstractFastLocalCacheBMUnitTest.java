@@ -81,7 +81,8 @@ public abstract class AbstractFastLocalCacheBMUnitTest
         final String nfsBasePath = createNFSBaseDir( temp.newFolder().getCanonicalPath() );
         provider =
                 new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
-                                            cache, pathgen, events, decorator, executor, nfsBasePath );
+                                            new SimpleCacheInstance<>( name.getMethodName(), cache ), pathgen, events,
+                                            decorator, executor, nfsBasePath );
     }
 
     @After

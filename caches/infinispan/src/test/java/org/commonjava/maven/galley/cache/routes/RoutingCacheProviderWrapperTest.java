@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.cache.routes;
 
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
+import org.commonjava.maven.galley.cache.infinispan.SimpleCacheInstance;
 import org.commonjava.maven.galley.cache.infinispan.FastLocalCacheProviderFactory;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderFactory;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
@@ -84,7 +85,9 @@ public class RoutingCacheProviderWrapperTest
 
         final File cacheDir = temp.newFolder();
         partylineFac = new PartyLineCacheProviderFactory( cacheDir );
-        fastLocalFac = new FastLocalCacheProviderFactory( cacheDir, temp.newFolder(), new DefaultCacheManager().<String, String>getCache(),
+        SimpleCacheInstance<String, String> cacheInstance =
+                new SimpleCacheInstance<>( "test", new DefaultCacheManager().getCache() );
+        fastLocalFac = new FastLocalCacheProviderFactory( cacheDir, temp.newFolder(), cacheInstance,
                                                           Executors.newFixedThreadPool( 5 ) );
     }
 
