@@ -22,7 +22,6 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
-import org.infinispan.Cache;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -37,13 +36,13 @@ public class FastLocalCacheProviderFactory
 
     private final File nfsDir;
 
-    private Cache<String, String> nfsUsageCache;
+    private CacheInstance<String, String> nfsUsageCache;
 
     private final ExecutorService executor;
 
     private transient FastLocalCacheProvider provider;
 
-    public FastLocalCacheProviderFactory( File cacheDir, File nfsDir, Cache<String, String> nfsUsageCache, ExecutorService executor )
+    public FastLocalCacheProviderFactory( File cacheDir, File nfsDir, CacheInstance<String, String> nfsUsageCache, ExecutorService executor )
     {
         this.cacheDir = cacheDir;
         this.nfsDir = nfsDir;
