@@ -1046,15 +1046,19 @@ public class MavenPomView
             return value;
         }
 
-        List<String> prefixs = new ArrayList<>();
-        prefixs.add( PrefixAwareRecursionInterceptor.DEFAULT_START_TOKEN );
-        PrefixAwareRecursionInterceptor ri = new PrefixAwareRecursionInterceptor( prefixs );
-        return resolveExpressions( value, ri, activeProfileIds );
+        return resolveExpressions( value, null, activeProfileIds );
     }
 
-    public String resolveExpressions( final String value, final RecursionInterceptor ri,
+    public String resolveExpressions( final String value, RecursionInterceptor ri,
                                       final String... activeProfileIds )
     {
+        if ( null == ri )
+        {
+            List<String> prefixs = new ArrayList<>();
+            prefixs.add( PrefixAwareRecursionInterceptor.DEFAULT_START_TOKEN );
+            ri = new PrefixAwareRecursionInterceptor( prefixs );
+        }
+
         StringSearchInterpolator ssi = new StringSearchInterpolator();
         ssi.addValueSource( new MavenPomViewVS( this, ri, activeProfileIds ) );
         try
