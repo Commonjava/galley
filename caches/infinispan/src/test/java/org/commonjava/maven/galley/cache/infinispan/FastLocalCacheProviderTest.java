@@ -151,8 +151,9 @@ public class FastLocalCacheProviderTest
             throws IOException
     {
         final String NON_EXISTS_PATH = "";
-        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
-                                    pathgen, events, decorator, executor, NON_EXISTS_PATH );
+        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
+                                    new SimpleCacheInstance<>( "test", cache ), pathgen, events, decorator, executor,
+                                    NON_EXISTS_PATH );
     }
 
     @Test
@@ -160,8 +161,8 @@ public class FastLocalCacheProviderTest
             throws IOException
     {
         System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFolder().getCanonicalPath() );
-        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ), cache,
-                                    pathgen, events, decorator, executor, null );
+        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
+                                    new SimpleCacheInstance<>( "test", cache ), pathgen, events, decorator, executor, null );
     }
 
 }

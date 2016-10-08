@@ -26,7 +26,6 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
-import org.infinispan.Cache;
 import org.infinispan.commons.util.concurrent.ConcurrentWeakKeyHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,6 @@ import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -88,9 +86,7 @@ public class FastLocalCacheProvider
 
     // This NFS owner cache will be shared during nodes(indy?), it will record the which node is storing which file
     // in NFS. Used as <path, ip> cache to collect nfs ownership of the file storage
-    private Cache<String, String> nfsOwnerCache;
-
-    private TransactionManager cacheTxMgr;
+    private CacheInstance<String, String> nfsOwnerCache;
 
     private FileEventManager fileEventManager;
 
@@ -111,9 +107,9 @@ public class FastLocalCacheProvider
      * @param nfsBaseDir - The NFS system root dir to hold the artifacts
      */
     protected FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
-                                   final Cache<String, String> nfsUsageCache, final PathGenerator pathGenerator,
-                                   final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
-                                   final ExecutorService executor, final String nfsBaseDir )
+                                      final CacheInstance<String, String> nfsUsageCache, final PathGenerator pathGenerator,
+                                      final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
+                                      final ExecutorService executor, final String nfsBaseDir )
     {
         this.plCacheProvider = plCacheProvider;
         this.nfsOwnerCache = nfsUsageCache;
@@ -126,7 +122,7 @@ public class FastLocalCacheProvider
     }
 
     private void checkNfsBaseDir(){
-        if ( StringUtils.isBlank( nfsBaseDir ) )
+        if ( StringUtils.isEmpty( nfsBaseDir ) )
         {
             logger.debug( ">>>[galley] the nfs basedir is {}", nfsBaseDir );
             throw new IllegalArgumentException(
@@ -155,8 +151,6 @@ public class FastLocalCacheProvider
     @PostConstruct
     public void init()
     {
-        cacheTxMgr = nfsOwnerCache.getAdvancedCache().getTransactionManager();
-
         startReporting();
     }
 
@@ -293,8 +287,8 @@ public class FastLocalCacheProvider
 
                 try
                 {
-                    cacheTxMgr.begin();
-                    nfsOwnerCache.getAdvancedCache().lock( pathKey );
+                    nfsOwnerCache.beginTransaction();
+                    nfsOwnerCache.lock( pathKey );
                     File nfsFile = getNFSDetachedFile( resource );
                     if ( !nfsFile.exists() )
                     {
@@ -328,7 +322,7 @@ public class FastLocalCacheProvider
                 {
                     try
                     {
-                        cacheTxMgr.rollback();
+                        nfsOwnerCache.rollback();
                     }
                     catch ( SystemException e )
                     {
@@ -405,8 +399,9 @@ public class FastLocalCacheProvider
         {
             try
             {
-                cacheTxMgr.begin();
-                nfsOwnerCache.getAdvancedCache().lock( pathKey );
+                nfsOwnerCache.beginTransaction();
+                nfsOwnerCache.lock( pathKey );
+
                 nfsOwnerCache.put( pathKey, nodeIp );
                 logger.debug( "Start to get output stream from local cache through partyline to do join stream" );
                 final OutputStream localOut = plCacheProvider.openOutputStream( resource );
@@ -431,7 +426,7 @@ public class FastLocalCacheProvider
                 logger.debug( "The output stream from NFS is got successfully" );
                 // will wrap the cache manager in stream wrapper, and let it do tx commit in stream close to make sure
                 // the two streams writing's consistency.
-                dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, cacheTxMgr );
+                dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, nfsOwnerCache );
                 synchronized ( streamHolder )
                 {
                     final String threadId = String.valueOf( Thread.currentThread().getId() );
@@ -473,8 +468,8 @@ public class FastLocalCacheProvider
         OutputStream nfsTo = null;
         try
         {
-            cacheTxMgr.begin();
-            nfsOwnerCache.getAdvancedCache().lock( fromNFSPath, toNFSPath );
+            nfsOwnerCache.beginTransaction();
+            nfsOwnerCache.lock( fromNFSPath, toNFSPath );
             plCacheProvider.copy( from, to );
             nfsFrom = new FileInputStream( getNFSDetachedFile( from ) );
             File nfsToFile = getNFSDetachedFile( to );
@@ -497,14 +492,14 @@ public class FastLocalCacheProvider
             IOUtils.copy( nfsFrom, nfsTo );
             //FIXME: need to use put?
             nfsOwnerCache.putIfAbsent( toNFSPath, getCurrentNodeIp() );
-            cacheTxMgr.commit();
+            nfsOwnerCache.commit();
         }
         catch ( NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
         {
             logger.error( "[galley] Transaction error for nfs cache during file copying.", e );
             try
             {
-                cacheTxMgr.rollback();
+                nfsOwnerCache.rollback();
             }
             catch ( SystemException se )
             {
@@ -565,8 +560,8 @@ public class FastLocalCacheProvider
                     logger.info( "local file deletion failed for {}", resource );
                     return false;
                 }
-                cacheTxMgr.begin();
-                nfsOwnerCache.getAdvancedCache().lock( pathKey );
+                nfsOwnerCache.beginTransaction();
+                nfsOwnerCache.lock( pathKey );
                 nfsOwnerCache.remove( pathKey );
                 final boolean nfsDeleted = nfsFile.delete();
                 if ( !nfsDeleted )
@@ -587,7 +582,7 @@ public class FastLocalCacheProvider
                 {
                     try
                     {
-                        cacheTxMgr.rollback();
+                        nfsOwnerCache.rollback();
                     }
                     catch ( SystemException e )
                     {
@@ -614,8 +609,8 @@ public class FastLocalCacheProvider
         final String pathKey = getKeyForResource( resource );
         try
         {
-            cacheTxMgr.begin();
-            nfsOwnerCache.getAdvancedCache().lock( pathKey );
+            nfsOwnerCache.beginTransaction();
+            nfsOwnerCache.lock( pathKey );
             getDetachedFile( resource ).mkdirs();
         }
         catch ( NotSupportedException | SystemException e )
@@ -629,7 +624,7 @@ public class FastLocalCacheProvider
         {
             try
             {
-                cacheTxMgr.rollback();
+                nfsOwnerCache.rollback();
             }
             catch ( SystemException e )
             {
@@ -649,8 +644,8 @@ public class FastLocalCacheProvider
         final String pathKey = getKeyForResource( resource );
         try
         {
-            cacheTxMgr.begin();
-            nfsOwnerCache.getAdvancedCache().lock( pathKey );
+            nfsOwnerCache.beginTransaction();
+            nfsOwnerCache.lock( pathKey );
             final File nfsFile = getNFSDetachedFile( resource );
             if ( !nfsFile.exists() )
             {
@@ -669,7 +664,7 @@ public class FastLocalCacheProvider
         {
             try
             {
-                cacheTxMgr.rollback();
+                nfsOwnerCache.rollback();
             }
             catch ( SystemException e )
             {
@@ -739,10 +734,8 @@ public class FastLocalCacheProvider
             //FIXME: potential dead lock?
             synchronized ( getTransfer( resource ) )
             {
-                return plCacheProvider.isReadLocked( resource ) || nfsOwnerCache.getAdvancedCache()
-                                                                                .getLockManager()
-                                                                                .isLocked(
-                                                                                        getKeyForResource( resource ) );
+                return plCacheProvider.isReadLocked( resource ) || nfsOwnerCache.isLocked(
+                        getKeyForResource( resource ) );
             }
         }
         catch ( IOException e )
@@ -762,10 +755,8 @@ public class FastLocalCacheProvider
             //FIXME: potential dead lock?
             synchronized ( getTransfer( resource ) )
             {
-                return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.getAdvancedCache()
-                                                                                 .getLockManager()
-                                                                                 .isLocked(
-                                                                                         getKeyForResource( resource ) );
+                return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.isLocked(
+                        getKeyForResource( resource ) );
             }
         }
         catch ( IOException e )
@@ -844,7 +835,7 @@ public class FastLocalCacheProvider
             {
                 // Use ISPN lock owner for resource to wait until lock is released. Note that if the lock has no owner,
                 // means lock has been released
-                final Object owner = nfsOwnerCache.getAdvancedCache().getLockManager().getOwner( key );
+                final Object owner = nfsOwnerCache.getLockOwner( key );
                 if ( owner == null )
                 {
                     break;
@@ -908,14 +899,14 @@ public class FastLocalCacheProvider
 
         private OutputStream out2;
 
-        private TransactionManager cacheTxMgr;
+        private CacheInstance<String,String> cacheInstance;
 
         public DualOutputStreamsWrapper( final OutputStream out1, final OutputStream out2,
-                                         final TransactionManager cacheTxMgr )
+                                         final CacheInstance<String,String> cacheInstance )
         {
             this.out1 = out1;
             this.out2 = out2;
-            this.cacheTxMgr = cacheTxMgr;
+            this.cacheInstance = cacheInstance;
         }
 
         @Override
@@ -952,12 +943,12 @@ public class FastLocalCacheProvider
         {
             try
             {
-                if ( cacheTxMgr == null || cacheTxMgr.getStatus() == Status.STATUS_NO_TRANSACTION )
+                if ( cacheInstance == null || cacheInstance.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
                 {
                     throw new IllegalStateException(
                             "[galley] ISPN transaction not started correctly. May be it is not set correctly, please have a check. " );
                 }
-                cacheTxMgr.commit();
+                cacheInstance.commit();
             }
             catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
             {
@@ -965,7 +956,7 @@ public class FastLocalCacheProvider
 
                 try
                 {
-                    cacheTxMgr.rollback();
+                    cacheInstance.rollback();
                 }
                 catch ( SystemException se )
                 {
