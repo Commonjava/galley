@@ -36,5 +36,8 @@ public interface SpecialPathManager
 
     SpecialPathInfo getSpecialPathInfo( Transfer transfer );
 
+    @Deprecated
     SpecialPathInfo getSpecialPathInfo( Location location, String path );
+
+    SpecialPathInfo getSpecialPathInfo( String path );
 }

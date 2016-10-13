@@ -63,35 +63,39 @@ public class SpecialPathManagerImpl
         specialPaths.remove( pathInfo );
     }
 
+    @Deprecated
     @Override
     public SpecialPathInfo getSpecialPathInfo( ConcreteResource resource )
     {
         if ( resource != null )
         {
-            return getSpecialPathInfo( resource.getLocation(), resource.getPath() );
+            return getSpecialPathInfo(resource.getLocation(), resource.getPath() );
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return null;
     }
 
+    @Deprecated
     @Override
     public SpecialPathInfo getSpecialPathInfo( Transfer transfer )
     {
         if ( transfer != null )
         {
-            return getSpecialPathInfo( transfer.getLocation(), transfer.getPath() );
+            return getSpecialPathInfo(transfer.getLocation(), transfer.getPath() );
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return null;
     }
 
+    @Deprecated
     @Override
     public SpecialPathInfo getSpecialPathInfo( Location location, String path )
     {
         SpecialPathInfo firstHit = null;
-        if ( location != null && path != null )
+        // Location is not used in current SpecialPathMatcher impl classes, so removed the null check.
+        if ( path != null )
         {
             for ( SpecialPathInfo info : specialPaths )
             {
@@ -113,5 +117,13 @@ public class SpecialPathManagerImpl
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR based on path if firstHit is null!
 
         return firstHit;
+    }
+
+    @Override
+    public SpecialPathInfo getSpecialPathInfo( String path )
+    {
+        // TODO: seems that all SpecialPathMatcher impl classes does not use the Location, so we should consider to remove the Location arg next step.
+        // TODO: When path is null, return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
+        return path == null ? null : getSpecialPathInfo( null, path );
     }
 }
