@@ -121,6 +121,12 @@ public class MavenPomView
         return new HashSet<String>( resolveXPathExpressionToAggregatedList( "/profiles/profile/id/text()", false, -1 ) );
     }
 
+    public String resolveMavenExpression( final String expression, final String... activeProfileIds )
+            throws GalleyMavenException
+    {
+        return resolveMavenExpression( expression, null, activeProfileIds );
+    }
+
     public String resolveMavenExpression( final String expression, final RecursionInterceptor ri,
                                           final String... activeProfileIds )
         throws GalleyMavenException
@@ -965,6 +971,12 @@ public class MavenPomView
         }
 
         return result;
+    }
+
+    public String resolveXPathExpression( final String path, final boolean cachePath, final int maxAncestry,
+                                          final String... activeProfileIds )
+    {
+       return resolveXPathExpression( path, cachePath, maxAncestry, null, activeProfileIds );
     }
 
     /**
