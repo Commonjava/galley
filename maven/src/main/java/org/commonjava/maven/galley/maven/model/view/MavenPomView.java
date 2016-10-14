@@ -18,6 +18,8 @@ package org.commonjava.maven.galley.maven.model.view;
 import org.apache.commons.jxpath.JXPathContext;
 import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.Interpolator;
+import org.codehaus.plexus.interpolation.PrefixAwareRecursionInterceptor;
+import org.codehaus.plexus.interpolation.RecursionInterceptor;
 import org.codehaus.plexus.interpolation.StringSearchInterpolator;
 import org.codehaus.plexus.interpolation.ValueSource;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
@@ -120,6 +122,13 @@ public class MavenPomView
     }
 
     public String resolveMavenExpression( final String expression, final String... activeProfileIds )
+            throws GalleyMavenException
+    {
+        return resolveMavenExpression( expression, null, activeProfileIds );
+    }
+
+    public String resolveMavenExpression( final String expression, final RecursionInterceptor ri,
+                                          final String... activeProfileIds )
         throws GalleyMavenException
     {
         String expr = expression.replace( '.', '/' );
@@ -138,14 +147,14 @@ public class MavenPomView
             expr = "/project" + expr;
         }
 
-        String value = resolveXPathExpression( expr, true, -1 );
+        String value = resolveXPathExpression( expr, true, -1, ri );
 
         for ( int i = 0; value == null && activeProfileIds != null && i < activeProfileIds.length; i++ )
         {
             final String profileId = activeProfileIds[i];
             value =
-                resolveXPathExpression( "//profile[id/text()=\"" + profileId + "\"]/properties/" + expression, true,
-                                        -1, activeProfileIds );
+                resolveXPathExpression( "//profile[id/text()=\"" + profileId + "\"]/properties/" + expression, true, -1,
+                                        ri, activeProfileIds );
         }
 
         if ( value == null )
@@ -355,7 +364,7 @@ public class MavenPomView
     public String resolveXPathExpression( final String path, final boolean localOnly )
         throws GalleyMavenException
     {
-        final String value = resolveXPathExpression( path, true, localOnly ? 0 : -1 );
+        final String value = resolveXPathExpression( path, true, localOnly ? 0 : -1, null );
         return value;
     }
 
@@ -964,12 +973,19 @@ public class MavenPomView
         return result;
     }
 
+    public String resolveXPathExpression( final String path, final boolean cachePath, final int maxAncestry,
+                                          final String... activeProfileIds )
+    {
+       return resolveXPathExpression( path, cachePath, maxAncestry, null, activeProfileIds );
+    }
+
     /**
      * RAW ACCESS: Resolve the given XPath expression. If the result is a Node, retrieve the text() child. Resolve any
      * Maven-style expressions in the result, and pass back the resolved value, or null if nothing is matched.
      * If more than one node matches, process the first for its string value.
      */
     public String resolveXPathExpression( final String path, final boolean cachePath, final int maxAncestry,
+                                          final RecursionInterceptor ri,
                                           final String... activeProfileIds )
     {
         final String p = trimTextSuffix( path );
@@ -978,7 +994,7 @@ public class MavenPomView
         if ( raw != null )
         {
             //            logger.info( "Raw content of: '{}' is: '{}'", path, raw );
-            return resolveExpressions( raw, activeProfileIds );
+            return resolveExpressions( raw, ri, activeProfileIds );
         }
 
         return null;
@@ -1034,30 +1050,34 @@ public class MavenPomView
      * @param activeProfileIds The profiles to consider active, whose elements should be treated as merged with
      *   the main POM body
      */
+
     public String resolveExpressions( final String value, final String... activeProfileIds )
     {
         if ( !containsExpression( value ) )
         {
-            //            logger.info( "No expressions in: '{}'", value );
             return value;
         }
 
-        synchronized ( this )
+        return resolveExpressions( value, null, activeProfileIds );
+    }
+
+    public String resolveExpressions( final String value, RecursionInterceptor ri,
+                                      final String... activeProfileIds )
+    {
+        if ( null == ri )
         {
-            if ( ssi == null )
-            {
-                ssi = new StringSearchInterpolator();
-                ssi.addValueSource( new MavenPomViewVS( this, activeProfileIds ) );
-            }
+            List<String> prefixs = new ArrayList<>();
+            prefixs.add( PrefixAwareRecursionInterceptor.DEFAULT_START_TOKEN );
+            ri = new PrefixAwareRecursionInterceptor( prefixs );
         }
 
+        StringSearchInterpolator ssi = new StringSearchInterpolator();
+        ssi.addValueSource( new MavenPomViewVS( this, ri, activeProfileIds ) );
         try
         {
-            String result = ssi.interpolate( value );
-            //            logger.info( "Resolved '{}' to '{}'", value, result );
+            String result = ssi.interpolate( value, ri );
 
-            if ( result == null || result.trim()
-                                         .length() < 1 )
+            if ( result == null || result.trim().length() < 1 )
             {
                 result = value;
             }
@@ -1088,9 +1108,12 @@ public class MavenPomView
 
         private final String[] activeProfileIds;
 
-        public MavenPomViewVS( final MavenPomView view, final String[] activeProfileIds )
+        private final RecursionInterceptor ri;
+
+        public MavenPomViewVS( final MavenPomView view, final RecursionInterceptor ri, final String[] activeProfileIds )
         {
             this.view = view;
+            this.ri = ri;
             this.activeProfileIds = activeProfileIds;
         }
 
@@ -1112,7 +1135,7 @@ public class MavenPomView
         {
             try
             {
-                final String value = view.resolveMavenExpression( expr, activeProfileIds );
+                final String value = view.resolveMavenExpression( expr, ri, activeProfileIds );
                 //                logger.info( "Value of: '{}' is: '{}'", expr, value );
                 return value;
             }

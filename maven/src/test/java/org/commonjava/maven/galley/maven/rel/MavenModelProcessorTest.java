@@ -21,9 +21,11 @@ import org.commonjava.maven.atlas.graph.rel.RelationshipType;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.atlas.ident.util.JoinString;
+import org.commonjava.maven.galley.maven.model.view.DependencyView;
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;
 import org.commonjava.maven.galley.maven.model.view.PluginView;
+import org.commonjava.maven.galley.maven.model.view.RepositoryView;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.maven.util.ArtifactPathUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -298,4 +300,88 @@ public class MavenModelProcessorTest
         }
     }
 
+    @Test
+    public void resolveRepositoriesExpressionFromPropertyInProfile()
+            throws Exception
+    {
+        final URI src = new URI( "http://nowhere.com/path/to/repo" );
+
+        final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-pom", "1.0" );
+
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        lineage.put( childRef, "test-pom-1.0.pom.xml" );
+
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+
+        final String base = PROJ_BASE + "resolve-expression-in-a-profile/";
+
+        for ( final Entry<ProjectVersionRef, String> entry : lineage.entrySet() )
+        {
+            final ProjectVersionRef ref = entry.getKey();
+            final String filename = entry.getValue();
+
+            final String path = ArtifactPathUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getTypeMapper() );
+
+            fixture.getTransport()
+                   .registerDownload( new ConcreteResource( location, path ), new TestDownload( base + filename ) );
+        }
+
+        final Transfer transfer = fixture.getArtifactManager().retrieve( location, childRef.asPomArtifact() );
+
+        final MavenPomView pomView =
+                fixture.getPomReader().read( childRef, transfer, Collections.singletonList( location ) );
+
+        final List<RepositoryView> rvs = pomView.getAllRepositories();
+
+        assertThat( rvs, notNullValue() );
+        assertThat( rvs.size(), equalTo( 3 ) );
+        assertThat( rvs.get( 0 ).getName(), equalTo( "repo.one" ) );
+        assertThat( rvs.get( 0 ).getUrl(), equalTo( "http://repo.one.repository" ) );
+        assertThat( rvs.get( 1 ).getName(), equalTo( "test.oracle.repo" ) );
+        assertThat( rvs.get( 1 ).getUrl(), equalTo( "http://test.oracle.repository" ) );
+        assertThat( rvs.get( 2 ).getName(), equalTo( "test.second.oracle.repo" ) );
+        assertThat( rvs.get( 2 ).getUrl(), equalTo( "http://another.test.two.oracle.repository" ) );
+        }
+
+    @Test
+    public void resolveExpressionsBothInDepAndProfile()
+            throws Exception
+    {
+        final URI src = new URI( "http://nowhere.com/path/to/repo" );
+
+        final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-pom", "1.0" );
+
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        lineage.put( childRef, "test-pom-1.0.pom.xml" );
+
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+
+        final String base = PROJ_BASE + "resolve-expression-in-a-profile/";
+
+        for ( final Entry<ProjectVersionRef, String> entry : lineage.entrySet() )
+        {
+            final ProjectVersionRef ref = entry.getKey();
+            final String filename = entry.getValue();
+
+            final String path = ArtifactPathUtils.formatArtifactPath( ref.asPomArtifact(), fixture.getTypeMapper() );
+
+            fixture.getTransport()
+                   .registerDownload( new ConcreteResource( location, path ), new TestDownload( base + filename ) );
+        }
+
+        final Transfer transfer = fixture.getArtifactManager().retrieve( location, childRef.asPomArtifact() );
+
+        final MavenPomView pomView =
+                fixture.getPomReader().read( childRef, transfer, Collections.singletonList( location ) );
+
+        String url = pomView.resolveExpressions( "${repo.url}", "test.oracle" );
+
+        assertThat( url, equalTo( "http://test.oracle.repository" ) );
+
+        List<DependencyView> dvs = pomView.getAllDirectDependencies();
+        assertThat( dvs.get( 0 ).getVersion(), equalTo( "2.5" ) );
+
+        String version = pomView.resolveExpressions( "${commons.lang.value}" );
+        assertThat( version, equalTo( "2.5" ) );
+    }
 }
