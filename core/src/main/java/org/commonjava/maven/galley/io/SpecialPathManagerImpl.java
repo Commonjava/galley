@@ -15,26 +15,21 @@
  */
 package org.commonjava.maven.galley.io;
 
-import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.FilePatternMatcher;
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.model.PathPatternMatcher;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
-import org.commonjava.maven.galley.model.SpecialPathMatcher;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by jdcasey on 1/27/16.
@@ -43,24 +38,44 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SpecialPathManagerImpl
         implements SpecialPathManager
 {
-    private List<SpecialPathInfo> specialPaths;
+    private List<SpecialPathInfo> pkgSpecialPaths;
+
+    @Inject
+    @Any
+    private Instance<SpecialPathSet> pkgSpecialPathSets;
 
     public SpecialPathManagerImpl()
     {
-        specialPaths = new ArrayList<>();
-        specialPaths.addAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
+        initPkgPathSets();
+    }
+
+    @PostConstruct
+    public void initPkgPathSets()
+    {
+        pkgSpecialPaths = new ArrayList<>(  );
+        pkgSpecialPaths.addAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
+        if ( pkgSpecialPathSets != null )
+        {
+            for ( SpecialPathSet pkgSet : pkgSpecialPathSets )
+            {
+                if ( pkgSet != null )
+                {
+                    pkgSpecialPaths.addAll(pkgSet.getSpecialPathInfos());
+                }
+            }
+        }
     }
 
     @Override
     public synchronized void registerSpecialPathInfo( SpecialPathInfo pathInfo )
     {
-        specialPaths.add( pathInfo );
+        pkgSpecialPaths.add( pathInfo );
     }
 
     @Override
     public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
     {
-        specialPaths.remove( pathInfo );
+        pkgSpecialPaths.remove( pathInfo );
     }
 
     @Deprecated
@@ -97,7 +112,7 @@ public class SpecialPathManagerImpl
         // Location is not used in current SpecialPathMatcher impl classes, so removed the null check.
         if ( path != null )
         {
-            for ( SpecialPathInfo info : specialPaths )
+            for ( SpecialPathInfo info : pkgSpecialPaths )
             {
                 if ( info.getMatcher().matches( location, path ) )
                 {
