@@ -112,14 +112,14 @@ public class Transfer
 
     public void touch()
     {
-        touch( new EventMetadata() );
+        touch( new EventMetadata(  ) );
     }
 
     public void touch( final EventMetadata eventMetadata )
     {
         if ( decorator != null )
         {
-            decorator.decorateTouch( this );
+            decorator.decorateTouch( this, eventMetadata );
         }
 
         fileEventManager.fire( new FileAccessEvent( this, eventMetadata ) );
@@ -154,7 +154,7 @@ public class Transfer
                 stream = new TransferInputStream( stream, new FileAccessEvent( this, eventMetadata ), fileEventManager );
             }
 
-            stream = decorator == null ? stream : decorator.decorateRead( stream, this );
+            stream = decorator == null ? stream : decorator.decorateRead( stream, this, eventMetadata );
             return stream;
         }
         catch ( final IOException e )
@@ -208,7 +208,7 @@ public class Transfer
                 stream = new TransferOutputStream( stream, unlocker );
             }
 
-            stream = decorator == null ? stream : decorator.decorateWrite( stream, this, accessType );
+            stream = decorator == null ? stream : decorator.decorateWrite( stream, this, accessType, eventMetadata );
 
             return stream;
         }
@@ -227,7 +227,7 @@ public class Transfer
         OverriddenBooleanValue overriden = null;
         if ( decorator != null )
         {
-            overriden = decorator.decorateExists( this );
+            overriden = decorator.decorateExists( this, new EventMetadata(  ) );
         }
 
         if ( ( overriden != null ) && overriden.overrides() )
@@ -249,7 +249,7 @@ public class Transfer
         {
             if ( decorator != null )
             {
-                decorator.decorateCopyFrom( f, this );
+                decorator.decorateCopyFrom( f, this, new EventMetadata(  ) );
             }
             provider.copy( f.getResource(), resource );
         }
@@ -284,7 +284,7 @@ public class Transfer
         {
             if ( decorator != null )
             {
-                decorator.decorateDelete( this );
+                decorator.decorateDelete( this, eventMetadata );
             }
 
             final boolean deleted = provider.delete( resource );
@@ -311,7 +311,7 @@ public class Transfer
         String[] listing = provider.list( resource );
         if ( decorator != null )
         {
-            listing = decorator.decorateListing( this, listing );
+            listing = decorator.decorateListing( this, listing, new EventMetadata(  ) );
         }
         return listing;
     }
@@ -335,7 +335,7 @@ public class Transfer
     {
         if ( decorator != null )
         {
-            decorator.decorateMkdirs( this );
+            decorator.decorateMkdirs( this, new EventMetadata(  ) );
         }
         provider.mkdirs( resource );
     }
@@ -346,7 +346,7 @@ public class Transfer
         provider.waitForWriteUnlock( resource );
         if ( decorator != null )
         {
-            decorator.decorateCreateFile( this );
+            decorator.decorateCreateFile( this, new EventMetadata(  ) );
         }
         provider.createFile( resource );
     }

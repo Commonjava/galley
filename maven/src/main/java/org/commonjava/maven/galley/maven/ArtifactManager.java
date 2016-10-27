@@ -80,10 +80,10 @@ public interface ArtifactManager
     Transfer store( Location location, ArtifactRef ref, InputStream stream, EventMetadata eventMetadata )
         throws TransferException;
 
-    boolean publish( Location location, ArtifactRef ref, InputStream stream, long length )
+    boolean publish( Location location, ArtifactRef ref, InputStream stream, long length, EventMetadata eventMetadata )
         throws TransferException;
 
-    Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( Location location, ProjectVersionRef ref )
+    Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( Location location, ProjectVersionRef ref, EventMetadata eventMetadata )
         throws TransferException;
 
     ProjectVersionRef resolveVariableVersion( Location location, ProjectVersionRef ref )

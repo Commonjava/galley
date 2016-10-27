@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.event;
 
+import org.commonjava.maven.galley.io.SpecialPathConstants;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,8 +25,19 @@ import java.util.Map.Entry;
 public class EventMetadata
     implements Iterable<Entry<Object, Object>>
 {
+    private String packageType;
 
     private final Map<Object, Object> metadata = new HashMap<Object, Object>();
+
+    public EventMetadata()
+    {
+        this.packageType = SpecialPathConstants.PKG_TYPE_MAVEN;
+    }
+
+    public EventMetadata( String packageType )
+    {
+        this.packageType = packageType;
+    }
 
     public Map<Object, Object> getMetadata()
     {
@@ -50,6 +63,16 @@ public class EventMetadata
     public boolean containsValue( final Object value )
     {
         return metadata.containsValue( value );
+    }
+
+    public String getPackageType()
+    {
+        return packageType;
+    }
+
+    public void setPackageType( String packageType )
+    {
+        this.packageType = packageType;
     }
 
     @Override

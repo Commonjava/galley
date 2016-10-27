@@ -28,6 +28,9 @@ import java.util.List;
  */
 public class SpecialPathConstants
 {
+
+    public static final String PKG_TYPE_MAVEN = "maven";
+
     public static final List<SpecialPathInfo> STANDARD_SPECIAL_PATHS;
 
     public static final SpecialPathInfo DEFAULT_FILE = SpecialPathInfo.from( new PathPatternMatcher( ".*[^/]" ) )
@@ -84,38 +87,34 @@ public class SpecialPathConstants
     }
 
     public static final SpecialPathSet MVN_SP_PATH_SET = new MavenSpecialPathSet();
-
-    public SpecialPathSet getMavenSpecialPathSet(){
-        return MVN_SP_PATH_SET;
-    }
 }
 
 class MavenSpecialPathSet
         implements SpecialPathSet
 {
-    public static final List<SpecialPathInfo> MAVEN_SPECIAL_PATHS;
+    final List<SpecialPathInfo> mvnSpecialPaths;
 
-    static
+    MavenSpecialPathSet()
     {
-        List<SpecialPathInfo> mavenSp = new ArrayList<>();
+        mvnSpecialPaths = new ArrayList<>();
 
-        mavenSp.add( SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml$" ) )
+        mvnSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml$" ) )
                                     .setMergable( true )
                                     .setMetadata( true )
                                     .build() );
 
-        mavenSp.add( SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
+        mvnSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( "maven-metadata\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
                                     .setDecoratable( false )
                                     .setMergable( true )
                                     .setMetadata( true )
                                     .build() );
 
-        mavenSp.add( SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml$" ) )
+        mvnSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml$" ) )
                                     .setMergable( true )
                                     .setMetadata( true )
                                     .build() );
 
-        mavenSp.add( SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
+        mvnSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( "archetype-catalog\\.xml(\\.md5|\\.sha[\\d]+)$" ) )
                                     .setDecoratable( false )
                                     .setMergable( true )
                                     .setMetadata( true )
@@ -124,17 +123,34 @@ class MavenSpecialPathSet
         String notMergablePrefix = ".+(?<!(maven-metadata|archetype-catalog)\\.xml)\\.";
         for ( String extPattern : Arrays.asList( "asc$", "md5$", "sha[\\d]+$" ) )
         {
-            mavenSp.add( SpecialPathInfo.from( new FilePatternMatcher( notMergablePrefix + extPattern ) )
+            mvnSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( notMergablePrefix + extPattern ) )
                                         .setDecoratable( false )
                                         .build() );
         }
 
-        MAVEN_SPECIAL_PATHS = mavenSp;
+    }
+
+    @Override
+    public String getPackageType()
+    {
+        return SpecialPathConstants.PKG_TYPE_MAVEN;
     }
 
     @Override
     public List<SpecialPathInfo> getSpecialPathInfos()
     {
-        return MAVEN_SPECIAL_PATHS;
+        return mvnSpecialPaths;
+    }
+
+    @Override
+    public synchronized void registerSpecialPathInfo( SpecialPathInfo pathInfo )
+    {
+        mvnSpecialPaths.add( pathInfo );
+    }
+
+    @Override
+    public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
+    {
+        mvnSpecialPaths.remove( pathInfo );
     }
 }

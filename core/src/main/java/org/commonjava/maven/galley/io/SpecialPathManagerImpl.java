@@ -25,11 +25,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN;
+import static org.commonjava.maven.galley.io.SpecialPathConstants.MVN_SP_PATH_SET;
 
 /**
  * Created by jdcasey on 1/27/16.
@@ -38,11 +41,11 @@ import java.util.List;
 public class SpecialPathManagerImpl
         implements SpecialPathManager
 {
-    private List<SpecialPathInfo> pkgSpecialPaths;
+    private static final Logger logger = LoggerFactory.getLogger( SpecialPathManagerImpl.class );
 
-    @Inject
-    @Any
-    private Instance<SpecialPathSet> pkgSpecialPathSets;
+    private List<SpecialPathInfo> stdSpecialPaths;
+
+    private Map<String, SpecialPathSet> pkgtypes;
 
     public SpecialPathManagerImpl()
     {
@@ -52,39 +55,89 @@ public class SpecialPathManagerImpl
     @PostConstruct
     public void initPkgPathSets()
     {
-        pkgSpecialPaths = new ArrayList<>(  );
-        pkgSpecialPaths.addAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
-        if ( pkgSpecialPathSets != null )
+        stdSpecialPaths = new ArrayList<>();
+        stdSpecialPaths.addAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
+        pkgtypes = new ConcurrentHashMap<>(  );
+        pkgtypes.put( MVN_SP_PATH_SET.getPackageType(), MVN_SP_PATH_SET );
+    }
+
+    @Override
+    public void registerSpecialPathInfo( SpecialPathInfo pathInfo )
+    {
+        //FIXME: do we need a flag of "isStandard" to add into stdSpecialPaths?
+        registerSpecialPathInfo( pathInfo, PKG_TYPE_MAVEN );
+    }
+
+    @Override
+    public void registerSpecialPathInfo( SpecialPathInfo pathInfo, final String pkgType )
+    {
+        for ( Map.Entry<String, SpecialPathSet> entry : pkgtypes.entrySet() )
         {
-            for ( SpecialPathSet pkgSet : pkgSpecialPathSets )
+            if ( pkgType.equals( entry.getKey() ) )
             {
-                if ( pkgSet != null )
-                {
-                    pkgSpecialPaths.addAll(pkgSet.getSpecialPathInfos());
-                }
+                entry.getValue().registerSpecialPathInfo( pathInfo );
             }
         }
     }
 
     @Override
-    public synchronized void registerSpecialPathInfo( SpecialPathInfo pathInfo )
+    public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
     {
-        pkgSpecialPaths.add( pathInfo );
+        //FIXME: do we need a flag of "isStandard" to remove from stdSpecialPaths?
+        deregisterSpecialPathInfo( pathInfo, PKG_TYPE_MAVEN );
     }
 
     @Override
-    public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
+    public void deregisterSpecialPathInfo( SpecialPathInfo pathInfo, String pkgType )
     {
-        pkgSpecialPaths.remove( pathInfo );
+        for ( Map.Entry<String, SpecialPathSet> entry : pkgtypes.entrySet() )
+        {
+            if ( pkgType.equals( entry.getKey() ) )
+            {
+                entry.getValue().deregisterSpecialPathInfo( pathInfo );
+            }
+        }
+    }
+
+    @Override
+    public void registerSpecialPathSet( SpecialPathSet pathSet )
+    {
+        if ( pkgtypes.containsKey( pathSet.getPackageType() ) )
+        {
+            logger.warn(
+                    "[Galley] The package types already contains the path set for this package type {}, will override it",
+                    pathSet.getPackageType() );
+        }
+
+        pkgtypes.put( pathSet.getPackageType(), pathSet );
+    }
+
+    @Override
+    public void deregesterSpecialPathSet( SpecialPathSet pathSet )
+    {
+        if ( !pkgtypes.containsKey( pathSet.getPackageType() ) )
+        {
+            logger.warn(
+                    "[Galley] The package does not contain the path set for this package type {}, no deregister operation there",
+                    pathSet.getPackageType() );
+        }
+
+        pkgtypes.remove( pathSet.getPackageType() );
     }
 
     @Deprecated
     @Override
     public SpecialPathInfo getSpecialPathInfo( ConcreteResource resource )
     {
+        return getSpecialPathInfo( resource, PKG_TYPE_MAVEN );
+    }
+
+    @Override
+    public SpecialPathInfo getSpecialPathInfo( ConcreteResource resource, String pkgType )
+    {
         if ( resource != null )
         {
-            return getSpecialPathInfo(resource.getLocation(), resource.getPath() );
+            return getSpecialPathInfo( resource.getLocation(), resource.getPath(), pkgType );
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
@@ -95,31 +148,60 @@ public class SpecialPathManagerImpl
     @Override
     public SpecialPathInfo getSpecialPathInfo( Transfer transfer )
     {
+        return getSpecialPathInfo( transfer, PKG_TYPE_MAVEN );
+    }
+
+    @Override
+    public SpecialPathInfo getSpecialPathInfo( Transfer transfer, String pkgType )
+    {
         if ( transfer != null )
         {
-            return getSpecialPathInfo(transfer.getLocation(), transfer.getPath() );
+            return getSpecialPathInfo( transfer.getLocation(), transfer.getPath(), pkgType );
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return null;
     }
 
-    @Deprecated
     @Override
-    public SpecialPathInfo getSpecialPathInfo( Location location, String path )
+    public SpecialPathInfo getSpecialPathInfo( Location location, String path, String pkgType )
+    {
+        SpecialPathInfo info = getPathInfo( location, path, stdSpecialPaths );
+        if ( info != null )
+        {
+            return info;
+        }
+        for ( Map.Entry<String, SpecialPathSet> entry : pkgtypes.entrySet() )
+        {
+            if ( pkgType.equals( entry.getKey() ) )
+            {
+                info = getPathInfo( location, path, entry.getValue().getSpecialPathInfos() );
+                if ( info != null )
+                {
+                    return info;
+                }
+            }
+        }
+
+        // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
+        return null;
+    }
+
+    private SpecialPathInfo getPathInfo( Location location, String path, Collection<SpecialPathInfo> from )
     {
         SpecialPathInfo firstHit = null;
         // Location is not used in current SpecialPathMatcher impl classes, so removed the null check.
         if ( path != null )
         {
-            for ( SpecialPathInfo info : pkgSpecialPaths )
+            for ( SpecialPathInfo info : from )
             {
                 if ( info.getMatcher().matches( location, path ) )
                 {
                     if ( firstHit != null )
                     {
                         Logger logger = LoggerFactory.getLogger( getClass() );
-                        logger.error( "Duplicate special-path registration for: {}:{}. Using: {}", location, path, firstHit );
+                        logger.error( "Duplicate special-path registration for: {}:{}. Using: {}", location, path,
+                                      firstHit );
                     }
                     else
                     {
@@ -130,8 +212,14 @@ public class SpecialPathManagerImpl
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR based on path if firstHit is null!
-
         return firstHit;
+    }
+
+    @Deprecated
+    @Override
+    public SpecialPathInfo getSpecialPathInfo( Location location, String path )
+    {
+        return getSpecialPathInfo( location, path, SpecialPathConstants.PKG_TYPE_MAVEN );
     }
 
     @Override
@@ -139,6 +227,6 @@ public class SpecialPathManagerImpl
     {
         // TODO: seems that all SpecialPathMatcher impl classes does not use the Location, so we should consider to remove the Location arg next step.
         // TODO: When path is null, return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
-        return path == null ? null : getSpecialPathInfo( null, path );
+        return path == null ? null : getSpecialPathInfo( null, path, SpecialPathConstants.PKG_TYPE_MAVEN );
     }
 }

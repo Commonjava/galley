@@ -198,13 +198,13 @@ public class TransferManagerImpl
     }
 
     @Override
-    public List<ListingResult> listAll( final VirtualResource virt )
+    public List<ListingResult> listAll( final VirtualResource virt, final EventMetadata metadata )
         throws TransferException
     {
         final List<ListingResult> results = new ArrayList<ListingResult>();
         for ( final ConcreteResource res : virt )
         {
-            final ListingResult result = doList( res, true );
+            final ListingResult result = doList( res, true, metadata );
             if ( result != null )
             {
                 results.add( result );
@@ -215,13 +215,13 @@ public class TransferManagerImpl
     }
 
     @Override
-    public ListingResult list( final ConcreteResource resource )
+    public ListingResult list( final ConcreteResource resource, final EventMetadata metadata )
         throws TransferException
     {
-        return doList( resource, false );
+        return doList( resource, false, metadata );
     }
 
-    private ListingResult doList( final ConcreteResource resource, final boolean suppressFailures )
+    private ListingResult doList( final ConcreteResource resource, final boolean suppressFailures, EventMetadata metadata )
         throws TransferException
     {
         final Transfer cachedListing = getCacheReference( resource.getChild( ".listing.txt" ) );
@@ -303,7 +303,7 @@ public class TransferManagerImpl
                         {
                             try
                             {
-                                remoteListing = decorator.decorateListing( cachedListing.getParent(), remoteListing );
+                                remoteListing = decorator.decorateListing( cachedListing.getParent(), remoteListing, metadata );
                             }
                             catch ( final IOException e )
                             {
@@ -346,7 +346,7 @@ public class TransferManagerImpl
         {
             ConcreteResource child = resource.getChild( fname );
 
-            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child );
+            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( child, metadata.getPackageType() );
             if ( specialPathInfo != null && !specialPathInfo.isListable() )
             {
                 continue;
@@ -494,7 +494,7 @@ public class TransferManagerImpl
                 return target;
             }
 
-            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource );
+            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource, eventMetadata.getPackageType() );
             if ( !resource.allowsDownloading() || ( specialPathInfo != null && !specialPathInfo.isRetrievable() ) )
             {
                 logger.debug( "Download not allowed for: {}. Returning null transfer.", resource );
@@ -547,7 +547,7 @@ public class TransferManagerImpl
     public Transfer store( final ConcreteResource resource , final InputStream stream , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource );
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource, eventMetadata.getPackageType() );
         if ( !resource.allowsStoring() || ( specialPathInfo != null && !specialPathInfo.isStorable() ) )
         {
             throw new TransferException( "Storing not allowed for: {}", resource );
@@ -650,7 +650,7 @@ public class TransferManagerImpl
 
         logger.info( "DELETE {}", item.getResource() );
 
-        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( item );
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( item, eventMetadata.getPackageType() );
         if ( specialPathInfo != null && !specialPathInfo.isDeletable() )
         {
             throw new TransferException( "Deleting not allowed for: %s", item );
@@ -700,10 +700,10 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
      */
     @Override
-    public boolean publish( final ConcreteResource resource, final InputStream stream, final long length )
+    public boolean publish( final ConcreteResource resource, final InputStream stream, final long length, final EventMetadata eventMetadata )
         throws TransferException
     {
-        return publish( resource, stream, length, null );
+        return publish( resource, stream, length, null, eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -711,10 +711,10 @@ public class TransferManagerImpl
      */
     @Override
     public boolean publish( final ConcreteResource resource, final InputStream stream, final long length,
-                            final String contentType )
+                            final String contentType, final EventMetadata metadata )
         throws TransferException
     {
-        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource );
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource, metadata.getPackageType() );
         if ( specialPathInfo != null && !specialPathInfo.isPublishable() )
         {
             throw new TransferException( "Publishing not allowed for: %s", resource );

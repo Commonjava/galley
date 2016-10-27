@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
@@ -48,7 +49,7 @@ public interface TransferDecorator
      * 
      * @throws IOException
      */
-    OutputStream decorateWrite( OutputStream stream, Transfer transfer, TransferOperation op )
+    OutputStream decorateWrite( OutputStream stream, Transfer transfer, TransferOperation op, EventMetadata metadata )
         throws IOException;
 
     /**
@@ -61,12 +62,12 @@ public interface TransferDecorator
      * 
      * @throws IOException
      */
-    InputStream decorateRead( InputStream stream, Transfer transfer )
+    InputStream decorateRead( InputStream stream, Transfer transfer, EventMetadata metadata )
         throws IOException;
 
-    void decorateTouch( Transfer transfer );
+    void decorateTouch( Transfer transfer, EventMetadata metadata );
 
-    OverriddenBooleanValue decorateExists( Transfer transfer );
+    OverriddenBooleanValue decorateExists( Transfer transfer, EventMetadata metadata );
 
     /**
      * Decorate a copy operation from one {@link Transfer} instance to another.
@@ -78,7 +79,7 @@ public interface TransferDecorator
      * 
      * @throws IOException
      */
-    void decorateCopyFrom( Transfer from, Transfer transfer )
+    void decorateCopyFrom( Transfer from, Transfer transfer, EventMetadata metadata )
         throws IOException;
 
     /**
@@ -90,16 +91,16 @@ public interface TransferDecorator
      * 
      * @throws IOException
      */
-    void decorateDelete( Transfer transfer )
+    void decorateDelete( Transfer transfer, EventMetadata metadata )
         throws IOException;
 
-    String[] decorateListing( Transfer transfer, String[] listing )
+    String[] decorateListing( Transfer transfer, String[] listing, EventMetadata metadata )
         throws IOException;
 
-    void decorateMkdirs( Transfer transfer )
+    void decorateMkdirs( Transfer transfer, EventMetadata metadata )
         throws IOException;
 
-    void decorateCreateFile( Transfer transfer )
+    void decorateCreateFile( Transfer transfer, EventMetadata metadata )
         throws IOException;
 
 }

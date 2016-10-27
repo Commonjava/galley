@@ -75,16 +75,16 @@ public interface TransferManager
     boolean delete( ConcreteResource resource , EventMetadata eventMetadata  )
         throws TransferException;
 
-    boolean publish( ConcreteResource resource, InputStream stream, long length )
+    boolean publish( ConcreteResource resource, InputStream stream, long length, EventMetadata metadata )
         throws TransferException;
 
-    boolean publish( ConcreteResource resource, InputStream stream, long length, String contentType )
+    boolean publish( ConcreteResource resource, InputStream stream, long length, String contentType, EventMetadata eventMetadata)
     throws TransferException;
 
-    ListingResult list( ConcreteResource resource )
+    ListingResult list( ConcreteResource resource, EventMetadata metadata )
         throws TransferException;
 
-    List<ListingResult> listAll( VirtualResource resource )
+    List<ListingResult> listAll( VirtualResource resource, EventMetadata metadata )
         throws TransferException;
 
     boolean exists( ConcreteResource resource )

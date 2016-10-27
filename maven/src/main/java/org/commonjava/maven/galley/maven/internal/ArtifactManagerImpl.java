@@ -240,22 +240,22 @@ public class ArtifactManagerImpl
      */
     // TODO: Snapshot conversion?? Or is that out of scope here?
     @Override
-    public boolean publish( final Location location, final ArtifactRef ref, final InputStream stream, final long length )
+    public boolean publish( final Location location, final ArtifactRef ref, final InputStream stream, final long length, final EventMetadata metadata )
         throws TransferException
     {
         return transferManager.publish( new ConcreteResource( location, formatArtifactPath( ref, mapper ) ), stream,
-                                        length );
+                                        length, metadata );
     }
 
     // TODO: This may be incompatible with snapshots, which will have LOTS of entries...
     @Override
     public Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( final Location location,
-                                                                            final ProjectVersionRef ref )
+                                                                            final ProjectVersionRef ref, final EventMetadata metadata )
         throws TransferException
     {
         final List<ListingResult> listingResults =
             transferManager.listAll( new VirtualResource( expander.expand( location ),
-                                                          formatArtifactPath( ref.asProjectVersionRef(), mapper ) ) );
+                                                          formatArtifactPath( ref.asProjectVersionRef(), mapper ) ), metadata );
 
         if ( listingResults == null || listingResults.isEmpty() )
         {
