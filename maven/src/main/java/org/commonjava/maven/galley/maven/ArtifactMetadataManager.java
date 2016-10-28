@@ -174,15 +174,27 @@ public interface ArtifactMetadataManager
         throws TransferException;
 
     boolean publish( Location location, String groupId, InputStream stream, long length )
+            throws TransferException;
+
+    boolean publish( Location location, String groupId, InputStream stream, long length, EventMetadata metadata )
         throws TransferException;
 
     boolean publish( Location location, String groupId, String filename, InputStream stream, long length, String contentType )
+            throws TransferException;
+
+    boolean publish( Location location, String groupId, String filename, InputStream stream, long length, String contentType, EventMetadata metadata )
         throws TransferException;
 
     boolean publish( Location location, ProjectRef ref, InputStream stream, long length )
+            throws TransferException;
+
+    boolean publish( Location location, ProjectRef ref, InputStream stream, long length, EventMetadata metadata )
         throws TransferException;
 
     boolean publish( Location location, ProjectRef ref, String filename, InputStream stream, long length, String contentType )
+            throws TransferException;
+
+    boolean publish( Location location, ProjectRef ref, String filename, InputStream stream, long length, String contentType, EventMetadata metadata )
         throws TransferException;
 
 }

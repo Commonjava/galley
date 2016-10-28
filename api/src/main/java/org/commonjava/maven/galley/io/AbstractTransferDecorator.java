@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -43,7 +44,7 @@ public abstract class AbstractTransferDecorator
 
     @Override
     @SuppressWarnings("resource")
-    public final OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
+    public final OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op, EventMetadata metadata )
             throws IOException
     {
         OutputStream nextStream;
@@ -53,14 +54,14 @@ public abstract class AbstractTransferDecorator
         }
         else
         {
-            nextStream = next.decorateWrite( stream, transfer, op );
+            nextStream = next.decorateWrite( stream, transfer, op, metadata );
         }
         return decorateWriteInternal( nextStream, transfer, op );
     }
 
     @Override
     @SuppressWarnings("resource")
-    public final InputStream decorateRead( final InputStream stream, final Transfer transfer )
+    public final InputStream decorateRead( final InputStream stream, final Transfer transfer, EventMetadata metadata )
             throws IOException
     {
         InputStream nextStream;
@@ -70,56 +71,56 @@ public abstract class AbstractTransferDecorator
         }
         else
         {
-            nextStream = next.decorateRead( stream, transfer );
+            nextStream = next.decorateRead( stream, transfer, metadata );
         }
         return decorateReadInternal( nextStream, transfer );
     }
 
     @Override
-    public final void decorateTouch( final Transfer transfer )
+    public final void decorateTouch( final Transfer transfer, EventMetadata metadata )
     {
         decorateTouchInternal( transfer );
         if ( next != null )
         {
-            next.decorateTouch( transfer );
+            next.decorateTouch( transfer, metadata );
         }
     }
 
     @Override
-    public final OverriddenBooleanValue decorateExists( final Transfer transfer )
+    public final OverriddenBooleanValue decorateExists( final Transfer transfer, EventMetadata metadata )
     {
         OverriddenBooleanValue result = decorateExistsInternal( transfer );
         if ( !result.overrides() && ( next != null ) )
         {
-            result = next.decorateExists( transfer );
+            result = next.decorateExists( transfer, metadata );
         }
         return result;
     }
 
     @Override
-    public final void decorateCopyFrom( final Transfer from, final Transfer transfer )
+    public final void decorateCopyFrom( final Transfer from, final Transfer transfer, EventMetadata metadata )
             throws IOException
     {
         decorateCopyFromInternal( from, transfer );
         if ( next != null )
         {
-            next.decorateCopyFrom( from, transfer );
+            next.decorateCopyFrom( from, transfer, metadata );
         }
     }
 
     @Override
-    public final void decorateDelete( final Transfer transfer )
+    public final void decorateDelete( final Transfer transfer, EventMetadata metadata )
             throws IOException
     {
         decorateDeleteInternal( transfer );
         if ( next != null )
         {
-            next.decorateDelete( transfer );
+            next.decorateDelete( transfer, metadata );
         }
     }
 
     @Override
-    public final String[] decorateListing( final Transfer transfer, final String[] listing )
+    public final String[] decorateListing( final Transfer transfer, final String[] listing, EventMetadata metadata )
             throws IOException
     {
         final String[] result = decorateListingInternal( transfer, listing );
@@ -129,29 +130,29 @@ public abstract class AbstractTransferDecorator
         }
         else
         {
-            return next.decorateListing( transfer, result );
+            return next.decorateListing( transfer, result,metadata );
         }
     }
 
     @Override
-    public final void decorateMkdirs( final Transfer transfer )
+    public final void decorateMkdirs( final Transfer transfer, EventMetadata metadata )
             throws IOException
     {
         decorateMkdirsInternal( transfer );
         if ( next != null )
         {
-            next.decorateMkdirs( transfer );
+            next.decorateMkdirs( transfer, metadata );
         }
     }
 
     @Override
-    public final void decorateCreateFile( final Transfer transfer )
+    public final void decorateCreateFile( final Transfer transfer, EventMetadata metadata )
             throws IOException
     {
         decorateCreateFileInternal( transfer );
         if ( next != null )
         {
-            next.decorateCreateFile( transfer );
+            next.decorateCreateFile( transfer, metadata );
         }
     }
 
