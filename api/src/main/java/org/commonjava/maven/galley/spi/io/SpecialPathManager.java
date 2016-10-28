@@ -39,7 +39,7 @@ public interface SpecialPathManager
 
     void registerSpecialPathSet( SpecialPathSet pathSet);
 
-    void deregesterSpecialPathSet( SpecialPathSet pathSet);
+    SpecialPathSet deregesterSpecialPathSet( SpecialPathSet pathSet);
 
     SpecialPathInfo getSpecialPathInfo( ConcreteResource resource );
 

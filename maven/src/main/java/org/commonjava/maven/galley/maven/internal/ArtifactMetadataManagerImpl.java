@@ -585,10 +585,32 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
      */
     @Override
+    public boolean publish( final Location location, final String groupId, final InputStream stream, final long length )
+            throws TransferException
+    {
+        return publish( location, groupId, null, stream, length, null );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
+     */
+    @Override
     public boolean publish( final Location location, final String groupId, final InputStream stream, final long length, final EventMetadata metadata )
         throws TransferException
     {
         return publish( location, groupId, null, stream, length, null, metadata );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.lang.String, java.io.InputStream, long, java.lang.String)
+     */
+    @Override
+    public boolean publish( final Location location, final String groupId, final String filename,
+                            final InputStream stream, final long length, final String contentType )
+        throws TransferException
+    {
+        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( groupId, filename ) ),
+                                        stream, length, contentType );
     }
 
     /* (non-Javadoc)
@@ -607,10 +629,32 @@ public class ArtifactMetadataManagerImpl
      * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.io.InputStream, long)
      */
     @Override
+    public boolean publish( final Location location, final ProjectRef ref, final InputStream stream, final long length )
+        throws TransferException
+    {
+        return publish( location, ref, null, stream, length, null );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.io.InputStream, long)
+     */
+    @Override
     public boolean publish( final Location location, final ProjectRef ref, final InputStream stream, final long length, final EventMetadata metadata )
         throws TransferException
     {
         return publish( location, ref, null, stream, length, null, metadata );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream, long, java.lang.String)
+     */
+    @Override
+    public boolean publish( final Location location, final ProjectRef ref, final String filename,
+                            final InputStream stream, final long length, final String contentType )
+            throws TransferException
+    {
+        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( ref, filename ) ), stream,
+                                        length, contentType );
     }
 
     /* (non-Javadoc)

@@ -240,11 +240,32 @@ public class ArtifactManagerImpl
      */
     // TODO: Snapshot conversion?? Or is that out of scope here?
     @Override
+    public boolean publish( final Location location, final ArtifactRef ref, final InputStream stream, final long length )
+            throws TransferException
+    {
+        return transferManager.publish( new ConcreteResource( location, formatArtifactPath( ref, mapper ) ), stream,
+                                        length);
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.ArtifactManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef, java.io.InputStream, long)
+     */
+    // TODO: Snapshot conversion?? Or is that out of scope here?
+    @Override
     public boolean publish( final Location location, final ArtifactRef ref, final InputStream stream, final long length, final EventMetadata metadata )
         throws TransferException
     {
         return transferManager.publish( new ConcreteResource( location, formatArtifactPath( ref, mapper ) ), stream,
                                         length, metadata );
+    }
+
+    // TODO: This may be incompatible with snapshots, which will have LOTS of entries...
+    @Override
+    public Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( final Location location,
+                                                                            final ProjectVersionRef ref )
+        throws TransferException
+    {
+        return listAvailableArtifacts( location, ref, new EventMetadata(  ) );
     }
 
     // TODO: This may be incompatible with snapshots, which will have LOTS of entries...

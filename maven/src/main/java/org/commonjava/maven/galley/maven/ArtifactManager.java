@@ -80,7 +80,13 @@ public interface ArtifactManager
     Transfer store( Location location, ArtifactRef ref, InputStream stream, EventMetadata eventMetadata )
         throws TransferException;
 
+    boolean publish( Location location, ArtifactRef ref, InputStream stream, long length )
+        throws TransferException;
+
     boolean publish( Location location, ArtifactRef ref, InputStream stream, long length, EventMetadata eventMetadata )
+        throws TransferException;
+
+    Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( Location location, ProjectVersionRef ref )
         throws TransferException;
 
     Map<TypeAndClassifier, ConcreteResource> listAvailableArtifacts( Location location, ProjectVersionRef ref, EventMetadata eventMetadata )

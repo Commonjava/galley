@@ -222,12 +222,13 @@ public class Transfer
         }
     }
 
-    public boolean exists()
+    public boolean exists( final EventMetadata eventMetadata )
     {
+
         OverriddenBooleanValue overriden = null;
         if ( decorator != null )
         {
-            overriden = decorator.decorateExists( this, new EventMetadata(  ) );
+            overriden = decorator.decorateExists( this, eventMetadata );
         }
 
         if ( ( overriden != null ) && overriden.overrides() )
@@ -240,7 +241,18 @@ public class Transfer
         }
     }
 
+    public boolean exists()
+    {
+        return exists( new EventMetadata() );
+    }
+
     public void copyFrom( final Transfer f )
+        throws IOException
+    {
+        copyFrom( f, new EventMetadata(  ) );
+    }
+
+    public void copyFrom( final Transfer f, final EventMetadata eventMetadata )
         throws IOException
     {
         provider.waitForWriteUnlock( resource );
@@ -249,7 +261,7 @@ public class Transfer
         {
             if ( decorator != null )
             {
-                decorator.decorateCopyFrom( f, this, new EventMetadata(  ) );
+                decorator.decorateCopyFrom( f, this, eventMetadata );
             }
             provider.copy( f.getResource(), resource );
         }

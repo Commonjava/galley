@@ -62,41 +62,27 @@ public class SpecialPathManagerImpl
     }
 
     @Override
-    public void registerSpecialPathInfo( SpecialPathInfo pathInfo )
+    public synchronized void registerSpecialPathInfo( SpecialPathInfo pathInfo )
     {
-        //FIXME: do we need a flag of "isStandard" to add into stdSpecialPaths?
-        registerSpecialPathInfo( pathInfo, PKG_TYPE_MAVEN );
+        stdSpecialPaths.add( pathInfo );
     }
 
     @Override
     public void registerSpecialPathInfo( SpecialPathInfo pathInfo, final String pkgType )
     {
-        for ( Map.Entry<String, SpecialPathSet> entry : pkgtypes.entrySet() )
-        {
-            if ( pkgType.equals( entry.getKey() ) )
-            {
-                entry.getValue().registerSpecialPathInfo( pathInfo );
-            }
-        }
+        pkgtypes.get(pkgType).registerSpecialPathInfo( pathInfo );
     }
 
     @Override
     public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
     {
-        //FIXME: do we need a flag of "isStandard" to remove from stdSpecialPaths?
-        deregisterSpecialPathInfo( pathInfo, PKG_TYPE_MAVEN );
+        stdSpecialPaths.remove( pathInfo );
     }
 
     @Override
     public void deregisterSpecialPathInfo( SpecialPathInfo pathInfo, String pkgType )
     {
-        for ( Map.Entry<String, SpecialPathSet> entry : pkgtypes.entrySet() )
-        {
-            if ( pkgType.equals( entry.getKey() ) )
-            {
-                entry.getValue().deregisterSpecialPathInfo( pathInfo );
-            }
-        }
+        pkgtypes.get(pkgType).deregisterSpecialPathInfo( pathInfo );
     }
 
     @Override
@@ -113,7 +99,7 @@ public class SpecialPathManagerImpl
     }
 
     @Override
-    public void deregesterSpecialPathSet( SpecialPathSet pathSet )
+    public SpecialPathSet deregesterSpecialPathSet( SpecialPathSet pathSet )
     {
         if ( !pkgtypes.containsKey( pathSet.getPackageType() ) )
         {
@@ -122,7 +108,7 @@ public class SpecialPathManagerImpl
                     pathSet.getPackageType() );
         }
 
-        pkgtypes.remove( pathSet.getPackageType() );
+        return pkgtypes.remove( pathSet.getPackageType() );
     }
 
     @Deprecated
@@ -171,15 +157,13 @@ public class SpecialPathManagerImpl
         {
             return info;
         }
-        for ( Map.Entry<String, SpecialPathSet> entry : pkgtypes.entrySet() )
+
+        if ( pkgtypes.containsKey( pkgType ) )
         {
-            if ( pkgType.equals( entry.getKey() ) )
+            info = getPathInfo( location, path, pkgtypes.get( pkgType ).getSpecialPathInfos() );
+            if ( info != null )
             {
-                info = getPathInfo( location, path, entry.getValue().getSpecialPathInfos() );
-                if ( info != null )
-                {
-                    return info;
-                }
+                return info;
             }
         }
 

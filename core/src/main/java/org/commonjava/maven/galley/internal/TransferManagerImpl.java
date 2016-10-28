@@ -198,10 +198,17 @@ public class TransferManagerImpl
     }
 
     @Override
+    public List<ListingResult> listAll( final VirtualResource virt )
+            throws TransferException
+    {
+        return listAll( virt, new EventMetadata(  ) );
+    }
+
+    @Override
     public List<ListingResult> listAll( final VirtualResource virt, final EventMetadata metadata )
         throws TransferException
     {
-        final List<ListingResult> results = new ArrayList<ListingResult>();
+        final List<ListingResult> results = new ArrayList<>();
         for ( final ConcreteResource res : virt )
         {
             final ListingResult result = doList( res, true, metadata );
@@ -212,6 +219,13 @@ public class TransferManagerImpl
         }
 
         return results;
+    }
+
+    @Override
+    public ListingResult list( final ConcreteResource resource )
+            throws TransferException
+    {
+        return list( resource, new EventMetadata(  ) );
     }
 
     @Override
@@ -700,10 +714,31 @@ public class TransferManagerImpl
      * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
      */
     @Override
+    public boolean publish( final ConcreteResource resource, final InputStream stream, final long length )
+            throws TransferException
+    {
+        return publish( resource, stream, length, new EventMetadata(  ) );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long)
+     */
+    @Override
     public boolean publish( final ConcreteResource resource, final InputStream stream, final long length, final EventMetadata eventMetadata )
         throws TransferException
     {
         return publish( resource, stream, length, null, eventMetadata );
+    }
+
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.TransferManager#publish(org.commonjava.maven.galley.model.Location, java.lang.String, java.io.InputStream, long, java.lang.String)
+     */
+    @Override
+    public boolean publish( final ConcreteResource resource, final InputStream stream, final long length,
+                            final String contentType)
+            throws TransferException
+    {
+        return publish( resource, stream, length, contentType, new EventMetadata(  ) );
     }
 
     /* (non-Javadoc)
