@@ -65,7 +65,7 @@ public class SpecialPathConstants
                                             .setPublishable( false )
                                             .setRetrievable( false )
                                             .setStorable( false )
-                                            .setMetadata( true )
+                                            .setMetadata( false )
                                             .setMergable( true )
                                             .build();
 
