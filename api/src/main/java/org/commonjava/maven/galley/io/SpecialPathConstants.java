@@ -65,8 +65,8 @@ public class SpecialPathConstants
                                             .setPublishable( false )
                                             .setRetrievable( false )
                                             .setStorable( false )
-                                            .setMetadata( false )
-                                            .setMergable( true )
+                                            .setMetadata( true )
+                                            .setMergable( false )
                                             .build();
 
         standardSp.add( pi );
