@@ -46,7 +46,7 @@
   <properties>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <undertowVersion>1.1.2.Final</undertowVersion>
-    <atlasVersion>0.16.0</atlasVersion>
+    <atlasVersion>0.16.3-SNAPSHOT</atlasVersion>
     <partylineVersion>1.9</partylineVersion>
     <jhttpcVersion>1.1.2</jhttpcVersion>
     <infinispanVersion>8.1.2.Final</infinispanVersion>
