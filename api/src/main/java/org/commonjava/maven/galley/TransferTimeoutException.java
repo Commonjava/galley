@@ -30,42 +30,11 @@ public class TransferTimeoutException
 
     private final String url;
 
-    public TransferTimeoutException( final Location location, String url, final String format, final Object... params )
+
+    public TransferTimeoutException( final Location location, final String url, final String format, final Object... params )
     {
         super( location, format, params );
         this.url = url;
-    }
-
-    public TransferTimeoutException( final Transfer target, final String format, final Object... params )
-    {
-        super( target.getLocation(), format, params );
-        String u;
-        try
-        {
-            u = UrlUtils.buildUrl( target.getResource() );
-        }
-        catch ( MalformedURLException e )
-        {
-            u = target.getLocation().getUri() + target.getPath();
-        }
-
-        this.url = u;
-    }
-
-    public TransferTimeoutException( final ConcreteResource target, final String format, final Object... params )
-    {
-        super( target.getLocation(), format, params );
-        String u;
-        try
-        {
-            u = UrlUtils.buildUrl( target );
-        }
-        catch ( MalformedURLException e )
-        {
-            u = target.getLocation().getUri() + target.getPath();
-        }
-
-        this.url = u;
     }
 
     public TransferTimeoutException( final Location location, final String url, final String format, final Throwable error, final Object... params )
@@ -73,6 +42,25 @@ public class TransferTimeoutException
         super( location, format, error, params );
         this.url = url;
     }
+
+    public TransferTimeoutException( final Transfer target, final String format, final Object... params )
+    {
+        super( target.getLocation(), format, params );
+        this.url = composeUrl( target.getResource() );
+    }
+
+    public TransferTimeoutException( final Transfer target, final String format, final Throwable error, final Object... params )
+    {
+        super( target.getLocation(), format, error, params );
+        this.url = composeUrl( target.getResource() );
+    }
+
+    public TransferTimeoutException( final ConcreteResource resource, final String format, final Object... params )
+    {
+        super( resource.getLocation(), format, params );
+        this.url = composeUrl( resource );
+    }
+
 
     @Override
     public String getMessage()
@@ -83,6 +71,21 @@ public class TransferTimeoutException
     public String getUrl()
     {
         return url;
+    }
+
+
+    private String composeUrl( final ConcreteResource resource )
+    {
+        String u;
+        try
+        {
+            u = UrlUtils.buildUrl( resource );
+        }
+        catch ( MalformedURLException e )
+        {
+            u = resource.getLocation().getUri() + resource.getPath();
+        }
+        return u;
     }
 
 }
