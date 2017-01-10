@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.embed;
 
+import org.commonjava.cdi.util.weft.config.DefaultWeftConfig;
+import org.commonjava.cdi.util.weft.config.WeftConfig;
 import org.commonjava.maven.galley.cache.FileCacheProviderConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderConfig;
@@ -57,6 +59,8 @@ public class TestCDIProvider
 
     private GlobalHttpConfiguration globalHttpConfiguration;
 
+    private WeftConfig weftConfig;
+
     @Inject
     private PathGenerator pathGenerator;
 
@@ -68,6 +72,8 @@ public class TestCDIProvider
 
     @Inject
     private TransportManager transportManager;
+
+
 
     @PostConstruct
     public void start()
@@ -86,6 +92,8 @@ public class TestCDIProvider
         locationExpander = new NoOpLocationExpander();
         locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
         globalHttpConfiguration = new GlobalHttpConfiguration();
+
+        weftConfig = new DefaultWeftConfig(  );
     }
 
     @PreDestroy
@@ -127,5 +135,12 @@ public class TestCDIProvider
     public GlobalHttpConfiguration getGlobalHttpConfiguration()
     {
         return globalHttpConfiguration;
+    }
+
+    @Produces
+    @Default
+    public WeftConfig getWeftConfig()
+    {
+        return weftConfig;
     }
 }
