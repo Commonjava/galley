@@ -34,7 +34,6 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +41,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class PartyLineCacheProvider
@@ -51,8 +50,10 @@ public class PartyLineCacheProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
+    //FIX: use WeakHashMap to avoid potential OOM problem of un-releasing entry in map in long-run case.
+    //     As all map operations in this class are in synchronized block, the ConcurrentHashMap is not needed.
     private final Map<ConcreteResource, Transfer> transferCache =
-        new ConcurrentHashMap<ConcreteResource, Transfer>( 10000 );
+        new WeakHashMap<>( 10000 );
 
     private final JoinableFileManager fileManager = new JoinableFileManager();
 
@@ -408,7 +409,7 @@ public class PartyLineCacheProvider
     }
 
     @Override
-    public void clearTransferCache()
+    public synchronized void clearTransferCache()
     {
         transferCache.clear();
     }
