@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
@@ -36,6 +37,8 @@ import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpListing
     extends AbstractHttpJob
@@ -82,19 +85,22 @@ public class HttpListing
             if ( executeHttp() )
             {
                 in = response.getEntity().getContent();
+                String listing = IOUtils.toString( in );
+                Logger logger = LoggerFactory.getLogger( getClass() );
+                logger.debug( "Got raw listing content:\n\n{}\n\n", listing );
+
                 final ArrayList<String> al = new ArrayList<String>();
 
                 // TODO: Charset!!
-                Document doc = null;
-                try
-                {
-                    doc = Jsoup.parse( in, "UTF-8", url );
-                }
-                catch ( final IOException e )
-                {
-                    this.error =
-                            new TransferLocationException( resource.getLocation(), "Invalid HTML in: {}. Reason: {}", e, url, e.getMessage() );
-                }
+                Document doc = Jsoup.parse( listing, url );
+//                try
+//                {
+//                }
+//                catch ( final IOException e )
+//                {
+//                    this.error =
+//                            new TransferLocationException( resource.getLocation(), "Invalid HTML in: {}. Reason: {}", e, url, e.getMessage() );
+//                }
 
                 if ( doc != null )
                 {
@@ -152,28 +158,42 @@ public class HttpListing
         {
             linkPath = linkHref;
         }
-        return linkPath.length() > 0
+
+        boolean valid = linkPath.length() > 0
                && ( ( ( linkPath.charAt( 0 ) != '/' ) && ( linkPath.charAt( 0 ) != '.' ) )
                     || linkPath.startsWith( url.getPath() ) );
+
+        Logger logger = LoggerFactory.getLogger( HttpListing.class );
+        logger.debug( "Does URL: {} (linkPath: {}) reference a sub-path of: {}? {}", linkHref, linkPath, url.getPath(),
+                      valid );
+        return valid;
     }
 
     static boolean isSameServer( final URL url, final String linkHref )
     {
         String linkProtocol = null;
         String linkAuthority = null;
+        Logger logger = LoggerFactory.getLogger( HttpListing.class );
         try
         {
             URL linkUrl = new URL( linkHref );
             linkProtocol = linkUrl.getProtocol();
             linkAuthority = linkUrl.getAuthority();
+
+            logger.debug( "Absolute URL: {} is on the same server.", linkHref );
         }
         catch ( MalformedURLException ex )
         {
             // linkHref is a relative path on the same server
+            logger.debug( "URL is relative, must be on the same server." );
         }
 
-        return ( linkProtocol == null || linkProtocol.equals( url.getProtocol() ) )
+        boolean valid = ( linkProtocol == null || linkProtocol.equals( url.getProtocol() ) )
                && ( linkAuthority == null || linkAuthority.equals( url.getAuthority() ) );
+
+        logger.debug( "URL: {} has same protocol and authority? {}", linkHref, valid );
+
+        return valid;
     }
 
 }
