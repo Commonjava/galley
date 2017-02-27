@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>11</version>
+    <version>12-SNAPSHOT</version>
   </parent>
 
   <groupId>org.commonjava.maven.galley</groupId>
@@ -58,6 +58,8 @@
 
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
+
+    <plugin.jacoco.skip>false</plugin.jacoco.skip>
   </properties>
 
   <dependencyManagement>
