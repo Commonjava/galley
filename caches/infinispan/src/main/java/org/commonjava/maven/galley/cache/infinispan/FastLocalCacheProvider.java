@@ -943,10 +943,14 @@ public class FastLocalCacheProvider
         {
             try
             {
-                if ( cacheInstance == null || cacheInstance.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
+                if ( cacheInstance == null  )
                 {
                     throw new IllegalStateException(
                             "[galley] ISPN transaction not started correctly. May be it is not set correctly, please have a check. " );
+                }
+                if ( cacheInstance.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
+                {
+                    throw new IOException( "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
                 }
                 cacheInstance.commit();
             }
