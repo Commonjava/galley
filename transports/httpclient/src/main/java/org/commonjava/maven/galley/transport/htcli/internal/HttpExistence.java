@@ -59,11 +59,21 @@ public final class HttpExistence
         }
         finally
         {
-            writeMetadata( transfer, mapper );
             cleanup();
         }
 
         return false;
     }
 
+    @Override
+    protected Transfer getTransfer()
+    {
+        return transfer;
+    }
+
+    @Override
+    protected ObjectMapper getMetadataObjectMapper()
+    {
+        return mapper;
+    }
 }

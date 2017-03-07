@@ -78,12 +78,17 @@ public final class HttpDownload
         }
         finally
         {
-            writeMetadata( target, mapper );
             cleanup();
         }
 
         logger.info( "Download attempt done: {} Result:\n  target: {}\n  error: {}", url, target, error );
         return this;
+    }
+
+    @Override
+    protected ObjectMapper getMetadataObjectMapper()
+    {
+        return mapper;
     }
 
     @Override
