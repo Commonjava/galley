@@ -63,14 +63,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.join;
@@ -208,17 +205,47 @@ public class TransferManagerImpl
     public List<ListingResult> listAll( final VirtualResource virt, final EventMetadata metadata )
         throws TransferException
     {
-        final List<ListingResult> results = new ArrayList<>();
+        final Map<ConcreteResource, Future<ListingResult>> futureList = new HashMap<>();
         for ( final ConcreteResource res : virt )
         {
-            final ListingResult result = doList( res, true, metadata );
-            if ( result != null )
+            final Future<ListingResult> listingFuture = executorService.submit( new Callable<ListingResult>()
             {
-                results.add( result );
+                @Override
+                public ListingResult call() throws TransferException
+                {
+                    return doList( res, true, metadata );
+                }
+            });
+            futureList.put( res, listingFuture );
+        }
+
+        final List<ListingResult> results = new ArrayList<>();
+        for ( Map.Entry<ConcreteResource, Future<ListingResult>> entry : futureList.entrySet() )
+        {
+            Future<ListingResult> listingFuture = entry.getValue();
+            ConcreteResource res = entry.getKey();
+            ListingResult listing;
+            try
+            {
+                listing = listingFuture.get();
+            }
+            catch ( InterruptedException ex )
+            {
+                throw new TransferException( "Listing of %s was interrupted", ex, res );
+            }
+            catch ( ExecutionException ex )
+            {
+                throw new TransferException( "Listing of %s threw an error: %s", ex, res, ex );
+            }
+
+            if ( listing != null )
+            {
+                results.add( listing );
             }
         }
 
         return results;
+
     }
 
     @Override
