@@ -151,11 +151,41 @@ public abstract class AbstractHttpJob
             throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e, url,
                                          e.getMessage() );
         }
+        finally
+        {
+            /*
+            * we need to integrate the writeMetadata() method into the executeHttp() call in a finally block,
+            * and with a condition that it only runs on HEAD or GET. This would allow us to capture metadata on failed requests too,
+            * which is critical for responding consistently to the user after a failed request is cached in the NFC.
+            */
+            String method = request.getMethod();
+            if ( "GET".equalsIgnoreCase( method ) || "HEAD".equalsIgnoreCase( method ) )
+            {
+                Transfer target = getTransfer();
+                ObjectMapper mapper = getMetadataObjectMapper();
+                if ( target != null && mapper != null )
+                {
+                    writeMetadata( target, mapper );
+                }
+            }
+        }
 
         return true;
     }
 
-    protected void writeMetadata( final Transfer target, final ObjectMapper mapper )
+    /* for GET/HEAD request, need to override below two methods for writeMetadata() */
+
+    protected Transfer getTransfer()
+    {
+        return null;
+    }
+
+    protected ObjectMapper getMetadataObjectMapper()
+    {
+        return null;
+    }
+
+    private void writeMetadata( final Transfer target, final ObjectMapper mapper )
     {
         if ( target == null || request == null || response == null )
         {
