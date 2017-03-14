@@ -402,7 +402,7 @@ public class PartyLineCacheProvider
         if ( t == null )
         {
             t = new Transfer( resource, this, fileEventManager, transferDecorator );
-            transferCache.put( resource, t );
+            transferCache.put( new ConcreteResource( resource.getLocation(), resource.getPath() ), t );
         }
 
         return t;
