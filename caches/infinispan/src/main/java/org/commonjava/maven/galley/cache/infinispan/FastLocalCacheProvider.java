@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.cache.infinispan;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.commonjava.cdi.util.weft.ThreadContext;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -50,7 +51,6 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -71,6 +71,8 @@ public class FastLocalCacheProvider
         implements CacheProvider, CacheProvider.AdminView
 {
 
+    private static final String FAST_LOCAL_STREAMS = "fast-local-streams";
+
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     public static final String NFS_BASE_DIR_KEY = "galley.nfs.basedir";
@@ -80,13 +82,11 @@ public class FastLocalCacheProvider
     // use weak key map to avoid the memory occupy for long time of the transfer
     private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentWeakKeyHashMap<>( 10000 );
 
-    private final Map<String, Set<WeakReference<OutputStream>>> streamHolder = new HashMap<>( 50 );
-
     private PartyLineCacheProvider plCacheProvider;
 
     // This NFS owner cache will be shared during nodes(indy?), it will record the which node is storing which file
     // in NFS. Used as <path, ip> cache to collect nfs ownership of the file storage
-    private CacheInstance<String, String> nfsOwnerCache;
+    private final CacheInstance<String, String> nfsOwnerCache;
 
     private FileEventManager fileEventManager;
 
@@ -207,39 +207,26 @@ public class FastLocalCacheProvider
     @Override
     public void cleanupCurrentThread()
     {
-        synchronized ( streamHolder )
+        plCacheProvider.cleanupCurrentThread();
+
+        ThreadContext streamHolder = ThreadContext.getContext( false );
+        if ( streamHolder != null )
         {
-            plCacheProvider.cleanupCurrentThread();
             final String threadId = String.valueOf( Thread.currentThread().getId() );
-            final Set<WeakReference<OutputStream>> streams = streamHolder.get( threadId );
+            final Set<WeakReference<OutputStream>> streams = (Set<WeakReference<OutputStream>>) streamHolder.get( FAST_LOCAL_STREAMS );
             if ( streams != null && !streams.isEmpty() )
             {
                 Iterator<WeakReference<OutputStream>> iter = streams.iterator();
                 while ( iter.hasNext() )
                 {
                     WeakReference<OutputStream> streamRef = iter.next();
-                    OutputStream stream = streamRef.get();
+                    IOUtils.closeQuietly( streamRef.get() );
 
                     iter.remove();
-                    try
-                    {
-                        if ( stream != null )
-                        {
-                            stream.close();
-                        }
-                    }
-                    catch ( IOException e )
-                    {
-                        final String errorMsg =
-                                String.format( "[galley] I/O error happened when handling stream closing for stream %s",
-                                               stream.toString() );
-                        logger.error( errorMsg, e );
-                    }
                 }
             }
             streamHolder.remove( threadId );
         }
-
     }
 
     @Override
@@ -427,17 +414,18 @@ public class FastLocalCacheProvider
                 // will wrap the cache manager in stream wrapper, and let it do tx commit in stream close to make sure
                 // the two streams writing's consistency.
                 dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, nfsOwnerCache );
-                synchronized ( streamHolder )
+
+                ThreadContext streamHolder = ThreadContext.getContext( true );
+                Set<WeakReference<OutputStream>> streams =
+                        (Set<WeakReference<OutputStream>>) streamHolder.get( FAST_LOCAL_STREAMS );
+
+                if ( streams == null )
                 {
-                    final String threadId = String.valueOf( Thread.currentThread().getId() );
-                    Set<WeakReference<OutputStream>> streams = streamHolder.get( threadId );
-                    if ( streams == null )
-                    {
-                        streams = new HashSet<>( 10 );
-                    }
-                    streams.add( new WeakReference<>( dualOut ) );
-                    streamHolder.put( threadId, streams );
+                    streams = new HashSet<>( 10 );
                 }
+
+                streams.add( new WeakReference<>( dualOut ) );
+                streamHolder.put( FAST_LOCAL_STREAMS, streams );
             }
             catch ( NotSupportedException | SystemException e )
             {
@@ -895,15 +883,25 @@ public class FastLocalCacheProvider
             extends OutputStream
     {
 
-        private OutputStream out1;
+        private final OutputStream out1;
 
-        private OutputStream out2;
+        private final OutputStream out2;
 
-        private CacheInstance<String,String> cacheInstance;
+        private final CacheInstance<String,String> cacheInstance;
 
         public DualOutputStreamsWrapper( final OutputStream out1, final OutputStream out2,
                                          final CacheInstance<String,String> cacheInstance )
         {
+            if ( cacheInstance == null )
+            {
+                throw new NullPointerException( "Cache instance cannot be null." );
+            }
+
+            if ( out1 == null || out2 == null )
+            {
+                throw new NullPointerException( "Output streams cannot be null: (stream1: " + out1 + " / stream2: " + out2 + ")" );
+            }
+
             this.out1 = out1;
             this.out2 = out2;
             this.cacheInstance = cacheInstance;
