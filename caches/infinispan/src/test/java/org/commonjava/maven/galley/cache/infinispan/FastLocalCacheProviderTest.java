@@ -19,6 +19,7 @@ import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
+import org.jboss.byteman.contrib.bmunit.BMRule;
 import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Test;
@@ -145,6 +146,18 @@ public class FastLocalCacheProviderTest
         assertThat( result, equalTo( content ) );
     }
 
+    @BMRule(name = "longTimeWaitBeforeCloseTest", targetClass = "FastLocalCacheProvider",
+                    targetMethod = "openOutputStream",
+                    targetLocation = "EXIT",
+                    action = "java.lang.Thread.sleep(60*1000)")
+    @Test
+    public void testLongTimeWaitBeforeClose()
+                    throws IOException {
+        final Location loc = new SimpleLocation("http://foo.com");
+        ConcreteResource resource = new ConcreteResource(loc, String.format("/path/to/my/%s", "file-write-close.text"));
+        provider.openOutputStream(resource);
+        provider.cleanupCurrentThread();
+    }
 
     @Test( expected = java.lang.IllegalArgumentException.class )
     public void testConstructorWitNoNFSSysPath()
