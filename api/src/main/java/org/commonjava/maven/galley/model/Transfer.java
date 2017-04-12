@@ -299,6 +299,8 @@ public class Transfer
                 decorator.decorateDelete( this, eventMetadata );
             }
 
+            logger.info( "DELETE in transfer level: {}", resource );
+
             final boolean deleted = provider.delete( resource );
             if ( deleted && fireEvents )
             {

@@ -676,7 +676,7 @@ public class TransferManagerImpl
             return false;
         }
 
-        logger.info( "DELETE {}", item.getResource() );
+        logger.info( "DELETE begins in transfer manager: {}", item.getResource() );
 
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( item, eventMetadata.getPackageType() );
         if ( specialPathInfo != null && !specialPathInfo.isDeletable() )
