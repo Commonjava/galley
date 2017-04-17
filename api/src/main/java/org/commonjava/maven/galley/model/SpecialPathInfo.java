@@ -42,6 +42,7 @@ public class SpecialPathInfo
      */
     private boolean mergable = false;
 
+    private boolean cachable = true; // We need to be able to avoid caching for certain path patterns.
 
     public static Builder from( final SpecialPathMatcher matcher )
     {
@@ -51,7 +52,7 @@ public class SpecialPathInfo
 
     protected SpecialPathInfo( final SpecialPathMatcher matcher, final boolean retrievable, final boolean publishable,
                                final boolean listable, final boolean decoratable, final boolean storable,
-                               final boolean deletable, final boolean metadata, final boolean mergable )
+                               final boolean deletable, final boolean metadata, final boolean mergable, final boolean cachable )
     {
         this.matcher = matcher;
         this.retrievable = retrievable;
@@ -62,6 +63,7 @@ public class SpecialPathInfo
         this.deletable = deletable;
         this.metadata = metadata;
         this.mergable = mergable;
+        this.cachable = cachable;
     }
 
     protected SpecialPathInfo( final SpecialPathMatcher matcher )
@@ -158,6 +160,16 @@ public class SpecialPathInfo
     protected void setMergable( final boolean mergable )
     {
         this.mergable = mergable;
+    }
+
+    public boolean isCachable()
+    {
+        return cachable;
+    }
+
+    public void setCachable( boolean cachable )
+    {
+        this.cachable = cachable;
     }
 
     @Override
@@ -292,6 +304,17 @@ public class SpecialPathInfo
         public boolean isMergable()
         {
             return info.mergable;
+        }
+
+        public Builder setCachable( final boolean cachable )
+        {
+            info.setCachable( cachable );
+            return this;
+        }
+
+        public boolean isCachable()
+        {
+            return info.isCachable();
         }
     }
 

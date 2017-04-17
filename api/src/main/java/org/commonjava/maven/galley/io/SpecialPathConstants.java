@@ -31,6 +31,8 @@ public class SpecialPathConstants
 
     public static final String PKG_TYPE_MAVEN = "maven";
 
+    public static final String PKG_TYPE_GENERIC_HTTP = "generic-http";
+
     public static final List<SpecialPathInfo> STANDARD_SPECIAL_PATHS;
 
     public static final SpecialPathInfo DEFAULT_FILE = SpecialPathInfo.from( new PathPatternMatcher( ".*[^/]" ) )

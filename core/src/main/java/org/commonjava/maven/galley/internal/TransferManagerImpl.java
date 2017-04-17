@@ -562,7 +562,10 @@ public class TransferManagerImpl
 
             if ( retrieved != null && retrieved.exists() && !target.equals( retrieved ) )
             {
-                cacheProvider.createAlias( retrieved.getResource(), target.getResource() );
+                if ( specialPathInfo == null || specialPathInfo.isCachable() )
+                {
+                    cacheProvider.createAlias( retrieved.getResource(), target.getResource() );
+                }
             }
 
             if ( target.exists() )
