@@ -177,5 +177,4 @@ public class FastLocalCacheProviderTest
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
                                     new SimpleCacheInstance<>( "test", cache ), pathgen, events, decorator, executor, null );
     }
-
 }

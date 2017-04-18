@@ -489,6 +489,12 @@ public class PartyLineCacheProvider
     }
 
     @Override
+    public AdminView asAdminView()
+    {
+        return this;
+    }
+
+    @Override
     public void cleanupCurrentThread()
     {
         fileManager.cleanupCurrentThread();

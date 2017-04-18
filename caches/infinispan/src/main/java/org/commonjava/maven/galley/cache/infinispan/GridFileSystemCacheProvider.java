@@ -296,6 +296,12 @@ public class GridFileSystemCacheProvider
     }
 
     @Override
+    public AdminView asAdminView()
+    {
+        return this;
+    }
+
+    @Override
     public void cleanupCurrentThread()
     {
     }

@@ -106,6 +106,8 @@ public interface CacheProvider
 
     void waitForReadUnlock( ConcreteResource resource );
 
+    AdminView asAdminView ();
+
     interface AdminView extends CacheProvider
     {
         boolean isFileBased();

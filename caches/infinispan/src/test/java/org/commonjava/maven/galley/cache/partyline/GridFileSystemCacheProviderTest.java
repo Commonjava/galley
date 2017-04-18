@@ -78,5 +78,4 @@ public class GridFileSystemCacheProviderTest
     {
         return provider;
     }
-
 }

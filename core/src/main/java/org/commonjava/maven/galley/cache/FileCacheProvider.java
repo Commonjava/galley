@@ -396,6 +396,12 @@ public class FileCacheProvider
     }
 
     @Override
+    public AdminView asAdminView()
+    {
+        return this;
+    }
+
+    @Override
     public void cleanupCurrentThread()
     {
         lockingSupport.cleanupCurrentThread();

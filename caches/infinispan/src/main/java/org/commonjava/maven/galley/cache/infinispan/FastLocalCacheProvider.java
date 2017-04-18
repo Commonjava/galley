@@ -793,6 +793,12 @@ public class FastLocalCacheProvider
     }
 
     @Override
+    public AdminView asAdminView()
+    {
+        return this;
+    }
+
+    @Override
     public void waitForWriteUnlock( ConcreteResource resource )
     {
         //FIXME: potential dead lock?

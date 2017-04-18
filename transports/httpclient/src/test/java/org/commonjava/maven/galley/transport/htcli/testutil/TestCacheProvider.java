@@ -277,6 +277,12 @@ public class TestCacheProvider
     }
 
     @Override
+    public AdminView asAdminView()
+    {
+        throw new UnsupportedOperationException( "No support for AdminView" );
+    }
+
+    @Override
     public void cleanupCurrentThread()
     {
         lockingSupport.cleanupCurrentThread();

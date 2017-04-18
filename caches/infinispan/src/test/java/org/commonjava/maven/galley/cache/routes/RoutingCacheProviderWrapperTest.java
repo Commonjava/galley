@@ -16,8 +16,8 @@
 package org.commonjava.maven.galley.cache.routes;
 
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
-import org.commonjava.maven.galley.cache.infinispan.SimpleCacheInstance;
 import org.commonjava.maven.galley.cache.infinispan.FastLocalCacheProviderFactory;
+import org.commonjava.maven.galley.cache.infinispan.SimpleCacheInstance;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderFactory;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class RoutingCacheProviderWrapperTest
 {
@@ -97,10 +98,10 @@ public class RoutingCacheProviderWrapperTest
     {
 
         final RoutingCacheProviderWrapper router =
-                (RoutingCacheProviderWrapper) new RoutingCacheProviderFactory( selector, fastLocalFac,
-                                                                               partylineFac ).create( pathgen,
-                                                                                                      decorator,
-                                                                                                      events );
+                        (RoutingCacheProviderWrapper) new RoutingCacheProviderFactory( selector, fastLocalFac,
+                                                                                       partylineFac ).create( pathgen,
+                                                                                                              decorator,
+                                                                                                              events );
         final CacheProvider partyline = partylineFac.create( pathgen, decorator, events );
         final CacheProvider fastLocal = fastLocalFac.create( pathgen, decorator, events );
 
@@ -131,6 +132,16 @@ public class RoutingCacheProviderWrapperTest
 
         get = router.getRoutedProvider( null );
         assertThat( get, equalTo( partyline ) );
-    }
 
+        resource = new ConcreteResource( loc, fname );
+        try
+        {
+            router.asAdminView().getDetachedFile( resource );
+            fail( "Should have thrown exception" );
+        }
+        catch ( UnsupportedOperationException ex )
+        {
+            // Pass
+        }
+    }
 }
