@@ -53,5 +53,4 @@ public class PartyLineCacheProviderTest
     {
         return provider;
     }
-
 }

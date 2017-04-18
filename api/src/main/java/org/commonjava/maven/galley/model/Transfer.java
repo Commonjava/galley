@@ -29,6 +29,7 @@ import org.commonjava.maven.galley.util.TransferOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -330,19 +331,19 @@ public class Transfer
         return listing;
     }
 
-//    public File getDetachedFile()
-//    {
-//        provider.waitForWriteUnlock( resource );
-//        provider.lockWrite( resource );
-//        try
-//        {
-//            return provider.getDetachedFile( resource );
-//        }
-//        finally
-//        {
-//            provider.unlockWrite( resource );
-//        }
-//    }
+   public File getDetachedFile()
+   {
+       provider.waitForWriteUnlock( resource );
+       provider.lockWrite( resource );
+       try
+       {
+           return provider.asAdminView().getDetachedFile( resource );
+       }
+       finally
+       {
+           provider.unlockWrite( resource );
+       }
+   }
 
     public void mkdirs()
         throws IOException

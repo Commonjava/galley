@@ -258,4 +258,10 @@ public class RoutingCacheProviderWrapper
     {
         getRoutedProvider( resource ).waitForReadUnlock( resource );
     }
+
+    @Override
+    public AdminView asAdminView()
+    {
+        throw new UnsupportedOperationException( "No support for AdminView" );
+    }
 }
