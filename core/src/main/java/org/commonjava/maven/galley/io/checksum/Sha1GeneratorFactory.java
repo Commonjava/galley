@@ -42,7 +42,7 @@ public final class Sha1GeneratorFactory
         protected Sha1Generator( final Transfer transfer )
             throws IOException
         {
-            super( transfer, ".sha1", "SHA-1" );
+            super( transfer, ".sha1", ContentDigest.SHA_1 );
         }
 
     }

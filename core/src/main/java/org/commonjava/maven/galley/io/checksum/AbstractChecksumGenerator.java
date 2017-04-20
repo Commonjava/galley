@@ -38,15 +38,20 @@ public abstract class AbstractChecksumGenerator
 
     private final String checksumExtension;
 
+    private ContentDigest digestType;
+
     private final Transfer checksumTransfer;
 
-    protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension, final String type )
+    private String digestHex;
+
+    protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension, final ContentDigest type )
         throws IOException
     {
         this.checksumExtension = checksumExtension;
+        digestType = type;
         try
         {
-            digester = MessageDigest.getInstance( type );
+            digester = MessageDigest.getInstance( digestType.digestName() );
         }
         catch ( final NoSuchAlgorithmException e )
         {
@@ -80,13 +85,22 @@ public abstract class AbstractChecksumGenerator
         {
             stream = checksumTransfer.openOutputStream( TransferOperation.GENERATE );
             out = new PrintStream( stream );
-            out.print( encodeHexString( digester.digest() ) );
+            out.print( getDigestHex() );
         }
         finally
         {
             IOUtils.closeQuietly( out );
             IOUtils.closeQuietly( stream );
         }
+    }
+
+    public synchronized String getDigestHex()
+    {
+        if ( digestHex == null )
+        {
+            digestHex = encodeHexString( digester.digest() );
+        }
+        return digestHex;
     }
 
     public final void delete()
@@ -104,4 +118,8 @@ public abstract class AbstractChecksumGenerator
         return transfer.getSiblingMeta( checksumExtension );
     }
 
+    public ContentDigest getDigestType()
+    {
+        return digestType;
+    }
 }

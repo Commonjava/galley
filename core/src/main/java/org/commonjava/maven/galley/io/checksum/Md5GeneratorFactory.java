@@ -42,7 +42,7 @@ public final class Md5GeneratorFactory
         protected Md5Generator( final Transfer transfer )
             throws IOException
         {
-            super( transfer, ".md5", "MD5" );
+            super( transfer, ".md5", ContentDigest.MD5 );
         }
 
     }

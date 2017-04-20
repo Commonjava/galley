@@ -20,6 +20,8 @@ import java.io.IOException;
 import org.commonjava.maven.galley.io.checksum.Sha384GeneratorFactory.Sha384Generator;
 import org.commonjava.maven.galley.model.Transfer;
 
+import static org.commonjava.maven.galley.io.checksum.ContentDigest.SHA_384;
+
 public final class Sha384GeneratorFactory
     extends AbstractChecksumGeneratorFactory<Sha384Generator>
 {
@@ -42,7 +44,7 @@ public final class Sha384GeneratorFactory
         protected Sha384Generator( final Transfer transfer )
             throws IOException
         {
-            super( transfer, ".sha384", "SHA-384" );
+            super( transfer, ".sha384", SHA_384 );
         }
 
     }

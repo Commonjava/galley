@@ -42,7 +42,7 @@ public final class Sha256GeneratorFactory
         protected Sha256Generator( final Transfer transfer )
             throws IOException
         {
-            super( transfer, ".sha256", "SHA-256" );
+            super( transfer, ".sha256", ContentDigest.SHA_256 );
         }
 
     }
