@@ -85,7 +85,7 @@ public final class ChecksummingOutputStream
 
         if ( metadataConsumer != null )
         {
-            metadataConsumer.accept( transfer, new TransferMetadata( hexDigests, size ) );
+            metadataConsumer.addMetadata( transfer, new TransferMetadata( hexDigests, size ) );
         }
     }
 

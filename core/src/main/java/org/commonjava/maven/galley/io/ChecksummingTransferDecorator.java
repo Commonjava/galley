@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.galley.io;
 
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGenerator;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGeneratorFactory;
 import org.commonjava.maven.galley.io.checksum.ChecksummingInputStream;
@@ -44,6 +45,8 @@ import static org.commonjava.maven.galley.model.TransferOperation.DOWNLOAD;
 public final class ChecksummingTransferDecorator
         extends AbstractTransferDecorator
 {
+
+    public static final String FORCE_CHECKSUM = "force-checksum";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -92,14 +95,15 @@ public final class ChecksummingTransferDecorator
         }
     }
 
-    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
+    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op,
+                                       final EventMetadata eventMetadata )
             throws IOException
     {
-        if ( checksumWriters )
+        boolean force = Boolean.TRUE.equals( eventMetadata.get( FORCE_CHECKSUM ) );
+        if ( force || checksumWriters )
         {
-            boolean writeChecksums =
-                    ( writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty() || writeChecksumFilesOn.contains(
-                            op ) );
+            boolean writeChecksums = force || writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
+                    || writeChecksumFilesOn.contains( op );
 
             SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
 
@@ -113,18 +117,20 @@ public final class ChecksummingTransferDecorator
         return stream;
     }
 
-    public InputStream decorateRead( final InputStream stream, final Transfer transfer )
+    public InputStream decorateRead( final InputStream stream, final Transfer transfer,
+                                     final EventMetadata eventMetadata )
             throws IOException
     {
-        if ( checksumReaders )
+        boolean force = Boolean.TRUE.equals( eventMetadata.get( FORCE_CHECKSUM ) );
+        if ( force || checksumReaders )
         {
             SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
 
             if ( specialPathInfo == null || specialPathInfo.isDecoratable() )
             {
                 logger.info( "Wrapping input stream to: {} for checksum generation.", transfer );
-                boolean writeChecksums = ( writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
-                        || writeChecksumFilesOn.contains( DOWNLOAD ) );
+                boolean writeChecksums = force || writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
+                        || writeChecksumFilesOn.contains( DOWNLOAD );
 
                 return new ChecksummingInputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
             }
@@ -132,7 +138,7 @@ public final class ChecksummingTransferDecorator
         return stream;
     }
 
-    public void decorateDelete( final Transfer transfer )
+    public void decorateDelete( final Transfer transfer, final EventMetadata eventMetadata )
             throws IOException
     {
         if ( transfer.isDirectory() )
@@ -148,6 +154,11 @@ public final class ChecksummingTransferDecorator
                 final AbstractChecksumGenerator generator = factory.createGenerator( transfer );
                 generator.delete();
             }
+        }
+
+        if ( consumer != null )
+        {
+            consumer.removeMetadata( transfer );
         }
     }
 }
