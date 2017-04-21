@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2011 Red Hat, Inc. (jdcasey@commonjava.org)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,10 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Map;
 
 /**
@@ -23,9 +27,15 @@ import java.util.Map;
  * Time: 1:15 PM
  */
 public class TransferMetadata
+        implements Externalizable
 {
-    private final Map<ContentDigest, String> digests;
-    private final Long size;
+    private Map<ContentDigest, String> digests;
+
+    private Long size;
+
+    public TransferMetadata()
+    {
+    }
 
     public TransferMetadata( Map<ContentDigest, String> digests, Long size )
     {
@@ -41,5 +51,21 @@ public class TransferMetadata
     public Long getSize()
     {
         return size;
+    }
+
+    @Override
+    public void writeExternal( final ObjectOutput objectOutput )
+            throws IOException
+    {
+        objectOutput.writeLong( size );
+        objectOutput.writeObject( digests );
+    }
+
+    @Override
+    public void readExternal( final ObjectInput objectInput )
+            throws IOException, ClassNotFoundException
+    {
+        this.size = objectInput.readLong();
+        this.digests = (Map<ContentDigest, String>) objectInput.readObject();
     }
 }
