@@ -44,6 +44,9 @@
   </scm>
 
   <properties>
+    <!-- Just for now, until we can settle on a PMD execution plan that makes sense. -->
+    <pmd.failOnViolation>false</pmd.failOnViolation>
+
     <projectOwner>Red Hat, Inc.</projectOwner>
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.17.1</atlasVersion>

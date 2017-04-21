@@ -52,17 +52,7 @@ public class ContentsFilteringTransferDecorator
 extends AbstractTransferDecorator
 {
 
-    public ContentsFilteringTransferDecorator()
-    {
-    }
-
-    public ContentsFilteringTransferDecorator( final TransferDecorator next )
-    {
-        super( next );
-    }
-
-    @Override
-    protected OverriddenBooleanValue decorateExistsInternal( final Transfer transfer )
+    public OverriddenBooleanValue decorateExists( final Transfer transfer )
     {
         final Location loc = transfer.getLocation();
         final boolean allowsSnapshots = loc.allowsSnapshots();
@@ -92,8 +82,7 @@ extends AbstractTransferDecorator
         return OverriddenBooleanValue.DEFER;
     }
 
-    @Override
-    protected OutputStream decorateWriteInternal( final OutputStream stream, final Transfer transfer, final TransferOperation op )
+    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
             throws IOException
     {
         final Location loc = transfer.getLocation();
@@ -114,8 +103,7 @@ extends AbstractTransferDecorator
      * Alters the listing to filter out artifacts belonging to a version that
      * should not be provided via the proxy.
      */
-    @Override
-    protected String[] decorateListingInternal( final Transfer transfer, final String[] listing )
+    public String[] decorateListing( final Transfer transfer, final String[] listing )
             throws IOException
     {
         final Location loc = transfer.getLocation();

@@ -20,6 +20,8 @@ import java.io.IOException;
 import org.commonjava.maven.galley.io.checksum.Sha512GeneratorFactory.Sha512Generator;
 import org.commonjava.maven.galley.model.Transfer;
 
+import static org.commonjava.maven.galley.io.checksum.ContentDigest.SHA_512;
+
 public final class Sha512GeneratorFactory
     extends AbstractChecksumGeneratorFactory<Sha512Generator>
 {
@@ -42,7 +44,7 @@ public final class Sha512GeneratorFactory
         protected Sha512Generator( final Transfer transfer )
             throws IOException
         {
-            super( transfer, ".sha512", "SHA-512" );
+            super( transfer, ".sha512", SHA_512 );
         }
 
     }

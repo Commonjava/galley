@@ -15,20 +15,22 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
+import org.commonjava.maven.galley.model.Transfer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.galley.model.Transfer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public final class ChecksummingOutputStream
-    extends FilterOutputStream
+public final class ChecksummingInputStream
+        extends FilterInputStream
 {
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -41,18 +43,18 @@ public final class ChecksummingOutputStream
 
     private final TransferMetadataConsumer metadataConsumer;
 
-    private final boolean writeChecksumFiles;
+    private boolean writeChecksumFiles;
 
-    public ChecksummingOutputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
-                                     final OutputStream stream, final Transfer transfer )
+    public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
+                                    final InputStream stream, final Transfer transfer )
             throws IOException
     {
         this( checksumFactories, stream, transfer, null, true );
     }
 
-    public ChecksummingOutputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
-                                     final OutputStream stream, final Transfer transfer,
-                                     final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles )
+    public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
+                                    final InputStream stream, final Transfer transfer,
+                                    final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles )
         throws IOException
     {
         super( stream );
@@ -72,7 +74,7 @@ public final class ChecksummingOutputStream
     {
         super.close();
 
-        logger.debug( "Wrote: {} in: {}. Now, writing checksums.", transfer.getPath(), transfer.getLocation() );
+        logger.debug( "Read: {} in: {}. Now, creating checksums.", transfer.getPath(), transfer.getLocation() );
         Map<ContentDigest, String> hexDigests = new HashMap<>();
         for ( final AbstractChecksumGenerator checksum : checksums )
         {
@@ -90,15 +92,20 @@ public final class ChecksummingOutputStream
     }
 
     @Override
-    public void write( final int data )
+    public int read()
         throws IOException
     {
-        super.write( data );
-        size++;
-        for ( final AbstractChecksumGenerator checksum : checksums )
+        int data = super.read();
+        if ( data != -1 )
         {
-            checksum.update( (byte) data );
+            size++;
+            for ( final AbstractChecksumGenerator checksum : checksums )
+            {
+                checksum.update( (byte) data );
+            }
         }
+
+        return data;
     }
 
 }
