@@ -7,5 +7,7 @@ import org.commonjava.maven.galley.model.Transfer;
  */
 public interface TransferMetadataConsumer
 {
-    void accept( Transfer transfer, TransferMetadata transferData );
+    void addMetadata( Transfer transfer, TransferMetadata transferData );
+
+    void removeMetadata( Transfer transfer );
 }

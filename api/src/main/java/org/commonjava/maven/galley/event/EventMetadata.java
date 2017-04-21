@@ -39,6 +39,12 @@ public class EventMetadata
         this.packageType = packageType;
     }
 
+    public EventMetadata( final EventMetadata original )
+    {
+        this.packageType = original.packageType;
+        this.metadata.putAll( original.metadata );
+    }
+
     public Map<Object, Object> getMetadata()
     {
         return metadata;
