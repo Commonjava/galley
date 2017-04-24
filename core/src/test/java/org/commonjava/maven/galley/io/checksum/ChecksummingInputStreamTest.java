@@ -27,7 +27,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +44,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class ChecksummingOutputStreamTest
+public class ChecksummingInputStreamTest
 {
 
     @Rule
@@ -49,6 +52,8 @@ public class ChecksummingOutputStreamTest
 
     @Rule
     public ApiFixture fixture = new ApiFixture( temp );
+
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Before
     public void before()
@@ -64,20 +69,26 @@ public class ChecksummingOutputStreamTest
         final Transfer txfr = fixture.getCache()
                                      .getTransfer(
                                              new ConcreteResource( new SimpleLocation( "test:uri" ), "my-path.txt" ) );
-        final OutputStream os = new ByteArrayOutputStream();
 
         final byte[] data =
-                "This is a test with a bunch of data and some other stuff, in a big box sealed with chewing gum".getBytes();
+                "This is a test with a bunch of data and some other stuff, in a big box sealed with chewing gum".getBytes("UTF-8");
 
-        ChecksummingOutputStream stream = null;
+        final InputStream is = new ByteArrayInputStream( data );
+
+        ChecksummingInputStream stream = null;
         final TestMetadataConsumer testConsumer = new TestMetadataConsumer();
         try
         {
-            stream = new ChecksummingOutputStream( new HashSet<AbstractChecksumGeneratorFactory<?>>(
+            stream = new ChecksummingInputStream( new HashSet<AbstractChecksumGeneratorFactory<?>>(
                     Arrays.asList( new Md5GeneratorFactory(), new Sha1GeneratorFactory(),
-                                   new Sha256GeneratorFactory() ) ), os, txfr, testConsumer, true );
+                                   new Sha256GeneratorFactory() ) ), is, txfr, testConsumer, true );
 
-            stream.write( data );
+            logger.debug( "Reading stream with {} bytes", data.length );
+            byte[] resultData = IOUtils.toByteArray( stream );
+
+            logger.debug( "Result is {} bytes", resultData.length );
+
+            assertThat( Arrays.equals( resultData, data ), equalTo( true ) );
         }
         finally
         {
@@ -89,6 +100,7 @@ public class ChecksummingOutputStreamTest
         final byte[] digest = md.digest();
         final String digestHex = Hex.encodeHexString( digest );
 
+        logger.debug( "Verifying .md5 file" );
         final Transfer md5Txfr = txfr.getSiblingMeta( ".md5" );
         InputStream in = null;
         String resultHex = null;
@@ -105,6 +117,7 @@ public class ChecksummingOutputStreamTest
 
         assertThat( resultHex, equalTo( digestHex ) );
 
+        logger.debug( "Verifying MD5 in metadata consumer" );
         TransferMetadata metadata = testConsumer.getMetadata( txfr );
         assertThat( metadata, notNullValue() );
 

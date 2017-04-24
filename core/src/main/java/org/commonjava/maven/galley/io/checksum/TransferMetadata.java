@@ -68,4 +68,19 @@ public class TransferMetadata
         this.size = objectInput.readLong();
         this.digests = (Map<ContentDigest, String>) objectInput.readObject();
     }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( "TransferMetadata: {" );
+        sb.append( "\n  size: " ).append( size );
+        sb.append( "\n  digests: {" );
+        for ( Map.Entry<ContentDigest, String> entry : digests.entrySet() )
+        {
+            sb.append( "\n    " ).append( entry.getKey() ).append( ": " ).append( entry.getValue() );
+        }
+        sb.append( "\n  }\n}" );
+        return sb.toString();
+    }
 }
