@@ -70,22 +70,34 @@ public final class ChecksummingOutputStream
     public void close()
         throws IOException
     {
-        super.close();
-
-        logger.debug( "Wrote: {} in: {}. Now, writing checksums.", transfer.getPath(), transfer.getLocation() );
-        Map<ContentDigest, String> hexDigests = new HashMap<>();
-        for ( final AbstractChecksumGenerator checksum : checksums )
+        try
         {
-            hexDigests.put( checksum.getDigestType(), checksum.getDigestHex() );
-            if ( writeChecksumFiles )
+            logger.trace( "START CLOSE: {}", transfer );
+            logger.trace( "Wrote: {} (size: {}) in: {}. Now, writing checksums.", transfer.getPath(), size, transfer.getLocation() );
+            Map<ContentDigest, String> hexDigests = new HashMap<>();
+            for ( final AbstractChecksumGenerator checksum : checksums )
             {
-                checksum.write();
+                hexDigests.put( checksum.getDigestType(), checksum.getDigestHex() );
+                if ( writeChecksumFiles )
+                {
+                    checksum.write();
+                }
             }
-        }
 
-        if ( metadataConsumer != null )
+            if ( metadataConsumer != null )
+            {
+                metadataConsumer.addMetadata( transfer, new TransferMetadata( hexDigests, size ) );
+            }
+            else
+            {
+                logger.trace( "No metadata consumer!" );
+            }
+
+            super.close();
+        }
+        finally
         {
-            metadataConsumer.addMetadata( transfer, new TransferMetadata( hexDigests, size ) );
+            logger.trace( "END CLOSE: {}", transfer );
         }
     }
 
@@ -93,11 +105,17 @@ public final class ChecksummingOutputStream
     public void write( final int data )
         throws IOException
     {
+        logger.trace( "WRITE: {}", transfer );
         super.write( data );
+
         size++;
+        byte b = (byte) ( data & 0xff );
+
+        logger.trace( "Updating with: {} (raw: {})", b, data );
+
         for ( final AbstractChecksumGenerator checksum : checksums )
         {
-            checksum.update( (byte) data );
+            checksum.update( b );
         }
     }
 

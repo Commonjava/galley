@@ -70,22 +70,30 @@ public final class ChecksummingInputStream
     public void close()
         throws IOException
     {
-        super.close();
-
-        logger.debug( "Read: {} in: {}. Now, creating checksums.", transfer.getPath(), transfer.getLocation() );
-        Map<ContentDigest, String> hexDigests = new HashMap<>();
-        for ( final AbstractChecksumGenerator checksum : checksums )
+        try
         {
-            hexDigests.put( checksum.getDigestType(), checksum.getDigestHex() );
-            if ( writeChecksumFiles )
+            logger.trace( "START CLOSE: {}", transfer );
+            logger.trace( "Read: {} in: {}. Now, creating checksums.", transfer.getPath(), transfer.getLocation() );
+            Map<ContentDigest, String> hexDigests = new HashMap<>();
+            for ( final AbstractChecksumGenerator checksum : checksums )
             {
-                checksum.write();
+                hexDigests.put( checksum.getDigestType(), checksum.getDigestHex() );
+                if ( writeChecksumFiles )
+                {
+                    checksum.write();
+                }
             }
-        }
 
-        if ( metadataConsumer != null )
+            if ( metadataConsumer != null )
+            {
+                metadataConsumer.addMetadata( transfer, new TransferMetadata( hexDigests, size ) );
+            }
+
+            super.close();
+        }
+        finally
         {
-            metadataConsumer.addMetadata( transfer, new TransferMetadata( hexDigests, size ) );
+            logger.trace( "END CLOSE: {}", transfer );
         }
     }
 
@@ -93,17 +101,50 @@ public final class ChecksummingInputStream
     public int read()
         throws IOException
     {
+        logger.trace( "READ: {}", transfer );
         int data = super.read();
-        if ( data != -1 )
+        logger.trace( "{} input", data );
+        if ( data > -1 )
         {
             size++;
+            logger.trace( "Updating with: {} (raw: {})", ((byte) data & 0xff), data );
             for ( final AbstractChecksumGenerator checksum : checksums )
             {
                 checksum.update( (byte) data );
             }
         }
+        else
+        {
+            logger.trace( "READ: <EOF>" );
+        }
 
         return data;
     }
 
+    @Override
+    public int read( final byte[] b, final int off, final int len )
+            throws IOException
+    {
+        int read = super.read( b, off, len );
+        updateDigests( b, off, read );
+        return read;
+    }
+
+    private void updateDigests( final byte[] b, final int off, final int read )
+    {
+        if ( read < 0 )
+        {
+            return;
+        }
+
+        size+=read;
+        logger.trace( "Updating with [buffer of size: {}]", read );
+        for ( final AbstractChecksumGenerator checksum : checksums )
+        {
+            for( int i=off; i<off+read; i++)
+            {
+                checksum.update( (byte) (b[i] & 0xff) );
+            }
+        }
+    }
 }

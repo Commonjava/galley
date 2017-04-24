@@ -107,13 +107,16 @@ public final class ChecksummingTransferDecorator
 
             SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
 
+            logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
+                          ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
             if ( specialPathInfo == null || specialPathInfo.isDecoratable() )
             {
-                logger.info( "Wrapping output stream to: {} for checksum generation.", transfer );
+                logger.trace( "Wrapping output stream to: {} for checksum generation.", transfer );
                 return new ChecksummingOutputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
             }
         }
 
+        logger.trace( "NOT decorating write with ChecksummingTransferDecorator for: {}", transfer );
         return stream;
     }
 
@@ -126,6 +129,8 @@ public final class ChecksummingTransferDecorator
         {
             SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
 
+            logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
+                          ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
             if ( specialPathInfo == null || specialPathInfo.isDecoratable() )
             {
                 logger.info( "Wrapping input stream to: {} for checksum generation.", transfer );
@@ -135,6 +140,8 @@ public final class ChecksummingTransferDecorator
                 return new ChecksummingInputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
             }
         }
+
+        logger.trace( "NOT decorating read with ChecksummingTransferDecorator for: {}", transfer );
         return stream;
     }
 
