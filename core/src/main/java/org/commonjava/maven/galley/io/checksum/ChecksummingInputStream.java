@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,7 +53,7 @@ public final class ChecksummingInputStream
     public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                     final InputStream stream, final Transfer transfer,
                                     final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles )
-        throws IOException
+            throws IOException
     {
         super( stream );
         this.transfer = transfer;
@@ -68,7 +68,7 @@ public final class ChecksummingInputStream
 
     @Override
     public void close()
-        throws IOException
+            throws IOException
     {
         try
         {
@@ -89,6 +89,8 @@ public final class ChecksummingInputStream
                 metadataConsumer.addMetadata( transfer, new TransferMetadata( hexDigests, size ) );
             }
 
+            // NOTE: We close the main stream LAST, in case it's holding a file (or other) lock. This allows us to
+            // finish out tasks BEFORE releasing that lock.
             super.close();
         }
         finally
@@ -97,9 +99,18 @@ public final class ChecksummingInputStream
         }
     }
 
+    /**
+     * Update the checksums we're tracking, and the overall file size. The pass through the data to the user.
+     *
+     * NOTE: It's not enough to override {@link FilterInputStream#read()}. This method is NOT called by
+     * {@link FilterInputStream#read(byte[], int, int)}, so you MUST override both to get consistent behavior.
+     *
+     * @return
+     * @throws IOException
+     */
     @Override
     public int read()
-        throws IOException
+            throws IOException
     {
         logger.trace( "READ: {}", transfer );
         int data = super.read();
@@ -107,7 +118,7 @@ public final class ChecksummingInputStream
         if ( data > -1 )
         {
             size++;
-            logger.trace( "Updating with: {} (raw: {})", ((byte) data & 0xff), data );
+            logger.trace( "Updating with: {} (raw: {})", ( (byte) data & 0xff ), data );
             for ( final AbstractChecksumGenerator checksum : checksums )
             {
                 checksum.update( (byte) data );
@@ -121,6 +132,15 @@ public final class ChecksummingInputStream
         return data;
     }
 
+    /**
+     * Update the checksums we're tracking, and the overall file size. The pass through the data to the user.
+     *
+     * NOTE: If you override {@link FilterInputStream#read(byte[])} as well as this method, and you call super.read(), you will
+     * get DUPLICATE behavior (twice the effect) because this method DOES call {@link FilterInputStream#read(byte[], int, int)}.
+     *
+     * @return
+     * @throws IOException
+     */
     @Override
     public int read( final byte[] b, final int off, final int len )
             throws IOException
@@ -137,13 +157,13 @@ public final class ChecksummingInputStream
             return;
         }
 
-        size+=read;
+        size += read;
         logger.trace( "Updating with [buffer of size: {}]", read );
         for ( final AbstractChecksumGenerator checksum : checksums )
         {
-            for( int i=off; i<off+read; i++)
+            for ( int i = off; i < off + read; i++ )
             {
-                checksum.update( (byte) (b[i] & 0xff) );
+                checksum.update( (byte) ( b[i] & 0xff ) );
             }
         }
     }

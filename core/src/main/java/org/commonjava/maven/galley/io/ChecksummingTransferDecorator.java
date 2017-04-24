@@ -109,6 +109,7 @@ public final class ChecksummingTransferDecorator
 
             logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
                           ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
+
             if ( specialPathInfo == null || specialPathInfo.isDecoratable() )
             {
                 logger.trace( "Wrapping output stream to: {} for checksum generation.", transfer );
@@ -131,9 +132,10 @@ public final class ChecksummingTransferDecorator
 
             logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
                           ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
+
             if ( specialPathInfo == null || specialPathInfo.isDecoratable() )
             {
-                logger.info( "Wrapping input stream to: {} for checksum generation.", transfer );
+                logger.trace( "Wrapping input stream to: {} for checksum generation.", transfer );
                 boolean writeChecksums = force || writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
                         || writeChecksumFilesOn.contains( DOWNLOAD );
 
