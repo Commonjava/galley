@@ -1,13 +1,14 @@
 package org.commonjava.maven.galley.io.nocache;
 
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static org.commonjava.maven.galley.io.SpecialPathConstants.HTTP_METADATA_EXT;
 
 /**
  * Created by ruhan on 4/25/17.
@@ -36,7 +37,7 @@ public class NoCacheInputStream
             logger.trace( "Delete: {} and its siblings in: {}.", transfer.getPath(), transfer.getLocation() );
             transfer.delete( false );
 
-            Transfer meta = transfer.getSibling( HttpExchangeMetadata.FILE_EXTENSION );
+            Transfer meta = transfer.getSibling( HTTP_METADATA_EXT );
             if ( meta != null && meta.exists() )
             {
                 meta.delete( false );
