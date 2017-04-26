@@ -24,11 +24,12 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.commonjava.maven.galley.io.SpecialPathConstants;
 
 public class HttpExchangeMetadata
 {
 
-    public static final String FILE_EXTENSION = ".http-metadata.json";
+    public static final String FILE_EXTENSION = SpecialPathConstants.HTTP_METADATA_EXT;
 
     private static final String LAST_MODIFIED = "LAST-MODIFIED";
 
