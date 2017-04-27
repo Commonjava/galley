@@ -114,8 +114,15 @@ public final class ChecksummingTransferDecorator
 
             if ( specialPathInfo == null || specialPathInfo.isDecoratable() )
             {
-                logger.trace( "Wrapping output stream to: {} for checksum generation.", transfer );
-                return new ChecksummingOutputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
+                // Cases when we want to do checksumming:
+                // 0. if we're forcing recalculation
+                // 1. if we need to write checksum files for this
+                // 2. if we have a metadata consumer AND the consumer needs metadata for this transfer
+                if ( force || writeChecksums || ( consumer != null && consumer.needsMetadataFor( transfer ) ) )
+                {
+                    logger.trace( "Wrapping output stream to: {} for checksum generation.", transfer );
+                    return new ChecksummingOutputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
+                }
             }
         }
 
@@ -147,7 +154,14 @@ public final class ChecksummingTransferDecorator
                 boolean writeChecksums = force || writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
                         || writeChecksumFilesOn.contains( DOWNLOAD );
 
-                return new ChecksummingInputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
+                // Cases when we want to do checksumming:
+                // 0. if we're forcing recalculation
+                // 1. if we need to write checksum files for this
+                // 2. if we have a metadata consumer AND the consumer needs metadata for this transfer
+                if ( force || writeChecksums || ( consumer != null && consumer.needsMetadataFor( transfer ) ) )
+                {
+                    return new ChecksummingInputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
+                }
             }
         }
 
