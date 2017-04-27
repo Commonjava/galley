@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
@@ -163,6 +164,9 @@ public class FastLocalCacheProviderTest
     public void testConstructorWitNoNFSSysPath()
             throws IOException
     {
+        Properties props = System.getProperties();
+        props.remove( FastLocalCacheProvider.NFS_BASE_DIR_KEY );
+        System.setProperties( props );
         final String NON_EXISTS_PATH = "";
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
                                     new SimpleCacheInstance<>( "test", cache ), pathgen, events, decorator, executor,
