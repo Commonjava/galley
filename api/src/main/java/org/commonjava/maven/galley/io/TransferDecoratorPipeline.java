@@ -4,6 +4,8 @@ import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
@@ -55,12 +57,16 @@ public class TransferDecoratorPipeline
     public InputStream decorateRead( final InputStream stream, final Transfer transfer, final EventMetadata metadata )
             throws IOException
     {
+        Logger logger = LoggerFactory.getLogger( getClass() );
+
         InputStream result = stream;
         for ( TransferDecorator decorator : decorators )
         {
+            logger.debug( "Decorating: {} using decorator: {}", result.getClass().getName(), decorator.getClass().getName() );
             result = decorator.decorateRead( result, transfer, metadata );
         }
 
+        logger.debug( "Returning: {}", result.getClass().getName() );
         return result;
     }
 

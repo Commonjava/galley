@@ -99,7 +99,9 @@ public final class ChecksummingTransferDecorator
                                        final EventMetadata eventMetadata )
             throws IOException
     {
-        boolean force = Boolean.TRUE.equals( eventMetadata.get( FORCE_CHECKSUM ) );
+        Object forceObj = eventMetadata.get( FORCE_CHECKSUM );
+        boolean force = Boolean.TRUE.equals( forceObj ) || Boolean.parseBoolean( String.valueOf( forceObj ) );
+
         if ( force || checksumWriters )
         {
             boolean writeChecksums = force || writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
@@ -121,13 +123,19 @@ public final class ChecksummingTransferDecorator
         return stream;
     }
 
+    @Override
     public InputStream decorateRead( final InputStream stream, final Transfer transfer,
                                      final EventMetadata eventMetadata )
             throws IOException
     {
-        boolean force = Boolean.TRUE.equals( eventMetadata.get( FORCE_CHECKSUM ) );
+        Object forceObj = eventMetadata.get( FORCE_CHECKSUM );
+        boolean force = Boolean.TRUE.equals( forceObj ) || Boolean.parseBoolean( String.valueOf( forceObj ) );
+
         if ( force || checksumReaders )
         {
+            logger.debug( "(FORCE: {}) Starting checks to consider wrapping input stream for checksumming: {}", force,
+                          transfer );
+
             SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
 
             logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,

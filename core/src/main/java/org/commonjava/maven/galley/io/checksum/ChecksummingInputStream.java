@@ -86,7 +86,12 @@ public final class ChecksummingInputStream
 
             if ( metadataConsumer != null )
             {
+                logger.trace( "Adding metadata for: {} to: {}", transfer, metadataConsumer );
                 metadataConsumer.addMetadata( transfer, new TransferMetadata( hexDigests, size ) );
+            }
+            else
+            {
+                logger.trace( "No metadata consumer. NOT adding metadata." );
             }
 
             // NOTE: We close the main stream LAST, in case it's holding a file (or other) lock. This allows us to
