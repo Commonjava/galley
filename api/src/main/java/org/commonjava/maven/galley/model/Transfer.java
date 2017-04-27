@@ -156,6 +156,8 @@ public class Transfer
             }
 
             stream = decorator == null ? stream : decorator.decorateRead( stream, this, eventMetadata );
+
+            logger.trace( "Returning stream: {} for transfer: {}", stream.getClass().getName(), this );
             return stream;
         }
         catch ( final IOException e )

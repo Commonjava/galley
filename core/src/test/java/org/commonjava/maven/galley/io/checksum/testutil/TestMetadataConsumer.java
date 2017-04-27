@@ -21,6 +21,12 @@ public class TestMetadataConsumer
     }
 
     @Override
+    public boolean needsMetadataFor( final Transfer transfer )
+    {
+        return true;
+    }
+
+    @Override
     public synchronized void addMetadata( final Transfer transfer, final TransferMetadata transferData )
     {
         metadata.put( transfer, transferData );
