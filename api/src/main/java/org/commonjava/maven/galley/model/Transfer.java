@@ -39,7 +39,7 @@ import static org.apache.commons.lang.StringUtils.join;
 public class Transfer
 {
 
-    public static final String DELETE_CONTENT_LOG = "org.commonjava.content.delete";
+    public static final String DELETE_CONTENT_LOG = "org.commonjava.topic.content.delete";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
