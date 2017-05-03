@@ -708,6 +708,12 @@ public class TransferManagerImpl
 
         logger.info( "DELETE begins in transfer manager: {}", item.getResource() );
 
+        final Logger optLogger = LoggerFactory.getLogger( "org.commonjava.opt.track.Logger" );
+        if ( optLogger != null )
+        {
+            optLogger.info( "DELETE begins in transfer manager: {}", item.getResource() );
+        }
+
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( item, eventMetadata.getPackageType() );
         if ( specialPathInfo != null && !specialPathInfo.isDeletable() )
         {
