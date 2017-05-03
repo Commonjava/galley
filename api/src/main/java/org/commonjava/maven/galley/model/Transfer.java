@@ -34,8 +34,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import static org.apache.commons.lang.StringUtils.join;
+
 public class Transfer
 {
+
+    public static final String DELETE_CONTENT_LOG = "org.commonjava.content.delete";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -302,12 +306,30 @@ public class Transfer
                 decorator.decorateDelete( this, eventMetadata );
             }
 
-            logger.info( "DELETE in transfer level: {}", resource );
+            Logger contentLogger = LoggerFactory.getLogger( DELETE_CONTENT_LOG );
+
+            if ( contentLogger.isTraceEnabled() )
+            {
+                contentLogger.trace( "Starting delete of: {} ({}) from:\n    ", resource, eventMetadata,
+                                     join( Thread.currentThread().getStackTrace(), "\n    " ) );
+            }
+            else
+            {
+                contentLogger.info( "Starting delete of: {} ({})", resource, eventMetadata);
+            }
 
             final boolean deleted = provider.delete( resource );
-            if ( deleted && fireEvents )
+            if ( deleted )
             {
-                fileEventManager.fire( new FileDeletionEvent( this, eventMetadata ) );
+                contentLogger.info( "Finished delete of: {}", resource );
+                if ( fireEvents )
+                {
+                    fileEventManager.fire( new FileDeletionEvent( this, eventMetadata ) );
+                }
+            }
+            else
+            {
+                contentLogger.info( "Failed to delete: {}", resource );
             }
 
             return deleted;

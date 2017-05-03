@@ -71,6 +71,7 @@ import java.util.concurrent.Future;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.join;
+import static org.commonjava.maven.galley.model.Transfer.DELETE_CONTENT_LOG;
 import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 
 @ApplicationScoped
@@ -706,7 +707,8 @@ public class TransferManagerImpl
             return false;
         }
 
-        logger.info( "DELETE begins in transfer manager: {}", item.getResource() );
+        Logger contentLogger = LoggerFactory.getLogger( DELETE_CONTENT_LOG );
+        contentLogger.info( "BEGIN: Delete {} ({})", item.getResource(), eventMetadata );
 
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( item, eventMetadata.getPackageType() );
         if ( specialPathInfo != null && !specialPathInfo.isDeletable() )
@@ -731,6 +733,7 @@ public class TransferManagerImpl
             {
                 if ( !doDelete( item.getChild( sub ), eventMetadata ) )
                 {
+                    contentLogger.info( "FAIL: Delete: {}", item.getResource() );
                     return false;
                 }
             }
@@ -750,6 +753,8 @@ public class TransferManagerImpl
                                              e.getMessage() );
             }
         }
+
+        contentLogger.info( "FINISH: Delete: {}", item.getResource() );
 
         return true;
     }
