@@ -18,6 +18,8 @@ package org.commonjava.maven.galley.io.checksum.testutil;
 import org.commonjava.maven.galley.io.checksum.TransferMetadata;
 import org.commonjava.maven.galley.io.checksum.TransferMetadataConsumer;
 import org.commonjava.maven.galley.model.Transfer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +34,10 @@ public class TestMetadataConsumer
 
     public TransferMetadata getMetadata( Transfer transfer )
     {
-        return metadata.get( transfer );
+        TransferMetadata transferMetadata = metadata.get( transfer );
+        Logger logger = LoggerFactory.getLogger( getClass() );
+        logger.info( "Returning metadata: {} for transfer: {}", transferMetadata, transfer );
+        return transferMetadata;
     }
 
     @Override
@@ -44,6 +49,8 @@ public class TestMetadataConsumer
     @Override
     public synchronized void addMetadata( final Transfer transfer, final TransferMetadata transferData )
     {
+        Logger logger = LoggerFactory.getLogger( getClass() );
+        logger.info( "Adding metadata: {} for transfer: {}", transferData, transfer );
         metadata.put( transfer, transferData );
     }
 

@@ -29,20 +29,20 @@ public final class Sha256GeneratorFactory
     }
 
     @Override
-    protected Sha256Generator newGenerator( final Transfer transfer )
+    protected Sha256Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile )
         throws IOException
     {
-        return new Sha256Generator( transfer );
+        return new Sha256Generator( transfer, writeChecksumFile );
     }
 
     public static final class Sha256Generator
         extends AbstractChecksumGenerator
     {
 
-        protected Sha256Generator( final Transfer transfer )
+        protected Sha256Generator( final Transfer transfer, final boolean writeChecksumFile )
             throws IOException
         {
-            super( transfer, ".sha256", ContentDigest.SHA_256 );
+            super( transfer, ".sha256", ContentDigest.SHA_256, writeChecksumFile );
         }
 
     }

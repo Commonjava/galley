@@ -63,7 +63,7 @@ public class Md5GeneratorFactoryTest
 
         final Md5GeneratorFactory factory = new Md5GeneratorFactory();
 
-        final Md5Generator generator = factory.newGenerator( txfr );
+        final Md5Generator generator = factory.newGenerator( txfr, true );
         generator.update( data );
         generator.write();
 

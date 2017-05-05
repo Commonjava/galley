@@ -44,13 +44,6 @@ public final class ChecksummingInputStream
     private boolean writeChecksumFiles;
 
     public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
-                                    final InputStream stream, final Transfer transfer )
-            throws IOException
-    {
-        this( checksumFactories, stream, transfer, null, true );
-    }
-
-    public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                     final InputStream stream, final Transfer transfer,
                                     final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles )
             throws IOException
@@ -59,10 +52,10 @@ public final class ChecksummingInputStream
         this.transfer = transfer;
         this.metadataConsumer = metadataConsumer;
         this.writeChecksumFiles = writeChecksumFiles;
-        checksums = new HashSet<AbstractChecksumGenerator>();
+        checksums = new HashSet<>();
         for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
         {
-            checksums.add( factory.createGenerator( transfer ) );
+            checksums.add( factory.createGenerator( transfer, writeChecksumFiles ) );
         }
     }
 
@@ -73,13 +66,14 @@ public final class ChecksummingInputStream
         try
         {
             logger.trace( "START CLOSE: {}", transfer );
-            logger.trace( "Read: {} in: {}. Now, creating checksums.", transfer.getPath(), transfer.getLocation() );
+            logger.trace( "Read done: {} in: {}. Now, creating checksums.", transfer.getPath(), transfer.getLocation() );
             Map<ContentDigest, String> hexDigests = new HashMap<>();
             for ( final AbstractChecksumGenerator checksum : checksums )
             {
                 hexDigests.put( checksum.getDigestType(), checksum.getDigestHex() );
                 if ( writeChecksumFiles )
                 {
+                    logger.trace( "Writing checksum file for: {}", checksum.getDigestType() );
                     checksum.write();
                 }
             }
@@ -109,9 +103,8 @@ public final class ChecksummingInputStream
      *
      * NOTE: It's not enough to override {@link FilterInputStream#read()}. This method is NOT called by
      * {@link FilterInputStream#read(byte[], int, int)}, so you MUST override both to get consistent behavior.
-     *
-     * @return
-     * @throws IOException
+
+     * @throws IOException in case of nested read error
      */
     @Override
     public int read()
@@ -142,9 +135,8 @@ public final class ChecksummingInputStream
      *
      * NOTE: If you override {@link FilterInputStream#read(byte[])} as well as this method, and you call super.read(), you will
      * get DUPLICATE behavior (twice the effect) because this method DOES call {@link FilterInputStream#read(byte[], int, int)}.
-     *
-     * @return
-     * @throws IOException
+
+     * @throws IOException in case of nested read error
      */
     @Override
     public int read( final byte[] b, final int off, final int len )

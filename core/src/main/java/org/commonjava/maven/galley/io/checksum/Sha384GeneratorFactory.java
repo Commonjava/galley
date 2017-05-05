@@ -31,20 +31,20 @@ public final class Sha384GeneratorFactory
     }
 
     @Override
-    protected Sha384Generator newGenerator( final Transfer transfer )
+    protected Sha384Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile )
         throws IOException
     {
-        return new Sha384Generator( transfer );
+        return new Sha384Generator( transfer, writeChecksumFile );
     }
 
     public static final class Sha384Generator
         extends AbstractChecksumGenerator
     {
 
-        protected Sha384Generator( final Transfer transfer )
+        protected Sha384Generator( final Transfer transfer, final boolean writeChecksumFile )
             throws IOException
         {
-            super( transfer, ".sha384", SHA_384 );
+            super( transfer, ".sha384", SHA_384, writeChecksumFile );
         }
 
     }

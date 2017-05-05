@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,11 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import static org.apache.commons.codec.binary.Hex.encodeHexString;
+import org.apache.commons.io.IOUtils;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -23,11 +27,7 @@ import java.io.PrintStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.commons.io.IOUtils;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
 public abstract class AbstractChecksumGenerator
 {
@@ -40,15 +40,19 @@ public abstract class AbstractChecksumGenerator
 
     private ContentDigest digestType;
 
+    private final boolean writeChecksumFile;
+
     private final Transfer checksumTransfer;
 
     private String digestHex;
 
-    protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension, final ContentDigest type )
-        throws IOException
+    protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension,
+                                         final ContentDigest type, final boolean writeChecksumFile )
+            throws IOException
     {
         this.checksumExtension = checksumExtension;
         digestType = type;
+        this.writeChecksumFile = writeChecksumFile;
         try
         {
             digester = MessageDigest.getInstance( digestType.digestName() );
@@ -58,10 +62,17 @@ public abstract class AbstractChecksumGenerator
             throw new IOException( "Cannot get MessageDigest for checksum type: '" + type + "': " + e.getMessage(), e );
         }
 
-        logger.debug( "Getting checksum transfer for: {}", transfer );
-        this.checksumTransfer = getChecksumFile( transfer );
-        logger.debug( "Locking checksum file: {}", checksumTransfer );
-        this.checksumTransfer.lockWrite();
+        if ( writeChecksumFile )
+        {
+            logger.debug( "Getting checksum transfer for: {}", transfer );
+            this.checksumTransfer = getChecksumFile( transfer );
+            logger.debug( "Locking checksum file: {}", checksumTransfer );
+            this.checksumTransfer.lockWrite();
+        }
+        else
+        {
+            this.checksumTransfer = null;
+        }
     }
 
     public final void update( final byte[] data )
@@ -75,8 +86,13 @@ public abstract class AbstractChecksumGenerator
     }
 
     public final void write()
-        throws IOException
+            throws IOException
     {
+        if ( !writeChecksumFile )
+        {
+            return;
+        }
+
         logger.info( "Writing {} file: {}", checksumExtension, checksumTransfer );
 
         PrintStream out = null;
@@ -104,7 +120,7 @@ public abstract class AbstractChecksumGenerator
     }
 
     public final void delete()
-        throws IOException
+            throws IOException
     {
         if ( checksumTransfer.exists() )
         {

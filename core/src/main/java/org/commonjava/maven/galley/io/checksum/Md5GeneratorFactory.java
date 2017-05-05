@@ -29,20 +29,20 @@ public final class Md5GeneratorFactory
     }
 
     @Override
-    protected Md5Generator newGenerator( final Transfer transfer )
+    protected Md5Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile )
         throws IOException
     {
-        return new Md5Generator( transfer );
+        return new Md5Generator( transfer, writeChecksumFile );
     }
 
     public static final class Md5Generator
         extends AbstractChecksumGenerator
     {
 
-        protected Md5Generator( final Transfer transfer )
+        protected Md5Generator( final Transfer transfer, final boolean writeChecksumFile )
             throws IOException
         {
-            super( transfer, ".md5", ContentDigest.MD5 );
+            super( transfer, ".md5", ContentDigest.MD5, writeChecksumFile );
         }
 
     }

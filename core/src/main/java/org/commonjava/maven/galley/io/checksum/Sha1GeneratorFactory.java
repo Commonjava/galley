@@ -29,20 +29,20 @@ public final class Sha1GeneratorFactory
     }
 
     @Override
-    protected Sha1Generator newGenerator( final Transfer transfer )
+    protected Sha1Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile )
         throws IOException
     {
-        return new Sha1Generator( transfer );
+        return new Sha1Generator( transfer, writeChecksumFile );
     }
 
     public static final class Sha1Generator
         extends AbstractChecksumGenerator
     {
 
-        protected Sha1Generator( final Transfer transfer )
+        protected Sha1Generator( final Transfer transfer, final boolean writeChecksumFile )
             throws IOException
         {
-            super( transfer, ".sha1", ContentDigest.SHA_1 );
+            super( transfer, ".sha1", ContentDigest.SHA_1, writeChecksumFile );
         }
 
     }

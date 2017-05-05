@@ -31,20 +31,20 @@ public final class Sha512GeneratorFactory
     }
 
     @Override
-    protected Sha512Generator newGenerator( final Transfer transfer )
+    protected Sha512Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile )
         throws IOException
     {
-        return new Sha512Generator( transfer );
+        return new Sha512Generator( transfer, writeChecksumFile );
     }
 
     public static final class Sha512Generator
         extends AbstractChecksumGenerator
     {
 
-        protected Sha512Generator( final Transfer transfer )
+        protected Sha512Generator( final Transfer transfer, final boolean writeChecksumFile )
             throws IOException
         {
-            super( transfer, ".sha512", SHA_512 );
+            super( transfer, ".sha512", SHA_512, writeChecksumFile );
         }
 
     }
