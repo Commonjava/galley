@@ -44,13 +44,6 @@ public final class ChecksummingOutputStream
     private final boolean writeChecksumFiles;
 
     public ChecksummingOutputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
-                                     final OutputStream stream, final Transfer transfer )
-            throws IOException
-    {
-        this( checksumFactories, stream, transfer, null, true );
-    }
-
-    public ChecksummingOutputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                      final OutputStream stream, final Transfer transfer,
                                      final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles )
         throws IOException
@@ -59,10 +52,10 @@ public final class ChecksummingOutputStream
         this.transfer = transfer;
         this.metadataConsumer = metadataConsumer;
         this.writeChecksumFiles = writeChecksumFiles;
-        checksums = new HashSet<AbstractChecksumGenerator>();
+        checksums = new HashSet<>();
         for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
         {
-            checksums.add( factory.createGenerator( transfer ) );
+            checksums.add( factory.createGenerator( transfer, writeChecksumFiles ) );
         }
     }
 

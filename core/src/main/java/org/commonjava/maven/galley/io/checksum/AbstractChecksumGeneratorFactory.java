@@ -26,13 +26,20 @@ public abstract class AbstractChecksumGeneratorFactory<T extends AbstractChecksu
     {
     }
 
+    @Deprecated
     public final T createGenerator( final Transfer transfer )
         throws IOException
     {
-        return newGenerator( transfer );
+        return createGenerator( transfer, true );
     }
 
-    protected abstract T newGenerator( Transfer transfer )
+    public final T createGenerator( final Transfer transfer, boolean writeChecksumFiles )
+            throws IOException
+    {
+        return newGenerator( transfer, writeChecksumFiles );
+    }
+
+    protected abstract T newGenerator( Transfer transfer, boolean writeChecksumFiles )
         throws IOException;
 
 }

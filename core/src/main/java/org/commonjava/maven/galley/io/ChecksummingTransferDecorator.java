@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013 Red Hat, Inc. (jdcasey@commonjava.org)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.io;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGenerator;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGeneratorFactory;
+import org.commonjava.maven.galley.io.checksum.ChecksummingDecoratorAdvisor;
 import org.commonjava.maven.galley.io.checksum.ChecksummingInputStream;
 import org.commonjava.maven.galley.io.checksum.ChecksummingOutputStream;
 import org.commonjava.maven.galley.io.checksum.TransferMetadataConsumer;
@@ -38,6 +39,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.commonjava.maven.galley.io.DeprecatedChecksummingFilter.calculateWriteOperations;
+import static org.commonjava.maven.galley.io.checksum.ChecksummingDecoratorAdvisor.ChecksumAdvice.CALCULATE_AND_WRITE;
+import static org.commonjava.maven.galley.io.checksum.ChecksummingDecoratorAdvisor.ChecksumAdvice.CALCULATE_NO_WRITE;
+import static org.commonjava.maven.galley.io.checksum.ChecksummingDecoratorAdvisor.ChecksumAdvice.NO_DECORATE;
 import static org.commonjava.maven.galley.model.TransferOperation.DOWNLOAD;
 
 @Alternative
@@ -50,49 +55,81 @@ public final class ChecksummingTransferDecorator
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final boolean checksumReaders;
+    private final ChecksummingDecoratorAdvisor writerFilter;
 
-    private final boolean checksumWriters;
+    private final ChecksummingDecoratorAdvisor readerFilter;
 
     private final TransferMetadataConsumer consumer;
 
     private final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories;
 
-    private final Set<TransferOperation> writeChecksumFilesOn;
-
     private SpecialPathManager specialPathManager;
 
+    public ChecksummingTransferDecorator( final ChecksummingDecoratorAdvisor readerFilter,
+                                          final ChecksummingDecoratorAdvisor writerFilter,
+                                          SpecialPathManager specialPathManager, TransferMetadataConsumer consumer,
+                                          Set<AbstractChecksumGeneratorFactory<?>> checksumFactories )
+    {
+        this.readerFilter = readerFilter;
+        this.writerFilter = writerFilter;
+        this.specialPathManager = specialPathManager;
+        this.consumer = consumer;
+        this.checksumFactories = checksumFactories;
+    }
+
+    public ChecksummingTransferDecorator( final ChecksummingDecoratorAdvisor readerFilter,
+                                          final ChecksummingDecoratorAdvisor writerFilter,
+                                          SpecialPathManager specialPathManager, TransferMetadataConsumer consumer,
+                                          AbstractChecksumGeneratorFactory<?>... checksumFactories )
+    {
+        this( readerFilter, writerFilter, specialPathManager, consumer,
+              new HashSet<>( Arrays.asList( checksumFactories ) ) );
+    }
+
+    /**
+     * @see #ChecksummingTransferDecorator(ChecksummingDecoratorAdvisor, ChecksummingDecoratorAdvisor, SpecialPathManager, TransferMetadataConsumer, Set)
+     */
+    @Deprecated
     public ChecksummingTransferDecorator( final Set<TransferOperation> writeChecksumFilesOn,
                                           final SpecialPathManager specialPathManager, final boolean checksumReaders,
                                           final boolean checksumWriters, final TransferMetadataConsumer consumer,
                                           final AbstractChecksumGeneratorFactory<?>... checksumFactories )
     {
-        this.writeChecksumFilesOn = writeChecksumFilesOn;
-        this.specialPathManager = specialPathManager;
-        this.checksumReaders = checksumReaders;
-        this.checksumWriters = checksumWriters;
-        this.consumer = consumer;
-        this.checksumFactories = new HashSet<AbstractChecksumGeneratorFactory<?>>( Arrays.asList( checksumFactories ) );
+        this( new DeprecatedChecksummingFilter( checksumReaders,
+                                                calculateWriteOperations( writeChecksumFilesOn, DOWNLOAD ) ),
+              new DeprecatedChecksummingFilter( checksumWriters, writeChecksumFilesOn ), specialPathManager, consumer,
+              new HashSet<>( Arrays.asList( checksumFactories ) ) );
     }
 
+    /**
+     * @see #ChecksummingTransferDecorator(ChecksummingDecoratorAdvisor, ChecksummingDecoratorAdvisor, SpecialPathManager, TransferMetadataConsumer, Set)
+     */
+    @Deprecated
     public ChecksummingTransferDecorator( final Set<TransferOperation> writeChecksumFilesOn,
                                           final SpecialPathManager specialPathManager, final boolean checksumReaders,
                                           final boolean checksumWriters, final TransferMetadataConsumer consumer,
                                           final Collection<AbstractChecksumGeneratorFactory<?>> checksumFactories )
     {
-        this.writeChecksumFilesOn = writeChecksumFilesOn;
-        this.specialPathManager = specialPathManager;
-        this.checksumReaders = checksumReaders;
-        this.checksumWriters = checksumWriters;
-        this.consumer = consumer;
+        this( new DeprecatedChecksummingFilter( checksumReaders,
+                                                calculateWriteOperations( writeChecksumFilesOn, DOWNLOAD ) ),
+              new DeprecatedChecksummingFilter( checksumWriters, writeChecksumFilesOn ), specialPathManager, consumer,
+              toSet( checksumFactories ) );
+    }
+
+    private static Set<AbstractChecksumGeneratorFactory<?>> toSet(
+            final Collection<AbstractChecksumGeneratorFactory<?>> checksumFactories )
+    {
+        Set<AbstractChecksumGeneratorFactory<?>> result;
         if ( checksumFactories instanceof Set )
         {
-            this.checksumFactories = (Set<AbstractChecksumGeneratorFactory<?>>) checksumFactories;
+            result = (Set<AbstractChecksumGeneratorFactory<?>>) checksumFactories;
         }
         else
         {
-            this.checksumFactories = new HashSet<AbstractChecksumGeneratorFactory<?>>( checksumFactories );
+            result = new HashSet<>( checksumFactories );
         }
+
+        return result;
     }
 
     public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op,
@@ -102,27 +139,33 @@ public final class ChecksummingTransferDecorator
         Object forceObj = eventMetadata.get( FORCE_CHECKSUM );
         boolean force = Boolean.TRUE.equals( forceObj ) || Boolean.parseBoolean( String.valueOf( forceObj ) );
 
-        if ( force || checksumWriters )
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
+
+        logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
+                      ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
+
+        if ( force || specialPathInfo == null || specialPathInfo.isDecoratable() )
         {
-            boolean writeChecksums = force || writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
-                    || writeChecksumFilesOn.contains( op );
+            ChecksummingDecoratorAdvisor.ChecksumAdvice advice =
+                    writerFilter.getDecorationAdvice( transfer, op, eventMetadata );
 
-            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
-
-            logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
-                          ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
-
-            if ( force || specialPathInfo == null || specialPathInfo.isDecoratable() )
+            if ( force && advice == NO_DECORATE )
             {
-                // Cases when we want to do checksumming:
-                // 0. if we're forcing recalculation
-                // 1. if we need to write checksum files for this
-                // 2. if we have a metadata consumer AND the consumer needs metadata for this transfer
-                if ( force || writeChecksums || ( consumer != null && consumer.needsMetadataFor( transfer ) ) )
-                {
-                    logger.trace( "Wrapping output stream to: {} for checksum generation.", transfer );
-                    return new ChecksummingOutputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
-                }
+                advice = CALCULATE_NO_WRITE;
+            }
+
+            boolean consumerNeedsIt = ( consumer == null || consumer.needsMetadataFor( transfer ) );
+            logger.trace( "Advice is: {} for {} of: {} (and consumer is missing or needs it? {})", advice, op, transfer, consumerNeedsIt );
+
+            // Cases when we want to do checksumming:
+            // 0. if we're forcing recalculation
+            // 1. if we need to write checksum files for this
+            // 2. if we have a metadata consumer AND the consumer needs metadata for this transfer
+            if ( advice != NO_DECORATE && ( consumer == null || consumer.needsMetadataFor( transfer ) ) )
+            {
+                logger.trace( "Wrapping output stream to: {} for checksum generation.", transfer );
+                return new ChecksummingOutputStream( checksumFactories, stream, transfer, consumer,
+                                                     advice == CALCULATE_AND_WRITE );
             }
         }
 
@@ -138,30 +181,32 @@ public final class ChecksummingTransferDecorator
         Object forceObj = eventMetadata.get( FORCE_CHECKSUM );
         boolean force = Boolean.TRUE.equals( forceObj ) || Boolean.parseBoolean( String.valueOf( forceObj ) );
 
-        if ( force || checksumReaders )
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
+
+        logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
+                      ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
+
+        if ( force || specialPathInfo == null || specialPathInfo.isDecoratable() )
         {
-            logger.debug( "(FORCE: {}) Starting checks to consider wrapping input stream for checksumming: {}", force,
-                          transfer );
+            ChecksummingDecoratorAdvisor.ChecksumAdvice advice =
+                    readerFilter.getDecorationAdvice( transfer, DOWNLOAD, eventMetadata );
 
-            SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
-
-            logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
-                          ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
-
-            if ( force || specialPathInfo == null || specialPathInfo.isDecoratable() )
+            if ( force && advice == NO_DECORATE )
             {
-                logger.trace( "Wrapping input stream to: {} for checksum generation.", transfer );
-                boolean writeChecksums = force || writeChecksumFilesOn == null || writeChecksumFilesOn.isEmpty()
-                        || writeChecksumFilesOn.contains( DOWNLOAD );
+                advice = CALCULATE_NO_WRITE;
+            }
 
-                // Cases when we want to do checksumming:
-                // 0. if we're forcing recalculation
-                // 1. if we need to write checksum files for this
-                // 2. if we have a metadata consumer AND the consumer needs metadata for this transfer
-                if ( force || writeChecksums || ( consumer != null && consumer.needsMetadataFor( transfer ) ) )
-                {
-                    return new ChecksummingInputStream( checksumFactories, stream, transfer, consumer, writeChecksums );
-                }
+            boolean consumerNeedsIt = ( consumer == null || consumer.needsMetadataFor( transfer ) );
+            logger.trace( "Advice is: {} for {} of: {} (and consumer is missing or needs it? {})", advice, DOWNLOAD, transfer, consumerNeedsIt );
+
+            // Cases when we want to do checksumming:
+            // 0. if we're forcing recalculation
+            // 1. if we need to write checksum files for this
+            // 2. if we have a metadata consumer AND the consumer needs metadata for this transfer
+            if ( advice != NO_DECORATE && ( consumer == null || consumer.needsMetadataFor( transfer ) ) )
+            {
+                return new ChecksummingInputStream( checksumFactories, stream, transfer, consumer,
+                                                    advice == CALCULATE_AND_WRITE );
             }
         }
 
