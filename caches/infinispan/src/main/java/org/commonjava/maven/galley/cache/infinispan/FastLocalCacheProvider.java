@@ -413,7 +413,7 @@ public class FastLocalCacheProvider
                 logger.debug( "The output stream from NFS is got successfully" );
                 // will wrap the cache manager in stream wrapper, and let it do tx commit in stream close to make sure
                 // the two streams writing's consistency.
-                dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, nfsOwnerCache );
+                dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, nfsOwnerCache, pathKey );
 
                 ThreadContext streamHolder = ThreadContext.getContext( true );
                 Set<WeakReference<OutputStream>> streams =
@@ -810,21 +810,20 @@ public class FastLocalCacheProvider
     }
 
     private void waitForISPNLock(ConcreteResource resource, boolean locked){
+        final String key;
+        try
+        {
+            key = getKeyForResource( resource );
+        }
+        catch ( IOException e )
+        {
+            final String errorMsg =
+                    String.format( "[galley] When get NFS cache key for resource: %s, got I/O error.", resource.toString() );
+            logger.error( errorMsg, e );
+            throw new IllegalStateException( errorMsg, e );
+        }
         while ( locked )
         {
-            String key = "";
-            try
-            {
-                key = getKeyForResource( resource );
-            }
-            catch ( IOException e )
-            {
-                final String errorMsg =
-                        String.format( "[galley] When get NFS cache key for resource: %s, got I/O error.", resource.toString() );
-                logger.error( errorMsg, e );
-                throw new IllegalStateException( errorMsg, e );
-            }
-            logger.debug( "lock is still held for key {} by ISPN locker", key );
             try
             {
                 // Use ISPN lock owner for resource to wait until lock is released. Note that if the lock has no owner,
@@ -834,6 +833,7 @@ public class FastLocalCacheProvider
                 {
                     break;
                 }
+                logger.trace( "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 0.1s", key, owner, resource );
                 owner.wait( 1000 );
             }
             catch ( final InterruptedException e )
@@ -895,8 +895,12 @@ public class FastLocalCacheProvider
 
         private final CacheInstance<String,String> cacheInstance;
 
+        private boolean closed = false;
+
+        private final String cacheKey;
+
         public DualOutputStreamsWrapper( final OutputStream out1, final OutputStream out2,
-                                         final CacheInstance<String,String> cacheInstance )
+                                         final CacheInstance<String, String> cacheInstance, final String cacheKey )
         {
             if ( cacheInstance == null )
             {
@@ -911,6 +915,7 @@ public class FastLocalCacheProvider
             this.out1 = out1;
             this.out2 = out2;
             this.cacheInstance = cacheInstance;
+            this.cacheKey = cacheKey;
         }
 
         @Override
@@ -945,18 +950,42 @@ public class FastLocalCacheProvider
         public void close()
                 throws IOException
         {
+            // To resolve "Double-close" issue, add this closed flag for the "real closed" recognition
+            final Logger logger = FastLocalCacheProvider.this.logger;
+            if ( closed )
+            {
+                logger.trace( "The DualOutputStream {} already closed.", this );
+                // If still ISPN locked, we should unlock it to avoid "lock-never-released"
+                if ( cacheInstance.isLocked( cacheKey ) )
+                {
+                    try
+                    {
+                        cacheInstance.rollback();
+                    }
+                    catch ( SystemException se )
+                    {
+                        final String errorMsg =
+                                "[galley] Transaction rollback error for nfs cache during file writing.";
+                        logger.error( errorMsg, se );
+                        throw new IllegalStateException( errorMsg, se );
+                    }
+                }
+                return;
+            }
+
             try
             {
-                if ( cacheInstance == null  )
-                {
-                    throw new IllegalStateException(
-                            "[galley] ISPN transaction not started correctly. May be it is not set correctly, please have a check. " );
-                }
                 if ( cacheInstance.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
                 {
                     throw new IOException( "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
                 }
                 cacheInstance.commit();
+
+                // To avoid ISPN lock not released correctly, should consider the real closed case after the lock released successfully
+                if ( !closed )
+                {
+                    closed = true;
+                }
             }
             catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
             {
@@ -965,6 +994,11 @@ public class FastLocalCacheProvider
                 try
                 {
                     cacheInstance.rollback();
+                    // To avoid ISPN lock not released correctly, should consider the real closed case after the lock released successfully
+                    if ( !closed )
+                    {
+                        closed = true;
+                    }
                 }
                 catch ( SystemException se )
                 {
