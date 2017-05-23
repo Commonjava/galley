@@ -413,7 +413,13 @@ public class FastLocalCacheProvider
                 logger.debug( "The output stream from NFS is got successfully" );
                 // will wrap the cache manager in stream wrapper, and let it do tx commit in stream close to make sure
                 // the two streams writing's consistency.
-                dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, nfsOwnerCache, pathKey );
+                dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, nfsOwnerCache, pathKey, resource );
+
+                if ( nfsOwnerCache.getLockOwner( pathKey ) != null )
+                {
+                    logger.trace( "ISPN locker for key {} with resource {} is {}",
+                                  pathKey, resource, nfsOwnerCache.getLockOwner( pathKey ) );
+                }
 
                 ThreadContext streamHolder = ThreadContext.getContext( true );
                 Set<WeakReference<OutputStream>> streams =
@@ -833,8 +839,14 @@ public class FastLocalCacheProvider
                 {
                     break;
                 }
-                logger.trace( "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 0.1s", key, owner, resource );
-                owner.wait( 1000 );
+
+                synchronized ( owner )
+                {
+                    logger.trace(
+                            "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 0.1s",
+                            key, owner, resource );
+                    owner.wait( 1000 );
+                }
             }
             catch ( final InterruptedException e )
             {
@@ -899,8 +911,10 @@ public class FastLocalCacheProvider
 
         private final String cacheKey;
 
+        private final ConcreteResource resource;
+
         public DualOutputStreamsWrapper( final OutputStream out1, final OutputStream out2,
-                                         final CacheInstance<String, String> cacheInstance, final String cacheKey )
+                                         final CacheInstance<String, String> cacheInstance, final String cacheKey, final ConcreteResource resource )
         {
             if ( cacheInstance == null )
             {
@@ -916,6 +930,7 @@ public class FastLocalCacheProvider
             this.out2 = out2;
             this.cacheInstance = cacheInstance;
             this.cacheKey = cacheKey;
+            this.resource = resource;
         }
 
         @Override
@@ -973,6 +988,15 @@ public class FastLocalCacheProvider
                 return;
             }
 
+            logger.trace( "ISPN lock released before ISPN trasaction for key {} with resource {}? {}", cacheKey,
+                          resource, cacheInstance.getLockOwner( cacheKey ) == null ? "Yes" : "No" );
+            if ( cacheInstance.getLockOwner( cacheKey ) != null )
+            {
+                logger.trace( "ISPN locker for key {} with resource {} is {}",
+                              cacheKey, resource, cacheInstance.getLockOwner( cacheKey ) );
+            }
+
+
             try
             {
                 if ( cacheInstance.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
@@ -1012,6 +1036,9 @@ public class FastLocalCacheProvider
                 //For safe, we should always let the stream closed, even if the transaction failed.
                 IOUtils.closeQuietly( out1 );
                 IOUtils.closeQuietly( out2 );
+
+                logger.trace( "ISPN lock released after ISPN trasaction for key {} with resource {}? {}", cacheKey, resource,
+                              cacheInstance.getLockOwner( cacheKey ) == null ? "Yes" : "No" );
             }
         }
     }
