@@ -73,6 +73,8 @@ public class FastLocalCacheProvider
 
     private static final String FAST_LOCAL_STREAMS = "fast-local-streams";
 
+    private static final String CURRENT_THREAD_ID = "current-thread-id";
+
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     public static final String NFS_BASE_DIR_KEY = "galley.nfs.basedir";
@@ -96,11 +98,7 @@ public class FastLocalCacheProvider
 
     private PathGenerator pathGenerator;
 
-    // This thread holder is used to add some "re-entrant" like function for the ISPN transaction lock. The ISPN lock is
-    // used for ISPN transaction but not for thread level with re-entrant, that means if we want to own this lock in one
-    // transaction for more than twice in single thread, it will block this thread. So we need this thread holder to by-pass
-    // the ISPN lock waiting when thread not changed.
-    private final ThreadLocal<Long> threadHolder = new ThreadLocal<>();
+
 
     /**
      * Construct the FastLocalCacheProvider with the params. You can specify you own nfs base dir in this constructor.
@@ -455,7 +453,12 @@ public class FastLocalCacheProvider
         nfsOwnerCache.beginTransaction();
         nfsOwnerCache.lock( path );
 
-        threadHolder.set( Thread.currentThread().getId() );
+        // This thread holder is used to add some "re-entrant" like function for the ISPN transaction lock. The ISPN lock is
+        // used for ISPN transaction but not for thread level with re-entrant, that means if we want to own this lock in one
+        // transaction for more than twice in single thread, it will block this thread. So we need this thread holder to by-pass
+        // the ISPN lock waiting when thread not changed.
+        final ThreadContext threadHolder = ThreadContext.getContext( true );
+        threadHolder.put( CURRENT_THREAD_ID, Thread.currentThread().getId() );
     }
 
     @Override
@@ -824,10 +827,12 @@ public class FastLocalCacheProvider
 
     private void waitForISPNLock(ConcreteResource resource, boolean locked){
 
-        if ( threadHolder.get() != null && Thread.currentThread().getId() == threadHolder.get() )
+        final ThreadContext threadHolder = ThreadContext.getContext( false );
+
+        if ( threadHolder != null && threadHolder.get( CURRENT_THREAD_ID ) != null
+                && Thread.currentThread().getId() == (Long) threadHolder.get( CURRENT_THREAD_ID ) )
         {
-            logger.trace(
-                    "Processing in same thread, will not wait for ISPN lock to make it re-entrant" );
+            logger.trace( "Processing in same thread, will not wait for ISPN lock to make it re-entrant" );
             return;
         }
 
