@@ -276,7 +276,7 @@ public class FastLocalCacheProvider
 
             try
             {
-                lockPathByISPN( pathKey );
+                lockByISPN( resource );
 
                 File nfsFile = getNFSDetachedFile( resource );
                 if ( !nfsFile.exists() )
@@ -388,7 +388,7 @@ public class FastLocalCacheProvider
         {
             try
             {
-                lockPathByISPN( pathKey );
+                lockByISPN( resource );
 
                 nfsOwnerCache.put( pathKey, nodeIp );
 
@@ -447,18 +447,37 @@ public class FastLocalCacheProvider
         }
     }
 
-    private void lockPathByISPN( final String path )
-            throws SystemException, NotSupportedException
+    private void lockByISPN( final ConcreteResource resource )
+            throws SystemException, NotSupportedException, IOException
     {
-        nfsOwnerCache.beginTransaction();
-        nfsOwnerCache.lock( path );
+        //FIXME: This whole method is not thread-safe, especially for the lock state of the path, so the caller needs to take care
 
-        // This thread holder is used to add some "re-entrant" like function for the ISPN transaction lock. The ISPN lock is
-        // used for ISPN transaction but not for thread level with re-entrant, that means if we want to own this lock in one
-        // transaction for more than twice in single thread, it will block this thread. So we need this thread holder to by-pass
-        // the ISPN lock waiting when thread not changed.
-        final ThreadContext threadHolder = ThreadContext.getContext( true );
-        threadHolder.put( CURRENT_THREAD_ID, Thread.currentThread().getId() );
+        // We need to think about the way of the ISPN lock and wait. If directly
+        // use the nfsOwnerCache.lock but not consider if the lock has been acquired by another
+        // thread, the ISPN lock will fail with a RuntimeException. So we need to let the
+        // thread wait for the ISPN lock until it's released by the thread holds it. It's
+        // like "tryLock" and "wait" of a thread lock.
+        final String path = getKeyForResource( resource );
+
+        // Some consideration about the thread "re-entrant" for waiting here. If it is the same
+        // thread, will not wait.
+        if ( !isCurrentThread() )
+        {
+            waitForISPNLock( resource, nfsOwnerCache.isLocked( path ) );
+        }
+
+        if ( !nfsOwnerCache.isLocked( path ) )
+        {
+            nfsOwnerCache.beginTransaction();
+            nfsOwnerCache.lock( path );
+
+            // This thread holder is used to add some "re-entrant" like function for the ISPN transaction lock. The ISPN lock is
+            // used for ISPN transaction but not for thread level with re-entrant, that means if we want to own this lock in one
+            // transaction for more than twice in single thread, it will block this thread. So we need this thread holder to by-pass
+            // the ISPN lock waiting when thread not changed.
+            final ThreadContext threadHolder = ThreadContext.getContext( true );
+            threadHolder.put( CURRENT_THREAD_ID, Thread.currentThread().getId() );
+        }
     }
 
     @Override
@@ -478,6 +497,7 @@ public class FastLocalCacheProvider
         OutputStream nfsTo = null;
         try
         {
+            //FIXME: need to think about this lock of the re-entrant way and ISPN lock wait
             nfsOwnerCache.beginTransaction();
             nfsOwnerCache.lock( fromNFSPath, toNFSPath );
             plCacheProvider.copy( from, to );
@@ -570,8 +590,7 @@ public class FastLocalCacheProvider
                     logger.info( "local file deletion failed for {}", resource );
                     return false;
                 }
-                nfsOwnerCache.beginTransaction();
-                nfsOwnerCache.lock( pathKey );
+                lockByISPN( resource );
                 nfsOwnerCache.remove( pathKey );
                 final boolean nfsDeleted = nfsFile.delete();
                 if ( !nfsDeleted )
@@ -588,7 +607,7 @@ public class FastLocalCacheProvider
             }
             finally
             {
-                if(localDeleted)
+                if ( localDeleted )
                 {
                     try
                     {
@@ -825,12 +844,10 @@ public class FastLocalCacheProvider
         }
     }
 
-    private void waitForISPNLock(ConcreteResource resource, boolean locked){
+    private void waitForISPNLock( ConcreteResource resource, boolean locked )
+    {
 
-        final ThreadContext threadHolder = ThreadContext.getContext( false );
-
-        if ( threadHolder != null && threadHolder.get( CURRENT_THREAD_ID ) != null
-                && Thread.currentThread().getId() == (Long) threadHolder.get( CURRENT_THREAD_ID ) )
+        if ( isCurrentThread() )
         {
             logger.trace( "Processing in same thread, will not wait for ISPN lock to make it re-entrant" );
             return;
@@ -873,6 +890,14 @@ public class FastLocalCacheProvider
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    private boolean isCurrentThread()
+    {
+        final ThreadContext threadHolder = ThreadContext.getContext( false );
+
+        return threadHolder != null && threadHolder.get( CURRENT_THREAD_ID ) != null
+                && Thread.currentThread().getId() == (Long) threadHolder.get( CURRENT_THREAD_ID );
     }
 
     private String getCurrentNodeIp()
@@ -1053,7 +1078,7 @@ public class FastLocalCacheProvider
             }
             finally
             {
-                //For safe, we should always let the stream closed, even if the transaction failed.
+                // For safe, we should always let the stream closed, even if the transaction failed.
                 IOUtils.closeQuietly( out1 );
                 IOUtils.closeQuietly( out2 );
 
