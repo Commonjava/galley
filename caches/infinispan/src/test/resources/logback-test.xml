@@ -9,6 +9,7 @@
   </appender>
 
   <logger name="org.commonjava.util.partyline" level="TRACE" />
+  <logger name="org.commonjava.maven.galley.cache" level="TRACE" />
 
   <root level="DEBUG">
     <appender-ref ref="STDOUT" />
