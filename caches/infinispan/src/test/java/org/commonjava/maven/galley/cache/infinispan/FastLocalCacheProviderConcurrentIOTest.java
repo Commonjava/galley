@@ -58,7 +58,7 @@ import static org.junit.Assert.assertThat;
 
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
 @BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
-public class FastLocalCacheProviderConcurrentTest
+public class FastLocalCacheProviderConcurrentIOTest
 {
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();

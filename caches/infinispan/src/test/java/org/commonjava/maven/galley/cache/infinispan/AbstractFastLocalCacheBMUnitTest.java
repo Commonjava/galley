@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.galley.cache.infinispan;
 
+import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
@@ -338,5 +339,48 @@ public abstract class AbstractFastLocalCacheBMUnitTest
             }
 
         }
+    }
+
+    protected void writeWithClose( final ConcreteResource resource, final String content )
+            throws IOException
+    {
+        provider.lockWrite( resource );
+        OutputStream out = provider.openOutputStream( resource );
+        out.write( content.getBytes( "UTF-8" ) );
+        out.flush();
+        out.close();
+        provider.unlockWrite( resource );
+    }
+
+    protected OutputStream writeWithoutClose( final ConcreteResource resource, final String content )
+            throws IOException
+    {
+        provider.lockWrite( resource );
+        OutputStream out2 = provider.openOutputStream( resource );
+        out2.write( content.getBytes( "UTF-8" ) );
+        out2.flush();
+        return out2;
+    }
+
+    protected String readWithClose( final ConcreteResource resource )
+            throws IOException
+    {
+        InputStream in = null;
+        ByteArrayOutputStream baos = null;
+        String result;
+        try
+        {
+            in = provider.openInputStream( resource );
+            baos = new ByteArrayOutputStream();
+            IOUtils.copy( in, baos );
+            result = new String( baos.toByteArray(), "UTF-8" );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( baos );
+            IOUtils.closeQuietly( in );
+        }
+
+        return result;
     }
 }

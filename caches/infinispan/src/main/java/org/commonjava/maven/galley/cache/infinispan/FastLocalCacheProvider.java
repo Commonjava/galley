@@ -794,25 +794,25 @@ public class FastLocalCacheProvider
     @Override
     public void unlockRead( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
     public void unlockWrite( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
     public void lockRead( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
     public void lockWrite( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
