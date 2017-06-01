@@ -318,6 +318,12 @@ public class Transfer
                 contentLogger.info( "Starting delete of: {} ({})", resource, eventMetadata);
             }
 
+            final Logger optLogger = LoggerFactory.getLogger( "org.commonjava.opt.track.Logger" );
+            if ( optLogger != null )
+            {
+                optLogger.info( "DELETE in transfer level: {}", resource );
+            }
+
             final boolean deleted = provider.delete( resource );
             if ( deleted )
             {
