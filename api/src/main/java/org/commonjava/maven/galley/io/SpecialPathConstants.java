@@ -31,6 +31,8 @@ public class SpecialPathConstants
 
     public static final String PKG_TYPE_MAVEN = "maven";
 
+    public static final String PKG_TYPE_NPM = "npm";
+
     public static final String PKG_TYPE_GENERIC_HTTP = "generic-http";
 
     public static final String HTTP_METADATA_EXT = ".http-metadata.json";
