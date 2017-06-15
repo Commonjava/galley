@@ -50,14 +50,25 @@ public final class HttpDownload
 
     private final ObjectMapper mapper;
 
+    private boolean deleteFilesOnPath;
+
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
-                         Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http, final ObjectMapper mapper )
+                         final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
+                         final ObjectMapper mapper )
+    {
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true );
+    }
+
+    public HttpDownload( final String url, final HttpLocation location, final Transfer target,
+                         final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
+                         final ObjectMapper mapper, final boolean deleteFilesOnPath )
     {
         super( url, location, http );
         this.target = target;
         this.transferSizes = transferSizes;
         this.eventMetadata = eventMetadata;
         this.mapper = mapper;
+        this.deleteFilesOnPath = deleteFilesOnPath;
     }
 
     @Override
@@ -122,7 +133,7 @@ public final class HttpDownload
                 final HttpEntity entity = response.getEntity();
 
                 in = entity.getContent();
-                out = target.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata );
+                out = target.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata, deleteFilesOnPath );
                 copy( in, out );
                 logger.info( "Ensuring all HTTP data is consumed..." );
                 EntityUtils.consume( entity );
