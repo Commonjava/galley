@@ -98,7 +98,8 @@ public class HttpClientTransport
 
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
-                                          final Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
+                                          final Map<Transfer, Long> transferSizes, final int timeoutSeconds,
+                                          final EventMetadata eventMetadata )
         throws TransferException
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, transferSizes, eventMetadata,

@@ -76,25 +76,25 @@ public interface TransferManager
         throws TransferException;
 
     boolean publish( ConcreteResource resource, InputStream stream, long length )
-            throws TransferException;
+        throws TransferException;
 
     boolean publish( ConcreteResource resource, InputStream stream, long length, EventMetadata metadata )
         throws TransferException;
 
     boolean publish( ConcreteResource resource, InputStream stream, long length, String contentType )
-            throws TransferException;
+        throws TransferException;
 
     boolean publish( ConcreteResource resource, InputStream stream, long length, String contentType, EventMetadata eventMetadata)
-    throws TransferException;
+        throws TransferException;
 
     ListingResult list( ConcreteResource resource )
-            throws TransferException;
+        throws TransferException;
 
     ListingResult list( ConcreteResource resource, EventMetadata metadata )
         throws TransferException;
 
     List<ListingResult> listAll( VirtualResource resource )
-            throws TransferException;
+        throws TransferException;
 
     List<ListingResult> listAll( VirtualResource resource, EventMetadata metadata )
         throws TransferException;
@@ -108,13 +108,13 @@ public interface TransferManager
     List<ConcreteResource> findAllExisting( VirtualResource resource )
         throws TransferException;
 
-    public abstract Transfer retrieveFirst( final VirtualResource virt, final EventMetadata eventMetadata )
+    Transfer retrieveFirst( VirtualResource virt, EventMetadata eventMetadata )
         throws TransferException;
 
-    public abstract Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures, EventMetadata eventMetadata )
+    Transfer retrieve( ConcreteResource resource, boolean suppressFailures )
         throws TransferException;
 
-    public abstract Transfer retrieve( final ConcreteResource resource, final boolean suppressFailures )
+    Transfer retrieve( ConcreteResource resource, boolean suppressFailures, EventMetadata eventMetadata )
         throws TransferException;
 
 }

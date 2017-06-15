@@ -177,7 +177,7 @@ public class Transfer
     public OutputStream openOutputStream( final TransferOperation accessType )
         throws IOException
     {
-        return openOutputStream( accessType, true, new EventMetadata() );
+        return openOutputStream( accessType, true );
     }
 
     public OutputStream openOutputStream( final TransferOperation accessType, final boolean fireEvents )
@@ -190,10 +190,23 @@ public class Transfer
                                           final EventMetadata eventMetadata )
         throws IOException
     {
+        return openOutputStream( accessType, fireEvents, eventMetadata, false );
+    }
+
+    public OutputStream openOutputStream( final TransferOperation accessType, final boolean fireEvents,
+                                          final EventMetadata eventMetadata, boolean deleteFilesOnPath )
+        throws IOException
+    {
         provider.waitForWriteUnlock( resource );
         try
         {
             provider.lockWrite( resource );
+
+            if ( deleteFilesOnPath )
+            {
+                deleteFilesOnPath();
+            }
+
             OutputStream stream = provider.openOutputStream( resource );
             if ( stream == null )
             {
@@ -226,6 +239,26 @@ public class Transfer
                 fileEventManager.fire( new FileErrorEvent( this, e, eventMetadata ) );
             }
             throw e;
+        }
+    }
+
+    /**
+     * Goes up through the path to the root of the resource location until it finds an existing element and removes it
+     * in case if it is a file. Starts from the resource path, so also the target file is removed if it pre-exists.
+     *
+     * @throws IOException in case of a deletion problem
+     */
+    private void deleteFilesOnPath() throws IOException
+    {
+        ConcreteResource currentRes = resource;
+        while ( !provider.exists( currentRes ) && !currentRes.isRoot() )
+        {
+            currentRes = currentRes.getParent();
+        }
+
+        if ( provider.exists( currentRes ) && provider.isFile( currentRes ) )
+        {
+            provider.delete( currentRes );
         }
     }
 
