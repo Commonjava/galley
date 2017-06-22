@@ -501,7 +501,7 @@ public class FastLocalCacheProvider
             throw new IllegalStateException( errorMsg, e );
         }
 
-        final int lockCount = fileManager.getLockTimes( resourcePath );
+        final int lockCount = fileManager.getContextLockCount( resourcePath );
 
         logger.trace( "Unlocked file lock for path {}, current lock time is {}", resourcePath, lockCount );
 
