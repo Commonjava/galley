@@ -93,6 +93,8 @@ public class SpecialPathConstants
     }
 
     public static final SpecialPathSet MVN_SP_PATH_SET = new MavenSpecialPathSet();
+
+    public static final SpecialPathSet NPM_SP_PATH_SET = new NPMSpecialPathSet();
 }
 
 class MavenSpecialPathSet
@@ -158,5 +160,44 @@ class MavenSpecialPathSet
     public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
     {
         mvnSpecialPaths.remove( pathInfo );
+    }
+}
+
+class NPMSpecialPathSet implements SpecialPathSet
+{
+    final List<SpecialPathInfo> npmSpecialPaths;
+
+    NPMSpecialPathSet()
+    {
+        npmSpecialPaths = new ArrayList<>();
+
+        npmSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( "package\\.json$" ) )
+                                            .setMergable( true )
+                                            .setMetadata( true )
+                                            .build() );
+    }
+
+    @Override
+    public String getPackageType()
+    {
+        return SpecialPathConstants.PKG_TYPE_NPM;
+    }
+
+    @Override
+    public List<SpecialPathInfo> getSpecialPathInfos()
+    {
+        return npmSpecialPaths;
+    }
+
+    @Override
+    public synchronized void registerSpecialPathInfo( SpecialPathInfo pathInfo )
+    {
+        npmSpecialPaths.add( pathInfo );
+    }
+
+    @Override
+    public synchronized void deregisterSpecialPathInfo( SpecialPathInfo pathInfo )
+    {
+        npmSpecialPaths.remove( pathInfo );
     }
 }
