@@ -163,8 +163,7 @@ class MavenSpecialPathSet
     }
 }
 
-class NPMSpecialPathSet
-                implements SpecialPathSet
+class NPMSpecialPathSet implements SpecialPathSet
 {
     final List<SpecialPathInfo> npmSpecialPaths;
 
@@ -172,7 +171,7 @@ class NPMSpecialPathSet
     {
         npmSpecialPaths = new ArrayList<>();
 
-        npmSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( "package\\.json" ) )
+        npmSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( "package\\.json$" ) )
                                             .setMergable( true )
                                             .setMetadata( true )
                                             .build() );
