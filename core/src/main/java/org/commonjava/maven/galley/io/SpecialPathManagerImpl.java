@@ -31,8 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN;
 import static org.commonjava.maven.galley.io.SpecialPathConstants.MVN_SP_PATH_SET;
+import static org.commonjava.maven.galley.io.SpecialPathConstants.NPM_SP_PATH_SET;
+import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN;
 
 /**
  * Created by jdcasey on 1/27/16.
@@ -59,6 +60,7 @@ public class SpecialPathManagerImpl
         stdSpecialPaths.addAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
         pkgtypes = new ConcurrentHashMap<>(  );
         pkgtypes.put( MVN_SP_PATH_SET.getPackageType(), MVN_SP_PATH_SET );
+        pkgtypes.put( NPM_SP_PATH_SET.getPackageType(), NPM_SP_PATH_SET );
     }
 
     @Override
@@ -166,7 +168,6 @@ public class SpecialPathManagerImpl
                 return info;
             }
         }
-
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return null;
     }
