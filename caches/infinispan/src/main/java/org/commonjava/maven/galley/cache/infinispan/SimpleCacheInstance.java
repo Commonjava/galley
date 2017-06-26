@@ -288,8 +288,10 @@ public class SimpleCacheInstance<K,V>
                          c.getAdvancedCache().getLockManager().unlock( key, owner );
                          return true;
                      }
-                     catch ( Exception e )
+                     catch ( RuntimeException e )
                      {
+			 Logger logger = LoggerFactory.getLogger( SimpleCacheInstance.this.getClass() );
+			 logger.error( String.format( "Failed to unlock key %s: %s", key, e.getMessage() ), e );
                          return false;
                      }
                  } );
