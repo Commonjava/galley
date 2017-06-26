@@ -164,6 +164,12 @@ public class FastLocalCacheProviderIOTest
         provider.cleanupCurrentThread();
     }
 
+    /**
+     * File IO sequence as below: (file1 and file2 in same folder)
+     *
+     *   file1 open-> file1 close-> file2 open-> file2 close
+     *
+     */
     @Test
     public void testTwoFilesOpenInSameFolderAndSingleThreadInSequence()
             throws IOException
@@ -189,6 +195,12 @@ public class FastLocalCacheProviderIOTest
         assertThat( result2, equalTo( content2 ) );
     }
 
+    /**
+     * File IO sequence as below: (file1 and file2 NOT in same folder)
+     *
+     *   file1 open-> file1 close-> file2 open-> file2 close
+     *
+     */
     @Test
     public void testTwoFilesOpenInDiffFolderAndSingleThreadInSequence()
             throws IOException
@@ -214,6 +226,12 @@ public class FastLocalCacheProviderIOTest
         assertThat( result2, equalTo( content2 ) );
     }
 
+    /**
+     * File IO sequence as below: (file1 and file2 in same folder)
+     *
+     *   file1 open-> file2 open-> file2 close -> file1 close
+     *
+     */
     @Test
     public void testTwoFilesOpenInSameFolderAndSingleThreadDeSequenceCase1()
             throws IOException
@@ -245,6 +263,12 @@ public class FastLocalCacheProviderIOTest
         assertThat( result2, equalTo( content2 ) );
     }
 
+    /**
+     * File IO sequence as below: (file1 and file2 in same folder)
+     *
+     *   file1 open-> file2 open-> file1 close -> file2 close
+     *
+     */
     @Test
     public void testTwoFilesOpenInSameFolderAndSingleThreadDeSequenceCase2()
             throws IOException
@@ -276,6 +300,12 @@ public class FastLocalCacheProviderIOTest
         assertThat( result2, equalTo( content2 ) );
     }
 
+    /**
+     * File IO sequence as below: (file1 and file2 NOT in same folder)
+     *
+     *   file1 open-> file2 open-> file2 close -> file1 close
+     *
+     */
     @Test
     public void testTwoFilesOpenInDiffFolderAndSingleThreadDeSequenceCase1()
             throws IOException
@@ -307,6 +337,12 @@ public class FastLocalCacheProviderIOTest
         assertThat( result2, equalTo( content2 ) );
     }
 
+    /**
+     * File IO sequence as below: (file1 and file2 NOT in same folder)
+     *
+     *   file1 open-> file2 open-> file1 close -> file2 close
+     *
+     */
     @Test
     public void testTwoFilesOpenInDiffFolderAndSingleThreadDeSequenceCase2()
             throws IOException

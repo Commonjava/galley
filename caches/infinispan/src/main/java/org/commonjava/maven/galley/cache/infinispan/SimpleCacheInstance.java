@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.cache.infinispan;
 
 import org.infinispan.Cache;
+import org.infinispan.util.concurrent.locks.LockManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -273,6 +274,25 @@ public class SimpleCacheInstance<K,V>
     public void lock( K... keys )
     {
         execute( ( c ) -> c.getAdvancedCache().lock( keys ) );
+    }
+
+    @Override
+    public void unlock( K key )
+    {
+        execute( ( c ) ->
+                 {
+                     try
+                     {
+                         LockManager mgr = c.getAdvancedCache().getLockManager();
+                         Object owner = mgr.getOwner( key );
+                         c.getAdvancedCache().getLockManager().unlock( key, owner );
+                         return true;
+                     }
+                     catch ( Exception e )
+                     {
+                         return false;
+                     }
+                 } );
     }
 
 }

@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This cache provider provides the ability to write the backup artifacts to an external storage(NFS) which can be mounted
@@ -99,6 +100,12 @@ public class FastLocalCacheProvider
     private PathGenerator pathGenerator;
 
     private final JoinableFileManager fileManager = new JoinableFileManager();
+
+    // This file counter is used to solve the problem of multi file operations in on ISPN TX. Sometimes in one single ISPN TX,
+    // it may includes more than one file operations. If we don't control the ISPN lock of each operation separately and just use
+    // tx.commit/rollback, it may cause ISPN TX in some weird state. This file counter is more like a thread re-entrant feature for
+    // ISPN single TX for different files.
+    private final AtomicInteger fileCounter = new AtomicInteger( 0 );
 
 
 
@@ -480,6 +487,8 @@ public class FastLocalCacheProvider
         if ( !cacheInst.isLocked( path ) )
         {
             cacheInst.lock( path );
+            // Increment a file counter to notify that there is a file operation with ISPN lock now in this ISPN TX
+            fileCounter.incrementAndGet();
         }
     }
 
@@ -487,9 +496,10 @@ public class FastLocalCacheProvider
                                final ConcreteResource resource )
     {
         final File resourcePath;
+        final String path;
         try
         {
-            final String path = getKeyForResource( resource );
+            path = getKeyForResource( resource );
             resourcePath = new File( path );
             fileManager.unlock( resourcePath );
         }
@@ -512,34 +522,45 @@ public class FastLocalCacheProvider
             {
                 cacheInst = nfsOwnerCache;
             }
-            if ( needCommit )
+            // Decrease the file counter to notify that a file operation ended and need to be unlocked from ISPN. If
+            // counter is still not 0, means this ISPN TX still has other file operations in, so should only unlock
+            // this file, but do not end the whole ISPN TX.
+            final Integer count = fileCounter.decrementAndGet();
+            if ( count == 0 )
             {
+                if ( needCommit )
+                {
 
+                    try
+                    {
+                        if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
+                        {
+                            throw new IllegalStateException(
+                                    "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
+                        }
+                        logger.trace( "Transaction ended." );
+                        cacheInst.commit();
+                        return;
+                    }
+                    catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
+                    {
+                        logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
+                    }
+                }
                 try
                 {
-                    if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
-                    {
-                        throw new IllegalStateException(
-                                "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
-                    }
-                    logger.trace( "Transaction ended." );
-                    cacheInst.commit();
-                    return;
+                    cacheInst.rollback();
                 }
-                catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
+                catch ( SystemException se )
                 {
-                    logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
+                    final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
+                    logger.error( errorMsg, se );
+                    throw new IllegalStateException( errorMsg, se );
                 }
             }
-            try
+            else
             {
-                cacheInst.rollback();
-            }
-            catch ( SystemException se )
-            {
-                final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
-                logger.error( errorMsg, se );
-                throw new IllegalStateException( errorMsg, se );
+                cacheInst.unlock( path );
             }
         }
     }
