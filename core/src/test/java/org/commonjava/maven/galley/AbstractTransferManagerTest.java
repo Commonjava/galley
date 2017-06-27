@@ -15,15 +15,6 @@
  */
 package org.commonjava.maven.galley;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collections;
-
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -37,6 +28,15 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
 import org.junit.Test;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collections;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 public abstract class AbstractTransferManagerTest
 {
@@ -137,6 +137,23 @@ public abstract class AbstractTransferManagerTest
         transfer = getTransferManagerImpl().retrieve( resource );
 
         assertTransferContent( transfer, testContent );
+    }
+
+    @Test( expected = TransferException.class )
+    public void resourceDeletionNotAllowed() throws Exception
+    {
+        final String testContent = "This is a test " + System.currentTimeMillis();
+
+        final Location loc =
+                        new SimpleLocation( "test-repo", "file:///test-repo", true, false, true, true, false, false );
+        final String path = "/path/to/test.txt";
+
+        final ConcreteResource resource = new ConcreteResource( loc, path );
+
+        // put in the content that we want to "download"
+        getTransport().registerDownload( resource, new TestDownload( testContent.getBytes() ) );
+
+        getTransferManagerImpl().delete( resource );
     }
 
     private void assertTransferContent( final Transfer transfer, final String testContent )

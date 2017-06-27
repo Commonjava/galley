@@ -68,6 +68,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.join;
@@ -695,6 +696,11 @@ public class TransferManagerImpl
     public boolean delete( final ConcreteResource resource, final EventMetadata eventMetadata )
         throws TransferException
     {
+        if ( !resource.allowsDeletion() )
+        {
+            throw new TransferException( "Deletion not allowed for: {}", resource );
+        }
+
         final Transfer item = getCacheReference( resource );
         return doDelete( item, eventMetadata );
     }

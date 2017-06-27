@@ -148,6 +148,15 @@ public class ConcreteResource
         return location.allowsReleases();
     }
 
+    /* (non-Javadoc)
+     * @see org.commonjava.maven.galley.model.Resource#allowsDeletion()
+     */
+    @Override
+    public boolean allowsDeletion()
+    {
+        return location.allowsDeletion();
+    }
+
     public String getLocationUri()
     {
         return location.getUri();

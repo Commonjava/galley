@@ -15,10 +15,10 @@
  */
 package org.commonjava.maven.galley.transport.htcli.model;
 
-import java.net.MalformedURLException;
-
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.transport.htcli.util.UrlInfo;
+
+import java.net.MalformedURLException;
 
 public class SimpleHttpLocation
     extends SimpleLocation
@@ -37,20 +37,39 @@ public class SimpleHttpLocation
 
     public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
                                final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
-                               final String proxyUri )
+                               final boolean allowDeletion, final String proxyUri )
             throws MalformedURLException
     {
-        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true );
+        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, allowDeletion );
         this.urlInfo = new UrlInfo( uri );
         this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
     }
 
     public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
                                final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
-                               final String proxyUri, LocationTrustType trustType )
+                               final String proxyUri ) throws MalformedURLException
+    {
+        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, true );
+        this.urlInfo = new UrlInfo( uri );
+        this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
+    }
+
+    public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
+                               final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
+                               final boolean allowDeletion, final String proxyUri, LocationTrustType trustType )
         throws MalformedURLException
     {
-        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true );
+        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, allowDeletion );
+        this.trustType = trustType;
+        this.urlInfo = new UrlInfo( uri );
+        this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
+    }
+
+    public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
+                               final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
+                               final String proxyUri, LocationTrustType trustType ) throws MalformedURLException
+    {
+        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, true );
         this.trustType = trustType;
         this.urlInfo = new UrlInfo( uri );
         this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );

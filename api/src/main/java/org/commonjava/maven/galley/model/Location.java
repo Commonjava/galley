@@ -48,6 +48,8 @@ public interface Location
 
     boolean allowsReleases();
 
+    boolean allowsDeletion();
+
     String getUri();
 
     String getName();

@@ -76,7 +76,7 @@ public class MavenModelProcessorTest
         lineage.put( childRef, "child.pom.xml" );
         lineage.put( new SimpleProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 
-        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );
 
         final String base = PROJ_BASE + "version-expression-managed-parent-plugin/";
 
@@ -152,7 +152,7 @@ public class MavenModelProcessorTest
         lineage.put( childRef, "child.pom.xml" );
         lineage.put( new SimpleProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 
-        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );
 
         final String base = PROJ_BASE + "dependency-in-managed-parent-plugin/";
 
@@ -236,7 +236,7 @@ public class MavenModelProcessorTest
         final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "test-pom-1.0.pom.xml" );
 
-        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );
 
         final String base = PROJ_BASE + "version-expression-in-a-profile/";
 
@@ -311,7 +311,7 @@ public class MavenModelProcessorTest
         final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "test-pom-1.0.pom.xml" );
 
-        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );
 
         final String base = PROJ_BASE + "resolve-expression-in-a-profile/";
 
@@ -354,7 +354,7 @@ public class MavenModelProcessorTest
         final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
         lineage.put( childRef, "test-pom-1.0.pom.xml" );
 
-        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true );
+        final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );
 
         final String base = PROJ_BASE + "resolve-expression-in-a-profile/";
 
