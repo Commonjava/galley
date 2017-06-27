@@ -117,6 +117,20 @@ public class VirtualResource
     }
 
     @Override
+    public boolean allowsDeletion()
+    {
+        for ( final ConcreteResource resource : resources )
+        {
+            if ( resource.allowsDeletion() )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public Iterator<ConcreteResource> iterator()
     {
         return resources.iterator();

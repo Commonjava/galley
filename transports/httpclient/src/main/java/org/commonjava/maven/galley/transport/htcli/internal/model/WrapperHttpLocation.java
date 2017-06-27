@@ -15,15 +15,15 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal.model;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Map;
-
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.conf.ProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.LocationTrustType;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
 
 public class WrapperHttpLocation
     implements HttpLocation
@@ -187,6 +187,12 @@ public class WrapperHttpLocation
     public boolean allowsDownloading()
     {
         return true;
+    }
+
+    @Override
+    public boolean allowsDeletion()
+    {
+        return delegate.allowsDeletion();
     }
 
     @Override

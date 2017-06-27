@@ -20,9 +20,9 @@ import org.commonjava.maven.galley.event.FileAccessEvent;
 import org.commonjava.maven.galley.event.FileDeletionEvent;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileStorageEvent;
+import org.commonjava.maven.galley.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.TransferInputStream;
 import org.commonjava.maven.galley.util.TransferOutputStream;
@@ -332,6 +332,12 @@ public class Transfer
         throws IOException
     {
         provider.waitForWriteUnlock( resource );
+
+        if ( !resource.allowsDeletion() )
+        {
+            throw new IOException( "Deletion not allowed for: " + resource );
+        }
+
         try
         {
             if ( decorator != null )

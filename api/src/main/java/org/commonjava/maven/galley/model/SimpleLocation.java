@@ -31,6 +31,8 @@ public class SimpleLocation
 
     private final boolean allowReleases;
 
+    private final boolean allowDeletion;
+
     private final String uri;
 
     private final Map<String, Object> attributes = new HashMap<String, Object>();
@@ -38,8 +40,8 @@ public class SimpleLocation
     private final String name;
 
     public SimpleLocation( final String name, final String uri, final boolean allowSnapshots, final boolean allowReleases,
- final boolean allowsStoring, final boolean allowPublishing,
-                           final boolean allowDownloading )
+                           final boolean allowsStoring, final boolean allowPublishing, final boolean allowDownloading,
+                           final boolean allowDeletion )
     {
         this.name = name;
         this.uri = uri;
@@ -48,6 +50,7 @@ public class SimpleLocation
         this.allowStoring = allowsStoring;
         this.allowPublishing = allowPublishing;
         this.allowDownloading = allowDownloading;
+        this.allowDeletion = allowDeletion;
     }
 
     public SimpleLocation( final String name, final String uri )
@@ -59,6 +62,7 @@ public class SimpleLocation
         this.allowStoring = true;
         this.allowDownloading = true;
         this.allowPublishing = false;
+        this.allowDeletion = true;
     }
 
     public SimpleLocation( final String uri )
@@ -70,6 +74,7 @@ public class SimpleLocation
         this.allowStoring = true;
         this.allowDownloading = true;
         this.allowPublishing = false;
+        this.allowDeletion = true;
     }
 
     @Override
@@ -100,6 +105,12 @@ public class SimpleLocation
     public boolean allowsReleases()
     {
         return allowReleases;
+    }
+
+    @Override
+    public boolean allowsDeletion()
+    {
+        return allowDeletion;
     }
 
     @Override

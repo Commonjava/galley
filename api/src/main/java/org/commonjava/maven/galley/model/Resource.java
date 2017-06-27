@@ -34,4 +34,6 @@ public interface Resource
 
     boolean allowsReleases();
 
+    boolean allowsDeletion();
+
 }
