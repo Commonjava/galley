@@ -101,11 +101,8 @@ public class FastLocalCacheProvider
 
     private final JoinableFileManager fileManager = new JoinableFileManager();
 
-    // This file counter is used to solve the problem of multi file operations in on ISPN TX. Sometimes in one single ISPN TX,
-    // it may includes more than one file operations. If we don't control the ISPN lock of each operation separately and just use
-    // tx.commit/rollback, it may cause ISPN TX in some weird state. This file counter is more like a thread re-entrant feature for
-    // ISPN single TX for different files.
-    private final AtomicInteger fileCounter = new AtomicInteger( 0 );
+    // Mapping key for ISPN transaction file counter in threadcontext, see #getFileCounter()
+    private static final String ISPN_TX_FILE_COUNTER = "ISPN_TX_FILE_COUNTER";
 
 
 
@@ -488,7 +485,7 @@ public class FastLocalCacheProvider
         {
             cacheInst.lock( path );
             // Increment a file counter to notify that there is a file operation with ISPN lock now in this ISPN TX
-            fileCounter.incrementAndGet();
+            getFileCounter().incrementAndGet();
         }
     }
 
@@ -525,7 +522,7 @@ public class FastLocalCacheProvider
             // Decrease the file counter to notify that a file operation ended and need to be unlocked from ISPN. If
             // counter is still not 0, means this ISPN TX still has other file operations in, so should only unlock
             // this file, but do not end the whole ISPN TX.
-            final Integer count = fileCounter.decrementAndGet();
+            final Integer count = getFileCounter().decrementAndGet();
             if ( count == 0 )
             {
                 if ( needCommit )
@@ -563,6 +560,17 @@ public class FastLocalCacheProvider
                 cacheInst.unlock( path );
             }
         }
+    }
+
+    // This file counter is used to solve the problem of multi file operations in on ISPN TX. Sometimes in one single ISPN TX,
+    // it may includes more than one file operations. If we don't control the ISPN lock of each operation separately and just use
+    // tx.commit/rollback, it may cause ISPN TX in some weird state. This file counter is more like a thread re-entrant feature for
+    // ISPN single TX for different files.
+    private synchronized AtomicInteger getFileCounter()
+    {
+        ThreadContext streamHolder = ThreadContext.getContext( true );
+        streamHolder.putIfAbsent( ISPN_TX_FILE_COUNTER, new AtomicInteger( 0 ) );
+        return (AtomicInteger) streamHolder.get( ISPN_TX_FILE_COUNTER );
     }
 
     @Override
