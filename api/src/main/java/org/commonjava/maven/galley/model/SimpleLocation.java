@@ -53,6 +53,19 @@ public class SimpleLocation
         this.allowDeletion = allowDeletion;
     }
 
+    public SimpleLocation( final String name, final String uri, final boolean allowSnapshots, final boolean allowReleases,
+                           final boolean allowsStoring, final boolean allowPublishing, final boolean allowDownloading)
+    {
+        this.name = name;
+        this.uri = uri;
+        this.allowSnapshots = allowSnapshots;
+        this.allowReleases = allowReleases;
+        this.allowStoring = allowsStoring;
+        this.allowPublishing = allowPublishing;
+        this.allowDownloading = allowDownloading;
+        this.allowDeletion = true;
+    }
+
     public SimpleLocation( final String name, final String uri )
     {
         this.uri = uri;

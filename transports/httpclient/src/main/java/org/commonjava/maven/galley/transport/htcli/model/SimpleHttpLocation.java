@@ -47,10 +47,29 @@ public class SimpleHttpLocation
 
     public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
                                final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
+                               final String proxyUri ) throws MalformedURLException
+    {
+        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, true );
+        this.urlInfo = new UrlInfo( uri );
+        this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
+    }
+
+    public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
+                               final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
                                final boolean allowDeletion, final String proxyUri, LocationTrustType trustType )
         throws MalformedURLException
     {
         super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, allowDeletion );
+        this.trustType = trustType;
+        this.urlInfo = new UrlInfo( uri );
+        this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
+    }
+
+    public SimpleHttpLocation( final String name, final String uri, final boolean allowSnapshots,
+                               final boolean allowReleases, final boolean allowsStoring, final boolean allowPublishing,
+                               final String proxyUri, LocationTrustType trustType ) throws MalformedURLException
+    {
+        super( name, uri, allowSnapshots, allowReleases, allowsStoring, allowPublishing, true, true );
         this.trustType = trustType;
         this.urlInfo = new UrlInfo( uri );
         this.proxyUrlInfo = proxyUri == null ? null : new UrlInfo( proxyUri, 8080 );
