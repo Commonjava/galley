@@ -39,6 +39,10 @@
       <artifactId>infinispan-embedded</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>partyline</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-cache-tck</artifactId>
     </dependency>

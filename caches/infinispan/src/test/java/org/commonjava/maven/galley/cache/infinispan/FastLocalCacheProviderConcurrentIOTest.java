@@ -46,11 +46,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNull;
@@ -58,7 +63,7 @@ import static org.junit.Assert.assertThat;
 
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
 @BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
-public class FastLocalCacheProviderConcurrentTest
+public class FastLocalCacheProviderConcurrentIOTest
 {
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
@@ -193,15 +198,57 @@ public class FastLocalCacheProviderConcurrentTest
 
     @Test
     public void testBothWrite() throws Exception{
-        final ConcreteResource resource = createTestResource( "file_both_write.txt" );
-        testPool.execute( new WriteTask( provider, content, resource, latch ) );
-        testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
+        Map<String, String> fileFolderMap = new HashMap<>( 1 );
+        fileFolderMap.put( "file_both_write.txt", "/path/to/my" );
+        multiWriteOnFilesInFolder( fileFolderMap, 2 );
+    }
 
-        latchWait( latch );
+    @Test
+    @BMScript( "common/SimultaneousWritesResourceExistence.btm" )
+    public void testBothWriteOnDiffFilesInSameFolder() throws Exception{
+        Map<String, String> fileFolderMap = new HashMap<>( 2 );
+        fileFolderMap.put( "file1.txt", "/path/to/my" );
+        fileFolderMap.put( "file2.txt", "/path/to/my" );
+        multiWriteOnFilesInFolder( fileFolderMap, 1 );
+    }
 
-        final String localResult = readLocalResource( resource );
-        final String nfsResult = readNFSResource( resource );
-        assertThat( localResult, equalTo( nfsResult ) );
+    @Test
+    @BMScript( "common/SimultaneousWritesResourceExistence.btm" )
+    public void testBothWriteOnDiffFilesInDiffFolder()
+            throws Exception
+    {
+        Map<String, String> fileFolderMap = new HashMap<>( 2 );
+        fileFolderMap.put( "file1.txt", "/path/to/my/folder1" );
+        fileFolderMap.put( "file2.txt", "/path/to/my/folder2" );
+        multiWriteOnFilesInFolder( fileFolderMap, 1 );
+    }
+
+    private void multiWriteOnFilesInFolder( final Map<String, String> fileFolderMap, final int threads )
+            throws Exception
+    {
+        List<ConcreteResource> resources = new ArrayList<>( fileFolderMap.size() );
+        for ( String fname : fileFolderMap.keySet() )
+        {
+            final String folder = fileFolderMap.get( fname );
+            resources.add( createTestResource( fname, folder ) );
+        }
+
+        final CountDownLatch waitLatch = new CountDownLatch( resources.size() * threads );
+
+        for ( ConcreteResource resource : resources )
+        {
+            IntStream.range( 0, threads )
+                     .forEach( i -> testPool.execute( new WriteTask( provider, content, resource, waitLatch ) ) );
+        }
+
+        latchWait( waitLatch );
+
+        for ( ConcreteResource resource : resources )
+        {
+            final String localResult = readLocalResource( resource );
+            final String nfsResult = readNFSResource( resource );
+            assertThat( localResult, equalTo( nfsResult ) );
+        }
     }
 
     @Test
@@ -371,6 +418,8 @@ public class FastLocalCacheProviderConcurrentTest
         assertThat( provider.exists( resource ), equalTo( false ) );
     }
 
+
+
     private void latchWait( CountDownLatch latch )
     {
         try
@@ -454,8 +503,13 @@ public class FastLocalCacheProviderConcurrentTest
 
     private ConcreteResource createTestResource( String fname )
     {
+        return createTestResource( fname, "/path/to/my" );
+    }
+
+    private ConcreteResource createTestResource( String fname, String folder )
+    {
         final Location loc = new SimpleLocation( "http://foo.com" );
-        return new ConcreteResource( loc, String.format( "/path/to/my/%s", fname ) );
+        return new ConcreteResource( loc, String.format( "%s/%s", folder, fname ) );
     }
 
     private abstract class CacheProviderWorkingTask

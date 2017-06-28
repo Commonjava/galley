@@ -27,6 +27,8 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
+import org.commonjava.util.partyline.JoinableFileManager;
+import org.commonjava.util.partyline.LockLevel;
 import org.infinispan.commons.util.concurrent.ConcurrentWeakKeyHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This cache provider provides the ability to write the backup artifacts to an external storage(NFS) which can be mounted
@@ -72,8 +75,6 @@ public class FastLocalCacheProvider
 {
 
     private static final String FAST_LOCAL_STREAMS = "fast-local-streams";
-
-    private static final String CURRENT_THREAD_ID = "current-thread-id";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -97,6 +98,11 @@ public class FastLocalCacheProvider
     private ExecutorService executor;
 
     private PathGenerator pathGenerator;
+
+    private final JoinableFileManager fileManager = new JoinableFileManager();
+
+    // Mapping key for ISPN transaction file counter in threadcontext, see #getFileCounter()
+    private static final String ISPN_TX_FILE_COUNTER = "ISPN_TX_FILE_COUNTER";
 
 
 
@@ -276,7 +282,7 @@ public class FastLocalCacheProvider
 
             try
             {
-                lockByISPN( resource );
+                lockByISPN( nfsOwnerCache, resource, LockLevel.write );
 
                 File nfsFile = getNFSDetachedFile( resource );
                 if ( !nfsFile.exists() )
@@ -289,7 +295,7 @@ public class FastLocalCacheProvider
                 IOUtils.copy( nfsIn, localOut );
                 logger.debug( "NFS copy to local cache done." );
             }
-            catch ( NotSupportedException | SystemException | IOException e )
+            catch ( NotSupportedException | SystemException | IOException | InterruptedException e )
             {
                 if ( e instanceof IOException )
                 {
@@ -297,6 +303,13 @@ public class FastLocalCacheProvider
                             String.format( "[galley] got i/o error when doing the NFS->Local copy for resource %s",
                                            resource.toString() );
                     logger.warn( errorMsg, e );
+                }
+                else if ( e instanceof InterruptedException )
+                {
+                    final String errorMsg =
+                            String.format( "[galley] got thread interrupted error for partyline file locking when doing the NFS->Local copy for resource %s",
+                                           resource.toString() );
+                    throw new IllegalStateException( errorMsg, e );
                 }
                 else
                 {
@@ -309,17 +322,8 @@ public class FastLocalCacheProvider
             }
             finally
             {
-                try
-                {
-                    nfsOwnerCache.rollback();
-                }
-                catch ( SystemException e )
-                {
-                    final String errorMsg =
-                            String.format( "[galley] Cache TransactionManager rollback got error, locking key is %s",
-                                           pathKey );
-                    logger.error( errorMsg, e );
-                }
+                unlockByISPN( nfsOwnerCache, false, resource );
+
                 IOUtils.closeQuietly( nfsIn );
                 IOUtils.closeQuietly( localOut );
                 synchronized ( copyLock )
@@ -380,7 +384,7 @@ public class FastLocalCacheProvider
     public OutputStream openOutputStream( ConcreteResource resource )
             throws IOException
     {
-        OutputStream dualOut;
+        final OutputStream dualOut;
         final String nodeIp = getCurrentNodeIp();
         final String pathKey = getKeyForResource( resource );
         final File nfsFile = getNFSDetachedFile( resource );
@@ -388,7 +392,7 @@ public class FastLocalCacheProvider
         {
             try
             {
-                lockByISPN( resource );
+                lockByISPN( nfsOwnerCache, resource, LockLevel.write );
 
                 nfsOwnerCache.put( pathKey, nodeIp );
 
@@ -435,7 +439,7 @@ public class FastLocalCacheProvider
                 streams.add( new WeakReference<>( dualOut ) );
                 streamHolder.put( FAST_LOCAL_STREAMS, streams );
             }
-            catch ( NotSupportedException | SystemException e )
+            catch ( NotSupportedException | SystemException | InterruptedException e )
             {
                 logger.error( "[galley] Transaction error for nfs cache during file writing.", e );
                 throw new IllegalStateException(
@@ -447,8 +451,8 @@ public class FastLocalCacheProvider
         }
     }
 
-    private void lockByISPN( final ConcreteResource resource )
-            throws SystemException, NotSupportedException, IOException
+    private void lockByISPN(final CacheInstance<String, String> cacheInstance, final ConcreteResource resource, final LockLevel level )
+            throws SystemException, NotSupportedException, IOException, InterruptedException
     {
         //FIXME: This whole method is not thread-safe, especially for the lock state of the path, so the caller needs to take care
 
@@ -457,27 +461,116 @@ public class FastLocalCacheProvider
         // thread, the ISPN lock will fail with a RuntimeException. So we need to let the
         // thread wait for the ISPN lock until it's released by the thread holds it. It's
         // like "tryLock" and "wait" of a thread lock.
+
+        CacheInstance<String, String> cacheInst = cacheInstance;
+        if ( cacheInst == null )
+        {
+            cacheInst = nfsOwnerCache;
+        }
+
         final String path = getKeyForResource( resource );
+
+        fileManager.lock( new File( path ), Long.MAX_VALUE, level );
 
         // Some consideration about the thread "re-entrant" for waiting here. If it is the same
         // thread, will not wait.
-        if ( !isCurrentThread() )
+        waitForISPNLock( resource, cacheInst.isLocked( path ) );
+
+        if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
         {
-            waitForISPNLock( resource, nfsOwnerCache.isLocked( path ) );
+            cacheInst.beginTransaction();
         }
 
-        if ( !nfsOwnerCache.isLocked( path ) )
+        if ( !cacheInst.isLocked( path ) )
         {
-            nfsOwnerCache.beginTransaction();
-            nfsOwnerCache.lock( path );
-
-            // This thread holder is used to add some "re-entrant" like function for the ISPN transaction lock. The ISPN lock is
-            // used for ISPN transaction but not for thread level with re-entrant, that means if we want to own this lock in one
-            // transaction for more than twice in single thread, it will block this thread. So we need this thread holder to by-pass
-            // the ISPN lock waiting when thread not changed.
-            final ThreadContext threadHolder = ThreadContext.getContext( true );
-            threadHolder.put( CURRENT_THREAD_ID, Thread.currentThread().getId() );
+            cacheInst.lock( path );
+            // Increment a file counter to notify that there is a file operation with ISPN lock now in this ISPN TX
+            getFileCounter().incrementAndGet();
         }
+    }
+
+    private void unlockByISPN( final CacheInstance<String, String> cacheInstance, final boolean needCommit,
+                               final ConcreteResource resource )
+    {
+        final File resourcePath;
+        final String path;
+        try
+        {
+            path = getKeyForResource( resource );
+            resourcePath = new File( path );
+            fileManager.unlock( resourcePath );
+        }
+        catch ( IOException e )
+        {
+            final String errorMsg =
+                    String.format( "Got i/o error when doing the parytyline file unlocking for resource %s",
+                                   resource.toString() );
+            throw new IllegalStateException( errorMsg, e );
+        }
+
+        final int lockCount = fileManager.getContextLockCount( resourcePath );
+
+        logger.trace( "Unlocked file lock for path {}, current lock time is {}", resourcePath, lockCount );
+
+        if ( lockCount == 0 )
+        {
+            CacheInstance<String, String> cacheInst = cacheInstance;
+            if ( cacheInst == null )
+            {
+                cacheInst = nfsOwnerCache;
+            }
+            // Decrease the file counter to notify that a file operation ended and need to be unlocked from ISPN. If
+            // counter is still not 0, means this ISPN TX still has other file operations in, so should only unlock
+            // this file, but do not end the whole ISPN TX.
+            final Integer count = getFileCounter().decrementAndGet();
+            if ( count == 0 )
+            {
+                if ( needCommit )
+                {
+
+                    try
+                    {
+                        if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
+                        {
+                            throw new IllegalStateException(
+                                    "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
+                        }
+                        logger.trace( "Transaction ended." );
+                        cacheInst.commit();
+                        return;
+                    }
+                    catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
+                    {
+                        logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
+                    }
+                }
+                try
+                {
+                    cacheInst.rollback();
+                }
+                catch ( SystemException se )
+                {
+                    final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
+                    logger.error( errorMsg, se );
+                    throw new IllegalStateException( errorMsg, se );
+                }
+            }
+            else
+            {
+                cacheInst.unlock( path );
+            }
+        }
+    }
+
+    // This file counter is used to solve the problem of multi file operations in on ISPN TX. Sometimes in one single ISPN TX,
+    // it may includes more than one file operations. If we don't control the ISPN lock of each operation separately and just use
+    // tx.commit/rollback, it may cause ISPN TX in some weird state. This file counter is more like a thread re-entrant feature for
+    // ISPN single TX for different files.
+    private synchronized AtomicInteger getFileCounter()
+    {
+        ThreadContext streamHolder = ThreadContext.getContext( true );
+        streamHolder.putIfAbsent( ISPN_TX_FILE_COUNTER, new AtomicInteger( 0 ) );
+        return (AtomicInteger) streamHolder.get( ISPN_TX_FILE_COUNTER );
     }
 
     @Override
@@ -590,7 +683,7 @@ public class FastLocalCacheProvider
                     logger.info( "local file deletion failed for {}", resource );
                     return false;
                 }
-                lockByISPN( resource );
+                lockByISPN( nfsOwnerCache, resource, LockLevel.delete );
                 nfsOwnerCache.remove( pathKey );
                 final boolean nfsDeleted = nfsFile.delete();
                 if ( !nfsDeleted )
@@ -599,7 +692,7 @@ public class FastLocalCacheProvider
                 }
                 return nfsDeleted;
             }
-            catch ( NotSupportedException | SystemException e )
+            catch ( NotSupportedException | SystemException | InterruptedException e  )
             {
                 final String errorMsg = String.format( "[galley] Cache TransactionManager got error, locking key is %s", pathKey );
                 logger.error( errorMsg, e );
@@ -609,16 +702,7 @@ public class FastLocalCacheProvider
             {
                 if ( localDeleted )
                 {
-                    try
-                    {
-                        nfsOwnerCache.rollback();
-                    }
-                    catch ( SystemException e )
-                    {
-                        final String errorMsg = String.format(
-                                "[galley] Cache TransactionManager rollback got error, locking key is %s", pathKey );
-                        logger.error( errorMsg, e );
-                    }
+                    unlockByISPN( nfsOwnerCache, false, resource );
                 }
             }
         }
@@ -638,11 +722,10 @@ public class FastLocalCacheProvider
         final String pathKey = getKeyForResource( resource );
         try
         {
-            nfsOwnerCache.beginTransaction();
-            nfsOwnerCache.lock( pathKey );
+            lockByISPN( nfsOwnerCache, resource, LockLevel.write );
             getDetachedFile( resource ).mkdirs();
         }
-        catch ( NotSupportedException | SystemException e )
+        catch ( NotSupportedException | SystemException | InterruptedException e )
         {
             final String errorMsg =
                     String.format( "[galley] Cache TransactionManager got error, locking key is %s", pathKey );
@@ -651,17 +734,7 @@ public class FastLocalCacheProvider
         }
         finally
         {
-            try
-            {
-                nfsOwnerCache.rollback();
-            }
-            catch ( SystemException e )
-            {
-                final String errorMsg =
-                        String.format( "[galley] Cache TransactionManager rollback got error, locking key is %s",
-                                       pathKey );
-                logger.error( errorMsg, e );
-            }
+            unlockByISPN( nfsOwnerCache, false, resource );
         }
     }
 
@@ -673,8 +746,7 @@ public class FastLocalCacheProvider
         final String pathKey = getKeyForResource( resource );
         try
         {
-            nfsOwnerCache.beginTransaction();
-            nfsOwnerCache.lock( pathKey );
+            lockByISPN( nfsOwnerCache, resource, LockLevel.write );
             final File nfsFile = getNFSDetachedFile( resource );
             if ( !nfsFile.exists() )
             {
@@ -682,7 +754,7 @@ public class FastLocalCacheProvider
                 nfsFile.createNewFile();
             }
         }
-        catch ( NotSupportedException | SystemException e )
+        catch ( NotSupportedException | SystemException | InterruptedException e )
         {
             final String errorMsg =
                     String.format( "[galley] Cache TransactionManager got error, locking key is %s", pathKey );
@@ -691,17 +763,7 @@ public class FastLocalCacheProvider
         }
         finally
         {
-            try
-            {
-                nfsOwnerCache.rollback();
-            }
-            catch ( SystemException e )
-            {
-                final String errorMsg =
-                        String.format( "[galley] Cache TransactionManager rollback got error, locking key is %s",
-                                       pathKey );
-                logger.error( errorMsg, e );
-            }
+            unlockByISPN( nfsOwnerCache, false, resource );
         }
     }
 
@@ -794,25 +856,25 @@ public class FastLocalCacheProvider
     @Override
     public void unlockRead( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
     public void unlockWrite( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
     public void lockRead( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
     public void lockWrite( ConcreteResource resource )
     {
-
+        // Not supported yet
     }
 
     @Override
@@ -847,16 +909,10 @@ public class FastLocalCacheProvider
     private void waitForISPNLock( ConcreteResource resource, boolean locked )
     {
 
-        if ( isCurrentThread() )
-        {
-            logger.trace( "Processing in same thread, will not wait for ISPN lock to make it re-entrant" );
-            return;
-        }
-
-        final String key;
+        final String path;
         try
         {
-            key = getKeyForResource( resource );
+            path = getKeyForResource( resource );
         }
         catch ( IOException e )
         {
@@ -865,13 +921,20 @@ public class FastLocalCacheProvider
             logger.error( errorMsg, e );
             throw new IllegalStateException( errorMsg, e );
         }
+
+        if ( fileManager.isLockedByCurrentThread( new File( path ) ) )
+        {
+            logger.trace( "Processing in same thread, will not wait for ISPN lock to make it re-entrant" );
+            return;
+        }
+
         while ( locked )
         {
             try
             {
                 // Use ISPN lock owner for resource to wait until lock is released. Note that if the lock has no owner,
                 // means lock has been released
-                final Object owner = nfsOwnerCache.getLockOwner( key );
+                final Object owner = nfsOwnerCache.getLockOwner( path );
                 if ( owner == null )
                 {
                     break;
@@ -881,7 +944,7 @@ public class FastLocalCacheProvider
                 {
                     logger.trace(
                             "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 0.1s",
-                            key, owner, resource );
+                            path, owner, resource );
                     owner.wait( 1000 );
                 }
             }
@@ -890,14 +953,6 @@ public class FastLocalCacheProvider
                 Thread.currentThread().interrupt();
             }
         }
-    }
-
-    private boolean isCurrentThread()
-    {
-        final ThreadContext threadHolder = ThreadContext.getContext( false );
-
-        return threadHolder != null && threadHolder.get( CURRENT_THREAD_ID ) != null
-                && Thread.currentThread().getId() == (Long) threadHolder.get( CURRENT_THREAD_ID );
     }
 
     private String getCurrentNodeIp()
@@ -1018,17 +1073,7 @@ public class FastLocalCacheProvider
                 // If still ISPN locked, we should unlock it to avoid "lock-never-released"
                 if ( cacheInstance.isLocked( cacheKey ) )
                 {
-                    try
-                    {
-                        cacheInstance.rollback();
-                    }
-                    catch ( SystemException se )
-                    {
-                        final String errorMsg =
-                                "[galley] Transaction rollback error for nfs cache during file writing.";
-                        logger.error( errorMsg, se );
-                        throw new IllegalStateException( errorMsg, se );
-                    }
+                    unlockByISPN( cacheInstance, false, resource );
                 }
                 return;
             }
@@ -1041,39 +1086,14 @@ public class FastLocalCacheProvider
                               cacheKey, resource, cacheInstance.getLockOwner( cacheKey ) );
             }
 
-
             try
             {
-                if ( cacheInstance.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
-                {
-                    throw new IOException( "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
-                }
-                cacheInstance.commit();
+                unlockByISPN( cacheInstance, true, resource );
 
                 // To avoid ISPN lock not released correctly, should consider the real closed case after the lock released successfully
                 if ( !closed )
                 {
                     closed = true;
-                }
-            }
-            catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
-            {
-                logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
-
-                try
-                {
-                    cacheInstance.rollback();
-                    // To avoid ISPN lock not released correctly, should consider the real closed case after the lock released successfully
-                    if ( !closed )
-                    {
-                        closed = true;
-                    }
-                }
-                catch ( SystemException se )
-                {
-                    final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
-                    logger.error( errorMsg, se );
-                    throw new IllegalStateException( errorMsg, se );
                 }
             }
             finally

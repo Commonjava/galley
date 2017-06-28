@@ -64,4 +64,6 @@ public interface CacheInstance<K, V>
     boolean isLocked( K key );
 
     void lock( K... keys );
+
+    void unlock( K key );
 }
