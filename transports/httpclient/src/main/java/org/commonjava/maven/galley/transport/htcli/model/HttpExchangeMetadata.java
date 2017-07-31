@@ -31,17 +31,17 @@ public class HttpExchangeMetadata
 
     public static final String FILE_EXTENSION = SpecialPathConstants.HTTP_METADATA_EXT;
 
-    private static final String LAST_MODIFIED = "LAST-MODIFIED";
+    protected static final String LAST_MODIFIED = "LAST-MODIFIED";
 
-    private static final Object CONTENT_LENGTH = "CONTENT-LENGTH";
+    protected static final Object CONTENT_LENGTH = "CONTENT-LENGTH";
 
-    private Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
+    protected Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
 
-    private Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
+    protected Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
 
-    private String responseStatusMessage;
+    protected String responseStatusMessage;
 
-    private int responseStatusCode;
+    protected int responseStatusCode;
 
     public HttpExchangeMetadata()
     {
