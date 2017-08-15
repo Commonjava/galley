@@ -32,6 +32,8 @@ public interface CacheProvider
 
     String SUFFIX_TO_WRITE = ".to-write";
 
+    String STORAGE_PATH = "storage-path";
+
     Set<String> HIDDEN_SUFFIXES = Collections.unmodifiableSet( new HashSet<String>()
     {
         {

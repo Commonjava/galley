@@ -43,7 +43,7 @@ public class Transfer
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final ConcreteResource resource;
+    private ConcreteResource resource;
 
     private final CacheProvider provider;
 
@@ -509,4 +509,8 @@ public class Transfer
         return decorator;
     }
 
+    public void setResource( ConcreteResource resource )
+    {
+        this.resource = resource;
+    }
 }

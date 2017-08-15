@@ -15,6 +15,10 @@
  */
 package org.commonjava.maven.galley.util;
 
+import org.commonjava.maven.galley.event.EventMetadata;
+
+import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
+
 public final class PathUtils
 {
 
@@ -106,6 +110,12 @@ public final class PathUtils
         }
 
         return sb.toString();
+    }
+
+    public static String storagePath ( final String path, final EventMetadata eventMetadata )
+    {
+        String storage = (String) eventMetadata.get( STORAGE_PATH );
+        return storage == null ? path : normalize( storage );
     }
 
 }
