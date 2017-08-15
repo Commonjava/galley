@@ -46,6 +46,7 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
+import org.commonjava.maven.galley.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +74,7 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.galley.model.Transfer.DELETE_CONTENT_LOG;
+import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
 import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 
 @ApplicationScoped
@@ -342,7 +344,7 @@ public class TransferManagerImpl
                 if ( remoteResult != null )
                 {
                     String[] remoteListing = remoteResult.getListing();
-                    if ( remoteListing != null )
+                    if ( remoteListing != null && remoteListing.length > 0 )
                     {
                         final TransferDecorator decorator = cachedListing.getDecorator();
                         if ( decorator != null )
@@ -363,7 +365,7 @@ public class TransferManagerImpl
                         }
                     }
 
-                    if ( remoteListing != null )
+                    if ( remoteListing != null && remoteListing.length > 0  )
                     {
                         if ( transport.allowsCaching() )
                         {
@@ -604,9 +606,13 @@ public class TransferManagerImpl
     }
 
     @Override
-    public Transfer store( final ConcreteResource resource , final InputStream stream , final EventMetadata eventMetadata  )
+    public Transfer store( ConcreteResource resource , final InputStream stream , final EventMetadata eventMetadata  )
         throws TransferException
     {
+        if ( eventMetadata.get( STORAGE_PATH ) != null )
+        {
+            resource = ResourceUtils.storageResource( resource, eventMetadata );
+        }
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource, eventMetadata.getPackageType() );
         if ( !resource.allowsStoring() || ( specialPathInfo != null && !specialPathInfo.isStorable() ) )
         {

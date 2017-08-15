@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
+import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +37,7 @@ import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
+import org.commonjava.maven.galley.util.ResourceUtils;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -117,6 +119,10 @@ public final class HttpDownload
     @Override
     public Transfer getTransfer()
     {
+        if ( eventMetadata.get( STORAGE_PATH ) != null )
+        {
+            target.setResource( ResourceUtils.storageResource( target.getResource(), eventMetadata ) );
+        }
         return target;
     }
 
