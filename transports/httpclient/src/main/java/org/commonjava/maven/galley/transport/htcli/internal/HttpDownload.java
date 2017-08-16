@@ -121,6 +121,7 @@ public final class HttpDownload
     {
         if ( eventMetadata.get( STORAGE_PATH ) != null )
         {
+            // make all the npm remote /package content downloading as /package/package.json
             target.setResource( ResourceUtils.storageResource( target.getResource(), eventMetadata ) );
         }
         return target;

@@ -611,6 +611,7 @@ public class TransferManagerImpl
     {
         if ( eventMetadata.get( STORAGE_PATH ) != null )
         {
+            // make all the npm package.json content storing as /package/package.json
             resource = ResourceUtils.storageResource( resource, eventMetadata );
         }
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource, eventMetadata.getPackageType() );
