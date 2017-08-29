@@ -33,6 +33,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.join;
 
@@ -50,6 +54,8 @@ public class Transfer
     private final TransferDecorator decorator;
 
     private final FileEventManager fileEventManager;
+
+    private Set<Transfer> generatedFromTarget = new HashSet<>();
 
     public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager,
                      final TransferDecorator decorator, final String... path )
@@ -512,5 +518,15 @@ public class Transfer
     public void setResource( ConcreteResource resource )
     {
         this.resource = resource;
+    }
+
+    public void setGeneratedFromTarget( Set<Transfer> generatedFromTarget )
+    {
+        this.generatedFromTarget = generatedFromTarget;
+    }
+
+    public Set<Transfer> getGeneratedFromTarget()
+    {
+        return generatedFromTarget;
     }
 }
