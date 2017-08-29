@@ -629,12 +629,11 @@ public class TransferManagerImpl
         logger.info( "STORE {}", target.getResource() );
 
         OutputStream out = null;
-        String content = null;
         try
         {
+            String content = IOUtils.toString( stream );
             if ( eventMetadata.get( STORAGE_PATH ) != null )
             {
-                content = IOUtils.toString( stream );
                 generateNPMFilesFromTarget( content, resource, target, eventMetadata );
             }
 
