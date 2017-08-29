@@ -15,6 +15,9 @@
  */
 package org.commonjava.maven.galley.internal;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.WeftManaged;
@@ -56,6 +59,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -625,10 +629,18 @@ public class TransferManagerImpl
         logger.info( "STORE {}", target.getResource() );
 
         OutputStream out = null;
+        String content = null;
         try
         {
+            if ( eventMetadata.get( STORAGE_PATH ) != null )
+            {
+                content = IOUtils.toString( stream );
+                generateNPMFilesFromTarget( content, resource, target, eventMetadata );
+            }
+
+            //TODO: for npm, will check the original target and merge with the new stream if existed
             out = target.openOutputStream( TransferOperation.UPLOAD, true, eventMetadata );
-            copy( stream, out );
+            copy( IOUtils.toInputStream( content ), out );
         }
         catch ( final IOException e )
         {
@@ -942,6 +954,67 @@ public class TransferManagerImpl
         batch.setTransfers( transfers );
 
         return batch;
+    }
+
+    private void generateNPMFilesFromTarget( final String content, ConcreteResource resource, final Transfer target,
+                                             final EventMetadata eventMetadata )
+            throws TransferException
+    {
+        OutputStream versionOut = null;
+        OutputStream tarballOut = null;
+
+        Transfer versionTarget;
+        Transfer tarballTarget;
+        String versionContent;
+        String tarballContent;
+
+        try
+        {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree( content );
+
+            String currentVersion = root.path( "versions" ).fields().next().getKey();
+            versionContent = root.path( "versions" ).findValue( currentVersion ).toString();
+            String versionPath = Paths.get( root.get( "_id" ).asText(), currentVersion ).toString();
+
+            String currentTarball = root.path( "_attachments" ).fields().next().getKey();
+            tarballContent = root.path( "_attachments" ).findPath( "data" ).asText();
+            String tarballPath = Paths.get( root.get( "_id" ).asText(), "-", currentTarball ).toString();
+
+            versionTarget = getCacheReference( new ConcreteResource( resource.getLocation(), versionPath ) );
+            logger.info( "STORE {}", versionTarget.getResource() );
+
+            tarballTarget = getCacheReference( new ConcreteResource( resource.getLocation(), tarballPath ) );
+            logger.info( "STORE {}", tarballTarget.getResource() );
+        }
+        catch ( final IOException e )
+        {
+            throw new TransferException( "[NPM] Json node parse failed for store: {}. Reason: {}", e, resource,
+                                         e.getMessage() );
+        }
+        try
+        {
+            versionOut = versionTarget.openOutputStream( TransferOperation.UPLOAD, true, eventMetadata );
+            versionOut.write( versionContent.getBytes() );
+
+            tarballOut = tarballTarget.openOutputStream( TransferOperation.UPLOAD, true, eventMetadata );
+            tarballOut.write( Base64.decodeBase64( tarballContent ) );
+
+            Set<Transfer> generated = new HashSet<>();
+            generated.add( versionTarget );
+            generated.add( tarballTarget );
+            target.setGeneratedFromTarget( generated );
+        }
+        catch ( final IOException e )
+        {
+            throw new TransferException( "[NPM] Failed to store the generated targets: {} and {}. Reason: {}", e,
+                                         versionTarget.getResource(), tarballTarget.getResource(), e.getMessage() );
+        }
+        finally
+        {
+            closeQuietly( versionOut );
+            closeQuietly( tarballOut );
+        }
     }
 
 }
