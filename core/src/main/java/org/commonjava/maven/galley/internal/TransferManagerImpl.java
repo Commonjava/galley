@@ -313,6 +313,13 @@ public class TransferManagerImpl
                         {
                             for ( String fname : fnames )
                             {
+                                // npm will only show the project as a file path no matter it's a real file or path,
+                                // this will avoid some package.json redirect path empty errors, especially for the group.
+                                if ( metadata.get( STORAGE_PATH ) != null )
+                                {
+                                    filenames.add( fname );
+                                    continue;
+                                }
                                 final ConcreteResource child = resource.getChild( fname );
                                 final Transfer childRef = getCacheReference( child );
                                 if ( childRef.isFile() )
