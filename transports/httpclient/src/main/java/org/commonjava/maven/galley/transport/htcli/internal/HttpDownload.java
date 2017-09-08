@@ -15,19 +15,9 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.TransferContentException;
@@ -41,8 +31,14 @@ import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.ResourceUtils;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.io.IOUtils.copy;
+import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -142,31 +138,14 @@ public final class HttpDownload
             try
             {
                 final HttpEntity entity = response.getEntity();
-                /*
-                * If the server responded with 200 but the content length doesn't match,
-                * we will delete the file and return a 502 Gateway Error status to indicate
-                * the upstream server is having problems.
-                */
-                Header[] headers = response.getHeaders( "Content-Length" );
-                Collection<Integer> successStatuses = Collections.singleton( HttpStatus.SC_OK );
-                if ( headers[0] !=null && !headers[0].getValue().equals( "" ))
-                {
-                    long contentLength = Long.parseLong( headers[0].getValue().toString() );
-                    long targetLength = target.length();
-                    if ( contentLength != targetLength && successStatuses.contains( response.getStatusLine().getStatusCode() ) )
-                    {
-                        target.delete();
-                        throw new TransferContentException( target.getResource(),
-                                                            "Target: %s's Content-Length mismatch (expected: %s, got: %s)",
-                                                            target.getFullPath(), contentLength, targetLength );
-                    }
-                }
+
                 in = entity.getContent();
                 out = target.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata, deleteFilesOnPath );
                 copy( in, out );
                 logger.info( "Ensuring all HTTP data is consumed..." );
                 EntityUtils.consume( entity );
                 logger.info( "All HTTP data was consumed." );
+
             }
             catch ( final IOException e )
             {
@@ -179,6 +158,34 @@ public final class HttpDownload
 
                 logger.info( "Closing output stream: {}", out );
                 closeQuietly( out );
+
+                /*
+                * If the server responded with 200 but the content length doesn't match,
+                * we will delete the file and return a null Transfer as if the file wasn't found,
+                * since the content is invalid.
+                */
+                Header[] headers = response.getHeaders( "Content-Length" );
+                if ( headers[0] != null && !headers[0].getValue().equals( "" ) )
+                {
+                    long contentLength = Long.parseLong( headers[0].getValue().toString() );
+                    long targetLength = target.length();
+                    if ( contentLength != targetLength )
+                    {
+                        try
+                        {
+                            target.delete();
+                        }
+                        catch ( final Exception e )
+                        {
+                            throw new TransferException(
+                                            "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}", e,
+                                            target, url, e.getMessage() );
+                        }
+                        throw new TransferContentException( target.getResource(),
+                                                            "Target: %s's Content-Length mismatch (expected: %s, got: %s)",
+                                                            target.getFullPath(), contentLength, targetLength );
+                    }
+                }
             }
         }
     }
