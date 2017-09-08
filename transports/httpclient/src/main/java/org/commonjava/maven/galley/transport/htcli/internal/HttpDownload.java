@@ -164,12 +164,10 @@ public final class HttpDownload
                 * we will delete the file and return a null Transfer as if the file wasn't found,
                 * since the content is invalid.
                 */
-                Header[] headers = response.getHeaders( "Content-Length" );
-                if ( headers[0] != null && !headers[0].getValue().equals( "" ) )
+                long contentLength = transferSizes.get( target );
+                if ( contentLength >0 )
                 {
-                    long contentLength = Long.parseLong( headers[0].getValue().toString() );
-                    long targetLength = target.length();
-                    if ( contentLength != targetLength )
+                    if ( contentLength != target.length() )
                     {
                         try
                         {
@@ -183,7 +181,7 @@ public final class HttpDownload
                         }
                         throw new TransferContentException( target.getResource(),
                                                             "Target: %s's Content-Length mismatch (expected: %s, got: %s)",
-                                                            target.getFullPath(), contentLength, targetLength );
+                                                            target.getFullPath(), contentLength, target.length() );
                     }
                 }
             }
