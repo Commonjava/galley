@@ -16,7 +16,6 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
@@ -146,6 +145,26 @@ public final class HttpDownload
                 EntityUtils.consume( entity );
                 logger.info( "All HTTP data was consumed." );
 
+                closeQuietly( in );
+                closeQuietly( out );
+
+                /*
+                * If the server responded with 200 but the content length doesn't match,
+                * we will delete the file and return a null Transfer as if the file wasn't found,
+                * since the content is invalid.
+                */
+                long contentLength = transferSizes.get( target );
+                if ( contentLength > 0 )
+                {
+                    if ( contentLength != target.length() )
+                    {
+                        target.delete();
+                        throw new TransferContentException( target.getResource(),
+                                                            "Target: %s's Content-Length mismatch (expected: %s, got: %s)",
+                                                            target.getFullPath(), contentLength, target.length() );
+                    }
+                }
+
             }
             catch ( final IOException e )
             {
@@ -157,33 +176,8 @@ public final class HttpDownload
                 closeQuietly( in );
 
                 logger.info( "Closing output stream: {}", out );
-                closeQuietly( out );
 
-                /*
-                * If the server responded with 200 but the content length doesn't match,
-                * we will delete the file and return a null Transfer as if the file wasn't found,
-                * since the content is invalid.
-                */
-                long contentLength = transferSizes.get( target );
-                if ( contentLength >0 )
-                {
-                    if ( contentLength != target.length() )
-                    {
-                        try
-                        {
-                            target.delete();
-                        }
-                        catch ( final Exception e )
-                        {
-                            throw new TransferException(
-                                            "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}", e,
-                                            target, url, e.getMessage() );
-                        }
-                        throw new TransferContentException( target.getResource(),
-                                                            "Target: %s's Content-Length mismatch (expected: %s, got: %s)",
-                                                            target.getFullPath(), contentLength, target.length() );
-                    }
-                }
+                closeQuietly( out );
             }
         }
     }
