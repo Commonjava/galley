@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
     <artifactId>galley-testing</artifactId>
-    <version>0.16.0</version>
+    <version>0.16.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>galley-test-harness-api</artifactId>
