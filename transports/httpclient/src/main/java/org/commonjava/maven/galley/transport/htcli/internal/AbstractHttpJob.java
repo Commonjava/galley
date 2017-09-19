@@ -109,7 +109,13 @@ public abstract class AbstractHttpJob
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
             logger.debug( "{} {} : {}", request.getMethod(), line, url );
-            if ( !successStatuses.contains( sc ) )
+            if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
+            {
+                throw new TransferLocationException( location,
+                                                     "Server misconfigured or not responding normally: '%s'",
+                                                     line );
+            }
+            else if ( !successStatuses.contains( sc ) )
             {
                 logger.debug( "Detected failure response: " + sc );
                 success = TransferResponseUtils.handleUnsuccessfulResponse( request, response, location, url );
@@ -138,6 +144,10 @@ public abstract class AbstractHttpJob
                                          e.getMessage() );
         }
         catch ( BadGatewayException e )
+        {
+            throw e;
+        }
+        catch ( TransferLocationException e )
         {
             throw e;
         }
