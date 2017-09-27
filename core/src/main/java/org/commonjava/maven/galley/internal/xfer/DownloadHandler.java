@@ -109,15 +109,15 @@ public class DownloadHandler
                                   final EventMetadata eventMetadata )
             throws TransferException
     {
-        // if the target file already exists, skip joining.
-        if ( target.exists() )
-        {
-            return target;
-        }
-
         Future<DownloadJob> future;
         synchronized ( pending )
         {
+            // if the target file already exists, skip joining.
+            if ( target.exists() )
+            {
+                return target;
+            }
+
             future = pending.get( target );
             if ( future == null )
             {
@@ -129,6 +129,7 @@ public class DownloadHandler
                 final DownloadJob job = transport.createDownloadJob( resource, target, transferSizes, timeoutSeconds, eventMetadata );
 
                 future = executor.submit( job );
+                logger.debug( "Created download job for path {}: {}", resource, future );
                 pending.put( target, future );
             }
         }
@@ -143,10 +144,12 @@ public class DownloadHandler
 
                 try
                 {
+                    logger.debug( "Waiting for download job of path: {}: {}", resource, future );
                     final DownloadJob job = future.get( waitSeconds, TimeUnit.SECONDS );
 
                     synchronized ( pending )
                     {
+                        logger.debug( "Removing download job of path: {}: {}", resource, future );
                         pending.remove( target );
                     }
 
