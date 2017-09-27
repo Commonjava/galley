@@ -470,4 +470,26 @@ public class Transfer
         return decorator;
     }
 
+    @Override
+    public boolean equals( final Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( !( o instanceof Transfer ) )
+        {
+            return false;
+        }
+
+        final Transfer transfer = (Transfer) o;
+
+        return resource.equals( transfer.resource );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return resource.hashCode();
+    }
 }
