@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -55,7 +56,7 @@ public class DownloadHandler
 
     private final Map<Transfer, Long> transferSizes = new ConcurrentHashMap<Transfer, Long>();
 
-    private final Map<Transfer, Future<DownloadJob>> pending = new ConcurrentHashMap<Transfer, Future<DownloadJob>>();
+    private final Map<Transfer, Future<DownloadJob>> pending = new HashMap<Transfer, Future<DownloadJob>>();
 
     @Inject
     @WeftManaged
@@ -105,13 +106,15 @@ public class DownloadHandler
         return result;
     }
 
+    private final Object DOWNLOAD_MUTEX = new Object(); // to prevent duplicate downloads
+
     private Transfer joinOrStart( final ConcreteResource resource, final Transfer target, final int timeoutSeconds,
                                   final Transport transport, final boolean suppressFailures,
                                   final EventMetadata eventMetadata )
             throws TransferException
     {
         Future<DownloadJob> future;
-        synchronized ( pending )
+        synchronized ( DOWNLOAD_MUTEX )
         {
             // if the target file already exists, skip joining.
             if ( target.exists() )
@@ -148,7 +151,7 @@ public class DownloadHandler
                     logger.debug( "Waiting for download job of path: {}: {}", resource, future );
                     final DownloadJob job = future.get( waitSeconds, TimeUnit.SECONDS );
 
-                    synchronized ( pending )
+                    synchronized ( DOWNLOAD_MUTEX )
                     {
                         logger.debug( "Removing download job of path: {}: {}", resource, future );
                         pending.remove( target );
