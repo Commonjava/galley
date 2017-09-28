@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.internal.xfer;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.WeftManaged;
+import org.commonjava.maven.galley.TransferContentException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
@@ -156,7 +157,10 @@ public class DownloadHandler
                     {
                         logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(),
                                       resource, job.getError().getMessage() );
-                        nfc.addMissing( resource );
+                        if ( ! (job.getError() instanceof  TransferContentException ) )
+                        {
+                            nfc.addMissing( resource );
+                        }
 
                         if ( !suppressFailures )
                         {

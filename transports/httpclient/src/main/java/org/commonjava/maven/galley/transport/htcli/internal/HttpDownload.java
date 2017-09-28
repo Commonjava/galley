@@ -15,29 +15,30 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
+import org.commonjava.maven.galley.TransferContentException;
+import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
+import org.commonjava.maven.galley.util.ResourceUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
-import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.event.EventMetadata;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.transport.DownloadJob;
-import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
-import org.commonjava.maven.galley.util.ResourceUtils;
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.io.IOUtils.copy;
+import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -147,8 +148,23 @@ public final class HttpDownload
             }
             catch ( final IOException e )
             {
-                throw new TransferException( "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
-                                             e, target, url, e.getMessage() );
+                ConcreteResource resource = null;
+                if ( target.exists() )
+                {
+                    try
+                    {
+                        resource = target.getResource();
+                        target.delete();
+                    }
+                    catch ( IOException e1 )
+                    {
+                        throw new TransferException(
+                                        "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}", e1,
+                                        target, url, e1.getMessage() );
+                    }
+                }
+                throw new TransferContentException( resource, "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
+                                                    e, target, url, e.getMessage() );
             }
             finally
             {
