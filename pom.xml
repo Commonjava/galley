@@ -52,7 +52,7 @@
     <atlasVersion>0.17.1</atlasVersion>
     <partylineVersion>1.9.3</partylineVersion>
     <weftVersion>1.4</weftVersion>
-    <jhttpcVersion>1.5</jhttpcVersion>
+    <jhttpcVersion>1.7</jhttpcVersion>
     <infinispanVersion>8.1.2.Final</infinispanVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
