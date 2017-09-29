@@ -113,6 +113,7 @@ public class DownloadHandler
             throws TransferException
     {
         Future<DownloadJob> future;
+        boolean created = false;
         synchronized ( DOWNLOAD_MUTEX )
         {
             // if the target file already exists, skip joining.
@@ -131,6 +132,7 @@ public class DownloadHandler
 
                 final DownloadJob job = transport.createDownloadJob( resource, target, transferSizes, timeoutSeconds, eventMetadata );
 
+                created = true;
                 future = executor.submit( job );
                 logger.debug( "Created download job for path {}: {}", resource, future );
                 pending.put( target, future );
@@ -150,10 +152,13 @@ public class DownloadHandler
                     logger.debug( "Waiting for download job of path: {}: {}", resource, future );
                     final DownloadJob job = future.get( waitSeconds, TimeUnit.SECONDS );
 
-                    synchronized ( DOWNLOAD_MUTEX )
+                    if ( created )
                     {
-                        logger.debug( "Removing download job of path: {}: {}", resource, future );
-                        pending.remove( target );
+                        synchronized ( DOWNLOAD_MUTEX )
+                        {
+                            logger.debug( "Removing download job of path: {}: {}", resource, future );
+                            pending.remove( target );
+                        }
                     }
 
                     final Transfer downloaded = job.getTransfer();
