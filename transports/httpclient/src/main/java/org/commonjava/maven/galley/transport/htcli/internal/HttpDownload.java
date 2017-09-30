@@ -148,22 +148,21 @@ public final class HttpDownload
             }
             catch ( final IOException e )
             {
-                ConcreteResource resource = null;
-                if ( target.exists() )
+                closeQuietly( in );
+                closeQuietly( out );
+
+                ConcreteResource resource = target.getResource();
+                try
                 {
-                    try
-                    {
-                        resource = target.getResource();
-                        target.delete();
-                    }
-                    catch ( IOException e1 )
-                    {
-                        throw new TransferException(
-                                        "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}", e1,
-                                        target, url, e1.getMessage() );
-                    }
+                    target.delete();
                 }
-                throw new TransferContentException( resource, "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
+                catch ( IOException e1 )
+                {
+                    throw new TransferException( "Failed to delete target file: {}\nOriginal URL: {}. Reason: {}", e1,
+                                                 target, url, e1.getMessage() );
+                }
+                throw new TransferContentException( resource,
+                                                    "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
                                                     e, target, url, e.getMessage() );
             }
             finally
