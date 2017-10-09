@@ -159,7 +159,12 @@ public class DownloadHandler
                                       resource, job.getError().getMessage() );
                         if ( ! (job.getError() instanceof  TransferContentException ) )
                         {
+                            logger.debug( "NFC: Download error. Error is not a instance of TransferContentException" );
                             nfc.addMissing( resource );
+                        }
+                        else
+                        {
+                            logger.debug( "NFC: Download error. Error is a instance of TransferContentException" );
                         }
 
                         if ( !suppressFailures )
