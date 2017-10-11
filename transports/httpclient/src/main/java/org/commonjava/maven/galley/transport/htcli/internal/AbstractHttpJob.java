@@ -33,9 +33,11 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.GalleyException;
+import org.commonjava.maven.galley.TransferContentException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -123,29 +125,15 @@ public abstract class AbstractHttpJob
                 return false;
             }
         }
-        catch ( final NoHttpResponseException e )
+        catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException e )
         {
             throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
                                                 e, url, e.getMessage() );
         }
-        catch ( final ConnectTimeoutException e )
-        {
-            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
-                                                e, url, e.getMessage() );
-        }
-        catch ( final SocketTimeoutException e )
-        {
-            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
-                                                e, url, e.getMessage() );
-        }
-        catch ( final ClientProtocolException e )
+        catch ( final IOException e )
         {
             throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e, url,
                                          e.getMessage() );
-        }
-        catch ( BadGatewayException e )
-        {
-            throw e;
         }
         catch ( TransferLocationException e )
         {
@@ -154,11 +142,6 @@ public abstract class AbstractHttpJob
         catch ( final GalleyException e )
         {
             throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
-                                         e.getMessage() );
-        }
-        catch ( final IOException e )
-        {
-            throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e, url,
                                          e.getMessage() );
         }
         finally
@@ -223,6 +206,7 @@ public abstract class AbstractHttpJob
         OutputStream out = null;
         try
         {
+            final Transfer finalMeta = metaTxfr;
             out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false );
             logger.debug( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
             {
@@ -235,6 +219,7 @@ public abstract class AbstractHttpJob
                     }
                     catch ( final JsonProcessingException e )
                     {
+                        logger.warn( String.format("Failed to write HTTP exchange metadata: %s. Reason: %s", finalMeta, e.getMessage()), e );
                     }
 
                     return "ERROR RENDERING METADATA";

@@ -27,19 +27,205 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
+import org.commonjava.test.http.expect.ExpectationHandler;
+import org.jboss.byteman.contrib.bmunit.BMRule;
+import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
+import org.jboss.byteman.contrib.bmunit.BMUnitRunner;
 import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+@RunWith( BMUnitRunner.class )
+@BMUnitConfig( debug = true )
 public class HttpDownloadTest
 {
 
     @Rule
     public HttpTestFixture fixture = new HttpTestFixture( "download-basic" );
+
+    @Test
+    @BMRule( name="throw IOException during writeTarget copy operation",
+             targetClass = "HttpDownload",
+             targetMethod = "doCopy",
+             targetLocation = "ENTRY",
+             condition = "!flagged(\"firstCopy\")",
+             action="flag(\"firstCopy\"); throw new IOException(\"BMUnit exception\");" )
+    public void IOExceptionDuringDownloadTransferDeletesTargetFile()
+            throws Exception
+    {
+        final String content = "This is some content " + System.currentTimeMillis() + "." + System.nanoTime();
+        final String path = "/path/to/file";
+
+        fixture.getServer().expect( "GET", fixture.formatUrl( path ), new ExpectationHandler()
+        {
+            int count=0;
+
+            @Override
+            public void handle( final HttpServletRequest httpServletRequest,
+                                final HttpServletResponse httpServletResponse )
+                    throws ServletException, IOException
+            {
+                httpServletResponse.setStatus( 200 );
+                httpServletResponse.setHeader( "Content-Length", Integer.toString( content.length() ) );
+                PrintWriter writer = httpServletResponse.getWriter();
+
+                if ( count < 1 )
+                {
+                    writer.write( content.substring( 0, content.length() / 2 ) );
+                }
+                else
+                {
+                    writer.write( content );
+                }
+
+                count++;
+            }
+        } );
+
+        final String baseUri = fixture.getBaseUri();
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, path ) );
+        final String url = fixture.formatUrl( path );
+
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        // first call, server should quit transferring halfway through the transfer
+
+        HttpDownload dl =
+                new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+                                  fixture.getHttp(), new ObjectMapper() );
+
+        DownloadJob resultJob = dl.call();
+
+        TransferException error = dl.getError();
+        assertThat( error, notNullValue() );
+        error.printStackTrace();
+
+        assertThat( resultJob, notNullValue() );
+
+        Transfer result = resultJob.getTransfer();
+
+        assertThat( result, notNullValue() );
+        assertThat( result.exists(), equalTo( false ) );
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        // second call should hit upstream again and succeed.
+
+        dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+                               fixture.getHttp(), new ObjectMapper() );
+
+        resultJob = dl.call();
+
+        error = dl.getError();
+        assertThat( error, nullValue() );
+
+        assertThat( resultJob, notNullValue() );
+
+        result = resultJob.getTransfer();
+
+        assertThat( result, notNullValue() );
+        assertThat( result.exists(), equalTo( true ) );
+        assertThat( transfer.exists(), equalTo( true ) );
+
+        final String urlPath = fixture.getUrlPath( url );
+
+        assertThat( fixture.getAccessesFor( urlPath ), equalTo( 2 ) );
+    }
+
+    @Test
+    public void partialDownloadDeletesTargetFile()
+            throws Exception
+    {
+        final String content = "This is some content " + System.currentTimeMillis() + "." + System.nanoTime();
+        final String path = "/path/to/file";
+
+        fixture.getServer().expect( "GET", fixture.formatUrl( path ), new ExpectationHandler()
+        {
+            int count=0;
+
+            @Override
+            public void handle( final HttpServletRequest httpServletRequest,
+                                final HttpServletResponse httpServletResponse )
+                    throws ServletException, IOException
+            {
+                httpServletResponse.setStatus( 200 );
+                httpServletResponse.setHeader( "Content-Length", Integer.toString( content.length() ) );
+                PrintWriter writer = httpServletResponse.getWriter();
+
+                if ( count < 1 )
+                {
+                    writer.write( content.substring( 0, content.length() / 2 ) );
+                }
+                else
+                {
+                    writer.write( content );
+                }
+
+                count++;
+            }
+        } );
+
+        final String baseUri = fixture.getBaseUri();
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, path ) );
+        final String url = fixture.formatUrl( path );
+
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        // first call, server should quit transferring halfway through the transfer
+
+        HttpDownload dl =
+                new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+                                  fixture.getHttp(), new ObjectMapper() );
+
+        DownloadJob resultJob = dl.call();
+
+        TransferException error = dl.getError();
+        assertThat( error, notNullValue() );
+        error.printStackTrace();
+
+        assertThat( resultJob, notNullValue() );
+
+        Transfer result = resultJob.getTransfer();
+
+        assertThat( result, notNullValue() );
+        assertThat( result.exists(), equalTo( false ) );
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        // second call should hit upstream again and succeed.
+
+        dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+                               fixture.getHttp(), new ObjectMapper() );
+
+        resultJob = dl.call();
+
+        error = dl.getError();
+        assertThat( error, nullValue() );
+
+        assertThat( resultJob, notNullValue() );
+
+        result = resultJob.getTransfer();
+
+        assertThat( result, notNullValue() );
+        assertThat( result.exists(), equalTo( true ) );
+        assertThat( transfer.exists(), equalTo( true ) );
+
+        final String urlPath = fixture.getUrlPath( url );
+
+        assertThat( fixture.getAccessesFor( urlPath ), equalTo( 2 ) );
+    }
 
     @Test
     public void simpleRetrieveOfAvailableUrl()
