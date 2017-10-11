@@ -154,6 +154,7 @@ public final class HttpDownload
                 ConcreteResource resource = target.getResource();
                 try
                 {
+                    logger.debug( "Failed to write to local proxy store :{} so delete target:{}",e,target.getPath() );
                     target.delete();
                 }
                 catch ( IOException e1 )

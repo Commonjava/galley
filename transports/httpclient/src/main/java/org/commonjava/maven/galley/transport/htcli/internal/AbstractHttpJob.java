@@ -113,12 +113,6 @@ public abstract class AbstractHttpJob
             logger.debug( "{} {} : {}", request.getMethod(), line, url );
             if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
             {
-                if (sc >=500)
-                {
-                    ConcreteResource resource = new ConcreteResource( location, url );
-                    throw new TransferContentException( resource, "Server misconfigured or not responding normally: '%s'",
-                                                        line );
-                }
                 throw new TransferLocationException( location,
                                                      "Server misconfigured or not responding normally: '%s'",
                                                      line );
@@ -156,10 +150,6 @@ public abstract class AbstractHttpJob
             throw e;
         }
         catch ( TransferLocationException e )
-        {
-            throw e;
-        }
-        catch ( TransferContentException e )
         {
             throw e;
         }
