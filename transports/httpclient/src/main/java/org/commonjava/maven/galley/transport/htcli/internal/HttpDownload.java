@@ -15,29 +15,30 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
+import org.commonjava.maven.galley.TransferContentException;
+import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.event.EventMetadata;
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.transport.DownloadJob;
+import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
+import org.commonjava.maven.galley.util.ResourceUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
-import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.event.EventMetadata;
-import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
-import org.commonjava.maven.galley.spi.transport.DownloadJob;
-import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
-import org.commonjava.maven.galley.util.ResourceUtils;
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.io.IOUtils.copy;
+import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -140,23 +141,69 @@ public final class HttpDownload
 
                 in = entity.getContent();
                 out = target.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata, deleteFilesOnPath );
-                copy( in, out );
+                doCopy( in, out );
                 logger.info( "Ensuring all HTTP data is consumed..." );
-                EntityUtils.consume( entity );
-                logger.info( "All HTTP data was consumed." );
             }
-            catch ( final IOException e )
+            catch ( final IOException eOrig )
             {
-                throw new TransferException( "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
-                                             e, target, url, e.getMessage() );
+                closeAllQuietly( in, out );
+
+                ConcreteResource resource = target.getResource();
+                try
+                {
+                    logger.debug( "Failed to write to local proxy store:{}. Deleting partial target file:{}", eOrig,
+                                  target.getPath() );
+                    target.delete();
+                }
+                catch ( IOException eDel )
+                {
+                    logger.error( String.format( "Failed to delete target file: %s\nOriginal URL: %s. Reason: %s", eDel,
+                                  target, url, eDel.getMessage() ), eDel );
+                }
+
+                logger.error( String.format( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", eOrig, target, url,
+                              eOrig.getMessage() ), eOrig );
+
+                throw new TransferContentException( resource,
+                                                    "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s",
+                                                    eOrig, target, url, eOrig.getMessage() );
             }
             finally
             {
-                closeQuietly( in );
-
-                logger.info( "Closing output stream: {}", out );
-                closeQuietly( out );
+                closeAllQuietly( in, out );
             }
+        }
+    }
+
+    /**
+     * Break out {@link org.apache.commons.io.IOUtils#copy(InputStream, OutputStream)} so we can decorate it with Byteman
+     * rules to test network errors.
+     * @param in
+     * @param out
+     */
+    private void doCopy( final InputStream in, final OutputStream out )
+            throws IOException
+    {
+        copy( in, out );
+    }
+
+    private void closeAllQuietly( final InputStream in, final OutputStream out )
+    {
+        try
+        {
+            EntityUtils.consume( response.getEntity() );
+            logger.info( "All HTTP data was consumed." );
+        }
+        catch ( IOException e )
+        {
+            logger.error( "Failed to consume remainder HTTP response entity data", e );
+        }
+        finally
+        {
+            closeQuietly( in );
+
+            logger.info( "Closing output stream: {}", out );
+            closeQuietly( out );
         }
     }
 
