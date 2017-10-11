@@ -141,43 +141,69 @@ public final class HttpDownload
 
                 in = entity.getContent();
                 out = target.openOutputStream( TransferOperation.DOWNLOAD, true, eventMetadata, deleteFilesOnPath );
-                copy( in, out );
+                doCopy( in, out );
                 logger.info( "Ensuring all HTTP data is consumed..." );
-                EntityUtils.consume( entity );
-                logger.info( "All HTTP data was consumed." );
             }
-            catch ( final IOException e )
+            catch ( final IOException eOrig )
             {
-                closeQuietly( in );
-                closeQuietly( out );
+                closeAllQuietly( in, out );
 
                 ConcreteResource resource = target.getResource();
                 try
                 {
-                    logger.debug( "Failed to write to local proxy store :{} so delete target:{}",e,target.getPath() );
+                    logger.debug( "Failed to write to local proxy store:{}. Deleting partial target file:{}", eOrig,
+                                  target.getPath() );
                     target.delete();
                 }
-                catch ( IOException e1 )
+                catch ( IOException eDel )
                 {
-                    logger.error( "Failed to delete target file: {}\nOriginal URL: {}. Reason: {}", e1,
-                                  target, url, e1.getMessage() );
-
-                    throw new TransferException( "Failed to delete target file: {}\nOriginal URL: {}. Reason: {}", e1,
-                                                 target, url, e1.getMessage() );
+                    logger.error( String.format( "Failed to delete target file: %s\nOriginal URL: %s. Reason: %s", eDel,
+                                  target, url, eDel.getMessage() ), eDel );
                 }
-                logger.error( "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}", e, target, url,
-                              e.getMessage() );
+
+                logger.error( String.format( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", eOrig, target, url,
+                              eOrig.getMessage() ), eOrig );
+
                 throw new TransferContentException( resource,
-                                                    "Failed to write to local proxy store: {}\nOriginal URL: {}. Reason: {}",
-                                                    e, target, url, e.getMessage() );
+                                                    "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s",
+                                                    eOrig, target, url, eOrig.getMessage() );
             }
             finally
             {
-                closeQuietly( in );
-
-                logger.info( "Closing output stream: {}", out );
-                closeQuietly( out );
+                closeAllQuietly( in, out );
             }
+        }
+    }
+
+    /**
+     * Break out {@link org.apache.commons.io.IOUtils#copy(InputStream, OutputStream)} so we can decorate it with Byteman
+     * rules to test network errors.
+     * @param in
+     * @param out
+     */
+    private void doCopy( final InputStream in, final OutputStream out )
+            throws IOException
+    {
+        copy( in, out );
+    }
+
+    private void closeAllQuietly( final InputStream in, final OutputStream out )
+    {
+        try
+        {
+            EntityUtils.consume( response.getEntity() );
+            logger.info( "All HTTP data was consumed." );
+        }
+        catch ( IOException e )
+        {
+            logger.error( "Failed to consume remainder HTTP response entity data", e );
+        }
+        finally
+        {
+            closeQuietly( in );
+
+            logger.info( "Closing output stream: {}", out );
+            closeQuietly( out );
         }
     }
 
