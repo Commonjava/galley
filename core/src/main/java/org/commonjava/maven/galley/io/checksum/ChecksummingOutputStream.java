@@ -66,6 +66,7 @@ public final class ChecksummingOutputStream
         try
         {
             logger.trace( "START CLOSE: {}", transfer );
+            super.flush();
             logger.trace( "Wrote: {} (size: {}) in: {}. Now, writing checksums.", transfer.getPath(), size, transfer.getLocation() );
             Map<ContentDigest, String> hexDigests = new HashMap<>();
             for ( final AbstractChecksumGenerator checksum : checksums )
