@@ -179,13 +179,12 @@ public class FastLocalCacheProvider
     @Override
     public File getDetachedFile( ConcreteResource resource )
     {
-        //FIXME: Is this Detached file local one or NFS one? Now it is local one first
         File file = plCacheProvider.getDetachedFile( resource );
-        if ( file == null && StringUtils.isNotBlank( nfsBaseDir ) )
+        if ( StringUtils.isNotBlank( nfsBaseDir ) && ( file == null || !file.exists() ) )
         {
+            // if file not exists in cache dir, try NFS dir
             file = getNFSDetachedFile( resource );
         }
-
         return file;
     }
 
@@ -287,7 +286,7 @@ public class FastLocalCacheProvider
                 File nfsFile = getNFSDetachedFile( resource );
                 if ( !nfsFile.exists() )
                 {
-                    logger.debug( "NFS cache does not exist too." );
+                    logger.debug( "NFS file does not exist too." );
                     return;
                 }
                 nfsIn = new FileInputStream( nfsFile );
