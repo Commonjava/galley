@@ -271,6 +271,10 @@ public class FastLocalCacheProvider
         
         // A flag to mark if the local resource can be open now or need to wait for the copy thread completes its work
         final AtomicBoolean canStreamOpen = new AtomicBoolean( false );
+
+        // A second flag to indicate whether copyTask failed
+        final AtomicBoolean copyExceOccurs = new AtomicBoolean( false );
+
         // This copy task is responsible for the NFS->local copy, and will be run in another thread,
         // which can use PartyLine concurrent read/write function on the local cache to boost
         // the i/o operation
@@ -287,15 +291,22 @@ public class FastLocalCacheProvider
                 if ( !nfsFile.exists() )
                 {
                     logger.debug( "NFS file does not exist too." );
+                    copyExceOccurs.set( true );
                     return;
                 }
                 nfsIn = new FileInputStream( nfsFile );
                 localOut = plCacheProvider.openOutputStream( resource );
+                canStreamOpen.set( true ); // set it ASAP so the readers can start reading before copy completes
+                synchronized ( copyLock )
+                {
+                    copyLock.notifyAll();
+                }
                 IOUtils.copy( nfsIn, localOut );
                 logger.debug( "NFS copy to local cache done." );
             }
             catch ( NotSupportedException | SystemException | IOException | InterruptedException e )
             {
+                copyExceOccurs.set( true );
                 if ( e instanceof IOException )
                 {
                     final String errorMsg =
@@ -327,7 +338,6 @@ public class FastLocalCacheProvider
                 IOUtils.closeQuietly( localOut );
                 synchronized ( copyLock )
                 {
-                    canStreamOpen.set( true );
                     copyLock.notifyAll();
                 }
             }
@@ -352,6 +362,10 @@ public class FastLocalCacheProvider
             {
                 while ( !canStreamOpen.get() )
                 {
+                    if ( copyExceOccurs.get() )
+                    {
+                        return null;
+                    }
                     try
                     {
                         copyLock.wait();
