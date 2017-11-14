@@ -1,0 +1,21 @@
+RULE try to openInputStream
+CLASS PartyLineCacheProvider
+METHOD openInputStream
+AT ENTRY
+IF TRUE
+DO
+    debug("<<<wait for service enter OutputStream");
+    waitFor("service OutputStream");
+    debug("<<<proceed with openInputStream")
+ENDRULE
+
+RULE service OutputStream
+CLASS PartyLineCacheProvider
+METHOD openOutputStream
+AT EXIT
+IF TRUE
+DO
+    debug("<<<signalling try to openInputStream");
+    signalWake("service OutputStream", true);
+    debug("<<<signalled try ot openInputStream")
+ENDRULE
