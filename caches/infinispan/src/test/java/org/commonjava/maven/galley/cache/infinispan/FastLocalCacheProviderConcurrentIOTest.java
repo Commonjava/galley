@@ -131,30 +131,29 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     @Test
     @BMScript( "TryToReadWhileWriting.btm" )
-    @Ignore( "due to low performance of the writing, will ignore this and enable after fixing" )
     public void testBigFileReadWrite()
             throws Exception
     {
         StringBuilder builder = new StringBuilder();
-        int loop = 1024 * 1024;
+        int loop = 1024 * 1024 * 10;
         for ( int i = 0; i < loop; i++ )
         {
             builder.append( content );
         }
         final String bigContent = builder.toString();
-        System.out.println( "the content size is:" + ( bigContent.length() / 1024 / 1024 ) );
+        System.out.println( String.format( "the content size is: %dM", ( bigContent.length() / 1024 / 1024 ) ) );
         final ConcreteResource resource = createTestResource( "file_read_write.txt" );
-        testPool.execute( new WriteTask( provider, bigContent, resource, latch, 1000 ) );
+        testPool.execute( new WriteTask( provider, bigContent, resource, latch ) );
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
         TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
-        assertThat( readingResult, equalTo( content ) );
+        assertThat( readingResult, equalTo( bigContent ) );
         assertThat( provider.exists( resource ), equalTo( true ) );
-        assertThat( readLocalResource( resource ), equalTo( content ) );
-        assertThat( readNFSResource( resource ), equalTo( content ) );
+        assertThat( readLocalResource( resource ), equalTo( bigContent ) );
+        assertThat( readNFSResource( resource ), equalTo( bigContent ) );
     }
 
     @Test
@@ -165,23 +164,27 @@ public class FastLocalCacheProviderConcurrentIOTest
         final ConcreteResource resource = createTestResource( "file_write_read.txt" );
         prepareBothResource( resource, content );
         testPool.execute( new WriteTask( provider, diffContent, resource, latch, 1000 ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
         TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
         final String changedResult = readLocalResource( resource );
-        assertThat( changedResult, equalTo( diffContent ));
+        assertThat( changedResult, equalTo( diffContent ) );
     }
 
     @Test
     @BMScript( "TryToWriteWhileReading.btm" )
-    public void testWriteReadWithNFS() throws Exception{
+    public void testWriteReadWithNFS()
+            throws Exception
+    {
         final ConcreteResource resource = createTestResource( "file_write_read_has_only_NFS.txt" );
         prepareNFSResource( resource, content );
         testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
         TestIOUtils.latchWait( latch );
 
@@ -201,33 +204,39 @@ public class FastLocalCacheProviderConcurrentIOTest
         testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
         //make sure write task execute first
         Thread.sleep( 500 );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch, 500 ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 500 ) );
 
         TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( diffContent ) );
         final String changedResult = readLocalResource( resource );
-        assertThat( changedResult, equalTo( diffContent ));
+        assertThat( changedResult, equalTo( diffContent ) );
     }
 
     @Test
     @BMScript( "TryToWriteWhileReading.btm" )
-    public void testWriteReadWithNoResource() throws Exception{
+    public void testWriteReadWithNoResource()
+            throws Exception
+    {
         final ConcreteResource resource = createTestResource( "file_write_read_no_both_resource.txt" );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
         TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
-        assertNull(readingResult);
+        assertNull( readingResult );
         final String changedResult = readLocalResource( resource );
         assertThat( changedResult, equalTo( content ) );
     }
 
     @Test
-    public void testBothWrite() throws Exception{
+    public void testBothWrite()
+            throws Exception
+    {
         Map<String, String> fileFolderMap = new HashMap<>( 1 );
         fileFolderMap.put( "file_both_write.txt", "/path/to/my" );
         multiWriteOnFilesInFolder( fileFolderMap, 2 );
@@ -235,7 +244,9 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     @Test
     @BMScript( "common/SimultaneousWritesResourceExistence.btm" )
-    public void testBothWriteOnDiffFilesInSameFolder() throws Exception{
+    public void testBothWriteOnDiffFilesInSameFolder()
+            throws Exception
+    {
         Map<String, String> fileFolderMap = new HashMap<>( 2 );
         fileFolderMap.put( "file1.txt", "/path/to/my" );
         fileFolderMap.put( "file2.txt", "/path/to/my" );
@@ -282,11 +293,15 @@ public class FastLocalCacheProviderConcurrentIOTest
     }
 
     @Test
-    public void testBothReadWithNFS() throws Exception{
+    public void testBothReadWithNFS()
+            throws Exception
+    {
         final ConcreteResource resource = createTestResource( "file_both_read_has_only_NFS.txt" );
         prepareNFSResource( resource, content );
-        final Future<String> readingFuture1 = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture2 = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture1 =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture2 =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
         TestIOUtils.latchWait( latch );
 
@@ -305,7 +320,8 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareBothResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
         TestIOUtils.latchWait( latch );
 
@@ -325,7 +341,8 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareBothResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
 
         TestIOUtils.latchWait( latch );
 
@@ -345,7 +362,8 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareNFSResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
 
         TestIOUtils.latchWait( latch );
 
@@ -365,7 +383,8 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareBothResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
         TestIOUtils.latchWait( latch );
 
@@ -492,10 +511,11 @@ public class FastLocalCacheProviderConcurrentIOTest
         return TestIOUtils.readFromStream( plProvider.openInputStream( resource ) );
     }
 
-    private String readNFSResource(ConcreteResource resource ) throws IOException{
+    private String readNFSResource( ConcreteResource resource )
+            throws IOException
+    {
         return TestIOUtils.readFromStream( new FileInputStream( provider.getNFSDetachedFile( resource ) ) );
     }
-
 
     private ConcreteResource createTestResource( String fname )
     {

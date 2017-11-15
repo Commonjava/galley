@@ -30,7 +30,6 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -56,8 +55,6 @@ public class PartyLineCacheProviderConcurrentIOTest
 
     private final String content = "This is a bmunit test";
 
-    private final String diffContent = "This is different from content";
-
     private final CountDownLatch latch = new CountDownLatch( 2 );
 
     private PartyLineCacheProvider provider;
@@ -67,10 +64,6 @@ public class PartyLineCacheProviderConcurrentIOTest
     private final FileEventManager events = new TestFileEventManager();
 
     private final TransferDecorator decorator = new TestTransferDecorator();
-
-    private PartyLineCacheProvider plProvider;
-
-    private final ExecutorService executor = Executors.newFixedThreadPool( 4 );
 
     private final ExecutorService testPool = Executors.newFixedThreadPool( 2 );
 
@@ -97,26 +90,26 @@ public class PartyLineCacheProviderConcurrentIOTest
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
         assertThat( provider.exists( resource ), equalTo( true ) );
-        assertThat( TestIOUtils.readFromStream( new FileInputStream( provider.getDetachedFile( resource ) ) ), equalTo( content ) );
+        assertThat( TestIOUtils.readFromStream( new FileInputStream( provider.getDetachedFile( resource ) ) ),
+                    equalTo( content ) );
     }
 
     @Test
     @BMScript( "TryToReadWhileWriting.btm" )
-    @Ignore
     public void testBigFileReadWrite()
             throws Exception
     {
         StringBuilder builder = new StringBuilder();
-        int loop = 1024;
+        int loop = 1024 * 1024 * 10;
         for ( int i = 0; i < loop; i++ )
         {
             builder.append( content );
         }
         final String bigContent = builder.toString();
-        System.out.println( String.format( "the content size is: %sk", ( bigContent.length() / 1024 ) + "" ) );
+        System.out.println( String.format( "the content size is: %dm", bigContent.length() / 1024 / 1024 ) );
 
         final ConcreteResource resource = createTestResource( "file_read_write_bigfile.txt" );
-        testPool.execute( new WriteTask( provider, bigContent, resource, latch, 1000 ) );
+        testPool.execute( new WriteTask( provider, bigContent, resource, latch ) );
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
@@ -124,6 +117,27 @@ public class PartyLineCacheProviderConcurrentIOTest
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( bigContent ) );
+        assertThat( provider.exists( resource ), equalTo( true ) );
+        assertThat( TestIOUtils.readFromStream( new FileInputStream( provider.getDetachedFile( resource ) ) ),
+                    equalTo( bigContent ) );
+    }
+
+    @Test
+    public void testBigFileWrite()
+            throws Exception
+    {
+        StringBuilder builder = new StringBuilder();
+        int loop = 1024 * 1024 * 10;
+        for ( int i = 0; i < loop; i++ )
+        {
+            builder.append( content );
+        }
+        final String bigContent = builder.toString();
+        System.out.println( String.format( "the content size is: %dm", bigContent.length() / 1024 / 1024 ) );
+
+        final ConcreteResource resource = createTestResource( "file_read_write_bigfile.txt" );
+        new WriteTask( provider, bigContent, resource, null ).run();
+
         assertThat( provider.exists( resource ), equalTo( true ) );
         assertThat( TestIOUtils.readFromStream( new FileInputStream( provider.getDetachedFile( resource ) ) ),
                     equalTo( bigContent ) );
