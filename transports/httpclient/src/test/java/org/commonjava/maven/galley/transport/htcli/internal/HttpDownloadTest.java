@@ -36,8 +36,6 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -263,6 +261,55 @@ public class HttpDownloadTest
         final String path = fixture.getUrlPath( url );
 
         assertThat( fixture.getAccessesFor( path ), equalTo( 1 ) );
+    }
+
+    @Test
+    public void simpleRetriveOfRedirectUrl() throws Exception {
+        final String content = "This is some content " + System.currentTimeMillis() + "." + System.nanoTime();
+        final String redirectPath = "/path/to/file";
+        final String path = "/redirect/to/file";
+
+        fixture.getServer().expect( "GET", fixture.formatUrl( path ), new ExpectationHandler()
+        {
+            @Override
+            public void handle( final HttpServletRequest httpServletRequest,
+                                final HttpServletResponse httpServletResponse )
+                    throws ServletException, IOException
+            {
+                httpServletResponse.setStatus( 302 );
+                httpServletResponse.setHeader( "Location", fixture.formatUrl( redirectPath ) );
+            }
+        } );
+
+        fixture.getServer().expect( "GET", fixture.formatUrl( redirectPath ), 200, content );
+
+        final String baseUri = fixture.getBaseUri();
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, true, true, true, true, null );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, path ) );
+        final String url = fixture.formatUrl( path );
+
+        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        final HttpDownload dl =
+                new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
+        final DownloadJob resultJob = dl.call();
+
+        final TransferException error = dl.getError();
+        assertThat( error, nullValue() );
+
+        assertThat( resultJob, notNullValue() );
+
+        final Transfer result = resultJob.getTransfer();
+
+        assertThat( result, notNullValue() );
+        assertThat( result.exists(), equalTo( true ) );
+        assertThat( transfer.exists(), equalTo( true ) );
+
+        final String postPath = fixture.getUrlPath( url );
+
+        assertThat( fixture.getAccessesFor( postPath ), equalTo( 1 ) );
     }
 
     @Test
