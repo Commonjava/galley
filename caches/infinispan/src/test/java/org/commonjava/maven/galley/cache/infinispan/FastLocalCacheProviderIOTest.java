@@ -15,8 +15,6 @@
  */
 package org.commonjava.maven.galley.cache.infinispan;
 
-import org.apache.commons.io.IOUtils;
-import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -26,13 +24,10 @@ import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 

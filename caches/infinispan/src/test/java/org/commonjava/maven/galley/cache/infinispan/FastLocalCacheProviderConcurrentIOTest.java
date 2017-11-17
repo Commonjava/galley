@@ -16,14 +16,17 @@
 package org.commonjava.maven.galley.cache.infinispan;
 
 import org.apache.commons.io.IOUtils;
+import org.commonjava.maven.galley.cache.iotasks.DeleteTask;
+import org.commonjava.maven.galley.cache.iotasks.ReadTask;
+import org.commonjava.maven.galley.cache.iotasks.WriteTask;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
+import org.commonjava.maven.galley.cache.testutil.TestIOUtils;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
-import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -33,18 +36,16 @@ import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,15 +117,43 @@ public class FastLocalCacheProviderConcurrentIOTest
     {
         final ConcreteResource resource = createTestResource( "file_read_write.txt" );
         testPool.execute( new WriteTask( provider, content, resource, latch, 1000 ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
-        assertThat( provider.exists( resource ), equalTo( true ));
-        assertThat( readLocalResource( resource ), equalTo( content ));
-        assertThat( readNFSResource( resource ), equalTo( content ));
+        assertThat( provider.exists( resource ), equalTo( true ) );
+        assertThat( readLocalResource( resource ), equalTo( content ) );
+        assertThat( readNFSResource( resource ), equalTo( content ) );
+    }
+
+    @Test
+    @BMScript( "TryToReadWhileWriting.btm" )
+    public void testBigFileReadWrite()
+            throws Exception
+    {
+        StringBuilder builder = new StringBuilder();
+        int loop = 1024 * 1024 * 10;
+        for ( int i = 0; i < loop; i++ )
+        {
+            builder.append( content );
+        }
+        final String bigContent = builder.toString();
+        System.out.println( String.format( "the content size is: %dM", ( bigContent.length() / 1024 / 1024 ) ) );
+        final ConcreteResource resource = createTestResource( "file_read_write.txt" );
+        testPool.execute( new WriteTask( provider, bigContent, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
+
+        TestIOUtils.latchWait( latch );
+
+        final String readingResult = readingFuture.get();
+        assertThat( readingResult, equalTo( bigContent ) );
+        assertThat( provider.exists( resource ), equalTo( true ) );
+        assertThat( readLocalResource( resource ), equalTo( bigContent ) );
+        assertThat( readNFSResource( resource ), equalTo( bigContent ) );
     }
 
     @Test
@@ -135,25 +164,29 @@ public class FastLocalCacheProviderConcurrentIOTest
         final ConcreteResource resource = createTestResource( "file_write_read.txt" );
         prepareBothResource( resource, content );
         testPool.execute( new WriteTask( provider, diffContent, resource, latch, 1000 ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
         final String changedResult = readLocalResource( resource );
-        assertThat( changedResult, equalTo( diffContent ));
+        assertThat( changedResult, equalTo( diffContent ) );
     }
 
     @Test
     @BMScript( "TryToWriteWhileReading.btm" )
-    public void testWriteReadWithNFS() throws Exception{
+    public void testWriteReadWithNFS()
+            throws Exception
+    {
         final ConcreteResource resource = createTestResource( "file_write_read_has_only_NFS.txt" );
         prepareNFSResource( resource, content );
         testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
@@ -171,33 +204,39 @@ public class FastLocalCacheProviderConcurrentIOTest
         testPool.execute( new WriteTask( provider, diffContent, resource, latch ) );
         //make sure write task execute first
         Thread.sleep( 500 );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch, 500 ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 500 ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( diffContent ) );
         final String changedResult = readLocalResource( resource );
-        assertThat( changedResult, equalTo( diffContent ));
+        assertThat( changedResult, equalTo( diffContent ) );
     }
 
     @Test
     @BMScript( "TryToWriteWhileReading.btm" )
-    public void testWriteReadWithNoResource() throws Exception{
+    public void testWriteReadWithNoResource()
+            throws Exception
+    {
         final ConcreteResource resource = createTestResource( "file_write_read_no_both_resource.txt" );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final String readingResult = readingFuture.get();
-        assertNull(readingResult);
+        assertNull( readingResult );
         final String changedResult = readLocalResource( resource );
         assertThat( changedResult, equalTo( content ) );
     }
 
     @Test
-    public void testBothWrite() throws Exception{
+    public void testBothWrite()
+            throws Exception
+    {
         Map<String, String> fileFolderMap = new HashMap<>( 1 );
         fileFolderMap.put( "file_both_write.txt", "/path/to/my" );
         multiWriteOnFilesInFolder( fileFolderMap, 2 );
@@ -205,7 +244,9 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     @Test
     @BMScript( "common/SimultaneousWritesResourceExistence.btm" )
-    public void testBothWriteOnDiffFilesInSameFolder() throws Exception{
+    public void testBothWriteOnDiffFilesInSameFolder()
+            throws Exception
+    {
         Map<String, String> fileFolderMap = new HashMap<>( 2 );
         fileFolderMap.put( "file1.txt", "/path/to/my" );
         fileFolderMap.put( "file2.txt", "/path/to/my" );
@@ -241,7 +282,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                      .forEach( i -> testPool.execute( new WriteTask( provider, content, resource, waitLatch ) ) );
         }
 
-        latchWait( waitLatch );
+        TestIOUtils.latchWait( waitLatch );
 
         for ( ConcreteResource resource : resources )
         {
@@ -252,13 +293,17 @@ public class FastLocalCacheProviderConcurrentIOTest
     }
 
     @Test
-    public void testBothReadWithNFS() throws Exception{
+    public void testBothReadWithNFS()
+            throws Exception
+    {
         final ConcreteResource resource = createTestResource( "file_both_read_has_only_NFS.txt" );
         prepareNFSResource( resource, content );
-        final Future<String> readingFuture1 = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture2 = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture1 =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture2 =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final String readingResult1 = readingFuture1.get();
         assertThat( readingResult1, equalTo( content ) );
@@ -275,9 +320,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareBothResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -295,9 +341,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareBothResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -315,9 +362,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareNFSResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -335,9 +383,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         prepareBothResource( resource, content );
         final Future<Boolean> deleteFuture =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
-        final Future<String> readingFuture = testPool.submit((Callable<String>) new ReadTask( provider, content, resource, latch ) );
+        final Future<String> readingFuture =
+                testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -356,7 +405,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted = deleteFuture.get();
         assertThat( deleted, equalTo( true ) );
@@ -373,7 +422,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
         testPool.execute( new WriteTask( provider, content, resource, latch, 1000 ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted = deleteFuture.get();
         assertThat( deleted, equalTo( false ) );
@@ -391,7 +440,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted = deleteFuture.get();
         assertThat( deleted, equalTo( true ) );
@@ -409,27 +458,13 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<Boolean> deleteFurture2 =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
 
-        latchWait( latch );
+        TestIOUtils.latchWait( latch );
 
         final Boolean deleted1 = deleteFurture1.get();
         final Boolean deleted2 = deleteFurture2.get();
         assertThat( deleted1 && deleted2, equalTo( false ) );
         assertThat( deleted1 || deleted2, equalTo( true ) );
         assertThat( provider.exists( resource ), equalTo( false ) );
-    }
-
-
-
-    private void latchWait( CountDownLatch latch )
-    {
-        try
-        {
-            latch.await();
-        }
-        catch ( InterruptedException e )
-        {
-            System.out.println( "Threads await Exception." );
-        }
     }
 
     private String createNFSBaseDir( String tempBaseDir )
@@ -473,32 +508,13 @@ public class FastLocalCacheProviderConcurrentIOTest
     private String readLocalResource( ConcreteResource resource )
             throws IOException
     {
-        return readFromStream( plProvider.openInputStream( resource ) );
+        return TestIOUtils.readFromStream( plProvider.openInputStream( resource ) );
     }
 
-    private String readNFSResource(ConcreteResource resource ) throws IOException{
-        return readFromStream( new FileInputStream( provider.getNFSDetachedFile( resource ) ) );
-    }
-
-    private String readFromStream(InputStream in) throws IOException{
-        if ( in == null )
-        {
-            System.out.println( "Can not read content as the input stream is null." );
-            return null;
-        }
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        int read;
-        final byte[] buf = new byte[512];
-        while ( ( read = in.read( buf ) ) > -1 )
-        {
-            baos.write( buf, 0, read );
-        }
-
-        String readingResult = new String( baos.toByteArray(), "UTF-8" );
-        baos.close();
-        in.close();
-
-        return readingResult;
+    private String readNFSResource( ConcreteResource resource )
+            throws IOException
+    {
+        return TestIOUtils.readFromStream( new FileInputStream( provider.getNFSDetachedFile( resource ) ) );
     }
 
     private ConcreteResource createTestResource( String fname )
@@ -512,190 +528,4 @@ public class FastLocalCacheProviderConcurrentIOTest
         return new ConcreteResource( loc, String.format( "%s/%s", folder, fname ) );
     }
 
-    private abstract class CacheProviderWorkingTask
-            implements Runnable
-    {
-        protected CacheProvider provider;
-
-        protected String content;
-
-        protected ConcreteResource resource;
-
-        protected CountDownLatch controlLatch;
-
-        protected long waiting;
-
-        protected CacheProviderWorkingTask( CacheProvider provider, String content, ConcreteResource resource,
-                                            CountDownLatch controlLatch, long waiting )
-        {
-            this.provider = provider;
-            this.content = content;
-            this.resource = resource;
-            this.controlLatch = controlLatch;
-            this.waiting = waiting;
-        }
-    }
-
-    private final class WriteTask
-            extends CacheProviderWorkingTask
-    {
-        public WriteTask( CacheProvider provider, String content, ConcreteResource resource,
-                          CountDownLatch controlLatch, long waiting )
-        {
-            super( provider, content, resource, controlLatch, waiting );
-        }
-
-        public WriteTask( CacheProvider provider, String content, ConcreteResource resource,
-                          CountDownLatch controlLatch )
-        {
-            super( provider, content, resource, controlLatch, -1 );
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                final OutputStream out = provider.openOutputStream( resource );
-                final ByteArrayInputStream bais = new ByteArrayInputStream( content.getBytes() );
-                int read = -1;
-                final byte[] buf = new byte[512];
-                System.out.println(
-                        String.format( "<<<WriteTask>>> start to write to the resource with outputStream %s",
-                                       out.getClass().getName() ) );
-                while ( ( read = bais.read( buf ) ) > -1 )
-                {
-                    if ( waiting > 0 )
-                    {
-                        Thread.sleep( waiting );
-                    }
-                    out.write( buf, 0, read );
-                }
-                out.close();
-                System.out.println(
-                        String.format( "<<<WriteTask>>> writing to the resource done with outputStream %s",
-                                       out.getClass().getName() ) );
-                controlLatch.countDown();
-            }
-            catch ( Exception e )
-            {
-                System.out.println( "Write Task Runtime Exception." );
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private final class ReadTask
-            extends CacheProviderWorkingTask implements Callable<String>
-    {
-        private String readingResult;
-
-        public ReadTask( CacheProvider provider, String content, ConcreteResource resource,
-                         CountDownLatch controlLatch )
-        {
-            super( provider, content, resource, controlLatch, -1 );
-        }
-
-        public ReadTask( CacheProvider provider, String content, ConcreteResource resource, CountDownLatch controlLatch,
-                         long waiting )
-        {
-            super( provider, content, resource, controlLatch, waiting );
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                final InputStream in = provider.openInputStream( resource );
-                if ( in == null )
-                {
-                    System.out.println( "Can not read content as the input stream is null." );
-                    controlLatch.countDown();
-                    return;
-                }
-                final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                int read = -1;
-                final byte[] buf = new byte[512];
-                System.out.println(
-                        String.format( "<<<ReadTask>>> will start to read from the resource with inputStream %s",
-                                       in.getClass().getName() ) );
-                while ( ( read = in.read( buf ) ) > -1 )
-                {
-                    if ( waiting > 0 )
-                    {
-                        Thread.sleep( waiting );
-                    }
-                    baos.write( buf, 0, read );
-                }
-                baos.close();
-                in.close();
-                System.out.println(
-                        String.format( "<<<ReadTask>>> reading from the resource done with inputStream %s",
-                                       in.getClass().getName() ) );
-                readingResult = new String( baos.toByteArray(), "UTF-8" );
-                controlLatch.countDown();
-            }
-            catch ( Exception e )
-            {
-                System.out.println( "Read Task Runtime Exception." );
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public String call(){
-            this.run();
-            return readingResult;
-        }
-    }
-
-    private final class DeleteTask
-            extends CacheProviderWorkingTask
-            implements Callable<Boolean>
-    {
-        private Boolean callResult;
-
-        public DeleteTask( CacheProvider provider, String content, ConcreteResource resource,
-                           CountDownLatch controlLatch )
-        {
-            super( provider, content, resource, controlLatch, -1 );
-        }
-
-        public DeleteTask( CacheProvider provider, String content, ConcreteResource resource,
-                           CountDownLatch controlLatch, long waiting )
-        {
-            super( provider, content, resource, controlLatch, waiting );
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                if ( waiting > 0 )
-                {
-                    Thread.sleep( waiting );
-                }
-                System.out.println("<<<DeleteTask>>> start to delete resource");
-                callResult = provider.delete( resource );
-            }
-            catch ( Exception e )
-            {
-                System.out.println( "Delete Task Runtime Exception." );
-                e.printStackTrace();
-            }
-            finally
-            {
-                controlLatch.countDown();
-            }
-        }
-
-        @Override
-        public Boolean call()
-        {
-            this.run();
-            return callResult;
-        }
-    }
 }
