@@ -56,11 +56,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
 @BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
@@ -75,7 +77,7 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     private final String diffContent = "This is different from content";
 
-    private final CountDownLatch latch = new CountDownLatch( 2 );
+    private CountDownLatch latch;
 
     private FastLocalCacheProvider provider;
 
@@ -93,6 +95,8 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     private final ExecutorService testPool = Executors.newFixedThreadPool( 2 );
 
+    private final long WAIT_TIMEOUT_SECONDS = 300;
+
     @BeforeClass
     public static void setupClass()
     {
@@ -108,6 +112,8 @@ public class FastLocalCacheProviderConcurrentIOTest
 
         provider = new FastLocalCacheProvider( plProvider, new SimpleCacheInstance<>( "test", cache ), pathgen, events,
                                                decorator, executor, nfsBasePath );
+
+        latch = new CountDownLatch( 2 );
     }
 
     @Test
@@ -120,7 +126,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
@@ -147,7 +156,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( bigContent ) );
@@ -167,7 +179,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
@@ -186,7 +201,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
@@ -207,7 +225,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 500 ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( diffContent ) );
@@ -225,7 +246,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertNull( readingResult );
@@ -282,7 +306,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                      .forEach( i -> testPool.execute( new WriteTask( provider, content, resource, waitLatch ) ) );
         }
 
-        TestIOUtils.latchWait( waitLatch );
+        TestIOUtils.latchWait( waitLatch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS );
 
         for ( ConcreteResource resource : resources )
         {
@@ -303,7 +327,7 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture2 =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final String readingResult1 = readingFuture1.get();
         assertThat( readingResult1, equalTo( content ) );
@@ -323,7 +347,10 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -344,7 +371,7 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -365,7 +392,7 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch, 1000 ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -386,7 +413,7 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final Boolean deleted = deleteFuture.get();
         final String readingResult = readingFuture.get();
@@ -405,7 +432,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final Boolean deleted = deleteFuture.get();
         assertThat( deleted, equalTo( true ) );
@@ -422,7 +449,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
         testPool.execute( new WriteTask( provider, content, resource, latch, 1000 ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final Boolean deleted = deleteFuture.get();
         assertThat( deleted, equalTo( false ) );
@@ -440,7 +467,7 @@ public class FastLocalCacheProviderConcurrentIOTest
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
         testPool.execute( new WriteTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final Boolean deleted = deleteFuture.get();
         assertThat( deleted, equalTo( true ) );
@@ -458,7 +485,7 @@ public class FastLocalCacheProviderConcurrentIOTest
         final Future<Boolean> deleteFurture2 =
                 testPool.submit( (Callable<Boolean>) new DeleteTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        assertLatchWait();
 
         final Boolean deleted1 = deleteFurture1.get();
         final Boolean deleted2 = deleteFurture2.get();
@@ -526,6 +553,14 @@ public class FastLocalCacheProviderConcurrentIOTest
     {
         final Location loc = new SimpleLocation( "http://foo.com" );
         return new ConcreteResource( loc, String.format( "%s/%s", folder, fname ) );
+    }
+
+    private void assertLatchWait()
+    {
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
     }
 
 }
