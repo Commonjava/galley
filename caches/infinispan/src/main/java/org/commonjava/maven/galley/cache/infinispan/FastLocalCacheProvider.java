@@ -815,7 +815,22 @@ public class FastLocalCacheProvider
     @Override
     public long length( ConcreteResource resource )
     {
-        return getDetachedFile( resource ).length();
+        // Something that will happen here is: if a file (maybe big) is in process of NFS->local, but another user starts to request this file.
+        // As this file is not yet in local, it will return a wrong length to the end user, which will result error response. So here we will
+        // use NFS file to get the length, which is more stable reference.
+        File file = null;
+        if ( StringUtils.isNotBlank( nfsBaseDir ) )
+        {
+            file = getNFSDetachedFile( resource );
+        }
+
+        if ( file == null || !file.exists() )
+        {
+            // if file not exists in cache dir, try NFS dir
+            file = plCacheProvider.getDetachedFile( resource );
+        }
+
+        return file == null ? 0 : file.length();
     }
 
     @Override
