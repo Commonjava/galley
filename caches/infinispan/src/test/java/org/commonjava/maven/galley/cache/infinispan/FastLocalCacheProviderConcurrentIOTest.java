@@ -73,7 +73,7 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     private static EmbeddedCacheManager CACHE_MANAGER;
 
-    private final String content = "This is a bmunit test";
+    private final String content = "Testing";
 
     private final String diffContent = "This is different from content";
 
