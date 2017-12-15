@@ -41,9 +41,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
 @BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
@@ -55,7 +57,7 @@ public class PartyLineCacheProviderConcurrentIOTest
 
     private final String content = "This is a bmunit test";
 
-    private final CountDownLatch latch = new CountDownLatch( 2 );
+    private CountDownLatch latch;
 
     private PartyLineCacheProvider provider;
 
@@ -67,12 +69,14 @@ public class PartyLineCacheProviderConcurrentIOTest
 
     private final ExecutorService testPool = Executors.newFixedThreadPool( 2 );
 
+    private final long WAIT_TIMEOUT_SECONDS = 300;
+
     @Before
     public void setup()
             throws Exception
     {
         provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator );
-
+        latch = new CountDownLatch( 2 );
     }
 
     @Test
@@ -85,7 +89,10 @@ public class PartyLineCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
@@ -113,7 +120,10 @@ public class PartyLineCacheProviderConcurrentIOTest
         final Future<String> readingFuture =
                 testPool.submit( (Callable<String>) new ReadTask( provider, content, resource, latch ) );
 
-        TestIOUtils.latchWait( latch );
+        if ( !TestIOUtils.latchWait( latch, WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS ) )
+        {
+            fail( "I/O timeout" );
+        }
 
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( bigContent ) );

@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public final class TestIOUtils
 {
@@ -45,15 +46,16 @@ public final class TestIOUtils
         return readingResult;
     }
 
-    public static void latchWait( CountDownLatch latch )
+    public static boolean latchWait( CountDownLatch latch, long timeout, TimeUnit unit )
     {
         try
         {
-            latch.await();
+            return latch.await( timeout, unit );
         }
         catch ( InterruptedException e )
         {
             System.out.println( "Threads await Exception." );
+            return false;
         }
     }
 
