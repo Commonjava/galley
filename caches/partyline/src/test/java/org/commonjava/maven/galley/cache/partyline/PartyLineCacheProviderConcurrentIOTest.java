@@ -55,7 +55,7 @@ public class PartyLineCacheProviderConcurrentIOTest
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
-    private final String content = "This is a bmunit test";
+    private final String content = "Testing";
 
     private CountDownLatch latch;
 
