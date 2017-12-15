@@ -815,9 +815,25 @@ public class FastLocalCacheProvider
     @Override
     public long length( ConcreteResource resource )
     {
-        // Something that will happen here is: if a file (maybe big) is in process of NFS->local, but another user starts to request this file.
-        // As this file is not yet in local, it will return a wrong length to the end user, which will result error response. So here we will
-        // use NFS file to get the length, which is more stable reference.
+        final File file = getNFSDetachedFilePrimarily( resource );
+        return file == null ? 0 : file.length();
+    }
+
+    @Override
+    public long lastModified( ConcreteResource resource )
+    {
+        return getNFSDetachedFilePrimarily( resource ).lastModified();
+    }
+
+    /**
+     * Something that will happen here is: if a file (maybe big) is in process of NFS->local, but another user starts to request this file.
+     * As this file is not yet in local, it will return a wrong file attribute(like length or lastModified) to the end user, which will
+     * result error response. So here we supply a flag to choose NFS primarily to use NFS file to get the file attr, which is more stable reference.
+     *
+     * @param resource
+     * @return
+     */
+    private File getNFSDetachedFilePrimarily( ConcreteResource resource){
         File file = null;
         if ( StringUtils.isNotBlank( nfsBaseDir ) )
         {
@@ -826,17 +842,11 @@ public class FastLocalCacheProvider
 
         if ( file == null || !file.exists() )
         {
-            // if file not exists in cache dir, try NFS dir
-            file = plCacheProvider.getDetachedFile( resource );
+            file = getDetachedFile( resource );
         }
 
-        return file == null ? 0 : file.length();
-    }
+        return file;
 
-    @Override
-    public long lastModified( ConcreteResource resource )
-    {
-        return getDetachedFile( resource ).lastModified();
     }
 
     @Override
