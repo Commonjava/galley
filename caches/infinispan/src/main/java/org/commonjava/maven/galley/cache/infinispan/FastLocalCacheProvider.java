@@ -562,7 +562,7 @@ public class FastLocalCacheProvider
 
         final int lockCount = fileManager.getContextLockCount( resourcePath );
 
-        logger.trace( "Unlocked file lock for path {}, current lock time is {}", resourcePath, lockCount );
+        logger.trace( "Unlocked file lock for path {}, current lock count is {}", resourcePath, lockCount );
 
         if ( lockCount == 0 )
         {
@@ -574,50 +574,60 @@ public class FastLocalCacheProvider
             // Decrease the file counter to notify that a file operation ended and need to be unlocked from ISPN. If
             // counter is still not 0, means this ISPN TX still has other file operations in, so should only unlock
             // this file, but do not end the whole ISPN TX.
-            final Integer count = getFileCounter().decrementAndGet();
-            if ( count == 0 )
+            try
             {
-                if ( needCommit )
+                final Integer count = getFileCounter().decrementAndGet();
+                if ( count == 0 )
                 {
-
+                    if ( needCommit )
+                    {
+                        try
+                        {
+                            if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
+                            {
+                                throw new IllegalStateException(
+                                        "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
+                            }
+                            logger.trace( "Transaction ended." );
+                            cacheInst.commit();
+                            return;
+                        }
+                        catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
+                        {
+                            logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
+                        }
+                    }
                     try
                     {
-                        if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
-                        {
-                            throw new IllegalStateException(
-                                    "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
-                        }
-                        logger.trace( "Transaction ended." );
-                        cacheInst.commit();
-                        return;
+                        cacheInst.rollback();
                     }
-                    catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
+                    catch ( SystemException se )
                     {
-                        logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
+                        final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
+                        logger.error( errorMsg, se );
+                        throw new IllegalStateException( errorMsg, se );
                     }
-                }
-                try
-                {
-                    cacheInst.rollback();
-                }
-                catch ( SystemException se )
-                {
-                    final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
-                    logger.error( errorMsg, se );
-                    throw new IllegalStateException( errorMsg, se );
+
                 }
             }
-            else
+            finally
             {
-                cacheInst.unlock( path );
+                if ( cacheInst.isLocked( path ) )
+                {
+                    cacheInst.unlock( path );
+                }
             }
         }
     }
 
-    // This file counter is used to solve the problem of multi file operations in on ISPN TX. Sometimes in one single ISPN TX,
+    // This file counter is used to solve the problem of multi file operations in ISPN TX. Sometimes in one single ISPN TX,
     // it may includes more than one file operations. If we don't control the ISPN lock of each operation separately and just use
-    // tx.commit/rollback, it may cause ISPN TX in some weird state. This file counter is more like a thread re-entrant feature for
+    // tx.commit/rollback, it may bring ISPN TX in some weird state. This file counter is more like a thread re-entrant feature for
     // ISPN single TX for different files.
+    // For example, a thread can lock foo/bar/ and then start writing foo/bar/foo-bar-1.0.pom. When this writing is not finished(closed),
+    // this thread will also start writing foor/bar/foo-bar-1.0.pom.sha1, so we should let the thread can lock foo/bar/ again as re-entrant
+    // here with this file counter. When finished one of these two writing, do not let the ISPN TX to commit(rollback), just decrease the
+    // counter here, and we should commit(rollback) the TX when all writing of these two done(file counter is 0 here)
     private synchronized AtomicInteger getFileCounter()
     {
         ThreadContext streamHolder = ThreadContext.getContext( true );
@@ -1081,11 +1091,12 @@ public class FastLocalCacheProvider
                     break;
                 }
 
+                logger.trace(
+                        "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 1 seconds",
+                        path, owner, resource );
+
                 synchronized ( owner )
                 {
-                    logger.trace(
-                            "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 0.1s",
-                            path, owner, resource );
                     owner.wait( 1000 );
                 }
             }
