@@ -58,8 +58,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This cache provider provides the ability to write the backup artifacts to an external storage(NFS) which can be mounted
@@ -83,7 +86,7 @@ public class FastLocalCacheProvider
     private String nfsBaseDir;
 
     // use weak key map to avoid the memory occupy for long time of the transfer
-    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentWeakKeyHashMap<>( 10000 );
+    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentWeakKeyHashMap<>();
 
     private PartyLineCacheProvider plCacheProvider;
 
@@ -103,6 +106,10 @@ public class FastLocalCacheProvider
 
     // Mapping key for ISPN transaction file counter in threadcontext, see #getFileCounter()
     private static final String ISPN_TX_FILE_COUNTER = "ISPN_TX_FILE_COUNTER";
+
+    private final Map<Transfer, ReentrantLock> transferLocks = new ConcurrentWeakKeyHashMap<>();
+
+    private static final Long DEFAULT_WAIT_FOR_TRANSFER_LOCK = 600L;
 
 
 
@@ -190,13 +197,10 @@ public class FastLocalCacheProvider
 
     File getNFSDetachedFile( ConcreteResource resource )
     {
-        File f = new File( getNFSFilePath( resource ) );
-        synchronized ( this )
+        final File f = new File( getNFSFilePath( resource ) );
+        if ( resource.isRoot() && !f.isDirectory() )
         {
-            if ( resource.isRoot() && !f.isDirectory() )
-            {
-                f.mkdirs();
-            }
+            f.mkdirs();
         }
         return f;
     }
@@ -342,22 +346,33 @@ public class FastLocalCacheProvider
                 }
             }
         };
+
+
         // This lock is used to control the concurrent operations on the resource, like concurrent delete and read/write.
         // Use "this" as lock is heavy, should think about use the transfer for the resource as the lock for each thread
-        synchronized ( getTransfer( resource ) )
-        {
-            boolean localExisted = plCacheProvider.exists( resource );
+        final AtomicReference<IOException> threadException = new AtomicReference<>();
+        final InputStream stream = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+            boolean localExisted = plCacheProvider.exists( r );
 
             if ( localExisted )
             {
                 logger.debug( "local cache already exists, will directly get input stream from it." );
-                return plCacheProvider.openInputStream( resource );
+                try
+                {
+                    return plCacheProvider.openInputStream( r );
+                }
+                catch ( IOException e )
+                {
+                    threadException.set( e );
+                    return null;
+                }
             }
             else
             {
                 logger.debug( "local cache does not exist, will start to copy from NFS cache" );
                 executor.execute( copyNFSTask );
             }
+
             synchronized ( copyLock )
             {
                 while ( !canStreamOpen.get() )
@@ -375,11 +390,22 @@ public class FastLocalCacheProvider
                         logger.warn( "[galley] NFS copy thread is interrupted by other threads", e );
                     }
                 }
-                logger.debug("the NFS->local copy completed, will get the input stream from local cache");
-                return plCacheProvider.openInputStream( resource );
+                logger.debug( "the NFS->local copy completed, will get the input stream from local cache" );
+                try
+                {
+                    return plCacheProvider.openInputStream( r );
+                }
+                catch ( IOException e )
+                {
+                    threadException.set( e );
+                    return null;
+                }
             }
-        }
+        } );
 
+        propagateException( threadException.get() );
+
+        return stream;
     }
 
     /**
@@ -397,12 +423,14 @@ public class FastLocalCacheProvider
     public OutputStream openOutputStream( ConcreteResource resource )
             throws IOException
     {
-        final OutputStream dualOut;
+        final DualOutputStreamsWrapper dualOutUpper;
         final String nodeIp = getCurrentNodeIp();
         final String pathKey = getKeyForResource( resource );
         final File nfsFile = getNFSDetachedFile( resource );
-        synchronized ( getTransfer( resource ) )
-        {
+
+        final AtomicReference<IOException> threadException = new AtomicReference<>();
+        final TransferLockTask<DualOutputStreamsWrapper> streamTransferLockTask = r -> {
+            DualOutputStreamsWrapper dualOut = null;
             try
             {
                 lockByISPN( nfsOwnerCache, resource, LockLevel.write );
@@ -436,8 +464,8 @@ public class FastLocalCacheProvider
 
                 if ( nfsOwnerCache.getLockOwner( pathKey ) != null )
                 {
-                    logger.trace( "ISPN locker for key {} with resource {} is {}",
-                                  pathKey, resource, nfsOwnerCache.getLockOwner( pathKey ) );
+                    logger.trace( "ISPN locker for key {} with resource {} is {}", pathKey, resource,
+                                  nfsOwnerCache.getLockOwner( pathKey ) );
                 }
 
                 ThreadContext streamHolder = ThreadContext.getContext( true );
@@ -459,9 +487,20 @@ public class FastLocalCacheProvider
                         String.format( "[galley] Output stream for resource %s open failed.", resource.toString() ),
                         e );
             }
+            catch ( IOException e )
+            {
+                threadException.set( e );
+            }
             logger.debug( "The dual output stream wrapped and returned successfully" );
             return dualOut;
+        };
+
+        dualOutUpper = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, streamTransferLockTask );
+        if ( threadException.get() != null )
+        {
+            throw threadException.get();
         }
+        return dualOutUpper;
     }
 
     private void lockByISPN(final CacheInstance<String, String> cacheInstance, final ConcreteResource resource, final LockLevel level )
@@ -673,7 +712,9 @@ public class FastLocalCacheProvider
     {
         final File nfsFile = getNFSDetachedFile( resource );
         final String pathKey = getKeyForPath( nfsFile.getCanonicalPath() );
-        synchronized ( getTransfer( resource ) )
+
+        final AtomicReference<Exception> threadException = new AtomicReference<>();
+        final Boolean deleteResult = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r->
         {
             boolean localDeleted = false;
             try
@@ -709,7 +750,11 @@ public class FastLocalCacheProvider
             {
                 final String errorMsg = String.format( "[galley] Cache TransactionManager got error, locking key is %s", pathKey );
                 logger.error( errorMsg, e );
-                throw new IllegalStateException( errorMsg, e );
+                threadException.set( e );
+            }
+            catch ( IOException e )
+            {
+                threadException.set( e );
             }
             finally
             {
@@ -718,7 +763,22 @@ public class FastLocalCacheProvider
                     unlockByISPN( nfsOwnerCache, false, resource );
                 }
             }
+            return false;
+        });
+
+        if ( threadException.get() != null )
+        {
+            if ( threadException.get() instanceof IllegalStateException )
+            {
+                throw (IllegalStateException) threadException.get();
+            }
+            else if ( threadException.get() instanceof IOException )
+            {
+                throw (IOException)threadException.get();
+            }
         }
+
+        return deleteResult == null ? false : deleteResult;
     }
 
     @Override
@@ -800,10 +860,10 @@ public class FastLocalCacheProvider
     }
 
     @Override
-    public synchronized Transfer getTransfer( ConcreteResource resource )
+    public Transfer getTransfer( ConcreteResource resource )
     {
         return transferCache.computeIfAbsent( resource,
-                                                    r -> new Transfer( r, this, fileEventManager, transferDecorator ) );
+                                              r -> new Transfer( r, this, fileEventManager, transferDecorator ) );
     }
 
     @Override
@@ -854,12 +914,23 @@ public class FastLocalCacheProvider
     {
         try
         {
-            //FIXME: potential dead lock?
-            synchronized ( getTransfer( resource ) )
-            {
-                return plCacheProvider.isReadLocked( resource ) || nfsOwnerCache.isLocked(
-                        getKeyForResource( resource ) );
-            }
+            //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
+            AtomicReference<IOException> threadException = new AtomicReference<>();
+            final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+                try
+                {
+                    return plCacheProvider.isReadLocked( resource ) || nfsOwnerCache.isLocked(
+                            getKeyForResource( resource ) );
+                }
+                catch ( IOException e )
+                {
+                    threadException.set( e );
+                    return false;
+                }
+            } );
+            propagateException( threadException.get() );
+
+            return result == null ? false : result;
         }
         catch ( IOException e )
         {
@@ -875,12 +946,23 @@ public class FastLocalCacheProvider
     {
         try
         {
-            //FIXME: potential dead lock?
-            synchronized ( getTransfer( resource ) )
-            {
-                return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.isLocked(
-                        getKeyForResource( resource ) );
-            }
+            //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
+            AtomicReference<IOException> threadException = new AtomicReference<>();
+            final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+                try
+                {
+                    return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.isLocked(
+                            getKeyForResource( resource ) );
+                }
+                catch ( IOException e )
+                {
+                    threadException.set( e );
+                    return false;
+                }
+            } );
+            propagateException( threadException.get() );
+
+            return result == null ? false : result;
         }
         catch ( IOException e )
         {
@@ -918,13 +1000,22 @@ public class FastLocalCacheProvider
     @Override
     public void waitForReadUnlock( ConcreteResource resource )
     {
-        //FIXME: potential dead lock?
-        synchronized ( getTransfer( resource ) )
+        //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
+        try
         {
-            plCacheProvider.waitForReadUnlock( resource );
-            waitForISPNLock( resource, isReadLocked( resource ) );
+            tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+                plCacheProvider.waitForReadUnlock( resource );
+                waitForISPNLock( resource, isReadLocked( resource ) );
+                return null;
+            } );
         }
-
+        catch ( IOException e )
+        {
+            final String errorMsg = String.format( "[galley] When wait for read lock of resource: %s, got I/O error.",
+                                                   resource.toString() );
+            logger.error( errorMsg, e );
+            throw new IllegalStateException( errorMsg, e );
+        }
     }
 
     @Override
@@ -936,11 +1027,23 @@ public class FastLocalCacheProvider
     @Override
     public void waitForWriteUnlock( ConcreteResource resource )
     {
-        //FIXME: potential dead lock?
-        synchronized ( getTransfer( resource ) )
+        //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
+        try
         {
-            plCacheProvider.waitForWriteUnlock( resource );
-            waitForISPNLock( resource, isWriteLocked( resource ) );
+            {
+                tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+                    plCacheProvider.waitForWriteUnlock( resource );
+                    waitForISPNLock( resource, isWriteLocked( resource ) );
+                    return null;
+                } );
+            }
+        }
+        catch ( IOException e )
+        {
+            final String errorMsg = String.format( "[galley] When wait for read lock of resource: %s, got I/O error.",
+                                                   resource.toString() );
+            logger.error( errorMsg, e );
+            throw new IllegalStateException( errorMsg, e );
         }
     }
 
@@ -1029,6 +1132,69 @@ public class FastLocalCacheProvider
     {
         //TODO: will directly return path now, may change some other way future(like digesting?)
         return path;
+    }
+
+    private ReentrantLock getTransferLock( final ConcreteResource resource )
+    {
+        final Transfer transfer = getTransfer( resource );
+        return transferLocks.computeIfAbsent( transfer, tran -> new ReentrantLock() );
+    }
+
+    private <K> K tryLockAnd( ConcreteResource resource, long timeout, TimeUnit unit, TransferLockTask<K> task ) throws IOException
+    {
+        ReentrantLock lock = getTransferLock( resource );
+        boolean locked = false;
+        try
+        {
+            if ( timeout > 0 )
+            {
+                locked = lock.tryLock( timeout, unit );
+                if ( locked )
+                {
+                    return task.execute( resource );
+                }
+                else
+                {
+                    throw new IOException(
+                            String.format( "Did not get lock for resource %s in %d %s, timeout happened.", resource,
+                                           timeout, unit.toString() ) );
+                }
+            }
+            else
+            {
+                lock.lockInterruptibly();
+                return task.execute( resource );
+            }
+
+        }
+        catch ( InterruptedException e )
+        {
+            logger.warn( "Interrupted for the transfer lock with resource: {}", resource );
+            return null;
+        }
+        finally
+        {
+            if ( timeout < 0 || locked )
+            {
+                lock.unlock();
+            }
+        }
+    }
+
+    private void propagateException( Exception e )
+            throws IOException
+    {
+        if ( e != null )
+        {
+            if ( e instanceof RuntimeException )
+            {
+                throw (RuntimeException) e;
+            }
+            if ( e instanceof IOException )
+            {
+                throw (IOException) e;
+            }
+        }
     }
 
 
@@ -1144,6 +1310,11 @@ public class FastLocalCacheProvider
                               cacheInstance.getLockOwner( cacheKey ) == null ? "Yes" : "No" );
             }
         }
+    }
+
+    private interface TransferLockTask<T>
+    {
+        T execute( ConcreteResource resource );
     }
 
 }
