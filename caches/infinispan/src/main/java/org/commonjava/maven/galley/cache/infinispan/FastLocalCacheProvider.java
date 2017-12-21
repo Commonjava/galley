@@ -274,7 +274,7 @@ public class FastLocalCacheProvider
         // This lock is used to control the the local resource can be opened successfully finally when local resource missing
         // but NFS not, which means will do a NFS->local copy.
         final Object copyLock = new Object();
-        
+
         // A flag to mark if the local resource can be open now or need to wait for the copy thread completes its work
         final AtomicBoolean canStreamOpen = new AtomicBoolean( false );
 
@@ -296,7 +296,7 @@ public class FastLocalCacheProvider
                 File nfsFile = getNFSDetachedFile( resource );
                 if ( !nfsFile.exists() )
                 {
-                    logger.debug( "NFS file does not exist too." );
+                    logger.trace( "NFS file does not exist too." );
                     copyExceOccurs.set( true );
                     return;
                 }
@@ -308,7 +308,7 @@ public class FastLocalCacheProvider
                     copyLock.notifyAll();
                 }
                 IOUtils.copy( nfsIn, localOut );
-                logger.debug( "NFS copy to local cache done." );
+                logger.trace( "NFS copy to local cache done." );
             }
             catch ( NotSupportedException | SystemException | IOException | InterruptedException e )
             {
@@ -358,7 +358,7 @@ public class FastLocalCacheProvider
 
             if ( localExisted )
             {
-                logger.debug( "local cache already exists, will directly get input stream from it." );
+                logger.trace( "local cache already exists, will directly get input stream from it." );
                 try
                 {
                     return plCacheProvider.openInputStream( r );
@@ -371,7 +371,7 @@ public class FastLocalCacheProvider
             }
             else
             {
-                logger.debug( "local cache does not exist, will start to copy from NFS cache" );
+                logger.trace( "local cache does not exist, will start to copy from NFS cache" );
                 executor.execute( copyNFSTask );
             }
 
@@ -392,7 +392,7 @@ public class FastLocalCacheProvider
                         logger.warn( "[galley] NFS copy thread is interrupted by other threads", e );
                     }
                 }
-                logger.debug( "the NFS->local copy completed, will get the input stream from local cache" );
+                logger.trace( "the NFS->local copy completed, will get the input stream from local cache" );
                 try
                 {
                     return plCacheProvider.openInputStream( r );
@@ -439,9 +439,9 @@ public class FastLocalCacheProvider
 
                 nfsOwnerCache.put( pathKey, nodeIp );
 
-                logger.debug( "Start to get output stream from local cache through partyline to do join stream" );
+                logger.trace( "Start to get output stream from local cache through partyline to do join stream" );
                 final OutputStream localOut = plCacheProvider.openOutputStream( resource );
-                logger.debug( "The output stream from local cache through partyline is got successfully" );
+                logger.trace( "The output stream from local cache through partyline is got successfully" );
                 if ( !nfsFile.exists() && !nfsFile.isDirectory() )
                 {
                     try
@@ -459,14 +459,14 @@ public class FastLocalCacheProvider
                     }
                 }
                 final OutputStream nfsOutputStream = new FileOutputStream( nfsFile );
-                logger.debug( "The output stream from NFS is got successfully" );
+                logger.trace( "The output stream from NFS is got successfully" );
                 // will wrap the cache manager in stream wrapper, and let it do tx commit in stream close to make sure
                 // the two streams writing's consistency.
                 dualOut = new DualOutputStreamsWrapper( localOut, nfsOutputStream, nfsOwnerCache, pathKey, resource );
 
                 if ( nfsOwnerCache.getLockOwner( pathKey ) != null )
                 {
-                    logger.trace( "ISPN locker for key {} with resource {} is {}", pathKey, resource,
+                    logger.trace( "[openOutputStream]ISPN locker for key {} with resource {} is {}", pathKey, resource,
                                   nfsOwnerCache.getLockOwner( pathKey ) );
                 }
 
@@ -493,7 +493,7 @@ public class FastLocalCacheProvider
             {
                 taskException.set( e );
             }
-            logger.debug( "The dual output stream wrapped and returned successfully" );
+            logger.trace( "The dual output stream wrapped and returned successfully" );
             return dualOut;
         };
 
@@ -533,13 +533,15 @@ public class FastLocalCacheProvider
         if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
         {
             cacheInst.beginTransaction();
+            logger.trace( "Transaction started for path {} with resource {}", path, resource );
         }
 
-        if ( !cacheInst.isLocked( path ) )
+        if ( !cacheInst.isLocked( path ) && isTxActive( cacheInstance ) )
         {
             cacheInst.lock( path );
             // Increment a file counter to notify that there is a file operation with ISPN lock now in this ISPN TX
-            getFileCounter().incrementAndGet();
+            final int counter = getFileCounter().incrementAndGet();
+            logger.trace( "ISPN locked once more, path: {}, resource {}, file counter: {}", path, resource, counter );
         }
     }
 
@@ -573,53 +575,83 @@ public class FastLocalCacheProvider
             {
                 cacheInst = nfsOwnerCache;
             }
-            // Decrease the file counter to notify that a file operation ended and need to be unlocked from ISPN. If
-            // counter is still not 0, means this ISPN TX still has other file operations in, so should only unlock
-            // this file, but do not end the whole ISPN TX.
+
             try
             {
-                final Integer count = getFileCounter().decrementAndGet();
-                if ( count == 0 )
+                // The lock and unlock operation is only useful in an active Transaction of ISPN.
+                if ( isTxActive( cacheInstance ) )
                 {
-                    if ( needCommit )
+                    // Decrease the file counter to notify that a file operation ended and need to be unlocked from ISPN. If
+                    // counter is still not 0, means this ISPN TX still has other file operations in, so should only unlock
+                    // this file, but do not end the whole ISPN TX.
+                    Integer count = 0;
+                    if ( cacheInst.isLocked( path ) )
                     {
+                        logger.trace( "Unlocking ISPN lock for key: {} with resource: {}", path, resource );
+                        cacheInst.unlock( path );
+                        logger.trace( "Lock status after unlocking: {}", cacheInst.isLocked( path ) );
+                        count = getFileCounter().decrementAndGet();
+                        logger.trace( "Unlocked ISPN file count for path {}, current file count is {}", resourcePath,
+                                      count );
+                    }
+                    if ( count == 0 )
+                    {
+                        if ( needCommit )
+                        {
+                            try
+                            {
+                                {
+                                    cacheInst.commit();
+                                    logger.trace( "Transaction committed for path {} with resource {}", path,
+                                                  resource );
+                                    return;
+                                }
+                            }
+                            catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
+                            {
+                                logger.error( "[galley] Transaction commit error for nfs cache during file operation.",
+                                              e );
+                            }
+                        }
+                        // if commit failed, we should do rollback action to make sure the lock has been released
                         try
                         {
-                            if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
-                            {
-                                throw new IllegalStateException(
-                                        "[galley] Transaction has been completed before, no transaction associated by streams IO errors." );
-                            }
-                            logger.trace( "Transaction ended." );
-                            cacheInst.commit();
-                            return;
+                            cacheInst.rollback();
+                            logger.trace( "Transaction rollbacked for path {} with resource {}", path, resource );
                         }
-                        catch ( SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException e )
+                        catch ( SystemException se )
                         {
-                            logger.error( "[galley] Transaction commit error for nfs cache during file writing.", e );
+                            final String errorMsg =
+                                    "[galley] Transaction rollback error for nfs cache during file operation.";
+                            logger.error( errorMsg, se );
+                            throw new IllegalStateException( errorMsg, se );
                         }
-                    }
-                    try
-                    {
-                        cacheInst.rollback();
-                    }
-                    catch ( SystemException se )
-                    {
-                        final String errorMsg = "[galley] Transaction rollback error for nfs cache during file writing.";
-                        logger.error( errorMsg, se );
-                        throw new IllegalStateException( errorMsg, se );
-                    }
 
+                    }
                 }
             }
-            finally
+            catch ( SystemException e )
             {
-                if ( cacheInst.isLocked( path ) )
-                {
-                    cacheInst.unlock( path );
-                }
+                logger.error( "[galley] Transaction status getting error for nfs cache during file operation.", e );
             }
         }
+    }
+
+    private boolean isTxActive( CacheInstance<String, String> cacheInstance )
+            throws SystemException
+    {
+        final int[] ACTIVE_STATUS = new int[] { Status.STATUS_ACTIVE, Status.STATUS_COMMITTING, Status.STATUS_PREPARING,
+                Status.STATUS_PREPARED, Status.STATUS_ROLLING_BACK };
+        boolean isActive = false;
+        for ( int status : ACTIVE_STATUS )
+        {
+            if ( cacheInstance.getTransactionStatus() == status )
+            {
+                isActive = true;
+                break;
+            }
+        }
+        return isActive;
     }
 
     // This file counter is used to solve the problem of multi file operations in ISPN TX. Sometimes in one single ISPN TX,
@@ -772,6 +804,7 @@ public class FastLocalCacheProvider
             {
                 if ( localDeleted )
                 {
+                    logger.info( "Local file deleted and ISPN lock started for {}, need to release ISPN lock", resource );
                     unlockByISPN( nfsOwnerCache, false, resource );
                 }
             }
@@ -921,10 +954,12 @@ public class FastLocalCacheProvider
             final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r -> {
                 try
                 {
+                    final String cacheKey = getKeyForResource( resource );
                     final boolean isFileReadLocked = plCacheProvider.isReadLocked( resource );
-                    final boolean isISPNLocked = nfsOwnerCache.isLocked( getKeyForResource( resource ) );
-                    logger.trace( "The read lock status: resource locked: {}, ISPN locked: {}. Resource {}",
-                                  isFileReadLocked, isISPNLocked, resource );
+                    final boolean isISPNLocked = nfsOwnerCache.isLocked( cacheKey );
+                    logger.trace(
+                            "The read lock status: resource locked: {}, ISPN locked: {}, lockKey: {}, Resource: {}",
+                            isFileReadLocked, isISPNLocked, cacheKey, resource );
                     return isFileReadLocked || isISPNLocked;
                 }
                 catch ( IOException e )
@@ -956,10 +991,12 @@ public class FastLocalCacheProvider
             final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r -> {
                 try
                 {
+                    final String cacheKey = getKeyForResource( resource );
                     final boolean isFileWriteLocked = plCacheProvider.isWriteLocked( resource );
                     final boolean isISPNLocked = nfsOwnerCache.isLocked( getKeyForResource( resource ) );
-                    logger.trace( "The write lock status: resource locked: {}, ISPN locked: {}. Resource {}",
-                                  isFileWriteLocked, isISPNLocked, resource );
+                    logger.trace(
+                            "The write lock status: resource locked: {}, ISPN locked: {}, lock key: {}, Resource: {}",
+                            isFileWriteLocked, isISPNLocked, cacheKey, resource );
                     return isFileWriteLocked || isISPNLocked;
                 }
                 catch ( IOException e )
@@ -1321,7 +1358,7 @@ public class FastLocalCacheProvider
             final Logger logger = FastLocalCacheProvider.this.logger;
             if ( closed )
             {
-                logger.trace( "The DualOutputStream {} already closed.", this );
+                logger.trace( "The DualOutputStream {} already closed. path: {}, resource: {}", this, cacheKey, resource );
                 // If still ISPN locked, we should unlock it to avoid "lock-never-released"
                 if ( cacheInstance.isLocked( cacheKey ) )
                 {
@@ -1330,12 +1367,13 @@ public class FastLocalCacheProvider
                 return;
             }
 
+            Object lockOwner = cacheInstance.getLockOwner( cacheKey );
             logger.trace( "ISPN lock released before ISPN trasaction for key {} with resource {}? {}", cacheKey,
-                          resource, cacheInstance.getLockOwner( cacheKey ) == null ? "Yes" : "No" );
-            if ( cacheInstance.getLockOwner( cacheKey ) != null )
+                          resource, lockOwner == null ? "Yes" : "No" );
+            if ( lockOwner != null )
             {
-                logger.trace( "ISPN locker for key {} with resource {} is {}",
-                              cacheKey, resource, cacheInstance.getLockOwner( cacheKey ) );
+                logger.trace( "[DualOutputStream.close]ISPN locker for key {} with resource {} is {}",
+                              cacheKey, resource, lockOwner );
             }
 
             try
