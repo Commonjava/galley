@@ -109,7 +109,9 @@ public class FastLocalCacheProvider
 
     private final Map<Transfer, ReentrantLock> transferLocks = new ConcurrentWeakKeyHashMap<>();
 
-    private static final Long DEFAULT_WAIT_FOR_TRANSFER_LOCK = 600L;
+    private static final Long DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS = 600L;
+
+    private static final Long DEFAULT_WAIT_FOR_TRANSFER_LOCK_MILLIS = DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS * 1000;
 
 
 
@@ -350,8 +352,8 @@ public class FastLocalCacheProvider
 
         // This lock is used to control the concurrent operations on the resource, like concurrent delete and read/write.
         // Use "this" as lock is heavy, should think about use the transfer for the resource as the lock for each thread
-        final AtomicReference<IOException> threadException = new AtomicReference<>();
-        final InputStream stream = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+        final AtomicReference<IOException> taskException = new AtomicReference<>();
+        final InputStream stream = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r -> {
             boolean localExisted = plCacheProvider.exists( r );
 
             if ( localExisted )
@@ -363,7 +365,7 @@ public class FastLocalCacheProvider
                 }
                 catch ( IOException e )
                 {
-                    threadException.set( e );
+                    taskException.set( e );
                     return null;
                 }
             }
@@ -397,13 +399,13 @@ public class FastLocalCacheProvider
                 }
                 catch ( IOException e )
                 {
-                    threadException.set( e );
+                    taskException.set( e );
                     return null;
                 }
             }
         } );
 
-        propagateException( threadException.get() );
+        propagateException( taskException.get() );
 
         return stream;
     }
@@ -428,7 +430,7 @@ public class FastLocalCacheProvider
         final String pathKey = getKeyForResource( resource );
         final File nfsFile = getNFSDetachedFile( resource );
 
-        final AtomicReference<IOException> threadException = new AtomicReference<>();
+        final AtomicReference<IOException> taskException = new AtomicReference<>();
         final TransferLockTask<DualOutputStreamsWrapper> streamTransferLockTask = r -> {
             DualOutputStreamsWrapper dualOut = null;
             try
@@ -489,16 +491,16 @@ public class FastLocalCacheProvider
             }
             catch ( IOException e )
             {
-                threadException.set( e );
+                taskException.set( e );
             }
             logger.debug( "The dual output stream wrapped and returned successfully" );
             return dualOut;
         };
 
-        dualOutUpper = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, streamTransferLockTask );
-        if ( threadException.get() != null )
+        dualOutUpper = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, streamTransferLockTask );
+        if ( taskException.get() != null )
         {
-            throw threadException.get();
+            throw taskException.get();
         }
         return dualOutUpper;
     }
@@ -526,7 +528,7 @@ public class FastLocalCacheProvider
 
         // Some consideration about the thread "re-entrant" for waiting here. If it is the same
         // thread, will not wait.
-        waitForISPNLock( resource, cacheInst.isLocked( path ) );
+        waitForISPNLock( resource, cacheInst.isLocked( path ), DEFAULT_WAIT_FOR_TRANSFER_LOCK_MILLIS );
 
         if ( cacheInst.getTransactionStatus() == Status.STATUS_NO_TRANSACTION )
         {
@@ -723,8 +725,8 @@ public class FastLocalCacheProvider
         final File nfsFile = getNFSDetachedFile( resource );
         final String pathKey = getKeyForPath( nfsFile.getCanonicalPath() );
 
-        final AtomicReference<Exception> threadException = new AtomicReference<>();
-        final Boolean deleteResult = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r->
+        final AtomicReference<Exception> taskException = new AtomicReference<>();
+        final Boolean deleteResult = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r->
         {
             boolean localDeleted = false;
             try
@@ -760,11 +762,11 @@ public class FastLocalCacheProvider
             {
                 final String errorMsg = String.format( "[galley] Cache TransactionManager got error, locking key is %s", pathKey );
                 logger.error( errorMsg, e );
-                threadException.set( e );
+                taskException.set( e );
             }
             catch ( IOException e )
             {
-                threadException.set( e );
+                taskException.set( e );
             }
             finally
             {
@@ -776,17 +778,7 @@ public class FastLocalCacheProvider
             return false;
         });
 
-        if ( threadException.get() != null )
-        {
-            if ( threadException.get() instanceof IllegalStateException )
-            {
-                throw (IllegalStateException) threadException.get();
-            }
-            else if ( threadException.get() instanceof IOException )
-            {
-                throw (IOException)threadException.get();
-            }
-        }
+        propagateException( taskException.get() );
 
         return deleteResult == null ? false : deleteResult;
     }
@@ -925,20 +917,23 @@ public class FastLocalCacheProvider
         try
         {
             //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
-            AtomicReference<IOException> threadException = new AtomicReference<>();
-            final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+            AtomicReference<IOException> taskException = new AtomicReference<>();
+            final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r -> {
                 try
                 {
-                    return plCacheProvider.isReadLocked( resource ) || nfsOwnerCache.isLocked(
-                            getKeyForResource( resource ) );
+                    final boolean isFileReadLocked = plCacheProvider.isReadLocked( resource );
+                    final boolean isISPNLocked = nfsOwnerCache.isLocked( getKeyForResource( resource ) );
+                    logger.trace( "The read lock status: resource locked: {}, ISPN locked: {}. Resource {}",
+                                  isFileReadLocked, isISPNLocked, resource );
+                    return isFileReadLocked || isISPNLocked;
                 }
                 catch ( IOException e )
                 {
-                    threadException.set( e );
+                    taskException.set( e );
                     return false;
                 }
             } );
-            propagateException( threadException.get() );
+            propagateException( taskException.get() );
 
             return result == null ? false : result;
         }
@@ -957,20 +952,23 @@ public class FastLocalCacheProvider
         try
         {
             //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
-            AtomicReference<IOException> threadException = new AtomicReference<>();
-            final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+            AtomicReference<IOException> taskException = new AtomicReference<>();
+            final Boolean result = tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r -> {
                 try
                 {
-                    return plCacheProvider.isWriteLocked( resource ) || nfsOwnerCache.isLocked(
-                            getKeyForResource( resource ) );
+                    final boolean isFileWriteLocked = plCacheProvider.isWriteLocked( resource );
+                    final boolean isISPNLocked = nfsOwnerCache.isLocked( getKeyForResource( resource ) );
+                    logger.trace( "The write lock status: resource locked: {}, ISPN locked: {}. Resource {}",
+                                  isFileWriteLocked, isISPNLocked, resource );
+                    return isFileWriteLocked || isISPNLocked;
                 }
                 catch ( IOException e )
                 {
-                    threadException.set( e );
+                    taskException.set( e );
                     return false;
                 }
             } );
-            propagateException( threadException.get() );
+            propagateException( taskException.get() );
 
             return result == null ? false : result;
         }
@@ -1013,11 +1011,20 @@ public class FastLocalCacheProvider
         //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
         try
         {
-            tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
+            final AtomicReference<IOException> taskException = new AtomicReference<>();
+            tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r -> {
                 plCacheProvider.waitForReadUnlock( resource );
-                waitForISPNLock( resource, isReadLocked( resource ) );
+                try
+                {
+                    waitForISPNLock( resource, isReadLocked( resource ), DEFAULT_WAIT_FOR_TRANSFER_LOCK_MILLIS);
+                }
+                catch ( IOException e )
+                {
+                    taskException.set( e );
+                }
                 return null;
             } );
+            propagateException( taskException.get() );
         }
         catch ( IOException e )
         {
@@ -1040,13 +1047,20 @@ public class FastLocalCacheProvider
         //To avoid deadlock, here use a lock with timeout, if timeout happened, will throw exception
         try
         {
-            {
-                tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK, TimeUnit.SECONDS, r -> {
-                    plCacheProvider.waitForWriteUnlock( resource );
-                    waitForISPNLock( resource, isWriteLocked( resource ) );
-                    return null;
-                } );
-            }
+            final AtomicReference<IOException> taskException = new AtomicReference<>();
+            tryLockAnd( resource, DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS, TimeUnit.SECONDS, r -> {
+                plCacheProvider.waitForWriteUnlock( resource );
+                try
+                {
+                    waitForISPNLock( resource, isWriteLocked( resource ), DEFAULT_WAIT_FOR_TRANSFER_LOCK_MILLIS );
+                }
+                catch ( IOException e )
+                {
+                    taskException.set( e );
+                }
+                return null;
+            } );
+            propagateException( taskException.get() );
         }
         catch ( IOException e )
         {
@@ -1057,9 +1071,19 @@ public class FastLocalCacheProvider
         }
     }
 
-    private void waitForISPNLock( ConcreteResource resource, boolean locked )
+    /**
+     * Waits for ISPN lock of resource to release the lock. You can specify a timeout (in milliseconds) to let this waiting
+     * can be timeout. Not that this method only wait for different threads which holds the locker of the path, if it is same
+     * thread, will directly go through it for following oeprations
+     *
+     * @param resource the resource can supply the key of the ISPN locker
+     * @param locked only when this param is true, this method will try to do waiting.
+     * @param timeout a timeout (in milliseconds) to let the wait not blocked forever.
+     * @throws IOException when timeout, a IOException will be thrown to notify
+     */
+    private void waitForISPNLock( ConcreteResource resource, boolean locked, long timeout )
+            throws IOException
     {
-
         final String path;
         try
         {
@@ -1079,30 +1103,43 @@ public class FastLocalCacheProvider
             return;
         }
 
+        final boolean needTimeout = timeout > 0;
+        final long WAIT_INTERVAL = 1000;
+        long timeDuration = 0;
         while ( locked )
         {
-            try
+            // Use ISPN lock owner for resource to wait until lock is released. Note that if the lock has no owner,
+            // means lock has been released
+            final Object owner = nfsOwnerCache.getLockOwner( path );
+            if ( owner == null )
             {
-                // Use ISPN lock owner for resource to wait until lock is released. Note that if the lock has no owner,
-                // means lock has been released
-                final Object owner = nfsOwnerCache.getLockOwner( path );
-                if ( owner == null )
-                {
-                    break;
-                }
-
-                logger.trace(
-                        "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 1 seconds",
-                        path, owner, resource );
-
-                synchronized ( owner )
-                {
-                    owner.wait( 1000 );
-                }
+                break;
             }
-            catch ( final InterruptedException e )
+
+            logger.trace(
+                    "ISPN lock still not released. ISPN lock key:{}, locker: {}, operation path: {}. Waiting for 1 seconds",
+                    path, owner, resource );
+
+            if ( needTimeout && timeDuration > timeout )
             {
-                Thread.currentThread().interrupt();
+                throw new IOException( String.format(
+                        "ISPN lock timeout after %d Milliseconds! The ISPN lock owner is %s, and lock key is %s",
+                        timeout, owner, path ) );
+            }
+            else
+            {
+               try
+                {
+                    synchronized ( owner )
+                    {
+                        owner.wait( WAIT_INTERVAL );
+                        timeDuration += WAIT_INTERVAL;
+                    }
+                }
+                catch ( final InterruptedException e )
+                {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }
@@ -1185,7 +1222,7 @@ public class FastLocalCacheProvider
         }
         finally
         {
-            if ( timeout < 0 || locked )
+            if ( timeout <= 0 || locked )
             {
                 lock.unlock();
             }
