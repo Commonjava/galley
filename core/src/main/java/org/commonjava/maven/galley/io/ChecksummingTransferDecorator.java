@@ -142,7 +142,7 @@ public final class ChecksummingTransferDecorator
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
 
         logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
-                      ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
+                      ( specialPathInfo == null || specialPathInfo.isDecoratable() ) );
 
         if ( force || specialPathInfo == null || specialPathInfo.isDecoratable() )
         {
@@ -184,7 +184,7 @@ public final class ChecksummingTransferDecorator
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
 
         logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
-                      ( specialPathInfo == null ? true : specialPathInfo.isDecoratable() ) );
+                      ( specialPathInfo == null || specialPathInfo.isDecoratable() ) );
 
         if ( force || specialPathInfo == null || specialPathInfo.isDecoratable() )
         {

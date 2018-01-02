@@ -35,7 +35,7 @@ public class MemoryNotFoundCache
 
     //    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final Map<Location, Set<String>> missing = new HashMap<Location, Set<String>>();
+    private final Map<Location, Set<String>> missing = new HashMap<>();
 
     @Override
     public void addMissing( final ConcreteResource resource )
@@ -44,7 +44,7 @@ public class MemoryNotFoundCache
         Set<String> missing = this.missing.get( resource.getLocation() );
         if ( missing == null )
         {
-            missing = new HashSet<String>();
+            missing = new HashSet<>();
             this.missing.put( resource.getLocation(), missing );
         }
 

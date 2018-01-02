@@ -47,6 +47,7 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+@SuppressWarnings( { "UnusedReturnValue", "unused" } )
 public class GalleyMavenBuilder
 {
 

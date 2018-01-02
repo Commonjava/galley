@@ -31,7 +31,7 @@ public class PathPatternMatcher
     @Override
     public boolean matches( Location location, String path )
     {
-        return path == null ? false : path.matches( pattern );
+        return path != null && path.matches( pattern );
     }
 
     @Override

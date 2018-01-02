@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.commonjava.maven.atlas.ident.version.SingleVersion;
 
+@SuppressWarnings( "unused" )
 public final class EarliestVersionSelectionStrategy
     implements VersionSelectionStrategy
 {

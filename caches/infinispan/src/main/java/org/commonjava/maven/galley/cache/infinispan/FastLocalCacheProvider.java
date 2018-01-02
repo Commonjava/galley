@@ -73,6 +73,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * as this provider will use it to get the nfs root directory by default. If you want to set this directory by manually,
  * use the parameterized constructor with the "nfsBaseDir" param.
  */
+@SuppressWarnings( "unchecked" )
 public class FastLocalCacheProvider
         implements CacheProvider, CacheProvider.AdminView
 {

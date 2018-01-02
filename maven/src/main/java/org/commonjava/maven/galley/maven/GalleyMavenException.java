@@ -52,6 +52,7 @@ public class GalleyMavenException
         {
             try
             {
+                //noinspection RegExpRedundantEscape
                 message = String.format( message.replaceAll( "\\{\\}", "%s" ), params );
             }
             catch ( final IllegalFormatException ife )
@@ -60,7 +61,7 @@ public class GalleyMavenException
                 {
                     message = MessageFormat.format( message, params );
                 }
-                catch ( final IllegalArgumentException iae )
+                catch ( final IllegalArgumentException ignored )
                 {
                 }
             }

@@ -112,6 +112,7 @@ public class ZipDownload
             closeQuietly( in );
             if ( zf != null )
             {
+                //noinspection EmptyCatchBlock
                 try
                 {
                     zf.close();

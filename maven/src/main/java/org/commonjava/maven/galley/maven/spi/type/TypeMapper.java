@@ -25,6 +25,7 @@ public interface TypeMapper
 
     TypeMapping lookup( TypeAndClassifier tc );
 
+    @SuppressWarnings( "unused" )
     Map<String, TypeMapping> getMappings();
 
 }

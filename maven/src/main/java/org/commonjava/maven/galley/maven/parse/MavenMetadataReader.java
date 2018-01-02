@@ -72,10 +72,10 @@ public class MavenMetadataReader
     public MavenMetadataView getMetadata( final ProjectRef ref , final List<? extends Location> locations , final EventMetadata eventMetadata  )
         throws GalleyMavenException
     {
-        final List<DocRef<ProjectRef>> docs = new ArrayList<DocRef<ProjectRef>>( locations.size() );
+        final List<DocRef<ProjectRef>> docs = new ArrayList<>( locations.size() );
         final Map<Location, DocRef<ProjectRef>> cached = getAllCached( ref, locations );
 
-        final List<? extends Location> toRetrieve = new ArrayList<Location>( locations );
+        final List<? extends Location> toRetrieve = new ArrayList<>( locations );
         for ( final Location loc : locations )
         {
             final DocRef<ProjectRef> dr = cached.get( loc );
@@ -103,12 +103,13 @@ public class MavenMetadataReader
 
         logger.debug( "Resolved {} transfers:\n  {}", transfers.size(), new JoinString( "\n  ", transfers ) );
 
+        //noinspection ConstantConditions
         if ( transfers != null && !transfers.isEmpty() )
         {
             for ( final Transfer transfer : transfers )
             {
                 final DocRef<ProjectRef> dr =
-                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer, eventMetadata ) );
+                    new DocRef<>( ref, transfer.getLocation(), xml.parse( transfer, eventMetadata ) );
                 final int idx = locations.indexOf( transfer.getLocation() );
 
                 // FIXME: This is too clever by half...the if/then here is probably wrong.
@@ -164,8 +165,9 @@ public class MavenMetadataReader
     public MavenMetadataView readMetadata( final ProjectRef ref , final List<Transfer> transfers , final EventMetadata eventMetadata  )
         throws GalleyMavenException
     {
-        final List<DocRef<ProjectRef>> docs = new ArrayList<DocRef<ProjectRef>>( transfers.size() );
+        final List<DocRef<ProjectRef>> docs = new ArrayList<>( transfers.size() );
 
+        //noinspection ConstantConditions
         if ( transfers != null && !transfers.isEmpty() )
         {
             for ( final Transfer transfer : transfers )
@@ -176,12 +178,9 @@ public class MavenMetadataReader
                 }
 
                 final DocRef<ProjectRef> dr =
-                    new DocRef<ProjectRef>( ref, transfer.getLocation(), xml.parse( transfer, eventMetadata ) );
+                    new DocRef<>( ref, transfer.getLocation(), xml.parse( transfer, eventMetadata ) );
 
-                if ( dr != null )
-                {
-                    docs.add( dr );
-                }
+                docs.add( dr );
             }
         }
 

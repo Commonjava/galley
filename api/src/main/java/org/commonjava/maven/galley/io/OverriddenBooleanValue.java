@@ -27,7 +27,7 @@ public enum OverriddenBooleanValue
     private Boolean result;
 
 
-    private OverriddenBooleanValue( final boolean overrides, final Boolean result )
+    OverriddenBooleanValue( final boolean overrides, final Boolean result )
     {
         this.overrides = overrides;
         this.result = result;

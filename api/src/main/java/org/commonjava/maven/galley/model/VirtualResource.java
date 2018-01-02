@@ -28,7 +28,7 @@ public class VirtualResource
 
     public VirtualResource( final List<? extends Location> locations, final String... path )
     {
-        final List<ConcreteResource> resources = new ArrayList<ConcreteResource>();
+        final List<ConcreteResource> resources = new ArrayList<>();
         for ( final Location location : locations )
         {
             resources.add( new ConcreteResource( location, path ) );
@@ -168,16 +168,12 @@ public class VirtualResource
         final VirtualResource other = (VirtualResource) obj;
         if ( resources == null )
         {
-            if ( other.resources != null )
-            {
-                return false;
-            }
+            return other.resources == null;
         }
-        else if ( !resources.equals( other.resources ) )
+        else
         {
-            return false;
+            return resources.equals( other.resources );
         }
-        return true;
     }
 
 }

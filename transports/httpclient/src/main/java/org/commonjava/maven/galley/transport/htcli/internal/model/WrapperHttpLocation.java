@@ -129,6 +129,7 @@ public class WrapperHttpLocation
         return proxy == null ? 8080 : proxy.getPort();
     }
 
+    @SuppressWarnings( "EqualsWhichDoesntCheckParameterClass" )
     @Override
     public boolean equals( final Object other )
     {

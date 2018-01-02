@@ -25,7 +25,6 @@ import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.ContentTypeUtils;
 
 public final class HttpPublish

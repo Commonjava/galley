@@ -26,18 +26,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.commonjava.maven.galley.BadGatewayException;
 import org.commonjava.maven.galley.GalleyException;
-import org.commonjava.maven.galley.TransferContentException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
-import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -119,7 +115,7 @@ public abstract class AbstractHttpJob
             }
             else if ( !successStatuses.contains( sc ) )
             {
-                logger.debug( "Detected failure response: " + sc );
+                logger.debug( "Detected failure respon se: " + sc );
                 success = TransferResponseUtils.handleUnsuccessfulResponse( request, response, location, url );
                 logger.debug( "Returning non-error failure response for code: " + sc );
                 return false;

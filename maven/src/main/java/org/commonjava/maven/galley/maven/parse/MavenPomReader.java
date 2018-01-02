@@ -23,7 +23,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.ArtifactManager;
@@ -87,7 +86,7 @@ public class MavenPomReader
                               final String... activeProfileLocations )
         throws GalleyMavenException
     {
-        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
+        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
 
         DocRef<ProjectVersionRef> dr;
         try
@@ -103,7 +102,7 @@ public class MavenPomReader
         stack.add( dr );
 
         ProjectVersionRef next = xml.getParentRef( dr.getDoc() );
-        while ( next != null && dr != null )
+        while ( next != null )
         {
             try
             {
@@ -204,7 +203,7 @@ public class MavenPomReader
             }
 
             final Document doc = xml.parse( transfer, new EventMetadata() );
-            dr = new DocRef<ProjectVersionRef>( ref, transfer.getLocation()
+            dr = new DocRef<>( ref, transfer.getLocation()
                                                              .toString(), doc );
 
             if ( cache )
@@ -225,7 +224,7 @@ public class MavenPomReader
         if ( dr == null )
         {
             final Document doc = xml.parse( pom, eventMetadata );
-            dr = new DocRef<ProjectVersionRef>( ref, pom.getLocation(), doc );
+            dr = new DocRef<>( ref, pom.getLocation(), doc );
         }
 
         if ( cache )
@@ -305,7 +304,7 @@ public class MavenPomReader
                               final String... activeProfileIds )
         throws GalleyMavenException
     {
-        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
+        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
 
         ProjectVersionRef next = ref;
         do
@@ -352,7 +351,7 @@ public class MavenPomReader
             // This is a BOM, it's likely to be used in multiple locations...cache this.
             final MavenPomView imp = read( ref, locations, true );
 
-            view.addMixin( new MavenXmlMixin<ProjectVersionRef>( imp, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+            view.addMixin( new MavenXmlMixin<>( imp, MavenXmlMixin.DEPENDENCY_MIXIN ) );
         }
     }
 

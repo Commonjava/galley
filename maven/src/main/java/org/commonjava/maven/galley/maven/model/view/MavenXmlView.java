@@ -487,7 +487,7 @@ public class MavenXmlView<T>
                                                                final boolean cachePath )
         throws GalleyMavenRuntimeException
     {
-        final List<Node> result = new ArrayList<Node>();
+        final List<Node> result = new ArrayList<>();
         final List<?> iter = context.selectNodes( path );
         if ( iter != null )
         {

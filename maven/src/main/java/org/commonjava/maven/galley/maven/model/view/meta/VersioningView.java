@@ -47,7 +47,7 @@ public class VersioningView
         final List<Element> elements = getElements( "snapshotVersions/snapshotVersion" );
         if ( elements != null )
         {
-            final List<SnapshotArtifactView> views = new ArrayList<SnapshotArtifactView>();
+            final List<SnapshotArtifactView> views = new ArrayList<>();
             for ( final Element element : elements )
             {
                 views.add( new SnapshotArtifactView( xmlView, element ) );
@@ -63,7 +63,7 @@ public class VersioningView
     {
         final List<String> versionList =
             xmlView.resolveXPathToAggregatedStringListFrom( elementContext, "versions/version", true );
-        final List<SingleVersion> versions = new ArrayList<SingleVersion>();
+        final List<SingleVersion> versions = new ArrayList<>();
         if ( versionList != null && !versionList.isEmpty() )
         {
             for ( final String v : versionList )

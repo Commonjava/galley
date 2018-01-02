@@ -32,6 +32,7 @@ public class ModelProcessorConfig
         return includeManagedDependencies;
     }
 
+    @SuppressWarnings( "UnusedReturnValue" )
     public ModelProcessorConfig setIncludeManagedDependencies( boolean includeManagedDependencies )
     {
         this.includeManagedDependencies = includeManagedDependencies;
@@ -43,6 +44,7 @@ public class ModelProcessorConfig
         return includeBuildSection;
     }
 
+    @SuppressWarnings( "UnusedReturnValue" )
     public ModelProcessorConfig setIncludeBuildSection( boolean includeBuildSection )
     {
         this.includeBuildSection = includeBuildSection;
@@ -54,6 +56,7 @@ public class ModelProcessorConfig
         return includeManagedPlugins;
     }
 
+    @SuppressWarnings( "UnusedReturnValue" )
     public ModelProcessorConfig setIncludeManagedPlugins( boolean includeManagedPlugins )
     {
         this.includeManagedPlugins = includeManagedPlugins;

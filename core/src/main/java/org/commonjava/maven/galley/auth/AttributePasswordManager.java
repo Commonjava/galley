@@ -23,6 +23,7 @@ import org.commonjava.maven.galley.spi.auth.PasswordManager;
 
 @Named
 @Alternative
+@SuppressWarnings( "unused" )
 public class AttributePasswordManager
     implements PasswordManager
 {

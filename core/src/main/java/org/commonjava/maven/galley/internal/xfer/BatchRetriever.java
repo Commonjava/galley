@@ -18,7 +18,6 @@ package org.commonjava.maven.galley.internal.xfer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
@@ -103,6 +102,7 @@ public final class BatchRetriever
         return this;
     }
 
+    @SuppressWarnings( "BooleanMethodIsAlwaysInverted" )
     public boolean hasMoreTries()
     {
         return resources.size() > tries;
@@ -150,16 +150,12 @@ public final class BatchRetriever
         final BatchRetriever other = (BatchRetriever) obj;
         if ( rootResource == null )
         {
-            if ( other.rootResource != null )
-            {
-                return false;
-            }
+            return other.rootResource == null;
         }
-        else if ( !rootResource.equals( other.rootResource ) )
+        else
         {
-            return false;
+            return rootResource.equals( other.rootResource );
         }
-        return true;
     }
 
     @Override

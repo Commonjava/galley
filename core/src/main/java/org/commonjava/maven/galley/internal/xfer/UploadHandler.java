@@ -35,7 +35,6 @@ import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Resource;
-import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
@@ -54,15 +53,16 @@ public class UploadHandler
     @Inject
     private TransportManagerConfig config;
 
-    private final Map<ConcreteResource, Long> transferSizes = new ConcurrentHashMap<ConcreteResource, Long>();
+    private final Map<ConcreteResource, Long> transferSizes = new ConcurrentHashMap<>();
 
-    private final Map<Resource, Future<PublishJob>> pending = new ConcurrentHashMap<Resource, Future<PublishJob>>();
+    private final Map<Resource, Future<PublishJob>> pending = new ConcurrentHashMap<>();
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-transfers", priority = 8 )
     private ExecutorService executor;
 
+    @SuppressWarnings( "unused" )
     public UploadHandler()
     {
     }
@@ -96,7 +96,7 @@ public class UploadHandler
     }
 
     private boolean joinOrStart( final ConcreteResource resource, final int timeoutSeconds, final InputStream stream,
-                                 final long length, final String contentType, final Transport transport )
+                                 final long length, @SuppressWarnings( "unused" ) final String contentType, final Transport transport )
             throws TransferException
     {
         if ( transport == null )
@@ -117,7 +117,7 @@ public class UploadHandler
             }
         }
 
-        int waitSeconds = (int) ( timeoutSeconds * config.getTimeoutOverextensionFactor() );
+        //int waitSeconds = (int) ( timeoutSeconds * config.getTimeoutOverextensionFactor() );
         int tries = 1;
         try
         {

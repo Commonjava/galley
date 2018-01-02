@@ -107,7 +107,6 @@ public class HttpImpl
         {
             throw new TransferLocationException( location, "Failed to initialize http client: %s", e, e.getMessage() );
         }
-        finally{}
     }
 
     private int getProxyPort( final HttpLocation location )

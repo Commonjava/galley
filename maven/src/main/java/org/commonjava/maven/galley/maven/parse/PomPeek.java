@@ -90,9 +90,9 @@ public class PomPeek
 
     private ProjectVersionRef key;
 
-    private final Map<String, String> elementValues = new HashMap<String, String>();
+    private final Map<String, String> elementValues = new HashMap<>();
 
-    private final Set<String> modules = new HashSet<String>();
+    private final Set<String> modules = new HashSet<>();
 
     private final File pom;
 
@@ -239,7 +239,7 @@ public class PomPeek
             xml = XMLInputFactory.newFactory()
                                  .createXMLStreamReader( in );
 
-            final Stack<String> path = new Stack<String>();
+            final Stack<String> path = new Stack<>();
             while ( xml.hasNext() )
             {
                 final int evt = xml.next();
@@ -271,17 +271,7 @@ public class PomPeek
                 }
             }
         }
-        catch ( final IOException e )
-        {
-            logger.warn( "Failed to peek at POM coordinate for: " + pom + " Reason: " + e.getMessage()
-                + "\nThis POM will NOT be available as an ancestor to other models during effective-model building.", e );
-        }
-        catch ( final XMLStreamException e )
-        {
-            logger.warn( "Failed to peek at POM coordinate for: " + pom + " Reason: " + e.getMessage()
-                + "\nThis POM will NOT be available as an ancestor to other models during effective-model building.", e );
-        }
-        catch ( final FactoryConfigurationError e )
+        catch ( final IOException | FactoryConfigurationError | XMLStreamException e )
         {
             logger.warn( "Failed to peek at POM coordinate for: " + pom + " Reason: " + e.getMessage()
                 + "\nThis POM will NOT be available as an ancestor to other models during effective-model building.", e );
@@ -297,9 +287,6 @@ public class PomPeek
                 catch ( final XMLStreamException e )
                 {
                     logger.warn( "Failed to close XMLStreamReader: " + e.getMessage(), e );
-                }
-                finally
-                {
                 }
             }
 
@@ -385,59 +372,21 @@ public class PomPeek
 
     private boolean isValidVersion( final String version )
     {
-        if ( isEmpty( version ) )
-        {
-            return false;
-        }
-
-        if ( "version".equals( version ) )
-        {
-            return false;
-        }
-
-        return !"parentVersion".equals( version );
+        return !isEmpty( version ) && !"version".equals( version ) && !"parentVersion".equals( version );
 
     }
 
     private boolean isValidGroupId( final String groupId )
     {
-        if ( isEmpty( groupId ) )
-        {
-            return false;
-        }
-
-        if ( groupId.contains( "${" ) )
-        {
-            return false;
-        }
-
-        if ( "parentGroupId".equals( groupId ) )
-        {
-            return false;
-        }
-
-        return !"groupId".equals( groupId );
+        return !isEmpty( groupId ) && !groupId.contains( "${" ) && !"parentGroupId".equals( groupId )
+                && !"groupId".equals( groupId );
 
     }
 
     private boolean isValidArtifactId( final String artifactId )
     {
-        if ( isEmpty( artifactId ) )
-        {
-            return false;
-        }
-
-        if ( artifactId.contains( "${" ) )
-        {
-            return false;
-        }
-
-        if ( "parentArtifactId".equals( artifactId ) )
-        {
-            return false;
-        }
-
-        return !"artifactId".equals( artifactId );
+        return !isEmpty( artifactId ) && !artifactId.contains( "${" ) && !"parentArtifactId".equals( artifactId )
+                && !"artifactId".equals( artifactId );
 
     }
 

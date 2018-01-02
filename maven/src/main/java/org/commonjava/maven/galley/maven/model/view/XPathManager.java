@@ -80,7 +80,7 @@ public class XPathManager
     public XPathExpression getXPath( final String path, final boolean cache )
         throws XPathExpressionException
     {
-        XPathExpression expression = null;
+        XPathExpression expression;
         //        if ( cache )
         //        {
         //            synchronized ( this )
@@ -110,7 +110,7 @@ public class XPathManager
         implements XPathFunctionResolver
     {
 
-        private static InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<MavenPomView>();
+        private static InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<>();
 
         public static void setPomView( final MavenPomView pom )
         {
@@ -165,13 +165,7 @@ public class XPathManager
             final String value = val.item( 0 )
                                     .getTextContent();
 
-            //            logger.info( "FUNC: resolving: '{}' with pom: {}", value, pom );
-
-            final String result = pom.resolveExpressions( value );
-
-            //            logger.info( "FUNC: resolve result: '{}' with pom: {}", result, pom );
-
-            return result;
+            return pom.resolveExpressions( value );
         }
 
     }

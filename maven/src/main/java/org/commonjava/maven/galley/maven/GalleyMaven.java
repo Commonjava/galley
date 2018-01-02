@@ -76,6 +76,7 @@ public class GalleyMaven
     @Inject
     private VersionResolver versionResolver;
 
+    @SuppressWarnings( "unused" )
     protected GalleyMaven()
     {
     }

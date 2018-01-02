@@ -64,7 +64,7 @@ public class MavenSettingsReader
     public MavenSettingsView read( final File... settingsFiles )
         throws GalleyMavenException
     {
-        final List<DocRef<File>> drs = new ArrayList<DocRef<File>>();
+        final List<DocRef<File>> drs = new ArrayList<>();
 
         for ( final File f : settingsFiles )
         {
@@ -76,7 +76,7 @@ public class MavenSettingsReader
             try
             {
                 final Document doc = xml.parse( f );
-                drs.add( new DocRef<File>( f, f, doc ) );
+                drs.add( new DocRef<>( f, f, doc ) );
             }
             catch ( final GalleyMavenXMLException e )
             {
@@ -89,9 +89,7 @@ public class MavenSettingsReader
             return null;
         }
 
-        final MavenSettingsView view = new MavenSettingsView( drs, xpath, xml );
-
-        return view;
+        return new MavenSettingsView( drs, xpath, xml );
     }
 
 }

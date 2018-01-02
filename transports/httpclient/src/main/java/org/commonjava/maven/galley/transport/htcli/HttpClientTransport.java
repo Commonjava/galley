@@ -127,6 +127,7 @@ public class HttpClientTransport
         final String uri = location.getUri();
         try
         {
+            //noinspection ConstantConditions
             return uri != null && uri.startsWith( "http" ) && new URL( location.getUri() ) != null; // hack, but just verify that the URL parses.
         }
         catch ( final MalformedURLException e )

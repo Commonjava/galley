@@ -153,7 +153,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
             final List<Node> nodes = getNodes( path );
             if ( nodes != null )
             {
-                final List<Element> elements = new ArrayList<Element>();
+                final List<Element> elements = new ArrayList<>();
                 for ( final Node node : nodes )
                 {
                     elements.add( (Element) node );
@@ -165,7 +165,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
         else
         {
             final NodeList nl = getCollapsedElement().getChildNodes();
-            final List<Element> elements = new ArrayList<Element>();
+            final List<Element> elements = new ArrayList<>();
             for ( int i = 0; i < nl.getLength(); i++ )
             {
                 final Node node = nl.item( i );
@@ -221,7 +221,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
     {
         if ( isElementStackEmpty( elements ) )
         {
-            this.elements = new ArrayList<Element>();
+            this.elements = new ArrayList<>();
         }
         addElement( other.getCollapsedElement() );
     }
@@ -230,7 +230,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
     {
         if ( isElementStackEmpty( elementsAwaitingCollapse ) )
         {
-            this.elementsAwaitingCollapse = new ArrayList<Element>();
+            this.elementsAwaitingCollapse = new ArrayList<>();
         }
         elementsAwaitingCollapse.add( other );
     }
@@ -281,13 +281,14 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
      * @param step Iteration counter.
      * @return Final collapsed element.
      */
+    @SuppressWarnings( "UnusedReturnValue" )
     private Element addToCollapsedChildElements( Element current, int step )
     {
         List<Element> parents = elementsAwaitingCollapse;
         while ( !isElementStackEmpty( parents ) && step < parents.size() )
         {
             NodeList originalElementChildNodeList = current.getChildNodes();
-            List<String> originalElementChildNameList = new ArrayList<String>();
+            List<String> originalElementChildNameList = new ArrayList<>();
             for ( int i = 0; i <= originalElementChildNodeList.getLength(); i++ )
             {
                 Node node = originalElementChildNodeList.item( i );
@@ -328,13 +329,6 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 
     private boolean isElementStackEmpty( List<Element> elements )
     {
-        if ( null == elements || elements.isEmpty() )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return null == elements || elements.isEmpty();
     }
 }

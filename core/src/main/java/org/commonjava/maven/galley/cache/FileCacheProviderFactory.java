@@ -40,6 +40,7 @@ public class FileCacheProviderFactory
         this.cacheDir = cacheDir;
     }
 
+    @SuppressWarnings( "RedundantThrows" )
     @Override
     public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecorator transferDecorator,
                                  FileEventManager fileEventManager )

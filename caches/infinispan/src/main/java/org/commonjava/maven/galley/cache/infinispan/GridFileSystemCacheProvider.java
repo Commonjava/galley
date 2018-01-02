@@ -27,9 +27,6 @@ import org.infinispan.io.GridFilesystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.inject.Alternative;
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -162,7 +159,7 @@ public class GridFileSystemCacheProvider
             return null;
         }
 
-        final List<String> list = new ArrayList<String>( Arrays.asList( listing ) );
+        final List<String> list = new ArrayList<>( Arrays.asList( listing ) );
         for ( final Iterator<String> it = list.iterator(); it.hasNext(); )
         {
             final String fname = it.next();

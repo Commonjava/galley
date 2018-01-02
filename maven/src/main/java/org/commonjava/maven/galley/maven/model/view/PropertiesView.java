@@ -39,11 +39,15 @@ public class PropertiesView
         List<Element> elements = getElements( "*" );
         Properties result = new Properties();
 
-        for ( Element e : elements )
+        if ( elements != null )
         {
-            Node value = e.getFirstChild();
-            result.setProperty( e.getNodeName(), (value == null ? "" :
-                            getPomView().resolveExpressions( e.getFirstChild().getNodeValue() ) ) );
+            for ( Element e : elements )
+            {
+                Node value = e.getFirstChild();
+                result.setProperty( e.getNodeName(), ( value == null ?
+                        "" :
+                        getPomView().resolveExpressions( e.getFirstChild().getNodeValue() ) ) );
+            }
         }
         return result;
     }

@@ -31,6 +31,7 @@ import java.io.InputStream;
 /**
  * Created by ruhan on 4/25/17.
  */
+@SuppressWarnings( "unused" )
 @Alternative
 @Named
 public class NoCacheTransferDecorator
@@ -45,6 +46,7 @@ public class NoCacheTransferDecorator
         this.specialPathManager = specialPathManager;
     }
 
+    @SuppressWarnings( "RedundantThrows" )
     @Override
     public InputStream decorateRead( final InputStream stream, final Transfer transfer,
                                      final EventMetadata eventMetadata ) throws IOException
@@ -52,7 +54,7 @@ public class NoCacheTransferDecorator
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer, eventMetadata.getPackageType() );
 
         logger.trace( "SpecialPathInfo for: {} is: {} (cachable? {})", transfer, specialPathInfo,
-                      ( specialPathInfo == null ? true : specialPathInfo.isCachable() ) );
+                      ( specialPathInfo == null || specialPathInfo.isCachable() ) );
 
         if ( specialPathInfo != null && !specialPathInfo.isCachable() )
         {

@@ -85,16 +85,12 @@ public class PasswordEntry
         }
         if ( passwordType == null )
         {
-            if ( other.passwordType != null )
-            {
-                return false;
-            }
+            return other.passwordType == null;
         }
-        else if ( !passwordType.equals( other.passwordType ) )
+        else
         {
-            return false;
+            return passwordType.equals( other.passwordType );
         }
-        return true;
     }
 
 }

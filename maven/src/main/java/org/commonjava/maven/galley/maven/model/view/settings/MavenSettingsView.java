@@ -46,7 +46,7 @@ public class MavenSettingsView
     public List<MirrorView> getMirrors()
     {
         final List<Node> nodes = resolveXPathToAggregatedNodeList( "/settings/mirrors", true, -1 );
-        final List<MirrorView> result = new ArrayList<MirrorView>();
+        final List<MirrorView> result = new ArrayList<>();
         for ( final Node node : nodes )
         {
             result.add( new MirrorView( this, (Element) node ) );

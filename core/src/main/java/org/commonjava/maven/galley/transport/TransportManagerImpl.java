@@ -46,7 +46,7 @@ public class TransportManagerImpl
 
     public TransportManagerImpl( final Transport... transports )
     {
-        this.transports = new ArrayList<Transport>( Arrays.asList( transports ) );
+        this.transports = new ArrayList<>( Arrays.asList( transports ) );
     }
 
     public TransportManagerImpl( final List<Transport> transports )
@@ -57,7 +57,7 @@ public class TransportManagerImpl
     @PostConstruct
     protected void setup()
     {
-        final List<Transport> transports = new ArrayList<Transport>();
+        final List<Transport> transports = new ArrayList<>();
         if ( injected != null )
         {
             for ( final Transport transport : injected )
@@ -69,6 +69,7 @@ public class TransportManagerImpl
         this.transports = transports;
     }
 
+    @SuppressWarnings( "RedundantThrows" )
     @Override
     public Transport getTransport( final Location location )
         throws TransferException

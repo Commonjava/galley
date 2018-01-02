@@ -34,6 +34,7 @@ public class FileNotFoundEvent
         this.resource = resource;
         this.eventMetadata = eventMetadata;
         MDC.put( FileEvent.CREATION_THREAD_NAME, Thread.currentThread().getName() );
+        //noinspection unchecked
         contextMap = MDC.getCopyOfContextMap();
     }
 

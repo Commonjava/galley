@@ -103,6 +103,7 @@ public class ZipListing
         {
             if ( zf != null )
             {
+                //noinspection EmptyCatchBlock
                 try
                 {
                     zf.close();

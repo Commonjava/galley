@@ -16,11 +16,6 @@
 package org.commonjava.maven.galley.transport.htcli;
 
 import java.io.Closeable;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.cert.X509Certificate;
-import java.util.Enumeration;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;

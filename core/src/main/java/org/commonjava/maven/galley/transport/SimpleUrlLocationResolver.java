@@ -56,6 +56,7 @@ public class SimpleUrlLocationResolver
     @Inject
     private TransportManager transportManager;
 
+    @SuppressWarnings( "unused" )
     protected SimpleUrlLocationResolver()
     {
     }
@@ -77,7 +78,7 @@ public class SimpleUrlLocationResolver
             throw new TransferException( "Invalid location: '%s'. Location expansion returned no results.", spec );
         }
 
-        for ( final Iterator<Location> iterator = new ArrayList<Location>( locations ).iterator(); iterator.hasNext(); )
+        for ( final Iterator<Location> iterator = new ArrayList<>( locations ).iterator(); iterator.hasNext(); )
         {
             final Location loc = iterator.next();
 
@@ -90,7 +91,7 @@ public class SimpleUrlLocationResolver
             }
         }
 
-        if ( locations == null || locations.isEmpty() )
+        if ( locations.isEmpty() )
         {
             throw new TransferException( "Invalid location: '%s'. No transports available for expanded locations.",
                                          spec );

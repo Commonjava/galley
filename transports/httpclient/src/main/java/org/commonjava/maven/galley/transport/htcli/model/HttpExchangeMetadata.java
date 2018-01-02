@@ -35,9 +35,9 @@ public class HttpExchangeMetadata
 
     protected static final Object CONTENT_LENGTH = "CONTENT-LENGTH";
 
-    protected Map<String, List<String>> requestHeaders = new HashMap<String, List<String>>();
+    protected Map<String, List<String>> requestHeaders = new HashMap<>();
 
-    protected Map<String, List<String>> responseHeaders = new HashMap<String, List<String>>();
+    protected Map<String, List<String>> responseHeaders = new HashMap<>();
 
     protected String responseStatusMessage;
 
@@ -64,7 +64,7 @@ public class HttpExchangeMetadata
             List<String> values = headerMap.get( header.getName() );
             if ( values == null )
             {
-                values = new ArrayList<String>();
+                values = new ArrayList<>();
                 headerMap.put( header.getName()
                                      .toUpperCase(), values );
             }

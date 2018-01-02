@@ -39,6 +39,7 @@ public class ExistenceHandler
     @Inject
     private NotFoundCache nfc;
 
+    @SuppressWarnings( "unused" )
     public ExistenceHandler()
     {
     }
@@ -97,7 +98,7 @@ public class ExistenceHandler
                 nfc.addMissing( resource );
             }
 
-            return result;
+            return result == null ? false : result;
         }
         catch ( final TimeoutException e )
         {

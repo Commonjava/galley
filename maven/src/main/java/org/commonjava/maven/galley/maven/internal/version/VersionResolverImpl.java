@@ -231,7 +231,7 @@ public class VersionResolverImpl
                                                                             final EventMetadata eventMetadata )
         throws TransferException
     {
-        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )
         {
             try
@@ -255,7 +255,7 @@ public class VersionResolverImpl
             return null;
         }
 
-        final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+        final List<SingleVersion> versions = new ArrayList<>( available.keySet() );
         Collections.sort( versions );
 
         final SingleVersion selected = selectionStrategy.select( versions );
@@ -285,9 +285,9 @@ public class VersionResolverImpl
                                                                            final EventMetadata eventMetadata )
         throws TransferException
     {
-        nextLoc: for ( final Location location : locations )
+        for ( final Location location : locations )
         {
-            final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+            final Map<SingleVersion, Location> available = new TreeMap<>();
             try
             {
                 final MavenMetadataView metadata =
@@ -305,7 +305,7 @@ public class VersionResolverImpl
 
             if ( !available.isEmpty() )
             {
-                final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+                final List<SingleVersion> versions = new ArrayList<>( available.keySet() );
                 Collections.sort( versions );
 
                 final SingleVersion selected = selectionStrategy.select( versions );
@@ -363,7 +363,7 @@ public class VersionResolverImpl
                                                                          final EventMetadata eventMetadata )
         throws TransferException
     {
-        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )
         {
             try
@@ -407,7 +407,7 @@ public class VersionResolverImpl
         {
             final VersionSpec spec = ref.getVersionSpec();
 
-            final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+            final List<SingleVersion> versions = new ArrayList<>( available.keySet() );
             Collections.sort( versions );
             while ( !versions.isEmpty() )
             {
@@ -447,7 +447,7 @@ public class VersionResolverImpl
     {
         nextLoc: for ( final Location location : locations )
         {
-            final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+            final Map<SingleVersion, Location> available = new TreeMap<>();
             try
             {
                 final MavenMetadataView metadata =
@@ -488,7 +488,7 @@ public class VersionResolverImpl
             {
                 final VersionSpec spec = ref.getVersionSpec();
 
-                final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+                final List<SingleVersion> versions = new ArrayList<>( available.keySet() );
                 Collections.sort( versions );
                 while ( !versions.isEmpty() )
                 {
@@ -510,6 +510,7 @@ public class VersionResolverImpl
         return null;
     }
 
+    @SuppressWarnings( "RegExpRedundantEscape" )
     private void debug( final String message, final Throwable e, final Object... params )
     {
         final String format = message.replaceAll( "\\{\\}", "%s" ) + "\n%s\n  %s";
@@ -534,7 +535,7 @@ public class VersionResolverImpl
                                                                               final EventMetadata eventMetadata )
         throws TransferException
     {
-        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )
         {
             try
@@ -576,11 +577,11 @@ public class VersionResolverImpl
 
         if ( !available.isEmpty() )
         {
-            final List<ProjectVersionRefLocation> result = new ArrayList<ProjectVersionRefLocation>();
+            final List<ProjectVersionRefLocation> result = new ArrayList<>();
 
             final VersionSpec spec = ref.getVersionSpec();
 
-            final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+            final List<SingleVersion> versions = new ArrayList<>( available.keySet() );
             Collections.sort( versions );
             while ( !versions.isEmpty() )
             {
@@ -599,7 +600,7 @@ public class VersionResolverImpl
             return result;
         }
 
-        return Collections.<ProjectVersionRefLocation> emptyList();
+        return Collections.emptyList();
     }
 
     private List<ProjectVersionRefLocation> resolveAllSnapshotRefsWithLocations( final List<? extends Location> locations,
@@ -608,7 +609,7 @@ public class VersionResolverImpl
                                                                                  final EventMetadata eventMetadata )
         throws TransferException
     {
-        final Map<SingleVersion, Location> available = new TreeMap<SingleVersion, Location>();
+        final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )
         {
             try
@@ -651,10 +652,10 @@ public class VersionResolverImpl
             return Collections.emptyList();
         }
 
-        final List<SingleVersion> versions = new ArrayList<SingleVersion>( available.keySet() );
+        final List<SingleVersion> versions = new ArrayList<>( available.keySet() );
         Collections.sort( versions );
 
-        final List<ProjectVersionRefLocation> result = new ArrayList<ProjectVersionRefLocation>();
+        final List<ProjectVersionRefLocation> result = new ArrayList<>();
 
         while ( !versions.isEmpty() )
         {

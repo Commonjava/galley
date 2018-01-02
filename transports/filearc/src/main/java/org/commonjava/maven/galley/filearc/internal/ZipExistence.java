@@ -92,6 +92,7 @@ public class ZipExistence
         {
             if ( zf != null )
             {
+                //noinspection EmptyCatchBlock
                 try
                 {
                     zf.close();

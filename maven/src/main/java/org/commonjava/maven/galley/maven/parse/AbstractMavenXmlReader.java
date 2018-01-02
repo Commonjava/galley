@@ -32,7 +32,7 @@ import org.commonjava.maven.galley.spi.transport.LocationExpander;
 public abstract class AbstractMavenXmlReader<T>
 {
 
-    private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<DocCacheKey<T>, WeakReference<DocRef<T>>>();
+    private final Map<DocCacheKey<T>, WeakReference<DocRef<T>>> cache = new ConcurrentHashMap<>();
 
     @Inject
     protected XMLInfrastructure xml;
@@ -52,7 +52,7 @@ public abstract class AbstractMavenXmlReader<T>
 
     protected synchronized void cache( final DocRef<T> dr )
     {
-        cache.put( new DocCacheKey<T>( dr ), new WeakReference<DocRef<T>>( dr ) );
+        cache.put( new DocCacheKey<>( dr ), new WeakReference<>( dr ) );
     }
 
     protected synchronized DocRef<T> getFirstCached( final T ref, final Collection<? extends Location> locations )
@@ -60,7 +60,7 @@ public abstract class AbstractMavenXmlReader<T>
     {
         for ( final Location location : locationExpander.expand( locations ) )
         {
-            final DocCacheKey<T> key = new DocCacheKey<T>( ref, location );
+            final DocCacheKey<T> key = new DocCacheKey<>( ref, location );
             final WeakReference<DocRef<T>> reference = cache.get( key );
             if ( reference != null )
             {
@@ -81,10 +81,10 @@ public abstract class AbstractMavenXmlReader<T>
 
     protected synchronized Map<Location, DocRef<T>> getAllCached( final T ref, final List<? extends Location> locations )
     {
-        final Map<Location, DocRef<T>> result = new HashMap<Location, DocRef<T>>();
+        final Map<Location, DocRef<T>> result = new HashMap<>();
         for ( final Location location : locations )
         {
-            final DocCacheKey<T> key = new DocCacheKey<T>( ref, location );
+            final DocCacheKey<T> key = new DocCacheKey<>( ref, location );
             final WeakReference<DocRef<T>> reference = cache.get( key );
             if ( reference != null )
             {
@@ -161,16 +161,12 @@ public abstract class AbstractMavenXmlReader<T>
             }
             if ( ref == null )
             {
-                if ( other.ref != null )
-                {
-                    return false;
-                }
+                return other.ref == null;
             }
-            else if ( !ref.equals( other.ref ) )
+            else
             {
-                return false;
+                return ref.equals( other.ref );
             }
-            return true;
         }
     }
 }

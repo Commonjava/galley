@@ -16,7 +16,6 @@
 package org.commonjava.maven.galley.cache.routes;
 
 import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.slf4j.Logger;
@@ -26,7 +25,6 @@ import javax.enterprise.inject.Alternative;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Map;
 
 @Alternative
 public class RoutingCacheProviderWrapper
