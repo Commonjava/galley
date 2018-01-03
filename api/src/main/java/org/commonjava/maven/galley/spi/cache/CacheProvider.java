@@ -34,6 +34,8 @@ public interface CacheProvider
 
     String STORAGE_PATH = "storage-path";
 
+    String STORE_HTTP_HEADERS = "store-http-headers";
+
     Set<String> HIDDEN_SUFFIXES = Collections.unmodifiableSet( new HashSet<String>()
     {
         {
