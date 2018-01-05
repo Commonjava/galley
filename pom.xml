@@ -50,8 +50,8 @@
     <projectOwner>Red Hat, Inc.</projectOwner>
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.17.2</atlasVersion>
-    <partylineVersion>1.12</partylineVersion>
-    <weftVersion>1.5</weftVersion>
+    <partylineVersion>1.13-SNAPSHOT</partylineVersion>
+    <weftVersion>1.6-SNAPSHOT</weftVersion>
     <jhttpcVersion>1.5</jhttpcVersion>
     <infinispanVersion>8.1.2.Final</infinispanVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
@@ -328,6 +328,10 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.cdi.util</groupId>
+      <artifactId>weft</artifactId>
     </dependency>
   </dependencies>
 

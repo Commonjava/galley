@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.cache.partyline;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.commonjava.cdi.util.weft.ContextSensitiveWeakHashMap;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -41,7 +42,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class PartyLineCacheProvider
@@ -50,10 +50,7 @@ public class PartyLineCacheProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    //FIX: use WeakHashMap to avoid potential OOM problem of un-releasing entry in map in long-run case.
-    //     As all map operations in this class are in synchronized block, the ConcurrentHashMap is not needed.
-    private final Map<ConcreteResource, Transfer> transferCache =
-        new WeakHashMap<>( 10000 );
+    private final Map<ConcreteResource, Transfer> transferCache = new ContextSensitiveWeakHashMap();
 
     private final JoinableFileManager fileManager = new JoinableFileManager();
 
