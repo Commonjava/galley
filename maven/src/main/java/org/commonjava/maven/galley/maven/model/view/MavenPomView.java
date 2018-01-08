@@ -56,6 +56,7 @@ public class MavenPomView
 
     public static final String ALL_PROFILES = "*";
 
+    @SuppressWarnings( "RegExpRedundantEscape" )
     private static final String EXPRESSION_PATTERN = ".*\\$\\{.+\\}.*";
 
     private static final String TEXT_SUFFIX = "/text()";
@@ -92,7 +93,7 @@ public class MavenPomView
         super( stack, xpath, xml, "/project/parent", "/project/artifactId" );
 
         this.pluginImplications = pluginImplications;
-        this.activeProfileIds = new HashSet<String>( Arrays.asList( activeProfileIds ) );
+        this.activeProfileIds = new HashSet<>( Arrays.asList( activeProfileIds ) );
 
         if ( stack.isEmpty() )
         {
@@ -118,7 +119,7 @@ public class MavenPomView
      */
     public Set<String> getProfileIds()
     {
-        return new HashSet<String>( resolveXPathExpressionToAggregatedList( "/profiles/profile/id/text()", false, -1 ) );
+        return new HashSet<>( resolveXPathExpressionToAggregatedList( "/profiles/profile/id/text()", false, -1 ) );
     }
 
     public String resolveMavenExpression( final String expression, final String... activeProfileIds )
@@ -242,8 +243,8 @@ public class MavenPomView
             "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]";
         //        final String xp = "./project/dependencies/dependency";
         final List<MavenPomElementView> depNodes = resolveXPathToAggregatedElementViewList( xp, true, -1 );
-        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
-        final Set<DependencyView> seen = new HashSet<DependencyView>();
+        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
+        final Set<DependencyView> seen = new HashSet<>();
         for ( final MavenPomElementView node : depNodes )
         {
             DependencyView dv = new DependencyView( node.getPomView(), node.getCollapsedElement(), node.getOriginInfo() );
@@ -273,7 +274,7 @@ public class MavenPomView
         final List<MavenPomElementView> depNodes =
             resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[not(scope/text()=\"import\")]",
                                                      true, -1 );
-        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
+        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
             depViews.add( new DependencyView( node.getPomView(), node.getCollapsedElement(), node.getOriginInfo() ) );
@@ -292,8 +293,8 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<DependencyView> raw = getAllManagedDependenciesUnfiltered();
-        final List<DependencyView> depViews = new ArrayList<DependencyView>( raw.size() );
-        final Set<DependencyView> seen = new HashSet<DependencyView>();
+        final List<DependencyView> depViews = new ArrayList<>( raw.size() );
+        final Set<DependencyView> seen = new HashSet<>();
         for ( final DependencyView dv : raw )
         {
             if ( seen.add( dv ) )
@@ -321,7 +322,7 @@ public class MavenPomView
         final List<MavenPomElementView> depNodes =
             resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[not(scope/text()=\"import\")]",
                                                      true, -1, false );
-        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
+        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
             depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
@@ -342,7 +343,7 @@ public class MavenPomView
             resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[type/text()=\"pom\" and scope/text()=\"import\"]",
                                                      true, -1 );
 
-        final List<DependencyView> depViews = new ArrayList<DependencyView>( depNodes.size() );
+        final List<DependencyView> depViews = new ArrayList<>( depNodes.size() );
         for ( final MavenPomElementView node : depNodes )
         {
             depViews.add( new DependencyView( node.getPomView(), node.getElement(), node.getOriginInfo() ) );
@@ -361,11 +362,11 @@ public class MavenPomView
      * @param localOnly If true, only consider values in the local XML document and any available mix-ins (eg.
      *   BOMs)
      */
+    @SuppressWarnings( "ConfusingArgumentToVarargsMethod" )
     public String resolveXPathExpression( final String path, final boolean localOnly )
         throws GalleyMavenException
     {
-        final String value = resolveXPathExpression( path, true, localOnly ? 0 : -1, null );
-        return value;
+        return resolveXPathExpression( path, true, localOnly ? 0 : -1, null );
     }
 
     /**
@@ -416,8 +417,7 @@ public class MavenPomView
     public synchronized Node resolveXPathToNode( final String path, final boolean localOnly )
         throws GalleyMavenException
     {
-        final Node node = resolveXPathToNode( path, true, localOnly ? 0 : -1 );
-        return node;
+        return resolveXPathToNode( path, true, localOnly ? 0 : -1 );
     }
 
     /**
@@ -559,7 +559,7 @@ public class MavenPomView
     {
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//build/extensions/extension", true, -1 );
-        final List<ExtensionView> result = new ArrayList<ExtensionView>( list.size() );
+        final List<ExtensionView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -581,7 +581,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
-        final List<PluginView> result = new ArrayList<PluginView>( list.size() );
+        final List<PluginView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -603,7 +603,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
-        final List<DependencyView> result = new ArrayList<DependencyView>( list.size() );
+        final List<DependencyView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -626,7 +626,7 @@ public class MavenPomView
     {
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//build/plugins/plugin", true, -1 );
-        final List<PluginView> result = new ArrayList<PluginView>( list.size() );
+        final List<PluginView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -650,7 +650,7 @@ public class MavenPomView
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
 
-        final List<PluginView> result = new ArrayList<PluginView>( list.size() );
+        final List<PluginView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -672,7 +672,7 @@ public class MavenPomView
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//repositories/repository", true, -1 );
 
-        final List<RepositoryView> result = new ArrayList<RepositoryView>( list.size() );
+        final List<RepositoryView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -710,7 +710,7 @@ public class MavenPomView
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//pluginRepositories/pluginRepository", true, -1 );
 
-        final List<RepositoryView> result = new ArrayList<RepositoryView>( list.size() );
+        final List<RepositoryView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -729,7 +729,7 @@ public class MavenPomView
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//repositories/repository", true, -1 );
 
-        final List<RepositoryView> result = new ArrayList<RepositoryView>( list.size() );
+        final List<RepositoryView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -752,7 +752,7 @@ public class MavenPomView
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//pluginRepositories/pluginRepository", true, -1 );
 
-        final List<RepositoryView> result = new ArrayList<RepositoryView>( list.size() );
+        final List<RepositoryView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -779,7 +779,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
-        final List<ProjectVersionRefView> result = new ArrayList<ProjectVersionRefView>( list.size() );
+        final List<ProjectVersionRefView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -802,7 +802,7 @@ public class MavenPomView
         throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
-        final List<ProjectRefView> result = new ArrayList<ProjectRefView>( list.size() );
+        final List<ProjectRefView> result = new ArrayList<>( list.size() );
         for ( final MavenPomElementView node : list )
         {
             if ( node == null )
@@ -829,7 +829,7 @@ public class MavenPomView
     {
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//properties", true, -1 );
-        final List<PropertiesView> result = new ArrayList<PropertiesView>( list.size() );
+        final List<PropertiesView> result = new ArrayList<>( list.size() );
 
         for ( final MavenPomElementView node : list )
         {
@@ -894,7 +894,7 @@ public class MavenPomView
         }
 
         int ancestryDepth = 0;
-        final List<MavenPomElementView> result = new ArrayList<MavenPomElementView>();
+        final List<MavenPomElementView> result = new ArrayList<>();
         for ( final DocRef<ProjectVersionRef> dr : stack )
         {
             if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
@@ -924,6 +924,7 @@ public class MavenPomView
                 }
 
                 final MavenPomView mixinView = (MavenPomView) mixin.getMixin();
+                @SuppressWarnings( "ConstantConditions" )
                 final List<MavenPomElementView> nodes =
                     mixinView.resolveXPathToAggregatedElementViewList( path, cachePath, maxAncestry, includeMixins );
                 if ( nodes != null )
@@ -960,7 +961,7 @@ public class MavenPomView
         final String p = trimTextSuffix( path );
 
         final List<Node> nodes = resolveXPathToNodeListFrom( context, p, true );
-        final List<String> result = new ArrayList<String>( nodes.size() );
+        final List<String> result = new ArrayList<>( nodes.size() );
         for ( final Node node : nodes )
         {
             if ( node != null && node.getNodeType() == Node.TEXT_NODE )
@@ -1022,7 +1023,7 @@ public class MavenPomView
         final String p = trimTextSuffix( path );
 
         final List<Node> nodes = resolveXPathToAggregatedNodeList( p, cachePath, maxAncestry );
-        final List<String> result = new ArrayList<String>( nodes.size() );
+        final List<String> result = new ArrayList<>( nodes.size() );
         for ( final Node node : nodes )
         {
             if ( node != null && node.getNodeType() == Node.TEXT_NODE )
@@ -1104,7 +1105,7 @@ public class MavenPomView
 
         private final MavenPomView view;
 
-        private final List<Object> feedback = new ArrayList<Object>();
+        private final List<Object> feedback = new ArrayList<>();
 
         private final String[] activeProfileIds;
 
@@ -1135,9 +1136,7 @@ public class MavenPomView
         {
             try
             {
-                final String value = view.resolveMavenExpression( expr, ri, activeProfileIds );
-                //                logger.info( "Value of: '{}' is: '{}'", expr, value );
-                return value;
+                return view.resolveMavenExpression( expr, ri, activeProfileIds );
             }
             catch ( final GalleyMavenException e )
             {

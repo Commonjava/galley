@@ -28,7 +28,7 @@ public interface ChecksummingDecoratorAdvisor
     {
         NO_DECORATE,
         CALCULATE_NO_WRITE,
-        CALCULATE_AND_WRITE;
+        CALCULATE_AND_WRITE
     }
 
     ChecksumAdvice getDecorationAdvice( Transfer transfer, TransferOperation operation, EventMetadata eventMetadata );

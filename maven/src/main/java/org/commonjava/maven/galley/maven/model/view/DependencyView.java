@@ -24,7 +24,6 @@ import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationExcep
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -131,7 +130,7 @@ public class DependencyView
             final List<XmlNodeInfo> nodes = getFirstNodesWithManagement( EXCLUSIONS );
             if ( nodes != null )
             {
-                final Set<ProjectRefView> exclusions = new HashSet<ProjectRefView>();
+                final Set<ProjectRefView> exclusions = new HashSet<>();
                 for ( final XmlNodeInfo node : nodes )
                 {
                     exclusions.add( new MavenGAView( xmlView, (Element) node.getNode(), node.getOriginInfo() ) );
@@ -225,13 +224,7 @@ public class DependencyView
         {
             return new SimpleArtifactRef( asProjectVersionRef(), getType(), getClassifier() );
         }
-        catch ( final IllegalArgumentException e )
-        {
-            final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render SimpleArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
-                                            getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
-        }
-        catch ( final InvalidVersionSpecificationException e )
+        catch ( final IllegalArgumentException | InvalidVersionSpecificationException e )
         {
             final String classifier = getClassifier();
             throw new GalleyMavenException( "Cannot render SimpleArtifactRef: {}:{}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(), getVersion(),
@@ -246,13 +239,7 @@ public class DependencyView
         {
             return new SimpleVersionlessArtifactRef( asProjectRef(), getType(), getClassifier() );
         }
-        catch ( final IllegalArgumentException e )
-        {
-            final String classifier = getClassifier();
-            throw new GalleyMavenException( "Cannot render VersionlessArtifactRef: {}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(),
-                                            getRawType(), ( classifier == null ? "" : ":" + classifier ), e.getMessage() );
-        }
-        catch ( final InvalidVersionSpecificationException e )
+        catch ( final IllegalArgumentException | InvalidVersionSpecificationException e )
         {
             final String classifier = getClassifier();
             throw new GalleyMavenException( "Cannot render VersionlessArtifactRef: {}:{}:{}{}. Reason: {}", e, getGroupId(), getArtifactId(),
@@ -339,11 +326,6 @@ public class DependencyView
             return false;
         }
 
-        if ( !type.equals( otype ) )
-        {
-            return false;
-        }
-
-        return true;
+        return type.equals( otype );
     }
 }

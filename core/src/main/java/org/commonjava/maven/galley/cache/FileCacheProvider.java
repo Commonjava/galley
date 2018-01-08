@@ -28,9 +28,6 @@ import org.commonjava.maven.galley.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.inject.Alternative;
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -52,7 +49,7 @@ public class FileCacheProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<ConcreteResource, Transfer>( 10000 );
+    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<>( 10000 );
 
     private FileCacheProviderConfig config;
 
@@ -150,12 +147,9 @@ public class FileCacheProvider
 
     private File getRawFile( ConcreteResource resource )
     {
-        final String altDir = resource.getLocation()
-                                      .getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
+        resource.getLocation().getAttribute( Location.ATTR_ALT_STORAGE_LOCATION, String.class );
 
-        File f = new File( getFilePath( resource ) );
-
-        return f;
+        return new File( getFilePath( resource ) );
     }
 
     @Override
@@ -222,6 +216,7 @@ public class FileCacheProvider
         FileUtils.copyFile( getDetachedFile( from ), getDetachedFile( to ) );
     }
 
+    @SuppressWarnings( "RedundantThrows" )
     @Override
     public boolean delete( final ConcreteResource resource )
         throws IOException
@@ -238,7 +233,7 @@ public class FileCacheProvider
             return null;
         }
 
-        final List<String> list = new ArrayList<String>( Arrays.asList( listing ) );
+        final List<String> list = new ArrayList<>( Arrays.asList( listing ) );
         for ( final Iterator<String> it = list.iterator(); it.hasNext(); )
         {
             final String fname = it.next();
@@ -260,6 +255,7 @@ public class FileCacheProvider
         return list.toArray( new String[list.size()] );
     }
 
+    @SuppressWarnings( "RedundantThrows" )
     @Override
     public void mkdirs( final ConcreteResource resource )
         throws IOException

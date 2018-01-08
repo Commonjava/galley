@@ -51,6 +51,7 @@ public abstract class GalleyException
             {
                 try
                 {
+                    //noinspection RegExpRedundantEscape
                     formatted = String.format( formatted.replaceAll( "\\{\\}", "%s" ), params );
                 }
                 catch ( final IllegalFormatException ife )
@@ -59,7 +60,7 @@ public abstract class GalleyException
                     {
                         formatted = MessageFormat.format( formatted, params );
                     }
-                    catch ( final IllegalArgumentException iae )
+                    catch ( final IllegalArgumentException ignored )
                     {
                     }
                 }

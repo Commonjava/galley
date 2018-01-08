@@ -25,6 +25,7 @@ import org.commonjava.maven.galley.maven.model.ProjectVersionRefLocation;
 import org.commonjava.maven.galley.maven.version.VersionSelectionStrategy;
 import org.commonjava.maven.galley.model.Location;
 
+@SuppressWarnings( "unused" )
 public interface VersionResolver
 {
 

@@ -36,6 +36,7 @@ import static org.commonjava.maven.galley.io.checksum.ChecksummingDecoratorAdvis
  *
  * Created by jdcasey on 5/5/17.
  */
+@SuppressWarnings( "DeprecatedIsStillUsed" )
 @Deprecated
 public class DeprecatedChecksummingFilter
         implements ChecksummingDecoratorAdvisor
@@ -90,7 +91,7 @@ public class DeprecatedChecksummingFilter
     {
         Set<TransferOperation> writeOperations = enabledForDecorator == null ?
                 new HashSet<TransferOperation>() :
-                new HashSet<TransferOperation>( enabledForDecorator );
+                new HashSet<>( enabledForDecorator );
 
         writeOperations.retainAll( Arrays.asList( enabledForFilter ) );
 

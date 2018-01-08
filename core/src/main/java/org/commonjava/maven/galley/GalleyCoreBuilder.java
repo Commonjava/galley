@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@SuppressWarnings( "UnusedReturnValue" )
 public class GalleyCoreBuilder
 {
 
@@ -317,7 +318,7 @@ public class GalleyCoreBuilder
 
     public GalleyCoreBuilder withEnabledTransports( final Transport... transports )
     {
-        this.transports = new ArrayList<Transport>( Arrays.asList( transports ) );
+        this.transports = new ArrayList<>( Arrays.asList( transports ) );
         return this;
     }
 
@@ -358,7 +359,7 @@ public class GalleyCoreBuilder
     {
         if ( transports == null )
         {
-            transports = new ArrayList<Transport>();
+            transports = new ArrayList<>();
         }
 
         transports.add( transport );

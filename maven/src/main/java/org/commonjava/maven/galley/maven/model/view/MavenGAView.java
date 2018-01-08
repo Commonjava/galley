@@ -142,17 +142,13 @@ public class MavenGAView
         }
         if ( groupId == null )
         {
-            if ( oGroupId != null )
-            {
-                return false;
-            }
+            return oGroupId == null;
         }
-        else if ( !groupId.equals( oGroupId ) )
+        else
         {
-            return false;
+            return groupId.equals( oGroupId );
         }
 
-        return true;
     }
 
 }

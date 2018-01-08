@@ -26,11 +26,11 @@ import java.util.Map;
  */
 public class LocationLookup
 {
-    private Map<String, WeakReference<Location>> locations = new HashMap<String, WeakReference<Location>>();
+    private Map<String, WeakReference<Location>> locations = new HashMap<>();
 
     public void register( Location location )
     {
-        locations.put( location.getName(), new WeakReference<Location>( location ) );
+        locations.put( location.getName(), new WeakReference<>( location ) );
     }
 
     public void deregister( Location location )

@@ -30,7 +30,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Manages a list of {@link TransferDecorator} instances, and applies them in a pipeline pattern. This replaces the old

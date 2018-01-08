@@ -35,7 +35,7 @@ public class SimpleLocation
 
     private final String uri;
 
-    private final Map<String, Object> attributes = new HashMap<String, Object>();
+    private final Map<String, Object> attributes = new HashMap<>();
 
     private final String name;
 
@@ -165,16 +165,12 @@ public class SimpleLocation
         final SimpleLocation other = (SimpleLocation) obj;
         if ( uri == null )
         {
-            if ( other.uri != null )
-            {
-                return false;
-            }
+            return other.uri == null;
         }
-        else if ( !uri.equals( other.uri ) )
+        else
         {
-            return false;
+            return uri.equals( other.uri );
         }
-        return true;
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.commonjava.maven.galley.transport.htcli.internal;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
@@ -78,7 +76,6 @@ public class HttpListing
         // the dependency is: org.jsoup:jsoup:1.7.2
 
         ListingResult result = null;
-        OutputStream stream = null;
         InputStream in = null;
         try
         {
@@ -89,7 +86,7 @@ public class HttpListing
                 Logger logger = LoggerFactory.getLogger( getClass() );
                 logger.debug( "Got raw listing content:\n\n{}\n\n", listing );
 
-                final ArrayList<String> al = new ArrayList<String>();
+                final ArrayList<String> al = new ArrayList<>();
 
                 // TODO: Charset!!
                 Document doc = Jsoup.parse( listing, url );
@@ -139,7 +136,6 @@ public class HttpListing
         finally
         {
             closeQuietly( in );
-            closeQuietly( stream );
             cleanup();
         }
 

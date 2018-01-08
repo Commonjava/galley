@@ -33,7 +33,7 @@ public class FilePatternMatcher
     @Override
     public boolean matches( Location location, String path )
     {
-        return path == null ? false : new File( path).getName().matches( pattern );
+        return path != null && new File( path ).getName().matches( pattern );
     }
 
     @Override

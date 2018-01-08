@@ -66,6 +66,7 @@ public class TransferMetadata
             throws IOException, ClassNotFoundException
     {
         this.size = objectInput.readLong();
+        //noinspection unchecked
         this.digests = (Map<ContentDigest, String>) objectInput.readObject();
     }
 

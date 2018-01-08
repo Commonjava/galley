@@ -30,13 +30,15 @@ public class MemoryPasswordManager
     implements PasswordManager
 {
 
-    private final Map<PasswordEntry, String> passwords = new HashMap<PasswordEntry, String>();
+    private final Map<PasswordEntry, String> passwords = new HashMap<>();
 
+    @SuppressWarnings( "unused" )
     public void setPasswordFor( final String password, final Location loc, final String type )
     {
         passwords.put( new PasswordEntry( loc, type ), password );
     }
 
+    @SuppressWarnings( "unused" )
     public void setPasswordFor( final String password, final PasswordEntry id )
     {
         passwords.put( id, password );

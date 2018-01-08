@@ -33,7 +33,7 @@ public final class DocRef<T>
 
     private final Object source;
 
-    private final Map<String, Object> attributes = new HashMap<String, Object>();
+    private final Map<String, Object> attributes = new HashMap<>();
 
     public DocRef( final T ref, final Object source, final Document doc )
     {

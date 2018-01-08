@@ -118,38 +118,30 @@ public class MavenModelProcessor
                           e );
         }
 
-        for ( final ExtensionView ext : extensions )
+        if(extensions!=null)
         {
-            if ( ext == null )
+            for ( final ExtensionView ext : extensions )
             {
-                continue;
-            }
+                if ( ext == null )
+                {
+                    continue;
+                }
 
-            try
-            {
-                final ProjectVersionRef ref = ext.asProjectVersionRef();
+                try
+                {
+                    final ProjectVersionRef ref = ext.asProjectVersionRef();
 
-                // force the InvalidVersionSpecificationException.
-                ref.getVersionSpec();
+                    // force the InvalidVersionSpecificationException.
+                    ref.getVersionSpec();
 
-                builder.withExtensions( new SimpleExtensionRelationship( source, projectRef, ref,
-                                                                   builder.getNextExtensionIndex(),
-                                                                   ext.getOriginInfo().isInherited() ) );
-            }
-            catch ( final InvalidRefException e )
-            {
-                logger.error( String.format( "%s: Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n",
-                                             pomView.getRef(), e.getMessage(), ext.toXML() ), e );
-            }
-            catch ( final InvalidVersionSpecificationException e )
-            {
-                logger.error( String.format( "%s: Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n",
-                                             pomView.getRef(), e.getMessage(), ext.toXML() ), e );
-            }
-            catch ( final GalleyMavenException e )
-            {
-                logger.error( String.format( "%s: Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n",
-                                             pomView.getRef(), e.getMessage(), ext.toXML() ), e );
+                    builder.withExtensions( new SimpleExtensionRelationship( source, projectRef, ref, builder.getNextExtensionIndex(),
+                                                                             ext.getOriginInfo().isInherited() ) );
+                }
+                catch ( final InvalidRefException | InvalidVersionSpecificationException | GalleyMavenException e )
+                {
+                    logger.error( String.format( "%s: Build extension is invalid! Reason: %s. Skipping:\n\n%s\n\n",
+                                                 pomView.getRef(), e.getMessage(), ext.toXML() ), e );
+                }
             }
         }
     }
@@ -279,7 +271,7 @@ public class MavenModelProcessor
         {
             for ( final PluginView plugin : plugins )
             {
-                ProjectVersionRef pluginRef = null;
+                ProjectVersionRef pluginRef;
                 try
                 {
                     if ( plugin.getVersion() == null )
@@ -439,29 +431,29 @@ public class MavenModelProcessor
                                          e.getMessage() ), e );
         }
 
-        for ( int i = 0; i < boms.size(); i++ )
+        if(boms!=null)
         {
-            final DependencyView bomView = boms.get( i );
-            try
+            for ( int i = 0; i < boms.size(); i++ )
             {
-                builder.withBoms( new SimpleBomRelationship( source, projectRef, bomView.asProjectVersionRef(), i,
-                                                             bomView.getOriginInfo().isInherited(),
-                                                             bomView.getOriginInfo().isMixin() ) );
-            }
-            catch ( final InvalidRefException e )
-            {
-                logger.error( String.format( "%s dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n",
-                                             pomView.getRef(), e.getMessage(), bomView.toXML() ), e );
-            }
-            catch ( final InvalidVersionSpecificationException e )
-            {
-                logger.error( String.format( "%s dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n",
-                                             pomView.getRef(), e.getMessage(), bomView.toXML() ), e );
-            }
-            catch ( final GalleyMavenException e )
-            {
-                logger.error( String.format( "%s dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n",
-                                             pomView.getRef(), e.getMessage(), bomView.toXML() ), e );
+                final DependencyView bomView = boms.get( i );
+                try
+                {
+                    builder.withBoms( new SimpleBomRelationship( source, projectRef, bomView.asProjectVersionRef(), i,
+                                                                 bomView.getOriginInfo().isInherited(),
+                                                                 bomView.getOriginInfo().isMixin() ) );
+                }
+                catch ( final InvalidRefException e )
+                {
+                    logger.error( String.format( "%s dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", pomView.getRef(), e.getMessage(), bomView.toXML() ), e );
+                }
+                catch ( final InvalidVersionSpecificationException e )
+                {
+                    logger.error( String.format( "%s dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", pomView.getRef(), e.getMessage(), bomView.toXML() ), e );
+                }
+                catch ( final GalleyMavenException e )
+                {
+                    logger.error( String.format( "%s dependency is invalid! Reason: %s. Skipping:\n\n%s\n\n", pomView.getRef(), e.getMessage(), bomView.toXML() ), e );
+                }
             }
         }
 

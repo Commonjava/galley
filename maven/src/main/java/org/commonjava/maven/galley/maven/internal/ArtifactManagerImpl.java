@@ -283,8 +283,7 @@ public class ArtifactManagerImpl
             return Collections.emptyMap();
         }
 
-        final Map<TypeAndClassifier, ConcreteResource> result =
-            new LinkedHashMap<TypeAndClassifier, ConcreteResource>();
+        final Map<TypeAndClassifier, ConcreteResource> result = new LinkedHashMap<>();
         final String prefix = String.format( "%s-%s", ref.getArtifactId(), ref.getVersionString() );
         for ( final ListingResult listingResult : listingResults )
         {
@@ -316,8 +315,7 @@ public class ArtifactManagerImpl
                         type = remainder.substring( 1 );
                     }
 
-                    final ConcreteResource res = (ConcreteResource) listingResult.getResource()
-                                                                                 .getChild( fname );
+                    final ConcreteResource res = listingResult.getResource().getChild( fname );
                     result.put( new SimpleTypeAndClassifier( type, classifier ), res );
                 }
             }
@@ -429,7 +427,7 @@ public class ArtifactManagerImpl
     private void resolveArtifactMappings( final ArtifactBatch batch, final EventMetadata eventMetadata )
         throws TransferException
     {
-        final Map<ArtifactRef, Resource> resources = new HashMap<ArtifactRef, Resource>( batch.size() );
+        final Map<ArtifactRef, Resource> resources = new HashMap<>( batch.size() );
         for ( final ArtifactRef artifact : batch )
         {
             final VirtualResource virt =
@@ -453,7 +451,7 @@ public class ArtifactManagerImpl
             final List<ProjectVersionRefLocation> resolved = resolveAllVariableVersions( locations, ref, eventMetadata );
             if ( resolved != null && !resolved.isEmpty() )
             {
-                final List<ConcreteResource> resources = new ArrayList<ConcreteResource>( resolved.size() );
+                final List<ConcreteResource> resources = new ArrayList<>( resolved.size() );
                 for ( final ProjectVersionRefLocation result : resolved )
                 {
                     resources.add( new ConcreteResource( result.getLocation(), formatArtifactPath( ref, mapper ) ) );

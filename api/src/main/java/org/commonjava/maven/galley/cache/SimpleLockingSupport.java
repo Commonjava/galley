@@ -35,7 +35,7 @@ public class SimpleLockingSupport
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Map<ConcreteResource, WeakReference<Thread>> lock =
-        new HashMap<ConcreteResource, WeakReference<Thread>>();
+        new HashMap<>();
 
     private ReportingTask reporter;
 
@@ -102,8 +102,8 @@ public class SimpleLockingSupport
             }
             else
             {
-                logger.debug( "{} locked by: {}. Returning.", resource, reference.get()
-                                                                                 .getName() );
+                final Thread thread = reference.get();
+                logger.debug( "{} locked by: {}. Returning.", resource, thread == null ? null : thread.getName() );
             }
         }
     }
@@ -123,14 +123,15 @@ public class SimpleLockingSupport
                 }
                 else
                 {
-                    logger.debug( "{} already locked by: {}. Waiting.", resource, reference.get()
-                                                                                           .getName() );
+                    final Thread thread = reference.get();
+                    logger.debug( "{} already locked by: {}. Waiting.", resource,
+                                  thread == null ? null : thread.getName() );
                     waitForUnlock( resource );
                 }
             }
 
             logger.debug( "Locking: {} in: {}.", resource, me.getName() );
-            lock.put( resource, new WeakReference<Thread>( Thread.currentThread() ) );
+            lock.put( resource, new WeakReference<>( Thread.currentThread() ) );
             lock.notifyAll();
         }
     }
@@ -139,20 +140,20 @@ public class SimpleLockingSupport
     {
         final long id = Thread.currentThread()
                               .getId();
-        for ( final ConcreteResource res : new HashSet<ConcreteResource>( lock.keySet() ) )
+        for ( final ConcreteResource res : new HashSet<>( lock.keySet() ) )
         {
             final WeakReference<Thread> ref = lock.get( res );
             if ( ref != null )
             {
                 boolean rm = false;
-                if ( ref.get() == null )
+                final Thread thread = ref.get();
+                if ( thread == null )
                 {
                     logger.debug( "Cleaning up lock: {} for thread: {}", res, Thread.currentThread()
                                                                                     .getName() );
                     rm = true;
                 }
-                else if ( ref.get()
-                             .getId() == id )
+                else if ( thread.getId() == id )
                 {
                     logger.debug( "Cleaning up lock: {} for thread: {}", res, Thread.currentThread()
                                                                                     .getName() );
@@ -173,7 +174,7 @@ public class SimpleLockingSupport
 
     public Map<ConcreteResource, CharSequence> getActiveLocks()
     {
-        final Map<ConcreteResource, CharSequence> active = new HashMap<ConcreteResource, CharSequence>();
+        final Map<ConcreteResource, CharSequence> active = new HashMap<>();
         for ( final ConcreteResource f : lock.keySet() )
         {
             final StringBuilder owner = new StringBuilder();
@@ -182,18 +183,20 @@ public class SimpleLockingSupport
             {
                 owner.append( "UNKNOWN OWNER; REF IS NULL." );
             }
-
-            final Thread t = ref.get();
-            if ( t == null )
-            {
-                owner.append( "UNKNOWN OWNER; REF IS EMPTY." );
-            }
             else
             {
-                owner.append( t.getName() );
-                if ( !t.isAlive() )
+                final Thread t = ref.get();
+                if ( t == null )
                 {
-                    owner.append( " (DEAD)" );
+                    owner.append( "UNKNOWN OWNER; REF IS EMPTY." );
+                }
+                else
+                {
+                    owner.append( t.getName() );
+                    if ( !t.isAlive() )
+                    {
+                        owner.append( " (DEAD)" );
+                    }
                 }
             }
 

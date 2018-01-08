@@ -113,11 +113,12 @@ public class TransferManagerImpl
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, daemon = true, named = "galley-batching", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-batching", priority = 8 )
     private ExecutorService executorService;
 
     private ExecutorCompletionService<BatchRetriever> batchExecutor;
 
+    @SuppressWarnings( "unused" )
     protected TransferManagerImpl()
     {
     }
@@ -144,7 +145,7 @@ public class TransferManagerImpl
     @PostConstruct
     public void init()
     {
-        batchExecutor = new ExecutorCompletionService<BatchRetriever>( executorService );
+        batchExecutor = new ExecutorCompletionService<>( executorService );
     }
 
     @Override
@@ -173,7 +174,7 @@ public class TransferManagerImpl
     public List<ConcreteResource> findAllExisting( final VirtualResource virt )
         throws TransferException
     {
-        final List<ConcreteResource> results = new ArrayList<ConcreteResource>();
+        final List<ConcreteResource> results = new ArrayList<>();
         for ( final ConcreteResource res : virt )
         {
             if ( exists( res, true ) )
@@ -189,13 +190,9 @@ public class TransferManagerImpl
         throws TransferException
     {
         final Transfer cached = getCacheReference( resource );
-        if ( cached.exists() )
-        {
-            return true;
-        }
+        return cached.exists() || exister.exists( resource, cached, getTimeoutSeconds( resource ),
+                                                  getTransport( resource ), suppressFailures );
 
-        return exister.exists( resource, cached, getTimeoutSeconds( resource ), getTransport( resource ),
-                               suppressFailures );
     }
 
     @Override
@@ -270,7 +267,7 @@ public class TransferManagerImpl
         throws TransferException
     {
         final Transfer cachedListing = getCacheReference( resource.getChild( ".listing.txt" ) );
-        Set<String> filenames = new HashSet<String>();
+        Set<String> filenames = new HashSet<>();
         if ( cachedListing.exists() )
         {
             InputStream stream = null;
@@ -359,6 +356,7 @@ public class TransferManagerImpl
                             try
                             {
                                 Logger logger = LoggerFactory.getLogger( getClass() );
+                                //noinspection ConfusingArgumentToVarargsMethod
                                 logger.debug( "Un-decorated listing:\n\n{}\n\n", remoteListing );
 
                                 remoteListing = decorator.decorateListing( cachedListing.getParent(), remoteListing, metadata );
@@ -374,7 +372,7 @@ public class TransferManagerImpl
 
                     if ( remoteListing != null && remoteListing.length > 0  )
                     {
-                        if ( transport.allowsCaching() )
+                        if ( transport != null && transport.allowsCaching() )
                         {
                             OutputStream stream = null;
                             try
@@ -405,7 +403,7 @@ public class TransferManagerImpl
         Logger logger = LoggerFactory.getLogger( getClass() );
         logger.debug( "Listing before non-listable file removal:\n\n{}\n\n", filenames );
 
-        List<String> resultingNames = new ArrayList<String>( filenames.size() );
+        List<String> resultingNames = new ArrayList<>( filenames.size() );
         for( String fname : filenames )
         {
             ConcreteResource child = resource.getChild( fname );
@@ -455,7 +453,7 @@ public class TransferManagerImpl
     public Transfer retrieveFirst( final VirtualResource virt, final EventMetadata eventMetadata )
         throws TransferException
     {
-        Transfer target = null;
+        Transfer target;
 
         TransferException lastError = null;
         int tries = 0;
@@ -515,7 +513,7 @@ public class TransferManagerImpl
         TransferBatch batch = new TransferBatch( Collections.singleton( virt ) );
         batch = batchRetrieveAll( batch, eventMetadata );
 
-        return new ArrayList<Transfer>( batch.getTransfers()
+        return new ArrayList<>( batch.getTransfers()
                                              .values() );
     }
 
@@ -853,7 +851,7 @@ public class TransferManagerImpl
         throws TransferException
     {
         final Set<Resource> resources = batch.getResources();
-        for ( final Resource resource : new HashSet<Resource>( resources ) )
+        for ( final Resource resource : new HashSet<>( resources ) )
         {
             if ( resource instanceof VirtualResource )
             {
@@ -868,6 +866,7 @@ public class TransferManagerImpl
         return doBatch( resources, batch, false, eventMetadata );
     }
 
+    @SuppressWarnings( "RedundantThrows" )
     private <T extends TransferBatch> T doBatch( final Set<Resource> resources, final T batch,
                                                  final boolean suppressFailures, final EventMetadata eventMetadata )
         throws TransferException
@@ -875,14 +874,14 @@ public class TransferManagerImpl
         logger.info( "Attempting to batch-retrieve {} resources:\n  {}", resources.size(), new JoinString( "\n  ",
                                                                                                            resources ) );
 
-        final Set<BatchRetriever> retrievers = new HashSet<BatchRetriever>( resources.size() );
+        final Set<BatchRetriever> retrievers = new HashSet<>( resources.size() );
         for ( final Resource resource : resources )
         {
             retrievers.add( new BatchRetriever( this, resource, suppressFailures, eventMetadata ) );
         }
 
-        final Map<ConcreteResource, TransferException> errors = new HashMap<ConcreteResource, TransferException>();
-        final Map<ConcreteResource, Transfer> transfers = new HashMap<ConcreteResource, Transfer>();
+        final Map<ConcreteResource, TransferException> errors = new HashMap<>();
+        final Map<ConcreteResource, Transfer> transfers = new HashMap<>();
 
         do
         {

@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.model;
 
+import java.util.Objects;
+
 import static org.commonjava.maven.galley.util.PathUtils.ROOT;
 import static org.commonjava.maven.galley.util.PathUtils.normalize;
 import static org.commonjava.maven.galley.util.PathUtils.parentPath;
@@ -91,16 +93,12 @@ public class ConcreteResource
         final String otherPath = other.getPath();
         if ( path == null )
         {
-            if ( otherPath != null )
-            {
-                return false;
-            }
+            return otherPath == null;
         }
-        else if ( !path.equals( otherPath ) )
+        else
         {
-            return false;
+            return path.equals( otherPath );
         }
-        return true;
     }
 
     /* (non-Javadoc)
@@ -169,7 +167,7 @@ public class ConcreteResource
 
     public boolean isRoot()
     {
-        return path == ROOT || ROOT.equals( path );
+        return Objects.equals( path, ROOT );
     }
 
     public ConcreteResource getParent()

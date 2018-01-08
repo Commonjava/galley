@@ -157,11 +157,11 @@ public final class HttpDownload
                 }
                 catch ( IOException eDel )
                 {
-                    logger.error( String.format( "Failed to delete target file: %s\nOriginal URL: %s. Reason: %s", eDel,
+                    logger.error( String.format( "Failed to delete target file: %s\nOriginal URL: %s. Reason: %s",
                                   target, url, eDel.getMessage() ), eDel );
                 }
 
-                logger.error( String.format( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", eOrig, target, url,
+                logger.error( String.format( "Failed to write to local proxy store: %s\nOriginal URL: %s. Reason: %s", target, url,
                               eOrig.getMessage() ), eOrig );
 
                 throw new TransferContentException( resource,

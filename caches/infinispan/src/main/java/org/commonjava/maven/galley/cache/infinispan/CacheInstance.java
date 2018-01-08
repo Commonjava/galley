@@ -22,12 +22,12 @@ import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
 import java.util.function.Function;
 
 /**
  * Created by jdcasey on 10/6/16.
  */
+@SuppressWarnings( { "UnusedReturnValue", "unchecked" } )
 public interface CacheInstance<K, V>
 {
     String getName();

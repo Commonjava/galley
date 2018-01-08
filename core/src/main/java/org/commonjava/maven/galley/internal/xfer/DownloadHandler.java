@@ -54,15 +54,16 @@ public class DownloadHandler
     @Inject
     private TransportManagerConfig config;
 
-    private final Map<Transfer, Long> transferSizes = new ConcurrentHashMap<Transfer, Long>();
+    private final Map<Transfer, Long> transferSizes = new ConcurrentHashMap<>();
 
-    private final Map<Transfer, Future<DownloadJob>> pending = new HashMap<Transfer, Future<DownloadJob>>();
+    private final Map<Transfer, Future<DownloadJob>> pending = new HashMap<>();
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-transfers", priority = 8 )
     private ExecutorService executor;
 
+    @SuppressWarnings( "unused" )
     public DownloadHandler()
     {
     }
@@ -101,9 +102,7 @@ public class DownloadHandler
 
         logger.debug( "RETRIEVE {}", resource );
 
-        final Transfer result =
-                joinOrStart( resource, target, timeoutSeconds, transport, suppressFailures, eventMetadata );
-        return result;
+        return joinOrStart( resource, target, timeoutSeconds, transport, suppressFailures, eventMetadata );
     }
 
     private final Object DOWNLOAD_MUTEX = new Object(); // to prevent duplicate downloads
@@ -221,6 +220,7 @@ public class DownloadHandler
                 }
                 catch ( final TransferException e )
                 {
+                    //noinspection ConstantConditions
                     if ( !suppressFailures )
                     {
                         throw e;

@@ -116,16 +116,12 @@ public class RepositoryView
 
         if ( repositoryId == null )
         {
-            if ( oRepositoryId != null )
-            {
-                return false;
-            }
+            return oRepositoryId == null;
         }
-        else if ( !repositoryId.equals( oRepositoryId ) )
+        else
         {
-            return false;
+            return repositoryId.equals( oRepositoryId );
         }
 
-        return true;
     }
 }

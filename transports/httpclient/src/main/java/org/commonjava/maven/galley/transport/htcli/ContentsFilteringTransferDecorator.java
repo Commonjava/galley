@@ -34,7 +34,6 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.io.OverriddenBooleanValue;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +120,7 @@ extends AbstractTransferDecorator
                 final boolean snapshotVersion = SnapshotUtils.isSnapshotVersion( version );
                 if ( !allowsSnapshots && snapshotVersion || !allowsReleases && !snapshotVersion )
                 {
-                    final List<String> result = new ArrayList<String>( listing.length );
+                    final List<String> result = new ArrayList<>( listing.length );
                     for ( final String element : listing )
                     {
                         // do not include artifacts in the list
@@ -204,7 +203,7 @@ extends AbstractTransferDecorator
             // filter versions from GA metadata
             final Pattern versionsPattern = Pattern.compile( VERSIONS, Pattern.MULTILINE );
             final Matcher m = versionsPattern.matcher( buffer );
-            final List<String> versions = new ArrayList<String>();
+            final List<String> versions = new ArrayList<>();
             if ( m.find() )
             {
                 final Pattern versionPattern = Pattern.compile( VERSION );
@@ -216,7 +215,7 @@ extends AbstractTransferDecorator
             }
 
             boolean changed = false;
-            for ( final String version : new ArrayList<String>( versions ) )
+            for ( final String version : new ArrayList<>( versions ) )
             {
                 final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
                 if ( !allowsSnapshots && isSnapshot || !allowsReleases && !isSnapshot )

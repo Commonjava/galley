@@ -62,7 +62,7 @@ public class GalleyMavenXMLException
                 {
                     message = MessageFormat.format( message, params );
                 }
-                catch ( final IllegalArgumentException iae )
+                catch ( final IllegalArgumentException ignored )
                 {
                 }
             }

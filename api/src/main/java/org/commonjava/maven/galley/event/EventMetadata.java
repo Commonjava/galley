@@ -27,7 +27,7 @@ public class EventMetadata
 {
     private String packageType;
 
-    private final Map<Object, Object> metadata = new HashMap<Object, Object>();
+    private final Map<Object, Object> metadata = new HashMap<>();
 
     public EventMetadata()
     {

@@ -115,6 +115,7 @@ public class ZipPublish
             closeQuietly( fos );
             if ( zf != null )
             {
+                //noinspection EmptyCatchBlock
                 try
                 {
                     zf.close();
@@ -186,6 +187,7 @@ public class ZipPublish
             closeQuietly( fos );
             if ( zfOut != null )
             {
+                //noinspection EmptyCatchBlock
                 try
                 {
                     zfOut.close();
@@ -197,6 +199,7 @@ public class ZipPublish
 
             if ( zfIn != null )
             {
+                //noinspection EmptyCatchBlock
                 try
                 {
                     zfIn.close();

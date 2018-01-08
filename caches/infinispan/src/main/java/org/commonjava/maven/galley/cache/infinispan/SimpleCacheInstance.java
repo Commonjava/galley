@@ -25,7 +25,6 @@ import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -270,8 +269,9 @@ public class SimpleCacheInstance<K,V>
         return execute( ( c ) -> c.getAdvancedCache().getLockManager().isLocked( key ) );
     }
 
+    @SafeVarargs
     @Override
-    public void lock( K... keys )
+    public final void lock( K... keys )
     {
         execute( ( c ) -> c.getAdvancedCache().lock( keys ) );
     }

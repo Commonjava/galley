@@ -71,6 +71,7 @@ public class MavenPomElementView
         return null;
     }
 
+    @SuppressWarnings( "BooleanMethodIsAlwaysInverted" )
     protected boolean containsExpression( final String value )
     {
         return xmlView.containsExpression( value );
@@ -139,8 +140,8 @@ public class MavenPomElementView
     {
         //        logger.info( "Resolving '{}' from node: {}", path, this.element );
         final List<Node> nodes = xmlView.resolveXPathToNodeListFrom( elementContext, path, true );
-        List<XmlNodeInfo> nodeInfos = new ArrayList<XmlNodeInfo>( nodes.size() );
-        if ( nodes == null || nodes.isEmpty() )
+        List<XmlNodeInfo> nodeInfos = new ArrayList<>( nodes.size() );
+        if ( nodes.isEmpty() )
         {
             final MavenPomElementView managedElement = getManagementElement();
             if ( managedElement != null )
@@ -165,12 +166,12 @@ public class MavenPomElementView
 
     private boolean isInherited()
     {
-        return originInfo == null ? false : originInfo.isInherited();
+        return originInfo != null && originInfo.isInherited();
     }
 
     private boolean isMixin()
     {
-        return originInfo == null ? false : originInfo.isMixin();
+        return originInfo != null && originInfo.isMixin();
     }
 
     protected String getManagementXpathFragment()
@@ -191,15 +192,16 @@ public class MavenPomElementView
             return;
         }
 
-        final List<String> xpaths = new ArrayList<String>();
+        final List<String> xpaths = new ArrayList<>();
 
-        final Set<String> activeProfiles = new HashSet<String>( xmlView.getActiveProfileIds() );
+        final Set<String> activeProfiles = new HashSet<>( xmlView.getActiveProfileIds() );
         activeProfiles.add( getProfileId() );
 
         for ( final String profileId : activeProfiles )
         {
             if ( profileId != null )
             {
+                @SuppressWarnings( "StringBufferReplaceableByString" )
                 final StringBuilder sb = new StringBuilder();
 
                 sb.append( "/project/profiles/profile[id/text()=\"" )
@@ -216,6 +218,7 @@ public class MavenPomElementView
             }
         }
 
+        @SuppressWarnings( "StringBufferReplaceableByString" )
         final StringBuilder sb = new StringBuilder();
         sb.append( "/project/" ).append( managementXpathFragment ).append( '[' ).append( qualifier ).append( "]" );
 

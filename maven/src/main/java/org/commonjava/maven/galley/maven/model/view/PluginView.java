@@ -34,7 +34,6 @@ import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 public class PluginView
     extends MavenGAVView
@@ -67,7 +66,7 @@ public class PluginView
     {
         if ( pluginDependencies == null )
         {
-            final List<PluginDependencyView> result = new ArrayList<PluginDependencyView>();
+            final List<PluginDependencyView> result = new ArrayList<>();
 
             final List<XmlNodeInfo> nodes = getFirstNodesWithManagement( "dependencies/dependency" );
             if ( nodes != null )

@@ -69,12 +69,12 @@ public class GalleyCore
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, daemon = true, named = "galley-transfers", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-transfers", priority = 8 )
     private ExecutorService handlerExecutor;
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, daemon = true, named = "galley-batching", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-batching", priority = 8 )
     private ExecutorService batchExecutor;
 
     @Inject
@@ -110,7 +110,7 @@ public class GalleyCore
     {
         if ( transports == null && injectedTransports != null )
         {
-            transports = new ArrayList<Transport>();
+            transports = new ArrayList<>();
             for ( final Transport transport : injectedTransports )
             {
                 transports.add( transport );

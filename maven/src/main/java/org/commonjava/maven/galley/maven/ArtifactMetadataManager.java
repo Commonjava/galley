@@ -24,6 +24,7 @@ import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 
+@SuppressWarnings( "unused" )
 public interface ArtifactMetadataManager
 {
 

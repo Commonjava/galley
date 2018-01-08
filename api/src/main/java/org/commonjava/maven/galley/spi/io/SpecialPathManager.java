@@ -15,12 +15,10 @@
  */
 package org.commonjava.maven.galley.spi.io;
 
-import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.io.SpecialPathSet;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
-import org.commonjava.maven.galley.model.SpecialPathMatcher;
 import org.commonjava.maven.galley.model.Transfer;
 
 /**

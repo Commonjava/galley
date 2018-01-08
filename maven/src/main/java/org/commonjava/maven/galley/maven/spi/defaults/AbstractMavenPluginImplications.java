@@ -46,7 +46,7 @@ public abstract class AbstractMavenPluginImplications
     protected PluginDependencyView createPluginDependency( final PluginView pv, final ProjectRef ref )
         throws GalleyMavenException
     {
-        final Map<String, String> map = new LinkedHashMap<String, String>();
+        final Map<String, String> map = new LinkedHashMap<>();
         map.put( G, ref.getGroupId() );
         map.put( A, ref.getArtifactId() );
         map.put( V, pv.getVersion() );
@@ -70,7 +70,7 @@ public abstract class AbstractMavenPluginImplications
             return null;
         }
 
-        final Set<PluginDependencyView> views = new HashSet<PluginDependencyView>( implied.size() );
+        final Set<PluginDependencyView> views = new HashSet<>( implied.size() );
         for ( final ProjectRef impliedRef : implied )
         {
             final PluginDependencyView pd = createPluginDependency( pv, impliedRef );

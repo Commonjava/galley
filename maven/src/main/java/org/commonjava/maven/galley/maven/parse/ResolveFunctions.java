@@ -49,12 +49,6 @@ public class ResolveFunctions
 
         final MavenPomView pom = getPomView();
 
-        //        logger.info( "FUNC: resolving: '{}' with pom: {}", expr, pom );
-
-        final String result = pom.resolveExpressions( expr );
-
-        //        logger.info( "FUNC: resolve result: '{}' with pom: {}", result, pom );
-
-        return result;
+        return pom.resolveExpressions( expr );
     }
 }

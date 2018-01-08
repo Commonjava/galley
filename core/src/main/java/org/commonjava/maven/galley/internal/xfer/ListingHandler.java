@@ -21,7 +21,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
@@ -41,6 +40,7 @@ public class ListingHandler
     @Inject
     private NotFoundCache nfc;
 
+    @SuppressWarnings( "unused" )
     public ListingHandler()
     {
     }

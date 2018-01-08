@@ -15,10 +15,7 @@
  */
 package org.commonjava.maven.galley.event;
 
-import org.apache.commons.lang.StringUtils;
 import org.commonjava.maven.galley.model.Transfer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.util.Map;
@@ -41,6 +38,7 @@ public class FileEvent
 
         // FIXME: We should probably be setting this elsewhere.
         MDC.put( FileEvent.CREATION_THREAD_NAME, Thread.currentThread().getName() );
+        //noinspection unchecked
         contextMap = MDC.getCopyOfContextMap();
     }
 

@@ -244,7 +244,7 @@ public class XMLInfrastructure
 
     public String toXML( final Node node, final boolean printXmlDeclaration )
     {
-        String result = null;
+        String result;
         try
         {
             final StringWriter sw = new StringWriter();
@@ -274,15 +274,7 @@ public class XMLInfrastructure
 
             result = sw.toString();
         }
-        catch ( final TransformerException e )
-        {
-            throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
-        }
-        catch ( final DOMException e )
-        {
-            throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
-        }
-        catch ( final ParserConfigurationException e )
+        catch ( final TransformerException | ParserConfigurationException | DOMException e )
         {
             throw new GalleyMavenRuntimeException( "Failed to render to XML: %s. Reason: %s", e, node, e.getMessage() );
         }
@@ -310,22 +302,12 @@ public class XMLInfrastructure
 
         logger.debug( "Parsing:\n\n{}\n\n", xml );
 
-        Document doc = null;
+        Document doc;
         try
         {
             doc = newDocumentBuilder().parse( new InputSource( new StringReader( xml ) ) );
         }
-        catch ( final GalleyMavenXMLException e )
-        {
-            closeQuietly( stream );
-            doc = fallbackParseDocument( xml, docSource, e );
-        }
-        catch ( final SAXException e )
-        {
-            closeQuietly( stream );
-            doc = fallbackParseDocument( xml, docSource, e );
-        }
-        catch ( final IOException e )
+        catch ( final GalleyMavenXMLException | SAXException | IOException e )
         {
             closeQuietly( stream );
             doc = fallbackParseDocument( xml, docSource, e );
@@ -429,7 +411,7 @@ public class XMLInfrastructure
                 stream = new FileInputStream( file );
                 doc = parseDocument( file, stream );
             }
-            catch ( final GalleyMavenXMLException e )
+            catch ( final GalleyMavenXMLException ignored )
             {
             }
         }
@@ -455,7 +437,7 @@ public class XMLInfrastructure
         throws GalleyMavenXMLException
     {
         InputStream stream = null;
-        Document doc = null;
+        Document doc;
         try
         {
             stream = transfer.openInputStream( false );
