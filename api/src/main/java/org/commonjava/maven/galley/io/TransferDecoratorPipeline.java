@@ -133,22 +133,13 @@ public class TransferDecoratorPipeline
     public String[] decorateListing( final Transfer transfer, final String[] listing, final EventMetadata metadata )
             throws IOException
     {
-        List<String> result = new ArrayList<>();
-        if ( listing != null && listing.length > 0 )
-        {
-            result.addAll( Arrays.asList( listing ) );
-        }
-
+        String[] result = listing;
         for ( TransferDecorator decorator : decorators )
         {
-            String[] decorated = decorator.decorateListing( transfer, listing, metadata );
-            if ( decorated != null && decorated.length > 0 )
-            {
-                result.addAll( Arrays.asList( decorated ) );
-            }
+            result = decorator.decorateListing( transfer, listing, metadata );
         }
 
-        return result.toArray( new String[result.size()] );
+        return result;
     }
 
     @Override
