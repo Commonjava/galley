@@ -38,6 +38,11 @@ import java.util.Map;
 
 import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORE_HTTP_HEADERS;
 
+/**
+ * This TransferDecorator is used to generate http-metadata.json when uploading artifacts. It will use {@link EventMetadata}
+ * as intermediate to get the http request headers from client, and use these headers as the content for the json file. Only
+ * artifacts but not metadata files will have the accompanied http-metadata file generation.
+ */
 @Named
 @Alternative
 public class UploadMetadataGenTransferDecorator
@@ -82,12 +87,12 @@ public class UploadMetadataGenTransferDecorator
         {
             if ( target.isDirectory() )
             {
-                logger.debug( "DIRECTORY. Using HTTP exchange metadata file INSIDE directory called: {}", HttpExchangeMetadata.FILE_EXTENSION );
+                logger.trace( "DIRECTORY. Using HTTP exchange metadata file INSIDE directory called: {}", HttpExchangeMetadata.FILE_EXTENSION );
                 metaTxfr = target.getChild( HttpExchangeMetadata.FILE_EXTENSION );
             }
             else
             {
-                logger.debug( "SKIP: Cannot retrieve HTTP exchange metadata Transfer instance for: {}", target );
+                logger.trace( "SKIP: Cannot retrieve HTTP exchange metadata Transfer instance for: {}", target );
                 return;
             }
         }
@@ -98,7 +103,7 @@ public class UploadMetadataGenTransferDecorator
         {
             final Transfer finalMeta = metaTxfr;
             out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false );
-            logger.debug( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
+            logger.trace( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
             {
                 @Override
                 public String toString()
@@ -120,9 +125,9 @@ public class UploadMetadataGenTransferDecorator
         }
         catch ( final IOException e )
         {
-            if ( logger.isDebugEnabled() )
+            if ( logger.isTraceEnabled() )
             {
-                logger.debug( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,
+                logger.trace( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,
                                              e.getMessage() ), e );
             }
             else

@@ -106,7 +106,7 @@ public abstract class AbstractHttpJob
 
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
-            logger.debug( "{} {} : {}", request.getMethod(), line, url );
+            logger.trace( "{} {} : {}", request.getMethod(), line, url );
             if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
             {
                 throw new TransferLocationException( location,
@@ -115,9 +115,9 @@ public abstract class AbstractHttpJob
             }
             else if ( !successStatuses.contains( sc ) )
             {
-                logger.debug( "Detected failure respon se: " + sc );
+                logger.trace( "Detected failure respon se: " + sc );
                 success = TransferResponseUtils.handleUnsuccessfulResponse( request, response, location, url );
-                logger.debug( "Returning non-error failure response for code: " + sc );
+                logger.trace( "Returning non-error failure response for code: " + sc );
                 return false;
             }
         }
@@ -178,22 +178,22 @@ public abstract class AbstractHttpJob
     {
         if ( target == null || request == null || response == null )
         {
-            logger.debug( "Cannot write HTTP exchange metadata. Request: {}. Response: {}. Transfer: {}", request, response, target );
+            logger.trace( "Cannot write HTTP exchange metadata. Request: {}. Response: {}. Transfer: {}", request, response, target );
             return;
         }
 
-        logger.debug( "Writing HTTP exchange metadata. Request: {}. Response: {}", request, response );
+        logger.trace( "Writing HTTP exchange metadata. Request: {}. Response: {}", request, response );
         Transfer metaTxfr = target.getSiblingMeta( HttpExchangeMetadata.FILE_EXTENSION );
         if ( metaTxfr == null )
         {
             if ( target.isDirectory() )
             {
-                logger.debug( "DIRECTORY. Using HTTP exchange metadata file INSIDE directory called: {}", HttpExchangeMetadata.FILE_EXTENSION );
+                logger.trace( "DIRECTORY. Using HTTP exchange metadata file INSIDE directory called: {}", HttpExchangeMetadata.FILE_EXTENSION );
                 metaTxfr = target.getChild( HttpExchangeMetadata.FILE_EXTENSION );
             }
             else
             {
-                logger.debug( "SKIP: Cannot retrieve HTTP exchange metadata Transfer instance for: {}", target );
+                logger.trace( "SKIP: Cannot retrieve HTTP exchange metadata Transfer instance for: {}", target );
                 return;
             }
         }
@@ -204,7 +204,7 @@ public abstract class AbstractHttpJob
         {
             final Transfer finalMeta = metaTxfr;
             out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false );
-            logger.debug( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
+            logger.trace( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
             {
                 @Override
                 public String toString()
@@ -226,9 +226,9 @@ public abstract class AbstractHttpJob
         }
         catch ( final IOException e )
         {
-            if ( logger.isDebugEnabled() )
+            if ( logger.isTraceEnabled() )
             {
-                logger.debug( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,
+                logger.trace( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,
                                              e.getMessage() ), e );
             }
             else
