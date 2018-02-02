@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
+import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -53,6 +54,8 @@ public class UploadMetadataGenTransferDecoratorTest
 
     private static final Integer FILE_SIZE = 2536;
 
+    private static final String MOCK_TIME = "201801020231568";
+
     private final String tempRepo = "test-repo";
 
     private final Location loc =
@@ -82,8 +85,12 @@ public class UploadMetadataGenTransferDecoratorTest
         final String path = "/path/to/test.jar";
         final String httpMetaPath = "/path/to/test.jar.http-metadata.json";
         transferWrite( path, httpMetaPath );
-
         assertFile( path, true, httpMetaPath, true );
+
+        final String pomPath = "/path/to/test.pom";
+        final String pomHttpMetaPath = "/path/to/test.pom.http-metadata.json";
+        transferWrite( pomPath, pomHttpMetaPath );
+        assertFile( pomPath, true, pomHttpMetaPath, true );
     }
 
     @Test
@@ -107,7 +114,7 @@ public class UploadMetadataGenTransferDecoratorTest
         final ConcreteResource resource = new ConcreteResource( loc, filePath );
         final Transfer transfer = provider.getTransfer( resource );
         final Map<String, List<String>> headers = new HashMap<>();
-        headers.put( "LAST-MODIFIED", Collections.singletonList( "201801020231568" ) );
+        headers.put( "LAST-MODIFIED", Collections.singletonList( MOCK_TIME ) );
         headers.put( "CONTENT-LENGTH", Collections.singletonList( FILE_SIZE.toString() ) );
         final EventMetadata metadata = new EventMetadata().set( CacheProvider.STORE_HTTP_HEADERS, headers );
         final StringBuilder builder = new StringBuilder();
@@ -124,10 +131,17 @@ public class UploadMetadataGenTransferDecoratorTest
     }
 
     private void assertFile( final String filePath, boolean fileExists, final String httpMetaPath, boolean metaExists )
+            throws Exception
     {
         final Path artifactPath = Paths.get( tempFolder.getAbsolutePath(), tempRepo, filePath );
         assertThat( Files.isRegularFile( artifactPath, LinkOption.NOFOLLOW_LINKS ), equalTo( fileExists ) );
         final Path metadataPath = Paths.get( tempFolder.getAbsolutePath(), tempRepo, httpMetaPath );
         assertThat( Files.isRegularFile( metadataPath, LinkOption.NOFOLLOW_LINKS ), equalTo( metaExists ) );
+        if ( metaExists )
+        {
+            String metaContent = FileUtils.readFileToString( metadataPath.toFile() );
+            assertThat( metaContent.contains( FILE_SIZE.toString() ), equalTo( true ) );
+            assertThat( metaContent.contains( MOCK_TIME ), equalTo( true ) );
+        }
     }
 }
