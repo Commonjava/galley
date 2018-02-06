@@ -15,23 +15,12 @@
  */
 package org.commonjava.maven.galley.transport.htcli.model;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class HttpExchangeMetadataFromRequestHeader
         extends HttpExchangeMetadata
 {
-    protected Map<String, List<String>> requestHeaders = new HashMap<>();
-
-    protected String responseStatusMessage;
-
-    protected int responseStatusCode;
-
-    public HttpExchangeMetadataFromRequestHeader()
-    {
-    }
-
     public HttpExchangeMetadataFromRequestHeader( final Map<String, List<String>> requestHeaders )
     {
         this.requestHeaders = requestHeaders;
