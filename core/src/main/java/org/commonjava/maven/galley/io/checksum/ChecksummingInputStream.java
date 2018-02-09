@@ -88,12 +88,12 @@ public final class ChecksummingInputStream
                 logger.trace( "No metadata consumer. NOT adding metadata." );
             }
 
-            // NOTE: We close the main stream LAST, in case it's holding a file (or other) lock. This allows us to
-            // finish out tasks BEFORE releasing that lock.
-            super.close();
         }
         finally
         {
+            // NOTE: We close the main stream LAST, in case it's holding a file (or other) lock. This allows us to
+            // finish out tasks BEFORE releasing that lock.
+            super.close();
             logger.trace( "END CLOSE: {}", transfer );
         }
     }
