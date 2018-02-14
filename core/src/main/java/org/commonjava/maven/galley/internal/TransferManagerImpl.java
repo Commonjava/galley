@@ -633,6 +633,8 @@ public class TransferManagerImpl
         {
             out = target.openOutputStream( TransferOperation.UPLOAD, true, eventMetadata );
             copy( stream, out );
+
+            nfc.clearMissing( resource );
         }
         catch ( final IOException e )
         {
