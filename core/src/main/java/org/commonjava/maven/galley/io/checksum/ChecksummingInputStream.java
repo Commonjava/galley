@@ -110,22 +110,22 @@ public final class ChecksummingInputStream
     public int read()
             throws IOException
     {
-        logger.trace( "READ: {}", transfer );
+//        logger.trace( "READ: {}", transfer );
         int data = super.read();
         logger.trace( "{} input", data );
         if ( data > -1 )
         {
             size++;
-            logger.trace( "Updating with: {} (raw: {})", ( (byte) data & 0xff ), data );
+//            logger.trace( "Updating with: {} (raw: {})", ( (byte) data & 0xff ), data );
             for ( final AbstractChecksumGenerator checksum : checksums )
             {
                 checksum.update( (byte) data );
             }
         }
-        else
-        {
-            logger.trace( "READ: <EOF>" );
-        }
+//        else
+//        {
+//            logger.trace( "READ: <EOF>" );
+//        }
 
         return data;
     }
@@ -155,7 +155,7 @@ public final class ChecksummingInputStream
         }
 
         size += read;
-        logger.trace( "Updating with [buffer of size: {}]", read );
+//        logger.trace( "Updating with [buffer of size: {}]", read );
         for ( final AbstractChecksumGenerator checksum : checksums )
         {
             for ( int i = off; i < off + read; i++ )

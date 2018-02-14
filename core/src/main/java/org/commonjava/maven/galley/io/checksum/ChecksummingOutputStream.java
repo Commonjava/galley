@@ -101,13 +101,13 @@ public final class ChecksummingOutputStream
     public void write( final int data )
         throws IOException
     {
-        logger.trace( "WRITE: {}", transfer );
+//        logger.trace( "WRITE: {}", transfer );
         super.write( data );
 
         size++;
         byte b = (byte) ( data & 0xff );
 
-        logger.trace( "Updating with: {} (raw: {})", b, data );
+//        logger.trace( "Updating with: {} (raw: {})", b, data );
 
         for ( final AbstractChecksumGenerator checksum : checksums )
         {
