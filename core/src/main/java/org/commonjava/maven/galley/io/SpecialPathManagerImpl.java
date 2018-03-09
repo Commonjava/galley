@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.io;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
+import org.commonjava.maven.galley.model.SpecialPathMatcher;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.galley.io.SpecialPathConstants.MVN_SP_PATH_SET;
 import static org.commonjava.maven.galley.io.SpecialPathConstants.NPM_SP_PATH_SET;
 import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN;
@@ -98,6 +100,18 @@ public class SpecialPathManagerImpl
         }
 
         pkgtypes.put( pathSet.getPackageType(), pathSet );
+
+        if ( logger.isTraceEnabled() )
+        {
+            final List<SpecialPathMatcher> pathMatchers = new ArrayList<>();
+            for ( SpecialPathInfo info : pathSet.getSpecialPathInfos() )
+            {
+                pathMatchers.add( info.getMatcher() );
+            }
+
+            logger.trace( "Enabling special paths for package: '{}'\n  - {}\n\nCalled from: {}", pathSet.getPackageType(),
+                          join( pathMatchers, "\n  - " ), Thread.currentThread().getStackTrace()[1] );
+        }
     }
 
     @Override

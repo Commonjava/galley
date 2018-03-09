@@ -139,7 +139,7 @@ public final class ChecksummingTransferDecorator
         Object forceObj = eventMetadata.get( FORCE_CHECKSUM );
         boolean force = Boolean.TRUE.equals( forceObj ) || Boolean.parseBoolean( String.valueOf( forceObj ) );
 
-        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer, eventMetadata.getPackageType() );
 
         logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
                       ( specialPathInfo == null || specialPathInfo.isDecoratable() ) );
@@ -181,7 +181,7 @@ public final class ChecksummingTransferDecorator
         Object forceObj = eventMetadata.get( FORCE_CHECKSUM );
         boolean force = Boolean.TRUE.equals( forceObj ) || Boolean.parseBoolean( String.valueOf( forceObj ) );
 
-        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer, eventMetadata.getPackageType() );
 
         logger.trace( "SpecialPathInfo for: {} is: {} (decoratable? {})", transfer, specialPathInfo,
                       ( specialPathInfo == null || specialPathInfo.isDecoratable() ) );
@@ -222,7 +222,7 @@ public final class ChecksummingTransferDecorator
             return;
         }
 
-        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer );
+        SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer, eventMetadata.getPackageType() );
         if ( specialPathInfo == null || specialPathInfo.isDeletable() )
         {
             for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )

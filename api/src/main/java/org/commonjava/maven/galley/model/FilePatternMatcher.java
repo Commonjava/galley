@@ -59,4 +59,10 @@ public class FilePatternMatcher
     {
         return pattern.hashCode();
     }
+
+    @Override
+    public String toString()
+    {
+        return "FilePatternMatcher{" + pattern + '}';
+    }
 }

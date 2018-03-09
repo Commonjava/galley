@@ -57,4 +57,10 @@ public class PathPatternMatcher
     {
         return pattern.hashCode();
     }
+
+    @Override
+    public String toString()
+    {
+        return "PathPatternMatcher{" + pattern + '}';
+    }
 }
