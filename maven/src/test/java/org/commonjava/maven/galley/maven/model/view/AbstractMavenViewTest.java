@@ -34,6 +34,7 @@ import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -150,7 +151,7 @@ public abstract class AbstractMavenViewTest
             stack.add( dr );
         }
 
-        return new MavenPomView( pvr, stack, xpath, new StandardMaven304PluginDefaults(),
+        return new MavenPomView( pvr, stack, xpath, new StandardMaven350PluginDefaults(),
                                  new StandardMavenPluginImplications( xml ), xml, activeProfileIds );
     }
 

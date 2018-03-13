@@ -30,6 +30,7 @@ import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMaven;
 import org.commonjava.maven.galley.maven.GalleyMavenBuilder;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.type.StandardTypeMapper;
 import org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
@@ -592,7 +593,7 @@ public class GalleyMavenFixture
         return this;
     }
 
-    public GalleyMavenFixture withPluginDefaults( final StandardMaven304PluginDefaults pluginDefaults )
+    public GalleyMavenFixture withPluginDefaults( final StandardMaven350PluginDefaults pluginDefaults )
     {
         checkInitialized();
         mavenBuilder.withPluginDefaults( pluginDefaults );
