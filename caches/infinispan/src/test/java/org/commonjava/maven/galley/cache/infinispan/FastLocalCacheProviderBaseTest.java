@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.galley.cache.infinispan;
 
+import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
@@ -26,30 +27,25 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.infinispan.Cache;
+import org.infinispan.configuration.cache.Configuration;
+import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.eviction.EvictionStrategy;
+import org.infinispan.eviction.EvictionType;
 import org.infinispan.manager.EmbeddedCacheManager;
-import org.jboss.byteman.contrib.bmunit.BMRule;
-import org.jboss.byteman.contrib.bmunit.BMScript;
-import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class FastLocalCacheProviderBaseTest
 {
@@ -66,13 +62,30 @@ public class FastLocalCacheProviderBaseTest
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
-    protected Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
+    protected static Cache<String, String> nfsOwnerCache;
+
+    protected static Cache<String, ConcreteResource> localFileCache;
 
 
     @BeforeClass
     public static void setupClass()
     {
+
         CACHE_MANAGER = new NFSOwnerCacheProducer().getCacheMgr();
+        nfsOwnerCache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
+
+        Configuration config = new ConfigurationBuilder().eviction()
+                                                         .strategy( EvictionStrategy.LRU )
+                                                         .size( 1000 )
+                                                         .type( EvictionType.COUNT )
+                                                         .expiration()
+                                                         .lifespan( 1000L )
+                                                         .wakeUpInterval( 100L )
+                                                         .maxIdle( 1000L )
+                                                         .build();
+        final String LOCAL_FILE_CACHE_NAME = "localFileCache";
+        CACHE_MANAGER.defineConfiguration( LOCAL_FILE_CACHE_NAME, config );
+        localFileCache = CACHE_MANAGER.getCache( LOCAL_FILE_CACHE_NAME );
     }
 
 
@@ -85,8 +98,8 @@ public class FastLocalCacheProviderBaseTest
         System.setProperties( props );
         final String NON_EXISTS_PATH = "";
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
-                                    new SimpleCacheInstance<>( "test", cache ), pathgen, events, decorator, executor,
-                                    NON_EXISTS_PATH );
+                                    new SimpleCacheInstance<>( "test", nfsOwnerCache ), pathgen, events, decorator, executor,
+                                    NON_EXISTS_PATH, new SimpleCacheInstance<>( "localFileCache", localFileCache ));
     }
 
     @Test
@@ -95,7 +108,57 @@ public class FastLocalCacheProviderBaseTest
     {
         System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFolder().getCanonicalPath() );
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
-                                    new SimpleCacheInstance<>( "test", cache ), pathgen, events, decorator, executor, null );
+                                    new SimpleCacheInstance<>( "test", nfsOwnerCache ), pathgen, events, decorator, executor,
+                                    null, new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
     }
+
+    @Test
+    public void testLocalFileCacheExpiration()
+            throws IOException, InterruptedException
+    {
+        final File localDir = temp.newFolder();
+        final File nfsDir = new File(localDir.getCanonicalPath()+"/nfs");
+        System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, nfsDir.getCanonicalPath() );
+        final PartyLineCacheProvider plcp = new PartyLineCacheProvider( localDir, pathgen, events, decorator );
+        final FastLocalCacheProvider flcp =
+                new FastLocalCacheProvider( plcp, new SimpleCacheInstance<>( "test", nfsOwnerCache ), pathgen, events,
+                                            decorator, executor, null,
+                                            new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final ConcreteResource resource = new ConcreteResource( loc, String.format( "%s/%s", localDir, "name" ) );
+
+        final String content = "This is test";
+
+        // Test expiration for write
+        try (OutputStream stream = flcp.openOutputStream( resource ))
+        {
+            IOUtils.write( content.getBytes(), stream );
+        }
+
+        assertTrue( plcp.exists( resource ) );
+        assertTrue( flcp.getNFSDetachedFile( resource ).exists() );
+
+        Thread.sleep( 5000L );
+
+        assertFalse( plcp.exists( resource ) );
+        assertTrue( flcp.getNFSDetachedFile( resource ).exists() );
+
+        // Test expiration for read
+        String read;
+        try(InputStream in = flcp.openInputStream( resource )){
+            read = IOUtils.toString( in );
+        }
+
+        assertEquals( content, read );
+        assertTrue( plcp.exists( resource ) );
+        assertTrue( flcp.getNFSDetachedFile( resource ).exists() );
+
+        Thread.sleep( 5000L );
+
+        assertFalse( plcp.exists( resource ) );
+        assertTrue( flcp.getNFSDetachedFile( resource ).exists() );
+    }
+
+
 
 }

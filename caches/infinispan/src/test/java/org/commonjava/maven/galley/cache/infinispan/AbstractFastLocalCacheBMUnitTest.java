@@ -67,6 +67,8 @@ public abstract class AbstractFastLocalCacheBMUnitTest
 
     protected Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
 
+    protected Cache<String, ConcreteResource> localFileCache = CACHE_MANAGER.getCache( "localFileCache" );
+
     protected String result;
 
     @BeforeClass
@@ -83,7 +85,8 @@ public abstract class AbstractFastLocalCacheBMUnitTest
         provider =
                 new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
                                             new SimpleCacheInstance<>( name.getMethodName(), cache ), pathgen, events,
-                                            decorator, executor, nfsBasePath );
+                                            decorator, executor, nfsBasePath,
+                                            new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
     }
 
     @After
@@ -238,7 +241,7 @@ public abstract class AbstractFastLocalCacheBMUnitTest
             {
                 InputStream in = provider.openInputStream( new ConcreteResource( loc, fname ) );
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                int read = -1;
+                int read;
                 byte[] buf = new byte[512];
                 while ( ( read = in.read( buf ) ) > -1 )
                 {
@@ -287,7 +290,7 @@ public abstract class AbstractFastLocalCacheBMUnitTest
 
                 InputStream in = provider.openInputStream( new ConcreteResource( loc2, fname ) );
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                int read = -1;
+                int read;
                 byte[] buf = new byte[512];
                 while ( ( read = in.read( buf ) ) > -1 )
                 {

@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.cache.infinispan;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
@@ -42,12 +43,17 @@ public class FastLocalCacheProviderFactory
 
     private transient FastLocalCacheProvider provider;
 
-    public FastLocalCacheProviderFactory( File cacheDir, File nfsDir, CacheInstance<String, String> nfsUsageCache, ExecutorService executor )
+    private final CacheInstance<String, ConcreteResource> localFilePathCache;
+
+    public FastLocalCacheProviderFactory( File cacheDir, File nfsDir, CacheInstance<String, String> nfsUsageCache,
+                                          CacheInstance<String, ConcreteResource> localFilePathCache,
+                                          ExecutorService executor )
     {
         this.cacheDir = cacheDir;
         this.nfsDir = nfsDir;
         this.nfsUsageCache = nfsUsageCache;
         this.executor = executor;
+        this.localFilePathCache = localFilePathCache;
     }
 
     @Override
@@ -62,7 +68,7 @@ public class FastLocalCacheProviderFactory
 
             provider =
                     new FastLocalCacheProvider( pl, nfsUsageCache, pathGenerator, fileEventManager, transferDecorator,
-                                                executor, nfsDir.getPath() );
+                                                executor, nfsDir.getPath(), localFilePathCache );
         }
 
         return provider;

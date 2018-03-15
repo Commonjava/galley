@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.cache.infinispan;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.commonjava.cdi.util.weft.ContextSensitiveWeakHashMap;
 import org.commonjava.cdi.util.weft.ThreadContext;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -29,7 +30,9 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.partyline.JoinableFileManager;
 import org.commonjava.util.partyline.LockLevel;
-import org.infinispan.commons.util.concurrent.ConcurrentWeakKeyHashMap;
+import org.infinispan.notifications.Listener;
+import org.infinispan.notifications.cachelistener.annotation.CacheEntryExpired;
+import org.infinispan.notifications.cachelistener.event.CacheEntryExpiredEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +77,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * use the parameterized constructor with the "nfsBaseDir" param.
  */
 @SuppressWarnings( "unchecked" )
+@Listener
 public class FastLocalCacheProvider
         implements CacheProvider, CacheProvider.AdminView
 {
@@ -87,7 +91,7 @@ public class FastLocalCacheProvider
     private String nfsBaseDir;
 
     // use weak key map to avoid the memory occupy for long time of the transfer
-    private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentWeakKeyHashMap<>();
+    private final Map<ConcreteResource, Transfer> transferCache = new ContextSensitiveWeakHashMap<>();
 
     private PartyLineCacheProvider plCacheProvider;
 
@@ -108,11 +112,13 @@ public class FastLocalCacheProvider
     // Mapping key for ISPN transaction file counter in threadcontext, see #getFileCounter()
     private static final String ISPN_TX_FILE_COUNTER = "ISPN_TX_FILE_COUNTER";
 
-    private final Map<Transfer, ReentrantLock> transferLocks = new ConcurrentWeakKeyHashMap<>();
+    private final Map<Transfer, ReentrantLock> transferLocks = new ContextSensitiveWeakHashMap<>();
 
     private static final Long DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS = 600L;
 
     private static final Long DEFAULT_WAIT_FOR_TRANSFER_LOCK_MILLIS = DEFAULT_WAIT_FOR_TRANSFER_LOCK_SECONDS * 1000;
+
+    private final CacheInstance<String, ConcreteResource> localFileCache;
 
 
 
@@ -127,9 +133,11 @@ public class FastLocalCacheProvider
      * @param nfsBaseDir - The NFS system root dir to hold the artifacts
      */
     protected FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
-                                      final CacheInstance<String, String> nfsUsageCache, final PathGenerator pathGenerator,
-                                      final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
-                                      final ExecutorService executor, final String nfsBaseDir )
+                                      final CacheInstance<String, String> nfsUsageCache,
+                                      final PathGenerator pathGenerator, final FileEventManager fileEventManager,
+                                      final TransferDecorator transferDecorator, final ExecutorService executor,
+                                      final String nfsBaseDir,
+                                      final CacheInstance<String, ConcreteResource> localFileCache )
     {
         this.plCacheProvider = plCacheProvider;
         this.nfsOwnerCache = nfsUsageCache;
@@ -137,6 +145,7 @@ public class FastLocalCacheProvider
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.executor = executor;
+        this.localFileCache = localFileCache;
         setNfsBaseDir( nfsBaseDir );
         init();
     }
@@ -171,6 +180,13 @@ public class FastLocalCacheProvider
     @PostConstruct
     public void init()
     {
+        if ( localFileCache != null )
+        {
+            localFileCache.execute( cache -> {
+                cache.addListener( FastLocalCacheProvider.this );
+                return null;
+            } );
+        }
         startReporting();
     }
 
@@ -290,6 +306,7 @@ public class FastLocalCacheProvider
             InputStream nfsIn = null;
             OutputStream localOut = null;
 
+
             try
             {
                 lockByISPN( nfsOwnerCache, resource, LockLevel.write );
@@ -343,6 +360,7 @@ public class FastLocalCacheProvider
 
                 IOUtils.closeQuietly( nfsIn );
                 IOUtils.closeQuietly( localOut );
+                cacheLocalFilePath( resource );
                 synchronized ( copyLock )
                 {
                     copyLock.notifyAll();
@@ -807,6 +825,7 @@ public class FastLocalCacheProvider
                 {
                     logger.info( "Local file deleted and ISPN lock started for {}, need to release ISPN lock", resource );
                     unlockByISPN( nfsOwnerCache, false, resource );
+                    localFileCache.remove( resource.getPath() );
                 }
             }
             return false;
@@ -1283,6 +1302,42 @@ public class FastLocalCacheProvider
         }
     }
 
+    private void cacheLocalFilePath( final ConcreteResource resource )
+    {
+        if ( plCacheProvider.exists( resource ) )
+        {
+            localFileCache.put( resource.getPath(), resource );
+        }
+    }
+
+    @CacheEntryExpired
+    public void localFileExpired( CacheEntryExpiredEvent<String, ConcreteResource> e )
+    {
+        final Logger logger = LoggerFactory.getLogger( this.getClass() );
+        if ( e == null )
+        {
+            logger.error( "[FATAL]The infinispan cache expired event for indy schedule manager is null.",
+                          new NullPointerException( "CacheEntryExpiredEvent is null" ) );
+            return;
+        }
+
+        if ( !e.isPre() )
+        {
+            final String localFilePath = e.getKey();
+            if ( StringUtils.isNotBlank( localFilePath ) )
+            {
+                final ConcreteResource resource = e.getValue();
+                try
+                {
+                    plCacheProvider.delete( resource );
+                }
+                catch ( IOException ex )
+                {
+                    logger.error( String.format( "Cannot delete local file %s for expiration.", resource ), ex );
+                }
+            }
+        }
+    }
 
     /**
      * A output stream wrapper to let the stream writing to dual output stream
@@ -1331,6 +1386,7 @@ public class FastLocalCacheProvider
             out2.write( b );
         }
 
+        @Override
         public void write( byte b[] )
                 throws IOException
         {
@@ -1345,6 +1401,7 @@ public class FastLocalCacheProvider
             out2.write( b, off, len );
         }
 
+        @Override
         public void flush()
                 throws IOException
         {
@@ -1352,6 +1409,7 @@ public class FastLocalCacheProvider
             out2.flush();
         }
 
+        @Override
         public void close()
                 throws IOException
         {
@@ -1392,12 +1450,14 @@ public class FastLocalCacheProvider
                 // For safe, we should always let the stream closed, even if the transaction failed.
                 IOUtils.closeQuietly( out1 );
                 IOUtils.closeQuietly( out2 );
+                cacheLocalFilePath( resource );
 
                 logger.trace( "ISPN lock released after ISPN trasaction for key {} with resource {}? {}", cacheKey, resource,
                               cacheInstance.getLockOwner( cacheKey ) == null ? "Yes" : "No" );
             }
         }
     }
+
 
     private interface TransferLockTask<T>
     {
