@@ -21,7 +21,6 @@ import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
-import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.type.StandardTypeMapper;
@@ -198,12 +197,6 @@ public class GalleyMavenBuilder
     public MavenPluginDefaults getPluginDefaults()
     {
         return pluginDefaults;
-    }
-
-    public GalleyMavenBuilder withPluginDefaults( final StandardMaven350PluginDefaults pluginDefaults )
-    {
-        this.pluginDefaults = pluginDefaults;
-        return this;
     }
 
     public XPathManager getXPathManager()
