@@ -24,6 +24,7 @@ import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
@@ -100,7 +101,7 @@ public class EmbeddableCDIProducer
         objectMapper = new ObjectMapper();
         objectMapper.registerModules( new ProjectVersionRefSerializerModule() );
 
-        pluginDefaults = new StandardMaven304PluginDefaults();
+        pluginDefaults = new StandardMaven350PluginDefaults();
         pluginImplications = new StandardMavenPluginImplications( xml );
     }
 

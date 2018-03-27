@@ -15,11 +15,6 @@
  */
 package org.commonjava.maven.galley.testing.maven;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
@@ -29,7 +24,6 @@ import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMaven;
 import org.commonjava.maven.galley.maven.GalleyMavenBuilder;
-import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.type.StandardTypeMapper;
 import org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
@@ -53,6 +47,11 @@ import org.commonjava.maven.galley.testing.core.cache.TestCacheProvider;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 public class GalleyMavenFixture
     extends ExternalResource
@@ -589,13 +588,6 @@ public class GalleyMavenFixture
     {
         checkInitialized();
         mavenBuilder.withPomReader( pomReader );
-        return this;
-    }
-
-    public GalleyMavenFixture withPluginDefaults( final StandardMaven304PluginDefaults pluginDefaults )
-    {
-        checkInitialized();
-        mavenBuilder.withPluginDefaults( pluginDefaults );
         return this;
     }
 

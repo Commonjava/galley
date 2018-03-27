@@ -21,6 +21,7 @@ import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
+import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.internal.type.StandardTypeMapper;
 import org.commonjava.maven.galley.maven.internal.version.VersionResolverImpl;
@@ -128,7 +129,7 @@ public class TestFixture
 
         if ( pluginDefaults == null )
         {
-            pluginDefaults = new StandardMaven304PluginDefaults();
+            pluginDefaults = new StandardMaven350PluginDefaults();
         }
 
         if ( pluginImplications == null )
