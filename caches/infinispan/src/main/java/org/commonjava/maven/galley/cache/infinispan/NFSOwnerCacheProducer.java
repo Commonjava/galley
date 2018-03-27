@@ -32,7 +32,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class NFSOwnerCacheProducer
 {
-    public static final String CACHE_NAME = "nfs-cache";
+    static final String CACHE_NAME = "nfs-cache";
+
+    static final String DEFAULT_LOCAL_CACHE_FILE_NAME = "defaultLocalFileCache";
+
+    static final String LOCAL_CACHE_FILE_NAME_FOR_TEST = "localFileCacheForTest";
 
     public EmbeddedCacheManager getCacheMgr()
     {
@@ -40,7 +44,7 @@ public class NFSOwnerCacheProducer
                 new GlobalConfigurationBuilder().globalJmxStatistics().jmxDomain( "org.commonjava.maven.galley" ).build() );
         // Want to enable dead lock check as lock will be used in FastLocalCacheProvider
         // and also set transaction mode to PESSIMISTIC with DummyTransactionManger.
-        final Configuration configuration = new ConfigurationBuilder().eviction()
+        final Configuration configurationForNfs = new ConfigurationBuilder().eviction()
                                                                       .strategy( EvictionStrategy.LRU )
                                                                       .size( 1000 )
                                                                       .type( EvictionType.COUNT )
@@ -52,7 +56,34 @@ public class NFSOwnerCacheProducer
                                                                               new DummyTransactionManagerLookup() )
                                                                       .lockingMode( LockingMode.PESSIMISTIC )
                                                                       .build();
-        cacheManager.defineConfiguration( CACHE_NAME, configuration );
+        cacheManager.defineConfiguration( CACHE_NAME, configurationForNfs );
+
+        // Default cache impl for the local file cache in FLCP, uses 7 day as an expiration duration, and trigger purge every 30 mins.
+        final Long expirationDuration = 7 * 24 * 3600 * 1000L;
+        Configuration configForLocalFile = new ConfigurationBuilder().eviction()
+                                                                     .strategy( EvictionStrategy.LRU )
+                                                                     .size( 20000 )
+                                                                     .type( EvictionType.COUNT )
+                                                                     .expiration()
+                                                                     .lifespan( expirationDuration )
+                                                                     .wakeUpInterval( 30 * 60 * 1000L )
+                                                                     .maxIdle( expirationDuration )
+                                                                     .build();
+
+        cacheManager.defineConfiguration( DEFAULT_LOCAL_CACHE_FILE_NAME, configForLocalFile );
+
+        // A test cache impl to do unit-testing for this local file cache expiration for purging mechanism
+        Configuration configForLocalFileTest = new ConfigurationBuilder().eviction()
+                                                                     .strategy( EvictionStrategy.LRU )
+                                                                     .size( 1000 )
+                                                                     .type( EvictionType.COUNT )
+                                                                     .expiration()
+                                                                     .lifespan( 1000L )
+                                                                     .wakeUpInterval( 100L )
+                                                                     .maxIdle( 1000L )
+                                                                     .build();
+
+        cacheManager.defineConfiguration( LOCAL_CACHE_FILE_NAME_FOR_TEST, configForLocalFileTest );
         return cacheManager;
     }
 }

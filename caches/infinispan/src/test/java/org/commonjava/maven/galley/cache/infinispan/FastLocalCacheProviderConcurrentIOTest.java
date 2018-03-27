@@ -36,7 +36,6 @@ import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -89,6 +88,8 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     private final Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
 
+    private final Cache<String, ConcreteResource> localFileCache = CACHE_MANAGER.getCache( "simpleLocalFileCacheTest" );
+
     private PartyLineCacheProvider plProvider;
 
     private final ExecutorService executor = Executors.newFixedThreadPool( 4 );
@@ -111,7 +112,7 @@ public class FastLocalCacheProviderConcurrentIOTest
         plProvider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator );
 
         provider = new FastLocalCacheProvider( plProvider, new SimpleCacheInstance<>( "test", cache ), pathgen, events,
-                                               decorator, executor, nfsBasePath );
+                                               decorator, executor, nfsBasePath, new SimpleCacheInstance<>( "localFileCache", localFileCache ));
 
         latch = new CountDownLatch( 2 );
     }
