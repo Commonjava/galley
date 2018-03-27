@@ -88,7 +88,7 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     private final Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
 
-    private final Cache<String, ConcreteResource> localFileCache = CACHE_MANAGER.getCache( "localFileCache" );
+    private final Cache<String, ConcreteResource> localFileCache = CACHE_MANAGER.getCache( "simpleLocalFileCacheTest" );
 
     private PartyLineCacheProvider plProvider;
 

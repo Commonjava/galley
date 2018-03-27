@@ -67,7 +67,7 @@ public abstract class AbstractFastLocalCacheBMUnitTest
 
     protected Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
 
-    protected Cache<String, ConcreteResource> localFileCache = CACHE_MANAGER.getCache( "localFileCache" );
+    protected Cache<String, ConcreteResource> localFileCache = CACHE_MANAGER.getCache( "simpleLocalFileCacheTest" );
 
     protected String result;
 

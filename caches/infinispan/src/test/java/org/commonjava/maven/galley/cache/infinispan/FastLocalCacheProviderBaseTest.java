@@ -73,19 +73,7 @@ public class FastLocalCacheProviderBaseTest
 
         CACHE_MANAGER = new NFSOwnerCacheProducer().getCacheMgr();
         nfsOwnerCache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
-
-        Configuration config = new ConfigurationBuilder().eviction()
-                                                         .strategy( EvictionStrategy.LRU )
-                                                         .size( 1000 )
-                                                         .type( EvictionType.COUNT )
-                                                         .expiration()
-                                                         .lifespan( 1000L )
-                                                         .wakeUpInterval( 100L )
-                                                         .maxIdle( 1000L )
-                                                         .build();
-        final String LOCAL_FILE_CACHE_NAME = "localFileCache";
-        CACHE_MANAGER.defineConfiguration( LOCAL_FILE_CACHE_NAME, config );
-        localFileCache = CACHE_MANAGER.getCache( LOCAL_FILE_CACHE_NAME );
+        localFileCache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.LOCAL_CACHE_FILE_NAME_FOR_TEST );
     }
 
 

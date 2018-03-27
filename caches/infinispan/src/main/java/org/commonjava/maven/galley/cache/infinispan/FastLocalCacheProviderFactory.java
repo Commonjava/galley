@@ -56,6 +56,19 @@ public class FastLocalCacheProviderFactory
         this.localFilePathCache = localFilePathCache;
     }
 
+    public FastLocalCacheProviderFactory( File cacheDir, File nfsDir, CacheInstance<String, String> nfsUsageCache,
+                                          ExecutorService executor )
+    {
+        this.cacheDir = cacheDir;
+        this.nfsDir = nfsDir;
+        this.nfsUsageCache = nfsUsageCache;
+        this.executor = executor;
+        this.localFilePathCache = new SimpleCacheInstance<>( NFSOwnerCacheProducer.DEFAULT_LOCAL_CACHE_FILE_NAME,
+                                                             new NFSOwnerCacheProducer().getCacheMgr()
+                                                                                        .getCache(
+                                                                                                NFSOwnerCacheProducer.DEFAULT_LOCAL_CACHE_FILE_NAME ) );
+    }
+
     @Override
     public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecorator transferDecorator,
                                  FileEventManager fileEventManager )
