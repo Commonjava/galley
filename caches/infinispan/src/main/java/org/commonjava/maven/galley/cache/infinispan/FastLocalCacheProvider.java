@@ -915,14 +915,20 @@ public class FastLocalCacheProvider
     }
 
     @Override
-    public Transfer getTransfer( ConcreteResource resource )
+    public synchronized Transfer getTransfer( final ConcreteResource resource )
     {
-        return transferCache.computeIfAbsent( resource,
-                                              r -> new Transfer( r, this, fileEventManager, transferDecorator ) );
+        Transfer t = transferCache.get( resource );
+        if ( t == null )
+        {
+            t = new Transfer( resource, this, fileEventManager, transferDecorator );
+            transferCache.put( new ConcreteResource( resource.getLocation(), resource.getPath() ), t );
+        }
+
+        return t;
     }
 
     @Override
-    public void clearTransferCache()
+    public synchronized void clearTransferCache()
     {
         transferCache.clear();
     }
