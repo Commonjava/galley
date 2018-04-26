@@ -54,8 +54,6 @@
     <weftVersion>1.6</weftVersion>
     <jhttpcVersion>1.5</jhttpcVersion>
     <infinispanVersion>8.1.2.Final</infinispanVersion>
-    <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
-    <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
 

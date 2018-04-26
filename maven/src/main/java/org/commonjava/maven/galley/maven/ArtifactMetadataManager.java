@@ -28,8 +28,6 @@ import org.commonjava.maven.galley.model.Transfer;
 public interface ArtifactMetadataManager
 {
 
-    public static final String DEFAULT_FILENAME = "maven-metadata.xml";
-
     boolean delete( Location location, ProjectRef ref )
     throws TransferException;
 

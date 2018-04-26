@@ -15,20 +15,14 @@
  */
 package org.commonjava.maven.galley.maven.internal;
 
-import static org.commonjava.maven.galley.maven.util.ArtifactPathUtils.formatMetadataPath;
-
-import java.io.InputStream;
-import java.util.List;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import org.commonjava.maven.atlas.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.ArtifactRules;
+import org.commonjava.maven.galley.maven.internal.metadata.StandardMetadataMapper;
+import org.commonjava.maven.galley.maven.spi.metadata.MetadataMapper;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -36,6 +30,11 @@ import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.io.InputStream;
+import java.util.List;
 
 @ApplicationScoped
 public class ArtifactMetadataManagerImpl
@@ -49,6 +48,9 @@ public class ArtifactMetadataManagerImpl
 
     @Inject
     private LocationExpander expander;
+
+    // TODO: Consider injecting.
+    private MetadataMapper mapper = new StandardMetadataMapper();
 
     protected ArtifactMetadataManagerImpl()
     {
@@ -97,8 +99,7 @@ public class ArtifactMetadataManagerImpl
     public boolean delete( final Location location , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        final String path = formatMetadataPath( ref, filename );
-        return transferManager.deleteAll( new VirtualResource( expander.expand( location ), path ), eventMetadata );
+        return transferManager.deleteAll( new VirtualResource( mapper.createResource( location, filename, ref, null) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -138,8 +139,7 @@ public class ArtifactMetadataManagerImpl
     public boolean delete( final Location location , final String groupId , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        final String path = formatMetadataPath( groupId, filename );
-        return transferManager.deleteAll( new VirtualResource( expander.expand( location ), path ), eventMetadata );
+        return transferManager.deleteAll( new VirtualResource( mapper.createResource( location, filename, null, groupId) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -179,8 +179,7 @@ public class ArtifactMetadataManagerImpl
     public boolean deleteAll( final List<? extends Location> locations , final String groupId , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.deleteAll( new VirtualResource( expander.expand( locations ),
-                                                               formatMetadataPath( groupId, filename ) ), eventMetadata );
+        return transferManager.deleteAll( new VirtualResource( mapper.createResource( expander.expand( locations ), filename, null, groupId) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -220,8 +219,7 @@ public class ArtifactMetadataManagerImpl
     public boolean deleteAll( final List<? extends Location> locations , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.deleteAll( new VirtualResource( expander.expand( locations ),
-                                                               formatMetadataPath( ref, filename ) ), eventMetadata );
+        return transferManager.deleteAll( new VirtualResource( mapper.createResource( expander.expand( locations ), filename, ref, null) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -261,8 +259,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieve( final Location location , final String groupId , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( location ),
-                                                                   formatMetadataPath( groupId, filename ) ),
+        return transferManager.retrieveFirst( new VirtualResource( mapper.createResource( expander.expand( location ), filename, null, groupId) ),
                                               eventMetadata );
     }
 
@@ -303,8 +300,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieve( final Location location , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( location ),
-                                                                   formatMetadataPath( ref, filename ) ), eventMetadata );
+        return transferManager.retrieveFirst( new VirtualResource( mapper.createResource( expander.expand( location ), filename, ref, null) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -346,9 +342,7 @@ public class ArtifactMetadataManagerImpl
                                        final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.retrieveAll( new VirtualResource( expander.expand( locations ),
-                                                                 formatMetadataPath( groupId, filename ) ),
-                                            eventMetadata );
+        return transferManager.retrieveAll( new VirtualResource( mapper.createResource( expander.expand( locations ), filename, null, groupId) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -390,8 +384,7 @@ public class ArtifactMetadataManagerImpl
                                        final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.retrieveAll( new VirtualResource( expander.expand( locations ),
-                                                                 formatMetadataPath( ref, filename ) ), eventMetadata );
+        return transferManager.retrieveAll( new VirtualResource( mapper.createResource( expander.expand( locations ), filename, ref, null) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -431,9 +424,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations , final String groupId , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( locations ),
-                                                                   formatMetadataPath( groupId, filename ) ),
-                                              eventMetadata );
+        return transferManager.retrieveFirst( new VirtualResource( mapper.createResource( expander.expand( locations ), filename, null, groupId) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -473,8 +464,7 @@ public class ArtifactMetadataManagerImpl
     public Transfer retrieveFirst( final List<? extends Location> locations , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        return transferManager.retrieveFirst( new VirtualResource( expander.expand( locations ),
-                                                                   formatMetadataPath( ref, filename ) ), eventMetadata );
+        return transferManager.retrieveFirst( new VirtualResource( mapper.createResource( expander.expand( locations ), filename, ref, null) ), eventMetadata );
     }
 
     /* (non-Javadoc)
@@ -517,7 +507,7 @@ public class ArtifactMetadataManagerImpl
         throws TransferException
     {
         final VirtualResource virt =
-            new VirtualResource( expander.expand( location ), formatMetadataPath( groupId, filename ) );
+            new VirtualResource( mapper.createResource( expander.expand( location ), filename, null, groupId) );
         final ConcreteResource selected = ArtifactRules.selectStorageResource( virt );
 
         if ( selected == null )
@@ -569,7 +559,7 @@ public class ArtifactMetadataManagerImpl
         throws TransferException
     {
         final VirtualResource virt =
-            new VirtualResource( expander.expand( location ), formatMetadataPath( ref, filename ) );
+            new VirtualResource( mapper.createResource( expander.expand( location ), filename, ref, null));
         final ConcreteResource selected = ArtifactRules.selectStorageResource( virt );
 
         if ( selected == null )
@@ -609,7 +599,7 @@ public class ArtifactMetadataManagerImpl
                             final InputStream stream, final long length, final String contentType )
         throws TransferException
     {
-        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( groupId, filename ) ),
+        return transferManager.publish( mapper.createResource( location, filename, null, groupId),
                                         stream, length, contentType );
     }
 
@@ -621,7 +611,7 @@ public class ArtifactMetadataManagerImpl
                             final InputStream stream, final long length, final String contentType, final EventMetadata metadata )
         throws TransferException
     {
-        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( groupId, filename ) ),
+        return transferManager.publish( mapper.createResource( location, filename, null, groupId),
                                         stream, length, contentType, metadata );
     }
 
@@ -653,7 +643,7 @@ public class ArtifactMetadataManagerImpl
                             final InputStream stream, final long length, final String contentType )
             throws TransferException
     {
-        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( ref, filename ) ), stream,
+        return transferManager.publish( mapper.createResource( location, filename, ref, null), stream,
                                         length, contentType );
     }
 
@@ -665,7 +655,7 @@ public class ArtifactMetadataManagerImpl
                             final InputStream stream, final long length, final String contentType, final EventMetadata metadata )
         throws TransferException
     {
-        return transferManager.publish( new ConcreteResource( location, formatMetadataPath( ref, filename ) ), stream,
+        return transferManager.publish( mapper.createResource( location, filename, ref, null), stream,
                                         length, contentType, metadata );
     }
 
