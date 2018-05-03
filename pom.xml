@@ -54,6 +54,7 @@
     <weftVersion>1.6</weftVersion>
     <jhttpcVersion>1.5</jhttpcVersion>
     <infinispanVersion>8.1.2.Final</infinispanVersion>
+    <weldVersion>2.4.6.Final</weldVersion>
     <!-- 1.6 is necessary for certain subsets, so it can be used by eg. PME -->
     <!-- 1.7 is the minimum JVM we can use to build, because of deps in other parts. -->
     <javaVersion>1.8</javaVersion>
@@ -161,7 +162,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>21</version>
+        <version>23-SNAPSHOT</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -226,13 +227,13 @@
       <dependency>
         <groupId>org.jboss.weld.se</groupId>
         <artifactId>weld-se-core</artifactId>
-        <version>2.3.2.Final</version>
+        <version>${weldVersion}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.jboss.weld.se</groupId>
         <artifactId>weld-se</artifactId>
-        <version>2.3.2.Final</version>
+        <version>${weldVersion}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -246,13 +247,7 @@
         <artifactId>jsoup</artifactId>
         <version>1.8.3</version>
       </dependency>
-<!--       <dependency>
-        <groupId>io.vertx</groupId>
-        <artifactId>vertx-core</artifactId>
-        <version>2.0.1-final</version>
-        <scope>test</scope>
-      </dependency>
- -->      <dependency>
+      <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-interpolation</artifactId>
         <version>1.19</version>
@@ -270,11 +265,6 @@
         <version>0.7.4</version>
       </dependency>
 
-      <dependency>
-        <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-cdi-embedded</artifactId>
-        <version>${infinispanVersion}</version>
-      </dependency>
       <dependency>
         <groupId>org.infinispan</groupId>
         <artifactId>infinispan-embedded</artifactId>
