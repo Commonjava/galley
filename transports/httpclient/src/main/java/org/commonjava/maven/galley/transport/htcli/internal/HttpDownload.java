@@ -78,8 +78,11 @@ public final class HttpDownload
     public DownloadJob call()
     {
         request = new HttpGet( url );
+        String oldName = Thread.currentThread().getName();
         try
         {
+            String newName = oldName + ": GET " + url;
+            Thread.currentThread().setName( newName );
             if ( executeHttp() )
             {
                 transferSizes.put( target, HttpUtil.getContentLength( response ) );
@@ -93,6 +96,10 @@ public final class HttpDownload
         finally
         {
             cleanup();
+            if ( oldName != null )
+            {
+                Thread.currentThread().setName( oldName );
+            }
         }
 
         logger.info( "Download attempt done: {} Result:\n  target: {}\n  error: {}", url, target, error );

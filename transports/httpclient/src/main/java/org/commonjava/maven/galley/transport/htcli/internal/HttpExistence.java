@@ -44,10 +44,15 @@ public final class HttpExistence
     @Override
     public Boolean call()
     {
+        String oldName = Thread.currentThread().getName();
+
         request = new HttpHead( url );
 
         try
         {
+            String newName = oldName + ": EXISTS " + url;
+            Thread.currentThread().setName( newName );
+
             if ( executeHttp() )
             {
                 return true;
@@ -60,6 +65,10 @@ public final class HttpExistence
         finally
         {
             cleanup();
+            if ( oldName != null )
+            {
+                Thread.currentThread().setName( oldName );
+            }
         }
 
         return false;
