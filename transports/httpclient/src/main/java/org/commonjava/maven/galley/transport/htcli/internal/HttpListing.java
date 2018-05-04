@@ -77,8 +77,13 @@ public class HttpListing
 
         ListingResult result = null;
         InputStream in = null;
+
+        String oldName = Thread.currentThread().getName();
         try
         {
+            String newName = oldName + ": LIST " + url;
+            Thread.currentThread().setName( newName );
+
             if ( executeHttp() )
             {
                 in = response.getEntity().getContent();
@@ -137,6 +142,10 @@ public class HttpListing
         {
             closeQuietly( in );
             cleanup();
+            if ( oldName != null )
+            {
+                Thread.currentThread().setName( oldName );
+            }
         }
 
         return error == null ? result : null;
