@@ -15,13 +15,11 @@
  */
 package org.commonjava.maven.galley.maven.internal.version;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-
 import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.event.EventMetadata;
+import org.commonjava.maven.galley.maven.internal.metadata.StandardMetadataMapper;
+import org.commonjava.maven.galley.maven.spi.metadata.MetadataMapper;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -31,6 +29,11 @@ import org.commonjava.maven.galley.testing.core.transport.job.TestDownload;
 import org.junit.Rule;
 import org.junit.Test;
 import org.w3c.dom.Document;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ArtifactManagerImplTest
 {
@@ -43,6 +46,40 @@ public class ArtifactManagerImplTest
 
     @Rule
     public TestFixture fixture = new TestFixture();
+
+    @Test
+    public void verifyConcreteResourceCreationFile()
+                    throws Exception
+    {
+        final Location location = new SimpleLocation( "file:///home/foobar" );
+
+        MetadataMapper m = new StandardMetadataMapper();
+        ConcreteResource cr = m.createResource( location, null, null, "org.groupId" );
+        assertTrue ( cr.getPath().equals( "org/groupId/maven-metadata-local.xml" ) );
+    }
+
+    @Test
+    public void verifyConcreteResourceCreationHTTP()
+                    throws Exception
+    {
+        final Location location = new SimpleLocation( "https:///home/foobar" );
+
+        MetadataMapper m = new StandardMetadataMapper();
+        ConcreteResource cr = m.createResource( location, null, null, "org.groupId" );
+        assertTrue ( cr.getPath().equals( "org/groupId/maven-metadata.xml" ) );
+    }
+
+    @Test
+    public void verifyConcreteResourceCreationFallback()
+                    throws Exception
+    {
+        final Location location = new SimpleLocation( "test:///home/foobar" );
+
+        MetadataMapper m = new StandardMetadataMapper();
+        ConcreteResource cr = m.createResource( location, null, null, "org.groupId" );
+        assertTrue ( cr.getPath().equals( "org/groupId/maven-metadata.xml" ) );
+    }
+
 
     @Test
     public void resolveSnapshot_FirstMatch_SingletonLocationList_SingletonSnapshotList_LatestVersionStrategy()
@@ -74,8 +111,8 @@ public class ArtifactManagerImplTest
 
         System.out.println( result );
 
-        //        assertThat( result, notNullValue() );
-        //        assertThat( result.getVersionString(), equalTo( "1.0-20140604.101244-1" ) );
+        assertThat( result, notNullValue() );
+        assertThat( result.getVersionString(), equalTo( "1.0-20140604.101244-1" ) );
     }
 
     @Test

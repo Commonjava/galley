@@ -15,9 +15,9 @@
  */
 package org.commonjava.maven.galley.maven.util;
 
-import static org.commonjava.maven.galley.maven.ArtifactMetadataManager.DEFAULT_FILENAME;
-
-import org.commonjava.maven.atlas.ident.ref.*;
+import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.atlas.ident.version.VersionSpec;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
@@ -46,14 +46,14 @@ public final class ArtifactPathUtils
         }
 
         sb.append( '/' )
-          .append( filename == null ? DEFAULT_FILENAME : filename );
+          .append( filename );
 
         return sb.toString();
     }
 
     public static String formatMetadataPath( final String groupId, final String filename )
     {
-        return String.format( "%s/%s", groupId.replace( '.', '/' ), filename == null ? DEFAULT_FILENAME : filename );
+        return String.format( "%s/%s", groupId.replace( '.', '/' ), filename );
     }
 
     public static String formatArtifactPath( final ProjectVersionRef src, final TypeMapper mapper )
