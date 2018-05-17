@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -27,6 +29,7 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.ResourceUtils;
@@ -36,6 +39,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import static com.codahale.metrics.MetricRegistry.name;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
@@ -55,16 +59,23 @@ public final class HttpDownload
 
     private boolean deleteFilesOnPath;
 
+    private final MetricRegistry metricRegistry;
+
+    private final TransportMetricConfig metricConfig;
+
+
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
-                         final ObjectMapper mapper )
+                         final ObjectMapper mapper, final MetricRegistry metricRegistry,
+                         final TransportMetricConfig metricConfig )
     {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true );
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry, metricConfig );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
-                         final ObjectMapper mapper, final boolean deleteFilesOnPath )
+                         final ObjectMapper mapper, final boolean deleteFilesOnPath,
+                         final MetricRegistry metricRegistry, final TransportMetricConfig metricConfig )
     {
         super( url, location, http );
         this.target = target;
@@ -72,10 +83,51 @@ public final class HttpDownload
         this.eventMetadata = eventMetadata;
         this.mapper = mapper;
         this.deleteFilesOnPath = deleteFilesOnPath;
+        this.metricRegistry = metricRegistry;
+        this.metricConfig = metricConfig;
     }
 
     @Override
     public DownloadJob call()
+    {
+        if ( metricConfig == null || !metricConfig.isEnabled() || metricRegistry == null )
+        {
+            return doCall();
+        }
+
+        logger.trace( "Download metric enabled, location: {}", location );
+
+        Timer repoTimer = null;
+        String metricName = metricConfig.getMetricUniqueName( location );
+        if ( metricName != null )
+        {
+            repoTimer = metricRegistry.timer( name( getClass(), "call", metricName ) );
+            logger.trace( "Measure repo metric, metricName: {}", metricName );
+        }
+
+        final Timer globalTimer = metricRegistry.timer( name( getClass(), "call" ) );
+        final Timer.Context globalTimerContext = globalTimer.time();
+        Timer.Context repoTimerContext = null;
+        if ( repoTimer != null )
+        {
+            repoTimerContext = repoTimer.time();
+        }
+
+        try
+        {
+            return doCall();
+        }
+        finally
+        {
+            globalTimerContext.stop();
+            if ( repoTimerContext != null )
+            {
+                repoTimerContext.stop();
+            }
+        }
+    }
+
+    private DownloadJob doCall()
     {
         request = new HttpGet( url );
         String oldName = Thread.currentThread().getName();
