@@ -57,6 +57,7 @@
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
+    <metrics.version>3.1.0</metrics.version>
 
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
@@ -292,6 +293,13 @@
         <artifactId>jboss-servlet-api_3.0_spec</artifactId>
         <version>1.0.1.Final</version>
         <scope>test</scope>
+      </dependency>
+
+      <!-- metrics support-->
+      <dependency>
+        <groupId>io.dropwizard.metrics</groupId>
+        <artifactId>metrics-core</artifactId>
+        <version>${metrics.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

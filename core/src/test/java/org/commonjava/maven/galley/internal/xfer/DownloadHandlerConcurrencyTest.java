@@ -90,7 +90,7 @@ public class DownloadHandlerConcurrencyTest
                                        new NoOpTransferDecorator(), false );
 
         transport = new HttpClientTransport( new HttpImpl( new MemoryPasswordManager() ), new ObjectMapper(),
-                                                             new GlobalHttpConfiguration() );
+                                                             new GlobalHttpConfiguration(), null, null );
     }
 
     @BMRules( rules = { @BMRule( name = "init rendezvous", targetClass = "DownloadHandler", targetMethod = "<init>",

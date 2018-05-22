@@ -28,6 +28,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.codahale.metrics.MetricRegistry;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.event.EventMetadata;
@@ -39,6 +40,7 @@ import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpDownload;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpExistence;
@@ -67,20 +69,29 @@ public class HttpClientTransport
     @Inject
     private ObjectMapper mapper;
 
+    @Inject
+    private MetricRegistry metricRegistry;
+
+    @Inject
+    private TransportMetricConfig metricConfig;
+
     protected HttpClientTransport()
     {
     }
 
     public HttpClientTransport( final Http http )
     {
-        this( http, new ObjectMapper(), null );
+        this( http, new ObjectMapper(), null, null, null );
     }
 
-    public HttpClientTransport( final Http http, final ObjectMapper mapper, final GlobalHttpConfiguration globalConfig )
+    public HttpClientTransport( final Http http, final ObjectMapper mapper, final GlobalHttpConfiguration globalConfig,
+                                final MetricRegistry metricRegistry, final TransportMetricConfig metricConfig )
     {
         this.http = http;
         this.mapper = mapper;
         this.globalConfig = globalConfig;
+        this.metricRegistry = metricRegistry;
+        this.metricConfig = metricConfig;
     }
 
     @PreDestroy
@@ -103,7 +114,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, transferSizes, eventMetadata,
-                                 http, mapper );
+                                 http, mapper, metricRegistry, metricConfig );
     }
 
     @Override
