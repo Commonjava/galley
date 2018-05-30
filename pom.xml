@@ -266,7 +266,7 @@
 
       <dependency>
         <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-embedded</artifactId>
+        <artifactId>infinispan-core</artifactId>
         <version>${infinispanVersion}</version>
       </dependency>
       <dependency>
