@@ -58,6 +58,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.getTestEmbeddedCacheManager;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -101,7 +102,7 @@ public class FastLocalCacheProviderConcurrentIOTest
     @BeforeClass
     public static void setupClass()
     {
-        CACHE_MANAGER = new NFSOwnerCacheProducer().getCacheMgr();
+        CACHE_MANAGER = getTestEmbeddedCacheManager();
     }
 
     @Before

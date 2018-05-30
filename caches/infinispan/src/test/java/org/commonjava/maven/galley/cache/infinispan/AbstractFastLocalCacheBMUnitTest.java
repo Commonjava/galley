@@ -44,6 +44,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.getTestEmbeddedCacheManager;
+
 public abstract class AbstractFastLocalCacheBMUnitTest
         extends CacheProviderTCK
 {
@@ -74,7 +76,7 @@ public abstract class AbstractFastLocalCacheBMUnitTest
     @BeforeClass
     public static void setupClass()
     {
-        CACHE_MANAGER = new NFSOwnerCacheProducer().getCacheMgr();
+        CACHE_MANAGER = getTestEmbeddedCacheManager();
     }
 
     @Before

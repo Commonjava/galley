@@ -38,6 +38,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.util.concurrent.Executors;
 
+import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.getTestEmbeddedCacheManager;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -86,7 +87,7 @@ public class RoutingCacheProviderWrapperTest
 
         final File cacheDir = temp.newFolder();
         partylineFac = new PartyLineCacheProviderFactory( cacheDir );
-        DefaultCacheManager cacheManager = new DefaultCacheManager();
+        DefaultCacheManager cacheManager = getTestEmbeddedCacheManager();
         SimpleCacheInstance<String, String> cacheInstance =
                 new SimpleCacheInstance<>( "test", cacheManager.getCache( "simpleNfsCache" ) );
         SimpleCacheInstance<String, ConcreteResource> testLocalFileCacheInstance =

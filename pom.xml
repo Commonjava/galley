@@ -53,7 +53,7 @@
     <partylineVersion>1.14</partylineVersion>
     <weftVersion>1.6</weftVersion>
     <jhttpcVersion>1.5</jhttpcVersion>
-    <infinispanVersion>8.1.2.Final</infinispanVersion>
+    <infinispanVersion>9.1.7.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
@@ -266,7 +266,7 @@
 
       <dependency>
         <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-embedded</artifactId>
+        <artifactId>infinispan-core</artifactId>
         <version>${infinispanVersion}</version>
       </dependency>
       <dependency>

@@ -36,6 +36,8 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 
+import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.getTestEmbeddedCacheManager;
+
 public class GridFileSystemCacheProviderTest
         extends CacheProviderTCK
 {
@@ -53,7 +55,7 @@ public class GridFileSystemCacheProviderTest
     @BeforeClass
     public static void setupClass()
     {
-        CACHE_MANAGER = new DefaultCacheManager( new GlobalConfigurationBuilder().build() );
+        CACHE_MANAGER = getTestEmbeddedCacheManager();
     }
 
     @Before
