@@ -27,10 +27,6 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.infinispan.Cache;
-import org.infinispan.configuration.cache.Configuration;
-import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.eviction.EvictionStrategy;
-import org.infinispan.eviction.EvictionType;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -45,6 +41,8 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.LOCAL_CACHE_FILE_NAME_FOR_TEST;
+import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.getTestEmbeddedCacheManager;
 import static org.junit.Assert.*;
 
 public class FastLocalCacheProviderBaseTest
@@ -66,14 +64,12 @@ public class FastLocalCacheProviderBaseTest
 
     protected static Cache<String, ConcreteResource> localFileCache;
 
-
     @BeforeClass
     public static void setupClass()
     {
-
-        CACHE_MANAGER = new NFSOwnerCacheProducer().getCacheMgr();
+        CACHE_MANAGER = getTestEmbeddedCacheManager();
         nfsOwnerCache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
-        localFileCache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.LOCAL_CACHE_FILE_NAME_FOR_TEST );
+        localFileCache = CACHE_MANAGER.getCache( LOCAL_CACHE_FILE_NAME_FOR_TEST );
     }
 
 
