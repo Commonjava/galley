@@ -67,6 +67,12 @@ public class HttpDownloadTest
         }
 
         @Override
+        public String getNodePrefix()
+        {
+            return null;
+        }
+
+        @Override
         public String getMetricUniqueName( Location location )
         {
             if ( location.getName().equals( "test" ) )
