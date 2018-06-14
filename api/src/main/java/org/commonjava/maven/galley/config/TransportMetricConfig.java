@@ -22,6 +22,12 @@ public interface TransportMetricConfig
     boolean isEnabled();
 
     /**
+     * For clustering. Return node prefix. This will be prepended to metric names.
+     * @return null if not clustered.
+     */
+    String getNodePrefix();
+
+    /**
      * Get metric unique name for the given location.
      * @param location from where to download artifacts,
      *                 e.g., maven:remote:test, maven:remote:koji-com.google.guava-guava-parent-14.0.1

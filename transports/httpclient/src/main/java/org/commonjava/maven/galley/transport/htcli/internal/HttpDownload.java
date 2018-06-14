@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.transport.htcli.internal;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
@@ -97,15 +98,17 @@ public final class HttpDownload
 
         logger.trace( "Download metric enabled, location: {}", location );
 
+        String cls = ClassUtils.getAbbreviatedName( getClass().getName(), 1 ); // e.g., foo.bar.ClassA -> f.b.ClassA
+
         Timer repoTimer = null;
         String metricName = metricConfig.getMetricUniqueName( location );
         if ( metricName != null )
         {
-            repoTimer = metricRegistry.timer( name( getClass(), "call", metricName ) );
+            repoTimer = metricRegistry.timer( name( metricConfig.getNodePrefix(), cls, "call", metricName ) );
             logger.trace( "Measure repo metric, metricName: {}", metricName );
         }
 
-        final Timer globalTimer = metricRegistry.timer( name( getClass(), "call" ) );
+        final Timer globalTimer = metricRegistry.timer( name( metricConfig.getNodePrefix(), cls, "call" ) );
         final Timer.Context globalTimerContext = globalTimer.time();
         Timer.Context repoTimerContext = null;
         if ( repoTimer != null )

@@ -71,6 +71,12 @@ public class TestCDIProvider
         }
 
         @Override
+        public String getNodePrefix()
+        {
+            return null;
+        }
+
+        @Override
         public String getMetricUniqueName( Location location )
         {
             return null;
