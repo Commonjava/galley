@@ -51,9 +51,9 @@
     <undertowVersion>1.1.2.Final</undertowVersion>
     <atlasVersion>0.17.2</atlasVersion>
     <partylineVersion>1.14</partylineVersion>
-    <weftVersion>1.6</weftVersion>
-    <jhttpcVersion>1.5</jhttpcVersion>
-    <infinispanVersion>9.1.7.Final</infinispanVersion>
+    <weftVersion>1.8</weftVersion>
+    <jhttpcVersion>1.8</jhttpcVersion>
+    <infinispanVersion>8.2.4.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
@@ -161,7 +161,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>23-SNAPSHOT</version>
+        <version>23</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
