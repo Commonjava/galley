@@ -57,7 +57,7 @@
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
-    <metrics.version>3.1.0</metrics.version>
+    <metrics.version>4.0.2</metrics.version>
 
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
