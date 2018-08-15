@@ -1213,21 +1213,35 @@ public class FastLocalCacheProvider
 
         final Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
 
+        Inet4Address top = null;
         while ( nis.hasMoreElements() )
         {
             final NetworkInterface ni = nis.nextElement();
             final Enumeration<InetAddress> ips = ni.getInetAddresses();
+
             while ( ips.hasMoreElements() )
             {
                 final InetAddress ip = ips.nextElement();
                 if ( ip instanceof Inet4Address && ip.isSiteLocalAddress() )
                 {
-                    return ip.getHostAddress();
+                    if ( top == null )
+                    {
+                        top = (Inet4Address) ip;
+                    }
+                    else if ( !top.isSiteLocalAddress() && ip.isSiteLocalAddress() )
+                    {
+                        top = (Inet4Address) ip;
+                    }
                 }
             }
         }
 
-        throw new IllegalStateException( "[galley] IP not found." );
+        if ( top == null )
+        {
+            throw new IllegalStateException( "[galley] IP not found." );
+        }
+
+        return top.getHostAddress();
     }
 
     private String getKeyForResource( ConcreteResource resource ) throws IOException
