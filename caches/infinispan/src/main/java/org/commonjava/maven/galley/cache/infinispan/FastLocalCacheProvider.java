@@ -1222,7 +1222,7 @@ public class FastLocalCacheProvider
             while ( ips.hasMoreElements() )
             {
                 final InetAddress ip = ips.nextElement();
-                if ( ip instanceof Inet4Address && ip.isSiteLocalAddress() )
+                if ( ip instanceof Inet4Address && !ip.isLinkLocalAddress() )
                 {
                     if ( top == null )
                     {
