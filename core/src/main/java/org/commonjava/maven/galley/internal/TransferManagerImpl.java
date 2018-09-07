@@ -337,8 +337,11 @@ public class TransferManagerImpl
                 }
             }
 
+            final Boolean allowRemoteListDownload = metadata.get( ALLOW_REMOTE_LISTING_DOWNLOAD ) == null ?
+                    true :
+                    (Boolean)metadata.get( ALLOW_REMOTE_LISTING_DOWNLOAD );
             if ( resource.getLocation()
-                         .allowsDownloading() )
+                         .allowsDownloading() && allowRemoteListDownload )
             {
                 final int timeoutSeconds = getTimeoutSeconds( resource );
                 Transport transport = getTransport( resource );
