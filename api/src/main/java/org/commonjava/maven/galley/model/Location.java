@@ -30,6 +30,8 @@ public interface Location
 
     String MAX_CONNECTIONS = "max-connections";
 
+    String HOSTNAME_VERIFIER = "hostname-verifier";
+
     int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 30;
 
     int DEFAULT_CACHE_TIMEOUT_SECONDS = 86400;

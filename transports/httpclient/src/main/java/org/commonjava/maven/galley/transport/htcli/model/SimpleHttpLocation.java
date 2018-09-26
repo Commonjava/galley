@@ -129,4 +129,10 @@ public class SimpleHttpLocation
         return proxyUrlInfo == null ? -1 : proxyUrlInfo.getPort();
     }
 
+    @Override
+    public boolean isHostnameVerifier()
+    {
+        return true;
+    }
+
 }
