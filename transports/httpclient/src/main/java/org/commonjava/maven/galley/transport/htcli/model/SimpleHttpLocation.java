@@ -130,9 +130,9 @@ public class SimpleHttpLocation
     }
 
     @Override
-    public boolean isHostnameVerifier()
+    public boolean isIgnoreHostnameVerification()
     {
-        return true;
+        return false;
     }
 
 }

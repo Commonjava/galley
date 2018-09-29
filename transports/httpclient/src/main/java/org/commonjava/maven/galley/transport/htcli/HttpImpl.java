@@ -86,7 +86,7 @@ public class HttpImpl
                              .withProxyUser( location.getProxyUser() )
                              .withRequestTimeoutSeconds( LocationUtils.getTimeoutSeconds( location ) )
                              .withUser( location.getUser() )
-                             .withHostnameVerifier( location.isHostnameVerifier() )
+                             .withIgnoreHostnameVerification( location.isIgnoreHostnameVerification() )
                              .withMaxConnections( maxConnections );
 
                 if ( location.getTrustType() != null )
