@@ -52,7 +52,7 @@
     <atlasVersion>0.17.2</atlasVersion>
     <partylineVersion>1.14</partylineVersion>
     <weftVersion>1.8</weftVersion>
-    <jhttpcVersion>1.8</jhttpcVersion>
+    <jhttpcVersion>1.9-SNAPSHOT</jhttpcVersion>
     <infinispanVersion>9.1.7.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>

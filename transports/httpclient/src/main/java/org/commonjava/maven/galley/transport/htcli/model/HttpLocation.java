@@ -39,4 +39,5 @@ public interface HttpLocation
 
     int getProxyPort();
 
+    boolean isIgnoreHostnameVerification();
 }
