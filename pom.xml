@@ -161,7 +161,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>23</version>
+        <version>24</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
