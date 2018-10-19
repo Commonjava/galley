@@ -136,7 +136,11 @@ public class TransferDecoratorPipeline
         String[] result = listing;
         for ( TransferDecorator decorator : decorators )
         {
-            result = decorator.decorateListing( transfer, listing, metadata );
+            String[] decorated = decorator.decorateListing( transfer, listing, metadata );
+            // Only decorated listing changed need to override the result.
+            if(!Arrays.equals( listing, decorated )){
+                result = decorated;
+            }
         }
 
         return result;

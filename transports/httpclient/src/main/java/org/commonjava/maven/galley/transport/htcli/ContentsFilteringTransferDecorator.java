@@ -29,6 +29,7 @@ import javax.inject.Named;
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.maven.atlas.ident.util.SnapshotUtils;
 import org.commonjava.maven.atlas.ident.version.part.SnapshotPart;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.AbstractTransferDecorator;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -51,7 +52,8 @@ public class ContentsFilteringTransferDecorator
 extends AbstractTransferDecorator
 {
 
-    public OverriddenBooleanValue decorateExists( final Transfer transfer )
+    @Override
+    public OverriddenBooleanValue decorateExists( final Transfer transfer, EventMetadata metadata )
     {
         final Location loc = transfer.getLocation();
         final boolean allowsSnapshots = loc.allowsSnapshots();
@@ -63,7 +65,9 @@ extends AbstractTransferDecorator
                 final String path = transfer.getPath();
                 // pattern for "groupId path/(artifactId)/(version)/(filename)"
                 // where the filename starts with artifactId-version and is followed by - or .
-                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(\\1-\\2[-.][^/]+)$" );
+//                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(\\1-\\2[-.][^/]+)$" );
+                // NOS-1434 all files with snapshot version(in snapshot folder) should be ignored if !allowsSnapshots
+                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(.[^/]+)$" );
                 final Matcher matcher = pattern.matcher( path );
                 if ( matcher.find() )
                 {
@@ -81,7 +85,8 @@ extends AbstractTransferDecorator
         return OverriddenBooleanValue.DEFER;
     }
 
-    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
+    @Override
+    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op, EventMetadata metadata )
             throws IOException
     {
         final Location loc = transfer.getLocation();
@@ -102,29 +107,52 @@ extends AbstractTransferDecorator
      * Alters the listing to filter out artifacts belonging to a version that
      * should not be provided via the proxy.
      */
-    public String[] decorateListing( final Transfer transfer, final String[] listing )
+    @Override
+    public String[] decorateListing( final Transfer transfer, final String[] listing, EventMetadata metadata )
             throws IOException
     {
         final Location loc = transfer.getLocation();
         final boolean allowsSnapshots = loc.allowsSnapshots();
         final boolean allowsReleases = loc.allowsReleases();
+
         // process only proxied locations, i.e. HttpLocation instances
         if ( loc instanceof HttpLocation && ( !allowsSnapshots || !allowsReleases ) )
         {
             final String[] pathElements = transfer.getPath().split( "/" );
+            final List<String> result = new ArrayList<>( listing.length );
             // process only paths that *can* be a GAV
             if ( pathElements.length >= 3 )
             {
                 final String artifactId = pathElements[ pathElements.length - 2 ];
                 final String version = pathElements[ pathElements.length - 1 ];
                 final boolean snapshotVersion = SnapshotUtils.isSnapshotVersion( version );
-                if ( !allowsSnapshots && snapshotVersion || !allowsReleases && !snapshotVersion )
+                if ( (allowsSnapshots && snapshotVersion) || (allowsReleases && !snapshotVersion) )
                 {
-                    final List<String> result = new ArrayList<>( listing.length );
+
                     for ( final String element : listing )
                     {
                         // do not include artifacts in the list
                         if ( !isArtifact( element, artifactId, version ) )
+                        {
+                            result.add( element );
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                // if list element contains snapshot folder, ignore them.
+                if ( !allowsSnapshots )
+                {
+                    for ( final String element : listing )
+                    {
+                        String version = element;
+                        if ( element.endsWith( "/" ) )
+                        {
+                            version = element.substring( 0, version.length() - 1 );
+                        }
+                        if ( !SnapshotUtils.isSnapshotVersion( version ) )
                         {
                             result.add( element );
                         }
