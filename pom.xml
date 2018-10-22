@@ -48,7 +48,7 @@
     <pmd.failOnViolation>false</pmd.failOnViolation>
 
     <projectOwner>Red Hat, Inc.</projectOwner>
-    <undertowVersion>1.1.2.Final</undertowVersion>
+    <!--<undertowVersion>1.3.33.Final</undertowVersion>-->
     <atlasVersion>0.17.2</atlasVersion>
     <partylineVersion>1.14</partylineVersion>
     <weftVersion>1.8</weftVersion>
@@ -281,6 +281,7 @@
       </dependency>
 
       <!-- Used to simulate remote repositories in transport/httpclient -->
+      <!--
       <dependency>
         <groupId>io.undertow</groupId>
         <artifactId>undertow-core</artifactId>
@@ -292,7 +293,7 @@
         <artifactId>undertow-servlet</artifactId>
         <version>${undertowVersion}</version>
         <scope>test</scope>
-      </dependency>
+      </dependency>-->
       <dependency>
         <groupId>org.jboss.spec.javax.servlet</groupId>
         <artifactId>jboss-servlet-api_3.0_spec</artifactId>
