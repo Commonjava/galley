@@ -119,32 +119,26 @@ extends AbstractTransferDecorator
         if ( loc instanceof HttpLocation && ( !allowsSnapshots || !allowsReleases ) )
         {
             final String[] pathElements = transfer.getPath().split( "/" );
-            final List<String> result = new ArrayList<>( listing.length );
             // process only paths that *can* be a GAV
             if ( pathElements.length >= 3 )
             {
                 final String artifactId = pathElements[ pathElements.length - 2 ];
                 final String version = pathElements[ pathElements.length - 1 ];
                 final boolean snapshotVersion = SnapshotUtils.isSnapshotVersion( version );
+                // NOS-1434 Forbid all snapshot files if allowSnapshots not enabled
                 if ( (allowsSnapshots && snapshotVersion) || (allowsReleases && !snapshotVersion) )
                 {
-
-                    for ( final String element : listing )
-                    {
-                        // do not include artifacts in the list
-                        if ( !isArtifact( element, artifactId, version ) )
-                        {
-                            result.add( element );
-                        }
-                    }
-
+                    return listing;
                 }
+                return new String[0];
             }
             else
             {
+                // process paths that does not contain version.
                 // if list element contains snapshot folder, ignore them.
                 if ( !allowsSnapshots )
                 {
+                    final List<String> result = new ArrayList<>( listing.length );
                     for ( final String element : listing )
                     {
                         String version = element;
@@ -157,7 +151,7 @@ extends AbstractTransferDecorator
                             result.add( element );
                         }
                     }
-                    return result.toArray( new String[ result.size() ] );
+                    return result.toArray( new String[0] );
                 }
             }
         }
