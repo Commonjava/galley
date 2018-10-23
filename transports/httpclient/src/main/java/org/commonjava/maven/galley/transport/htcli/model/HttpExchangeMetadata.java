@@ -35,6 +35,8 @@ public class HttpExchangeMetadata
 
     protected static final Object CONTENT_LENGTH = "CONTENT-LENGTH";
 
+    protected static final Object CONTENT_TYPE = "CONTENT-TYPE";
+
     protected Map<String, List<String>> requestHeaders = new HashMap<>();
 
     protected Map<String, List<String>> responseHeaders = new HashMap<>();
@@ -133,6 +135,17 @@ public class HttpExchangeMetadata
         }
 
         return Long.parseLong( values.get( 0 ) );
+    }
+
+    public String getContentType()
+    {
+        final List<String> values = responseHeaders.get( CONTENT_TYPE );
+        if ( values == null || values.isEmpty() )
+        {
+            return null;
+        }
+
+        return values.get( 0 );
     }
 
 }
