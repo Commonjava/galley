@@ -29,6 +29,7 @@ import javax.inject.Named;
 import org.apache.commons.lang.StringUtils;
 import org.commonjava.maven.atlas.ident.util.SnapshotUtils;
 import org.commonjava.maven.atlas.ident.version.part.SnapshotPart;
+import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.AbstractTransferDecorator;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -51,7 +52,8 @@ public class ContentsFilteringTransferDecorator
 extends AbstractTransferDecorator
 {
 
-    public OverriddenBooleanValue decorateExists( final Transfer transfer )
+    @Override
+    public OverriddenBooleanValue decorateExists( final Transfer transfer, final EventMetadata metadata )
     {
         final Location loc = transfer.getLocation();
         final boolean allowsSnapshots = loc.allowsSnapshots();
@@ -81,7 +83,8 @@ extends AbstractTransferDecorator
         return OverriddenBooleanValue.DEFER;
     }
 
-    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op )
+    @Override
+    public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op, final EventMetadata metadata )
             throws IOException
     {
         final Location loc = transfer.getLocation();
@@ -102,7 +105,8 @@ extends AbstractTransferDecorator
      * Alters the listing to filter out artifacts belonging to a version that
      * should not be provided via the proxy.
      */
-    public String[] decorateListing( final Transfer transfer, final String[] listing )
+    @Override
+    public String[] decorateListing( final Transfer transfer, final String[] listing, final EventMetadata metadata )
             throws IOException
     {
         final Location loc = transfer.getLocation();
@@ -129,7 +133,7 @@ extends AbstractTransferDecorator
                             result.add( element );
                         }
                     }
-                    return result.toArray( new String[ result.size() ] );
+                    return result.toArray( new String[0] );
                 }
             }
         }

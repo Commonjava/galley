@@ -136,7 +136,7 @@ public class TransferDecoratorPipeline
         String[] result = listing;
         for ( TransferDecorator decorator : decorators )
         {
-            result = decorator.decorateListing( transfer, listing, metadata );
+            result = decorator.decorateListing( transfer, result, metadata );
         }
 
         return result;

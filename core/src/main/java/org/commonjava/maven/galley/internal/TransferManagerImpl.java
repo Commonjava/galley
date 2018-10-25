@@ -276,7 +276,6 @@ public class TransferManagerImpl
                 stream = cachedListing.openInputStream();
                 filenames.addAll( IOUtils.readLines( stream, "UTF-8" ) );
 
-                Logger logger = LoggerFactory.getLogger( getClass() );
                 logger.debug( "Got cached listing:\n\n{}\n\n", filenames );
             }
             catch ( final IOException e )
@@ -360,7 +359,7 @@ public class TransferManagerImpl
                             {
                                 Logger logger = LoggerFactory.getLogger( getClass() );
                                 //noinspection ConfusingArgumentToVarargsMethod
-                                logger.debug( "Un-decorated listing:\n\n{}\n\n", remoteListing );
+                                logger.debug( "Un-decorated listing:\n\n{}\n\n", Arrays.asList( remoteListing ) );
 
                                 remoteListing = decorator.decorateListing( cachedListing.getParent(), remoteListing, metadata );
                             }
@@ -403,7 +402,6 @@ public class TransferManagerImpl
             }
         }
 
-        Logger logger = LoggerFactory.getLogger( getClass() );
         logger.debug( "Listing before non-listable file removal:\n\n{}\n\n", filenames );
 
         List<String> resultingNames = new ArrayList<>( filenames.size() );
