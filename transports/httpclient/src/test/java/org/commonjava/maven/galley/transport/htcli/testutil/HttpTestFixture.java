@@ -55,7 +55,7 @@ public class HttpTestFixture
 
     private final String baseResource;
 
-    public HttpTestFixture( final String baseResource )
+    public HttpTestFixture( final String baseResource, TransferDecorator decorator )
     {
         String br = baseResource;
         if ( br.startsWith( "/" ) )
@@ -81,11 +81,16 @@ public class HttpTestFixture
 
         events = new TestFileEventManager();
 
-        decorator = new TestTransferDecorator();
+        this.decorator = decorator;
 
         cache = new TestCacheProvider( folder.newFolder( "cache" ), events, decorator );
 
         http = new HttpImpl( this );
+    }
+
+    public HttpTestFixture( final String baseResource )
+    {
+        this( baseResource, new TestTransferDecorator() );
     }
 
     @Override
