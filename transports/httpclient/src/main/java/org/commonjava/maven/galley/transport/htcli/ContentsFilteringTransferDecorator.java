@@ -65,7 +65,9 @@ extends AbstractTransferDecorator
                 final String path = transfer.getPath();
                 // pattern for "groupId path/(artifactId)/(version)/(filename)"
                 // where the filename starts with artifactId-version and is followed by - or .
-                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(\\1-\\2[-.][^/]+)$" );
+//                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(\\1-\\2[-.][^/]+)$" );
+                // NOS-1434 all files with snapshot version(in snapshot folder) should be ignored if !allowsSnapshots
+                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(.[^/]+)$" );
                 final Matcher matcher = pattern.matcher( path );
                 if ( matcher.find() )
                 {
@@ -112,6 +114,7 @@ extends AbstractTransferDecorator
         final Location loc = transfer.getLocation();
         final boolean allowsSnapshots = loc.allowsSnapshots();
         final boolean allowsReleases = loc.allowsReleases();
+
         // process only proxied locations, i.e. HttpLocation instances
         if ( loc instanceof HttpLocation && ( !allowsSnapshots || !allowsReleases ) )
         {
@@ -122,13 +125,28 @@ extends AbstractTransferDecorator
                 final String artifactId = pathElements[ pathElements.length - 2 ];
                 final String version = pathElements[ pathElements.length - 1 ];
                 final boolean snapshotVersion = SnapshotUtils.isSnapshotVersion( version );
-                if ( !allowsSnapshots && snapshotVersion || !allowsReleases && !snapshotVersion )
+                // NOS-1434 Forbid all snapshot files if allowSnapshots not enabled
+                if ( (allowsSnapshots && snapshotVersion) || (allowsReleases && !snapshotVersion) )
+                {
+                    return listing;
+                }
+                return new String[0];
+            }
+            else
+            {
+                // process paths that does not contain version.
+                // if list element contains snapshot folder, ignore them.
+                if ( !allowsSnapshots )
                 {
                     final List<String> result = new ArrayList<>( listing.length );
                     for ( final String element : listing )
                     {
-                        // do not include artifacts in the list
-                        if ( !isArtifact( element, artifactId, version ) )
+                        String version = element;
+                        if ( element.endsWith( "/" ) )
+                        {
+                            version = element.substring( 0, version.length() - 1 );
+                        }
+                        if ( !SnapshotUtils.isSnapshotVersion( version ) )
                         {
                             result.add( element );
                         }

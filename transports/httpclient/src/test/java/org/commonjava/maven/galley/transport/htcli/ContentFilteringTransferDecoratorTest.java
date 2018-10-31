@@ -129,6 +129,39 @@ public class ContentFilteringTransferDecoratorTest
     }
 
     @Test
+    public void snapshotNotExistsWhenSnapshotsNotAllowed()
+            throws Exception
+    {
+        final String fname = "/commons-codec/commons-codec/11-SNAPSHOT/maven-metadata.xml.md5";
+
+        final String content = "kljsjdlfkjsdlkj123j13=20=s0dfjklxjkj";
+        fixture.getServer().expect( "GET", fixture.formatUrl( fname ), 200, content );
+
+        final String baseUri = fixture.getBaseUri();
+        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, false, true, true, true, null );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
+        final String url = fixture.formatUrl( fname );
+
+        assertThat( transfer.exists(), equalTo( false ) );
+
+        HttpDownload dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+                                            fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
+
+        DownloadJob resultJob = dl.call();
+
+        assertThat( resultJob, notNullValue() );
+
+        Transfer result = resultJob.getTransfer();
+
+        ContentsFilteringTransferDecorator decorator = new ContentsFilteringTransferDecorator();
+        OverriddenBooleanValue value = decorator.decorateExists( result, new EventMetadata() );
+
+        assertThat( value.overrides(), equalTo( true ) );
+        assertThat( value.getResult(), equalTo( false ) );
+    }
+
+
+    @Test
     public void artifactNotExistsWhenSnapshotsNotAllowed()
             throws Exception
     {
@@ -179,6 +212,47 @@ public class ContentFilteringTransferDecoratorTest
         assertThat( listing, CoreMatchers.<String[]>notNullValue() );
         assertThat( listing.length, equalTo( 3 ) );
         assertThat( Arrays.asList( listing ).containsAll( listElems ), equalTo( true ) );
+    }
+
+    @Test
+    public void snapshotListingNotInWhenSnapshotsNotAllowedWithNoVersionPath()
+            throws Exception
+    {
+        final String fname = "commons-codec/commons-codec/";
+        final SimpleHttpLocation location =
+                new SimpleHttpLocation( "test", "http://test", false, true, false, false, null );
+        final ConcreteResource resource = new ConcreteResource( location, fname );
+        final Transfer transfer = new Transfer( resource, null, null, null );
+
+        String[] listing = Arrays.asList( "1.0/", "1.0-SNAPSHOT/", "1.1/", "1.1-SNAPSHOT/" ).toArray( new String[4] );
+        ContentsFilteringTransferDecorator decorator = new ContentsFilteringTransferDecorator();
+        listing = decorator.decorateListing( transfer, listing, new EventMetadata() );
+
+        System.out.println( Arrays.asList( listing ) );
+
+        assertThat( listing, CoreMatchers.<String[]>notNullValue() );
+        assertThat( listing.length, equalTo( 2 ) );
+        assertThat( Arrays.asList( listing ).contains( "1.0-SNAPSHOT/" ), equalTo( false ) );
+        assertThat( Arrays.asList( listing ).contains( "1.1-SNAPSHOT/" ), equalTo( false ) );
+    }
+
+    @Test
+    public void snapshotListingNotInWhenSnapshotsNotAllowedWithVersionPath()
+            throws Exception
+    {
+        final String fname = "commons-codec/commons-codec/1.1-SNAPSHOT/";
+        final SimpleHttpLocation location =
+                new SimpleHttpLocation( "test", "http://test", false, true, false, false, null );
+        final ConcreteResource resource = new ConcreteResource( location, fname );
+        final Transfer transfer = new Transfer( resource, null, null, null );
+
+        String[] listing = Arrays.asList( "commons-codec-1.1-SNAPSHOT.jar", "commons-codec-1.1-SNAPSHOT-source.jar",
+                                          "maven-metadata.xml" ).toArray( new String[4] );
+        ContentsFilteringTransferDecorator decorator = new ContentsFilteringTransferDecorator();
+        listing = decorator.decorateListing( transfer, listing, new EventMetadata() );
+
+        assertThat( listing, CoreMatchers.<String[]>notNullValue() );
+        assertThat( listing.length, equalTo( 0 ) );
     }
 
 }
