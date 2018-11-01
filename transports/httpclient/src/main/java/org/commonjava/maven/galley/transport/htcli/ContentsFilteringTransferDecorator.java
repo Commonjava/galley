@@ -217,6 +217,7 @@ extends AbstractTransferDecorator
 
         private String filterMetadata()
         {
+            Logger logger = LoggerFactory.getLogger( getClass() );
             if ( buffer.length() == 0 )
             {
                 return "";
@@ -242,7 +243,6 @@ extends AbstractTransferDecorator
                 final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
                 if ( !allowsSnapshots && isSnapshot || !allowsReleases && !isSnapshot )
                 {
-                    Logger logger = LoggerFactory.getLogger( getClass() );
                     logger.debug( "FILTER: Removing prohibited version: {} from: {}", version, transfer );
                     versions.remove( version );
                     changed = true;
@@ -272,7 +272,6 @@ extends AbstractTransferDecorator
                 final boolean isSnapshot = latestVersion.endsWith( "-SNAPSHOT" );
                 if ( !allowsSnapshots && isSnapshot || !allowsReleases && !isSnapshot )
                 {
-                    Logger logger = LoggerFactory.getLogger( getClass() );
                     logger.debug( "FILTER: Recalculating LATEST version; supplied value is prohibited: {} from: {}", latestVersion, transfer );
 
                     String newLatest;
@@ -294,7 +293,6 @@ extends AbstractTransferDecorator
                 final Matcher releaseMatcher = releasePattern.matcher( filteredMetadata );
                 if ( releaseMatcher.find() )
                 {
-                    Logger logger = LoggerFactory.getLogger( getClass() );
                     logger.debug( "FILTER: Suppressing prohibited release fields from: {}", transfer );
 
                     filteredMetadata = filteredMetadata.replaceFirst( RELEASE, "<release></release>" );
@@ -304,7 +302,6 @@ extends AbstractTransferDecorator
             // filter snapshots from GAV metadata
             if ( !allowsSnapshots )
             {
-                Logger logger = LoggerFactory.getLogger( getClass() );
                 logger.debug( "FILTER: Suppressing prohibited snapshot fields from: {}", transfer );
 
                 final String snapshots = StringUtils.substringBetween( filteredMetadata,
@@ -340,7 +337,7 @@ extends AbstractTransferDecorator
             }
             finally
             {
-                buffer = null;
+                buffer = new StringBuilder();
             }
         }
     }
