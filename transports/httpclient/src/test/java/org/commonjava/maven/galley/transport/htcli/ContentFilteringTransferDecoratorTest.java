@@ -133,31 +133,9 @@ public class ContentFilteringTransferDecoratorTest
             throws Exception
     {
         final String fname = "/commons-codec/commons-codec/11-SNAPSHOT/maven-metadata.xml.md5";
-
         final String content = "kljsjdlfkjsdlkj123j13=20=s0dfjklxjkj";
-        fixture.getServer().expect( "GET", fixture.formatUrl( fname ), 200, content );
-
-        final String baseUri = fixture.getBaseUri();
-        final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, false, true, true, true, null );
-        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
-        final String url = fixture.formatUrl( fname );
-
-        assertThat( transfer.exists(), equalTo( false ) );
-
-        HttpDownload dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
-                                            fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
-
-        DownloadJob resultJob = dl.call();
-
-        assertThat( resultJob, notNullValue() );
-
-        Transfer result = resultJob.getTransfer();
-
-        ContentsFilteringTransferDecorator decorator = new ContentsFilteringTransferDecorator();
-        OverriddenBooleanValue value = decorator.decorateExists( result, new EventMetadata() );
-
-        assertThat( value.overrides(), equalTo( true ) );
-        assertThat( value.getResult(), equalTo( false ) );
+        Transfer result = getTestHttpTransfer( fname, content );
+        assertThat( result.exists(), equalTo( false ) );
     }
 
 
@@ -166,31 +144,25 @@ public class ContentFilteringTransferDecoratorTest
             throws Exception
     {
         final String fname = "/commons-codec/commons-codec/11-SNAPSHOT/commons-codec-11-SNAPSHOT.jar";
-
         final String content = "This is a jar";
-        fixture.getServer().expect( "GET", fixture.formatUrl( fname ), 200, content );
+        Transfer result = getTestHttpTransfer( fname, content );
+        assertThat( result.exists(), equalTo( false ) );
+    }
+
+    private Transfer getTestHttpTransfer(final String path, final String content) throws Exception{
+        fixture.getServer().expect( "GET", fixture.formatUrl( path ), 200, content );
 
         final String baseUri = fixture.getBaseUri();
         final SimpleHttpLocation location = new SimpleHttpLocation( "test", baseUri, false, true, true, true, null );
-        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
-        final String url = fixture.formatUrl( fname );
+        final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, path ) );
+        final String url = fixture.formatUrl( path );
 
         assertThat( transfer.exists(), equalTo( false ) );
 
         HttpDownload dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
                                             fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
 
-        DownloadJob resultJob = dl.call();
-
-        assertThat( resultJob, notNullValue() );
-
-        Transfer result = resultJob.getTransfer();
-
-        ContentsFilteringTransferDecorator decorator = new ContentsFilteringTransferDecorator();
-        OverriddenBooleanValue value = decorator.decorateExists( result, new EventMetadata() );
-
-        assertThat( value.overrides(), equalTo( true ) );
-        assertThat( value.getResult(), equalTo( false ) );
+        return dl.call().getTransfer();
     }
 
     @Test
