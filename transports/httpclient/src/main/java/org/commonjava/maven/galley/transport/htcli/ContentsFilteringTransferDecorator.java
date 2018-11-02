@@ -36,6 +36,7 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.io.OverriddenBooleanValue;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.util.TransferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,37 +52,18 @@ import org.slf4j.LoggerFactory;
 public class ContentsFilteringTransferDecorator
 extends AbstractTransferDecorator
 {
+    private static final Logger logger = LoggerFactory.getLogger( ContentsFilteringTransferDecorator.class );
 
     @Override
     public OverriddenBooleanValue decorateExists( final Transfer transfer, final EventMetadata metadata )
     {
         final Location loc = transfer.getLocation();
-        final boolean allowsSnapshots = loc.allowsSnapshots();
-        final boolean allowsReleases = loc.allowsReleases();
-        if ( loc instanceof HttpLocation && ( !allowsSnapshots || !allowsReleases ) )
+        final boolean isHttp = loc instanceof HttpLocation;
+        final boolean filtered = TransferUtils.filterTransfer( transfer );
+        if ( isHttp && filtered )
         {
-            if ( transfer.isFile() )
-            {
-                final String path = transfer.getPath();
-                // pattern for "groupId path/(artifactId)/(version)/(filename)"
-                // where the filename starts with artifactId-version and is followed by - or .
-//                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(\\1-\\2[-.][^/]+)$" );
-                // NOS-1434 all files with snapshot version(in snapshot folder) should be ignored if !allowsSnapshots
-                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(.[^/]+)$" );
-                final Matcher matcher = pattern.matcher( path );
-                if ( matcher.find() )
-                {
-                    String version = matcher.group( 2 );
-
-                    final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
-                    if ( isSnapshot && !allowsSnapshots || !isSnapshot && !allowsReleases )
-                    {
-                        return OverriddenBooleanValue.OVERRIDE_FALSE;
-                    }
-                }
-            }
+            return OverriddenBooleanValue.OVERRIDE_FALSE;
         }
-
         return OverriddenBooleanValue.DEFER;
     }
 
@@ -217,7 +199,7 @@ extends AbstractTransferDecorator
 
         private String filterMetadata()
         {
-            Logger logger = LoggerFactory.getLogger( getClass() );
+
             if ( buffer.length() == 0 )
             {
                 return "";

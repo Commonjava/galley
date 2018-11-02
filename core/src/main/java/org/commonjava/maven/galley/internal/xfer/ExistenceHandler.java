@@ -27,6 +27,7 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
+import org.commonjava.maven.galley.util.TransferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +57,12 @@ public class ExistenceHandler
         if ( nfc.isMissing( resource ) )
         {
             logger.debug( "NFC: Already marked as missing: {}", resource );
+            return false;
+        }
+
+        if ( TransferUtils.filterTransfer( transfer ) )
+        {
+            logger.info( "Transfer has been filtered by transfer's metadata settings", resource );
             return false;
         }
 
