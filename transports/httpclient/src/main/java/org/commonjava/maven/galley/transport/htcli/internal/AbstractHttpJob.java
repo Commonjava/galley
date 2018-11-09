@@ -110,8 +110,8 @@ public abstract class AbstractHttpJob
             if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
             {
                 throw new TransferLocationException( location,
-                                                     "Server misconfigured or not responding normally: '%s'",
-                                                     line );
+                                                     "Server misconfigured or not responding normally for url %s: '%s'",
+                                                     url, line );
             }
             else if ( !successStatuses.contains( sc ) )
             {
