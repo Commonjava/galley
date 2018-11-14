@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.maven.spi.defaults;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectRef;
 
 public interface MavenPluginDefaults
 {

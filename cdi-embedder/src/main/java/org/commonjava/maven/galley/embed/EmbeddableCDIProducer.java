@@ -16,7 +16,7 @@
 package org.commonjava.maven.galley.embed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.commonjava.maven.atlas.ident.jackson.ProjectVersionRefSerializerModule;
+import org.commonjava.atlas.maven.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.config.TransportMetricConfig;

@@ -21,7 +21,7 @@ import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.atlas.maven.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.galley.maven.spi.type.TypeMapper;
 import org.commonjava.maven.galley.model.TypeMapping;
 

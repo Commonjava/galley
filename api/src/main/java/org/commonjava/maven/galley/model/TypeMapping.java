@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.model;
 
-import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.atlas.maven.ident.ref.TypeAndClassifier;
 
 public class TypeMapping
 {

@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 
 public interface ProjectVersionRefView

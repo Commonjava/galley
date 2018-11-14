@@ -22,8 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.ident.DependencyScope;
-import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
+import org.commonjava.atlas.maven.ident.DependencyScope;
+import org.commonjava.atlas.maven.ident.ref.VersionlessArtifactRef;
 import org.junit.Test;
 
 public class DependencyViewTest

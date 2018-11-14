@@ -17,7 +17,7 @@ package org.commonjava.maven.galley.maven.spi.type;
 
 import java.util.Map;
 
-import org.commonjava.maven.atlas.ident.ref.TypeAndClassifier;
+import org.commonjava.atlas.maven.ident.ref.TypeAndClassifier;
 import org.commonjava.maven.galley.model.TypeMapping;
 
 public interface TypeMapper

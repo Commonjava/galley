@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.commonjava.maven.galley</groupId>
     <artifactId>galley</artifactId>
-    <version>0.16.6-SNAPSHOT</version>
+    <version>0.16.7-SNAPSHOT</version>
   </parent>
   
   <artifactId>galley-maven</artifactId>
@@ -37,11 +37,11 @@
       <artifactId>galley-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
+      <groupId>org.commonjava.atlas</groupId>
       <artifactId>atlas-identities</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.commonjava.maven.atlas</groupId>
+      <groupId>org.commonjava.atlas</groupId>
       <artifactId>atlas-relationships-api</artifactId>
     </dependency>
     <dependency>

@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.maven.util;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.PomPeek;
 import org.junit.Test;
 

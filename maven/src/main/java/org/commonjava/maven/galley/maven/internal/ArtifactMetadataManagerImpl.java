@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.maven.internal;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.event.EventMetadata;
@@ -63,7 +63,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public boolean delete( final Location location, final ProjectRef ref )
@@ -73,7 +73,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public boolean delete( final Location location , final ProjectRef ref , final EventMetadata eventMetadata  )
@@ -83,7 +83,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public boolean delete( final Location location, final ProjectRef ref, final String filename )
@@ -93,7 +93,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public boolean delete( final Location location , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
@@ -183,7 +183,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public boolean deleteAll( final List<? extends Location> locations, final ProjectRef ref )
@@ -193,7 +193,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public boolean deleteAll( final List<? extends Location> locations , final ProjectRef ref , final EventMetadata eventMetadata  )
@@ -203,7 +203,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public boolean deleteAll( final List<? extends Location> locations, final ProjectRef ref, final String filename )
@@ -213,7 +213,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#deleteAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public boolean deleteAll( final List<? extends Location> locations , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
@@ -264,7 +264,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public Transfer retrieve( final Location location, final ProjectRef ref )
@@ -274,7 +274,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public Transfer retrieve( final Location location , final ProjectRef ref , final EventMetadata eventMetadata  )
@@ -284,7 +284,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public Transfer retrieve( final Location location, final ProjectRef ref, final String filename )
@@ -294,7 +294,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public Transfer retrieve( final Location location , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
@@ -346,7 +346,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public List<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref )
@@ -356,7 +356,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public List<Transfer> retrieveAll( final List<? extends Location> locations , final ProjectRef ref , final EventMetadata eventMetadata  )
@@ -366,7 +366,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public List<Transfer> retrieveAll( final List<? extends Location> locations, final ProjectRef ref,
@@ -377,7 +377,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveAll(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public List<Transfer> retrieveAll( final List<? extends Location> locations , final ProjectRef ref ,
@@ -428,7 +428,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public Transfer retrieveFirst( final List<? extends Location> locations, final ProjectRef ref )
@@ -438,7 +438,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef)
      */
     @Override
     public Transfer retrieveFirst( final List<? extends Location> locations , final ProjectRef ref , final EventMetadata eventMetadata  )
@@ -448,7 +448,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public Transfer retrieveFirst( final List<? extends Location> locations, final ProjectRef ref, final String filename )
@@ -458,7 +458,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#retrieveFirst(java.util.List, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String)
      */
     @Override
     public Transfer retrieveFirst( final List<? extends Location> locations , final ProjectRef ref , final String filename , final EventMetadata eventMetadata  )
@@ -520,7 +520,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.io.InputStream)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.io.InputStream)
      */
     @Override
     public Transfer store( final Location location, final ProjectRef ref, final InputStream stream )
@@ -530,7 +530,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.io.InputStream)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.io.InputStream)
      */
     @Override
     public Transfer store( final Location location , final ProjectRef ref , final InputStream stream , final EventMetadata eventMetadata  )
@@ -540,7 +540,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String, java.io.InputStream)
      */
     @Override
     public Transfer store( final Location location, final ProjectRef ref, final String filename,
@@ -551,7 +551,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String, java.io.InputStream)
      */
     @Override
     public Transfer store( final Location location , final ProjectRef ref , final String filename ,
@@ -616,7 +616,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.io.InputStream, long)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.io.InputStream, long)
      */
     @Override
     public boolean publish( final Location location, final ProjectRef ref, final InputStream stream, final long length )
@@ -626,7 +626,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.io.InputStream, long)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.io.InputStream, long)
      */
     @Override
     public boolean publish( final Location location, final ProjectRef ref, final InputStream stream, final long length, final EventMetadata metadata )
@@ -636,7 +636,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream, long, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
     public boolean publish( final Location location, final ProjectRef ref, final String filename,
@@ -648,7 +648,7 @@ public class ArtifactMetadataManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.ProjectRef, java.lang.String, java.io.InputStream, long, java.lang.String)
+     * @see org.commonjava.maven.galley.ArtifactMetadataManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.ProjectRef, java.lang.String, java.io.InputStream, long, java.lang.String)
      */
     @Override
     public boolean publish( final Location location, final ProjectRef ref, final String filename,
