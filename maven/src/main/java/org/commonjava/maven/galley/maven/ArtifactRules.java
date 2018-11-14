@@ -17,7 +17,7 @@ package org.commonjava.maven.galley.maven;
 
 import java.util.Collection;
 
-import org.commonjava.maven.atlas.ident.util.ArtifactPathInfo;
+import org.commonjava.atlas.maven.ident.util.ArtifactPathInfo;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;

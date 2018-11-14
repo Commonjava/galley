@@ -20,7 +20,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

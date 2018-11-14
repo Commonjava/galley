@@ -27,8 +27,8 @@ import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
 import org.apache.commons.lang.StringUtils;
-import org.commonjava.maven.atlas.ident.util.SnapshotUtils;
-import org.commonjava.maven.atlas.ident.version.part.SnapshotPart;
+import org.commonjava.atlas.maven.ident.util.SnapshotUtils;
+import org.commonjava.atlas.maven.ident.version.part.SnapshotPart;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.AbstractTransferDecorator;
 import org.commonjava.maven.galley.model.Location;

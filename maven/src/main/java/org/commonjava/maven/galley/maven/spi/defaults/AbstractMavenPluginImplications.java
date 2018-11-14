@@ -24,7 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.OriginInfo;
 import org.commonjava.maven.galley.maven.model.view.PluginDependencyView;

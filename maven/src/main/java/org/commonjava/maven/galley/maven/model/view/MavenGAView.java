@@ -15,8 +15,8 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectRef;
+import org.commonjava.atlas.maven.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 

@@ -18,7 +18,7 @@ package org.commonjava.maven.galley.maven.version;
 import java.util.Collections;
 import java.util.List;
 
-import org.commonjava.maven.atlas.ident.version.SingleVersion;
+import org.commonjava.atlas.maven.ident.version.SingleVersion;
 
 @SuppressWarnings( "unused" )
 public final class EarliestVersionSelectionStrategy

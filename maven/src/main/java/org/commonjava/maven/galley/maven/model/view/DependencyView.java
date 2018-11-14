@@ -15,12 +15,12 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import org.commonjava.maven.atlas.ident.DependencyScope;
-import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleVersionlessArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.VersionlessArtifactRef;
-import org.commonjava.maven.atlas.ident.version.InvalidVersionSpecificationException;
+import org.commonjava.atlas.maven.ident.DependencyScope;
+import org.commonjava.atlas.maven.ident.ref.ArtifactRef;
+import org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef;
+import org.commonjava.atlas.maven.ident.ref.SimpleVersionlessArtifactRef;
+import org.commonjava.atlas.maven.ident.ref.VersionlessArtifactRef;
+import org.commonjava.atlas.maven.ident.version.InvalidVersionSpecificationException;
 import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 

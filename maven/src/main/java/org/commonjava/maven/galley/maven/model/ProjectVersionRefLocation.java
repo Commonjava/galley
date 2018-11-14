@@ -17,8 +17,8 @@ package org.commonjava.maven.galley.maven.model;
 
 import java.util.Map.Entry;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.version.SingleVersion;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.version.SingleVersion;
 import org.commonjava.maven.galley.model.Location;
 
 public final class ProjectVersionRefLocation

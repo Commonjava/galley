@@ -15,9 +15,9 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import org.commonjava.maven.atlas.ident.DependencyScope;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
+import org.commonjava.atlas.maven.ident.DependencyScope;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.GalleyMavenXMLException;
 import org.junit.Test;
 

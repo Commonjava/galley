@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
+import org.commonjava.atlas.maven.ident.ref.ArtifactRef;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;

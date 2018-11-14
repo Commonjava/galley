@@ -30,9 +30,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.SimpleProjectRef;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;

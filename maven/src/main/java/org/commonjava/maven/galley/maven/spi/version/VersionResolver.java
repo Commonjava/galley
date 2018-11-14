@@ -17,8 +17,8 @@ package org.commonjava.maven.galley.maven.spi.version;
 
 import java.util.List;
 
-import org.commonjava.maven.atlas.ident.ref.ArtifactRef;
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.ArtifactRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.model.ProjectVersionRefLocation;

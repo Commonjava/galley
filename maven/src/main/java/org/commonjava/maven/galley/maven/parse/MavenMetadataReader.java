@@ -23,8 +23,8 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
-import org.commonjava.maven.atlas.ident.util.JoinString;
+import org.commonjava.atlas.maven.ident.ref.ProjectRef;
+import org.commonjava.atlas.maven.ident.util.JoinString;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;

@@ -28,7 +28,7 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.commonjava.maven.atlas.ident.ref.*;
+import org.commonjava.atlas.maven.ident.ref.*;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.event.EventMetadata;
@@ -81,7 +81,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     // TODO: What if the artifact is a snapshot? Do we resolve it???
     // TODO: Metadata repair after deletion
@@ -93,7 +93,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#delete(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     // TODO: What if the artifact is a snapshot? Do we resolve it???
     // TODO: Metadata repair after deletion
@@ -106,7 +106,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#deleteAll(java.util.List, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#deleteAll(java.util.List, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     // TODO: What if the artifact is a snapshot? Do we resolve it and delete all???
     // TODO: Metadata repair after deletion
@@ -118,7 +118,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#deleteAll(java.util.List, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#deleteAll(java.util.List, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     // TODO: What if the artifact is a snapshot? Do we resolve it and delete all???
     // TODO: Metadata repair after deletion
@@ -132,7 +132,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     @Override
     public Transfer retrieve( final Location location, final ArtifactRef ref )
@@ -142,7 +142,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieve(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     @Override
     public Transfer retrieve( final Location location, final ArtifactRef ref, final EventMetadata eventMetadata )
@@ -155,7 +155,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieveAll(java.util.List, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     @Override
     public List<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref )
@@ -165,7 +165,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#retrieveAll(java.util.List, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieveAll(java.util.List, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     @Override
     public List<Transfer> retrieveAll( final List<? extends Location> locations, final ArtifactRef ref,
@@ -182,7 +182,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#retrieveFirst(java.util.List, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieveFirst(java.util.List, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     @Override
     public Transfer retrieveFirst( final List<? extends Location> locations, final ArtifactRef ref )
@@ -192,7 +192,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#retrieveFirst(java.util.List, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef)
+     * @see org.commonjava.maven.galley.ArtifactManager#retrieveFirst(java.util.List, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef)
      */
     @Override
     public Transfer retrieveFirst( final List<? extends Location> locations, final ArtifactRef ref,
@@ -205,7 +205,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef, java.io.InputStream)
+     * @see org.commonjava.maven.galley.ArtifactManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef, java.io.InputStream)
      */
     @Override
     public Transfer store( final Location location, final ArtifactRef ref, final InputStream stream )
@@ -215,7 +215,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef, java.io.InputStream)
+     * @see org.commonjava.maven.galley.ArtifactManager#store(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef, java.io.InputStream)
      */
     @Override
     public Transfer store( final Location location, final ArtifactRef ref, final InputStream stream,
@@ -236,7 +236,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef, java.io.InputStream, long)
+     * @see org.commonjava.maven.galley.ArtifactManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef, java.io.InputStream, long)
      */
     // TODO: Snapshot conversion?? Or is that out of scope here?
     @Override
@@ -248,7 +248,7 @@ public class ArtifactManagerImpl
     }
 
     /* (non-Javadoc)
-     * @see org.commonjava.maven.galley.ArtifactManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.maven.atlas.ident.ref.SimpleArtifactRef, java.io.InputStream, long)
+     * @see org.commonjava.maven.galley.ArtifactManager#publish(org.commonjava.maven.galley.model.Location, org.commonjava.atlas.maven.ident.ref.SimpleArtifactRef, java.io.InputStream, long)
      */
     // TODO: Snapshot conversion?? Or is that out of scope here?
     @Override

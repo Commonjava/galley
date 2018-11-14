@@ -23,8 +23,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.testutil.TestFixture;
 import org.commonjava.maven.galley.maven.version.LatestVersionSelectionStrategy;

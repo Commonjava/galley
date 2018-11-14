@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.util;
 
-import org.commonjava.maven.atlas.ident.util.SnapshotUtils;
+import org.commonjava.atlas.maven.ident.util.SnapshotUtils;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.slf4j.Logger;

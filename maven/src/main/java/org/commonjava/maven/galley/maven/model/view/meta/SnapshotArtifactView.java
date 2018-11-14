@@ -18,7 +18,7 @@ package org.commonjava.maven.galley.maven.model.view.meta;
 import java.text.ParseException;
 import java.util.Date;
 
-import org.commonjava.maven.atlas.ident.util.SnapshotUtils;
+import org.commonjava.atlas.maven.ident.util.SnapshotUtils;
 import org.w3c.dom.Element;
 
 public class SnapshotArtifactView

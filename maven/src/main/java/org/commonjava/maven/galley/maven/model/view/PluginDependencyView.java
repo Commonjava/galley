@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import org.commonjava.maven.atlas.ident.DependencyScope;
+import org.commonjava.atlas.maven.ident.DependencyScope;
 import org.w3c.dom.Element;
 
 public class PluginDependencyView

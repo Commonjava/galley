@@ -15,8 +15,8 @@
  */
 package org.commonjava.maven.galley.maven.internal.version;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectVersionRef;
-import org.commonjava.maven.atlas.ident.ref.SimpleProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
+import org.commonjava.atlas.maven.ident.ref.SimpleProjectVersionRef;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.maven.internal.metadata.StandardMetadataMapper;
 import org.commonjava.maven.galley.maven.spi.metadata.MetadataMapper;

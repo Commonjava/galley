@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.maven.spi.metadata;
 
-import org.commonjava.maven.atlas.ident.ref.ProjectRef;
+import org.commonjava.atlas.maven.ident.ref.ProjectRef;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;

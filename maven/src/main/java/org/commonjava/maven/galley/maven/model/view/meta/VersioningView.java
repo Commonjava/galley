@@ -18,8 +18,8 @@ package org.commonjava.maven.galley.maven.model.view.meta;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.commonjava.maven.atlas.ident.util.VersionUtils;
-import org.commonjava.maven.atlas.ident.version.SingleVersion;
+import org.commonjava.atlas.maven.ident.util.VersionUtils;
+import org.commonjava.atlas.maven.ident.version.SingleVersion;
 import org.w3c.dom.Element;
 
 public class VersioningView
