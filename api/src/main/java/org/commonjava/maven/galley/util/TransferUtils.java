@@ -41,7 +41,7 @@ public class TransferUtils
         final boolean allowsReleases = loc.allowsReleases();
         if ( !allowsSnapshots || !allowsReleases )
         {
-            if ( transfer.isFile() )
+            if ( !transfer.isDirectory() )
             {
                 final String path = transfer.getPath();
                 // pattern for "groupId path/(artifactId)/(version)/(filename)"
@@ -57,7 +57,7 @@ public class TransferUtils
                     final boolean isSnapshot = SnapshotUtils.isSnapshotVersion( version );
                     if ( ( isSnapshot && !allowsSnapshots ) || ( !isSnapshot && !allowsReleases ) )
                     {
-                        logger.debug( "Path {} is filtered out because snapshots/releases disabled" );
+                        logger.debug( "Path {} is filtered out because snapshots/releases disabled", path );
                         return true;
                     }
                 }
