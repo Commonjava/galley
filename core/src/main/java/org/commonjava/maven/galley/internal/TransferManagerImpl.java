@@ -324,7 +324,15 @@ public class TransferManagerImpl
                                 }
                                 else
                                 {
-                                    filenames.add( fname + "/" );
+                                    if ( isEmptyFolder( childRef ) )
+                                    {
+                                        logger.info( "Delete empty folder, {}", childRef.getFullPath() );
+                                        childRef.delete(); // if the directory is there but it's empty, we should just delete it
+                                    }
+                                    else
+                                    {
+                                        filenames.add( fname + "/" );
+                                    }
                                 }
                             }
                         }
@@ -421,6 +429,19 @@ public class TransferManagerImpl
         logger.debug( "Final listing result:\n\n{}\n\n", resultingNames );
 
         return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
+    }
+
+    private boolean isEmptyFolder( Transfer childRef ) throws IOException
+    {
+        if ( childRef.isDirectory() )
+        {
+            String[] list = childRef.list();
+            if ( list == null || list.length == 0 )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Transport getTransport( final ConcreteResource resource )
