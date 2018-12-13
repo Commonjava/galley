@@ -50,7 +50,7 @@ public class PartyLineCacheProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final Map<ConcreteResource, Transfer> transferCache = new ContextSensitiveWeakHashMap();
+    private final Map<ConcreteResource, Transfer> transferCache = ContextSensitiveWeakHashMap.newSynchronizedContextSensitiveWeakHashMap();
 
     private final JoinableFileManager fileManager = new JoinableFileManager();
 
@@ -114,6 +114,20 @@ public class PartyLineCacheProvider
         return true;
     }
 
+    private final Object mkdirs_mutex = new Object();
+
+    private boolean makeDirs( File f )
+    {
+        synchronized ( mkdirs_mutex )
+        {
+            if ( !f.isDirectory() )
+            {
+                return f.mkdirs();
+            }
+            return true;
+        }
+    }
+
     @Override
     public File getDetachedFile( final ConcreteResource resource )
     {
@@ -124,13 +138,9 @@ public class PartyLineCacheProvider
         {
             File f = new File( getFilePath( resource ) );
 
-            // TODO: Need a better sync object!!
-            synchronized ( this )
+            if ( resource.isRoot() && !f.isDirectory() )
             {
-                if ( resource.isRoot() && !f.isDirectory() )
-                {
-                    f.mkdirs();
-                }
+                makeDirs( f );
             }
 
             // TODO: configurable default timeout
@@ -199,8 +209,7 @@ public class PartyLineCacheProvider
         {
             try
             {
-                return fileManager.openInputStream( targetFile )
-                        ;
+                return fileManager.openInputStream( targetFile );
             }
             catch ( InterruptedException e )
             {
@@ -219,13 +228,9 @@ public class PartyLineCacheProvider
 
         final File dir = targetFile.getParentFile();
 
-        // TODO: Need a better sync object!!
-        synchronized ( this )
+        if ( !dir.isDirectory() && !makeDirs( dir ) )
         {
-            if ( !dir.isDirectory() && !dir.mkdirs() )
-            {
-                throw new IOException( "Cannot create directory: " + dir );
-            }
+            throw new IOException( "Cannot create directory: " + dir );
         }
 
         try
@@ -238,26 +243,6 @@ public class PartyLineCacheProvider
         }
 
         return null;
-
-        //        fileManager.lock( targetFile );
-
-        //        final File downloadFile = new File( targetFile.getPath() + CacheProvider.SUFFIX_TO_WRITE );
-        //        final OutputStream stream = fileManager.openOutputStream( downloadFile );
-        //
-        //        return new AtomicFileOutputStreamWrapper( targetFile, downloadFile, stream, new AtomicStreamCallbacks()
-        //        {
-        //            @Override
-        //            public void beforeClose()
-        //            {
-        //                //                fileManager.lock( targetFile );
-        //            }
-        //
-        //            @Override
-        //            public void afterClose()
-        //            {
-        //                fileManager.unlock( targetFile );
-        //            }
-        //        } );
     }
 
     @Override
@@ -346,11 +331,11 @@ public class PartyLineCacheProvider
     }
 
     @Override
-    // TODO: Need a better sync object!!
-    public synchronized void mkdirs( final ConcreteResource resource )
+    public void mkdirs( final ConcreteResource resource )
         throws IOException
     {
-        getDetachedFile( resource ).mkdirs();
+        File f = getDetachedFile( resource );
+        makeDirs( f );
     }
 
     @Override
@@ -393,20 +378,14 @@ public class PartyLineCacheProvider
     }
 
     @Override
-    public synchronized Transfer getTransfer( final ConcreteResource resource )
+    public Transfer getTransfer( final ConcreteResource resource )
     {
-        Transfer t = transferCache.get( resource );
-        if ( t == null )
-        {
-            t = new Transfer( resource, this, fileEventManager, transferDecorator );
-            transferCache.put( new ConcreteResource( resource.getLocation(), resource.getPath() ), t );
-        }
-
-        return t;
+        return transferCache.computeIfAbsent( resource,
+                                              r -> new Transfer( r, this, fileEventManager, transferDecorator ) );
     }
 
     @Override
-    public synchronized void clearTransferCache()
+    public void clearTransferCache()
     {
         transferCache.clear();
     }
