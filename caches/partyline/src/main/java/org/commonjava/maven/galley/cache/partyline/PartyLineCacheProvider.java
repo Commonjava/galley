@@ -384,7 +384,7 @@ public class PartyLineCacheProvider
         {
             if ( !transferCache.containsKey( resource ) )
             {
-                transferCache.put( resource, new Transfer( r, this, fileEventManager, transferDecorator ) );
+                transferCache.put( resource, new Transfer( resource, this, fileEventManager, transferDecorator ) );
             }
             
             return transferCache.get( resource );
