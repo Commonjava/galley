@@ -380,8 +380,15 @@ public class PartyLineCacheProvider
     @Override
     public Transfer getTransfer( final ConcreteResource resource )
     {
-        return transferCache.computeIfAbsent( resource,
-                                              r -> new Transfer( r, this, fileEventManager, transferDecorator ) );
+        synchronized( transferCache )
+        {
+            if ( !transferCache.containsKey( resource ) )
+            {
+                transferCache.put( resource, new Transfer( r, this, fileEventManager, transferDecorator ) );
+            }
+            
+            return transferCache.get( resource );
+        }
     }
 
     @Override
