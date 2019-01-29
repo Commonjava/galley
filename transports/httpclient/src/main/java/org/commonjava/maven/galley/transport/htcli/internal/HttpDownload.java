@@ -192,6 +192,7 @@ public final class HttpDownload
     private void writeTarget()
         throws TransferException
     {
+        logger.debug( "Write target started, target: {}", target );
         OutputStream out = null;
         if ( response != null )
         {
