@@ -36,6 +36,7 @@ import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -66,6 +67,8 @@ import static org.junit.Assert.fail;
 
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
 @BMUnitConfig( loadDirectory = "target/test-classes/bmunit", debug = true )
+@Deprecated
+@Ignore
 public class FastLocalCacheProviderConcurrentIOTest
 {
     @Rule

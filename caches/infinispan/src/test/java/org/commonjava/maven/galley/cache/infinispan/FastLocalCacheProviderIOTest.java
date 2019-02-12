@@ -21,6 +21,7 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.jboss.byteman.contrib.bmunit.BMRule;
 import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,6 +37,8 @@ import static org.junit.Assert.assertThat;
 
 @RunWith( org.jboss.byteman.contrib.bmunit.BMUnitRunner.class )
 @BMUnitConfig( loadDirectory = "target/test-classes/bmunit/common", debug = true )
+@Ignore
+@Deprecated
 public class FastLocalCacheProviderIOTest
         extends AbstractFastLocalCacheBMUnitTest
 {

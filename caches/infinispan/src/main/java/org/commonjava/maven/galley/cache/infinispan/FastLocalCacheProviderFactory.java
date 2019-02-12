@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by jdcasey on 8/30/16.
  */
+@Deprecated
 public class FastLocalCacheProviderFactory
         implements CacheProviderFactory
 {
