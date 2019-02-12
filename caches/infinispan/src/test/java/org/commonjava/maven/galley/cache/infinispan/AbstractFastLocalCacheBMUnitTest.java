@@ -46,6 +46,7 @@ import java.util.concurrent.Executors;
 
 import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.getTestEmbeddedCacheManager;
 
+@Deprecated
 public abstract class AbstractFastLocalCacheBMUnitTest
         extends CacheProviderTCK
 {

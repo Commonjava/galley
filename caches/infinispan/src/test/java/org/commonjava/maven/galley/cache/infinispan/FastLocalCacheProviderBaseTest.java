@@ -29,6 +29,7 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -45,6 +46,7 @@ import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.LOCAL_C
 import static org.commonjava.maven.galley.cache.infinispan.CacheTestUtil.getTestEmbeddedCacheManager;
 import static org.junit.Assert.*;
 
+@Ignore
 public class FastLocalCacheProviderBaseTest
 {
     protected static EmbeddedCacheManager CACHE_MANAGER;

@@ -75,9 +75,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * provider in CDI environment, please don't forget to set the system property "galley.nfs.basedir" to specify this directory
  * as this provider will use it to get the nfs root directory by default. If you want to set this directory by manually,
  * use the parameterized constructor with the "nfsBaseDir" param.
+ *
+ * @deprecated As we will enable partyline level distributed cache provider in the future, this fast local one will not be used furthermore
  */
 @SuppressWarnings( "unchecked" )
 @Listener
+@Deprecated
 public class FastLocalCacheProvider
         implements CacheProvider, CacheProvider.AdminView
 {
