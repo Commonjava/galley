@@ -69,12 +69,14 @@ public class GalleyCore
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, named = "galley-transfers", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-transfers", priority = 8,
+                     loadSensitive = ExecutorConfig.BooleanLiteral.TRUE, maxLoadFactor = 100 )
     private ExecutorService handlerExecutor;
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, named = "galley-batching", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-batching", priority = 8,
+                     loadSensitive = ExecutorConfig.BooleanLiteral.TRUE, maxLoadFactor = 100 )
     private ExecutorService batchExecutor;
 
     @Inject

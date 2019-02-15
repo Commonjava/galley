@@ -113,7 +113,8 @@ public class TransferManagerImpl
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, named = "galley-batching", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-batching", priority = 8,
+                     loadSensitive = ExecutorConfig.BooleanLiteral.TRUE, maxLoadFactor = 100 )
     private ExecutorService executorService;
 
     private ExecutorCompletionService<BatchRetriever> batchExecutor;

@@ -60,7 +60,8 @@ public class DownloadHandler
 
     @Inject
     @WeftManaged
-    @ExecutorConfig( threads = 12, named = "galley-transfers", priority = 8 )
+    @ExecutorConfig( threads = 12, named = "galley-transfers", priority = 8,
+                     loadSensitive = ExecutorConfig.BooleanLiteral.TRUE, maxLoadFactor = 100 )
     private ExecutorService executor;
 
     @SuppressWarnings( "unused" )
