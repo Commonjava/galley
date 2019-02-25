@@ -50,8 +50,6 @@ public class PartyLineCacheProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final Map<ConcreteResource, Transfer> transferCache = ContextSensitiveWeakHashMap.newSynchronizedContextSensitiveWeakHashMap();
-
     private final JoinableFileManager fileManager = new JoinableFileManager();
 
     private PartyLineCacheProviderConfig config;
@@ -380,14 +378,12 @@ public class PartyLineCacheProvider
     @Override
     public Transfer getTransfer( final ConcreteResource resource )
     {
-        return transferCache.computeIfAbsent( resource,
-                                              r -> new Transfer( r, this, fileEventManager, transferDecorator ) );
+        return new Transfer( resource, this, fileEventManager, transferDecorator );
     }
 
     @Override
     public void clearTransferCache()
     {
-        transferCache.clear();
     }
 
     @Override
