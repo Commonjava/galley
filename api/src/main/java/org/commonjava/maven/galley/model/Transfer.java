@@ -387,6 +387,11 @@ public class Transfer
         throws IOException
     {
         String[] listing = provider.list( resource );
+        if ( listing == null )
+        {
+            listing = new String[]{};
+        }
+
         if ( decorator != null )
         {
             listing = decorator.decorateListing( this, listing, new EventMetadata(  ) );
