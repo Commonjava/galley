@@ -26,6 +26,7 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by jdcasey on 8/30/16.
@@ -78,7 +79,8 @@ public class FastLocalCacheProviderFactory
         if ( provider == null )
         {
             PartyLineCacheProvider pl =
-                    new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator );
+                    new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
+                                                Executors.newScheduledThreadPool( 4 ) );
 
             provider =
                     new FastLocalCacheProvider( pl, nfsUsageCache, pathGenerator, fileEventManager, transferDecorator,

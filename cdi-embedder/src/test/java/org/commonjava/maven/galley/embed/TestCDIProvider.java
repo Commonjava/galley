@@ -41,6 +41,7 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 /**
  * Created by jdcasey on 9/14/15.
@@ -102,7 +103,9 @@ public class TestCDIProvider
         try
         {
             temp.create();
-            cacheProvider = new PartyLineCacheProvider( temp.newFolder(), pathGenerator, eventManager, transferDecorator );
+            cacheProvider =
+                    new PartyLineCacheProvider( temp.newFolder(), pathGenerator, eventManager, transferDecorator,
+                                                Executors.newScheduledThreadPool( 2 ) );
             fileTransportConfig = new FileTransportConfig( temp.newFolder(), pathGenerator );
         }
         catch ( IOException e )

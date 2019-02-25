@@ -85,11 +85,11 @@ public abstract class AbstractFastLocalCacheBMUnitTest
             throws Exception
     {
         final String nfsBasePath = createNFSBaseDir( temp.newFolder().getCanonicalPath() );
-        provider =
-                new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator ),
-                                            new SimpleCacheInstance<>( name.getMethodName(), cache ), pathgen, events,
-                                            decorator, executor, nfsBasePath,
-                                            new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
+        provider = new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
+                                                                           Executors.newScheduledThreadPool( 2 ) ),
+                                               new SimpleCacheInstance<>( name.getMethodName(), cache ), pathgen,
+                                               events, decorator, executor, nfsBasePath,
+                                               new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
     }
 
     @After

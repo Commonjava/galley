@@ -75,7 +75,8 @@ public class PartyLineCacheProviderConcurrentIOTest
     public void setup()
             throws Exception
     {
-        provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator );
+        provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
+                                               Executors.newScheduledThreadPool( 2 ) );
         latch = new CountDownLatch( 2 );
     }
 

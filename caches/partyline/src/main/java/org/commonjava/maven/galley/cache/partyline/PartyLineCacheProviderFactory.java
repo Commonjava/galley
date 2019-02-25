@@ -22,8 +22,8 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
-import javax.enterprise.context.ApplicationScoped;
 import java.io.File;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by jdcasey on 8/30/16.
@@ -33,11 +33,14 @@ public class PartyLineCacheProviderFactory
 {
     private File cacheDir;
 
+    private ScheduledExecutorService deleteExecutor;
+
     private transient PartyLineCacheProvider provider;
 
-    public PartyLineCacheProviderFactory( File cacheDir )
+    public PartyLineCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor )
     {
         this.cacheDir = cacheDir;
+        this.deleteExecutor = deleteExecutor;
     }
 
     @Override
@@ -47,7 +50,8 @@ public class PartyLineCacheProviderFactory
     {
         if ( provider == null )
         {
-            provider = new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator );
+            provider = new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
+                                                   deleteExecutor );
         }
 
         return provider;

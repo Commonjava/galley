@@ -15,9 +15,9 @@
  */
 package org.commonjava.maven.galley.cache.partyline;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.commonjava.cdi.util.weft.ContextSensitiveWeakHashMap;
+import org.commonjava.cdi.util.weft.PoolWeftExecutorService;
+import org.commonjava.cdi.util.weft.SingleThreadedExecutorService;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
@@ -38,15 +38,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class PartyLineCacheProvider
     implements CacheProvider, CacheProvider.AdminView
 {
+    private static final long SWEEP_TIMEOUT_SECONDS = 30;
+
+    private static final long DELETE_TIMEOUT_MILLIS = 2000;
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -60,38 +66,35 @@ public class PartyLineCacheProvider
 
     private TransferDecorator transferDecorator;
 
+    private ScheduledExecutorService deleteExecutor;
+
+    private List<Transfer> toDelete = Collections.synchronizedList( new ArrayList<>() );
+
     public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator,
                                    final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
-                                   final boolean aliasLinking, final boolean timeoutProcessing,
-                                   final int defaultTimeoutSeconds )
-    {
-        this.pathGenerator = pathGenerator;
-        this.fileEventManager = fileEventManager;
-        this.transferDecorator = transferDecorator;
-        this.config =
-            new PartyLineCacheProviderConfig( cacheBasedir ).withAliasLinkingEnabled( aliasLinking )
-                                                            .withTimeoutProcessingEnabled( timeoutProcessing )
-                                                            .withDefaultTimeoutSeconds( defaultTimeoutSeconds );
-        startReportingDaemon();
-    }
-
-    public PartyLineCacheProvider( final PartyLineCacheProviderConfig config, final PathGenerator pathGenerator,
-                                   final FileEventManager fileEventManager, final TransferDecorator transferDecorator )
-    {
-        this.config = config;
-        this.pathGenerator = pathGenerator;
-        this.fileEventManager = fileEventManager;
-        this.transferDecorator = transferDecorator;
-        startReportingDaemon();
-    }
-
-    public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator,
-                                   final FileEventManager fileEventManager, final TransferDecorator transferDecorator )
+                                   final ScheduledExecutorService deleteExecutor )
     {
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.config = new PartyLineCacheProviderConfig( cacheBasedir );
+        this.deleteExecutor = deleteExecutor == null ? Executors.newScheduledThreadPool( 2 ) : deleteExecutor;
+
+        Integer threads = 2;
+        if ( deleteExecutor instanceof ThreadPoolExecutor )
+        {
+            threads = ( (ThreadPoolExecutor) deleteExecutor ).getPoolSize();
+        }
+        else if ( deleteExecutor instanceof SingleThreadedExecutorService )
+        {
+            threads = 1;
+        }
+
+        for(int i=0; i<threads; i++)
+        {
+            deleteExecutor.schedule( newTransferDeleteSweeper(), SWEEP_TIMEOUT_SECONDS, TimeUnit.SECONDS );
+        }
+
         startReportingDaemon();
     }
 
@@ -129,59 +132,7 @@ public class PartyLineCacheProvider
     @Override
     public File getDetachedFile( final ConcreteResource resource )
     {
-        // TODO: this might be a bit heavy-handed, but we need to be sure. 
-        // Maybe I can improve it later.
-        final Transfer txfr = getTransfer( resource );
-        synchronized ( txfr )
-        {
-            File f = new File( getFilePath( resource ) );
-
-            if ( resource.isRoot() && !f.isDirectory() )
-            {
-                makeDirs( f );
-            }
-
-            // TODO: configurable default timeout
-            final int timeoutSeconds =
-                resource.getLocation()
-                        .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class, config.getDefaultTimeoutSeconds() );
-
-            if ( !resource.isRoot() && f.exists() && !f.isDirectory() && config.isTimeoutProcessingEnabled()
-                && timeoutSeconds > 0 )
-            {
-                final long current = System.currentTimeMillis();
-                final long lastModified = f.lastModified();
-                final int tos =
-                    timeoutSeconds < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
-                                    : timeoutSeconds;
-
-                final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
-
-                if ( current - lastModified > timeout )
-                {
-                    final File mved = new File( f.getPath() + SUFFIX_TO_DELETE );
-                    f.renameTo( mved );
-
-                    try
-                    {
-                        logger.info( "Deleting cached file: {} (moved to: {})\nTimeout: {}ms\nElapsed: {}ms\nCurrently: {}\nLast Modified: {}\nOriginal Timeout was: {}s",
-                                     f, mved, timeout, ( current - lastModified ), new Date( current ),
-                                     new Date( lastModified ), tos );
-
-                        if ( mved.exists() )
-                        {
-                            FileUtils.forceDelete( mved );
-                        }
-                    }
-                    catch ( final IOException e )
-                    {
-                        logger.error( String.format( "Failed to tryDelete: %s.", f ), e );
-                    }
-                }
-            }
-
-            return f;
-        }
+        return new File( getFilePath( resource ) );
     }
 
     @Override
@@ -378,7 +329,80 @@ public class PartyLineCacheProvider
     @Override
     public Transfer getTransfer( final ConcreteResource resource )
     {
-        return new Transfer( resource, this, fileEventManager, transferDecorator );
+        Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );
+        File f = new File( getFilePath( resource ) );
+
+        final int timeoutSeconds =
+                resource.getLocation()
+                        .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class, config.getDefaultTimeoutSeconds() );
+
+        if ( !resource.isRoot() && f.exists() && !f.isDirectory() && config.isTimeoutProcessingEnabled()
+                && timeoutSeconds > 0 )
+        {
+            if ( isTimedOut( txfr, timeoutSeconds ) )
+            {
+                toDelete.add( txfr );
+            }
+        }
+
+        return txfr;
+    }
+
+    private Runnable newTransferDeleteSweeper()
+    {
+        return ()->
+        {
+            if ( toDelete.isEmpty() )
+            {
+                return;
+            }
+
+            Transfer transfer = toDelete.remove( 0 );
+            final int timeoutSeconds =
+                    transfer.getResource().getLocation()
+                            .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class, config.getDefaultTimeoutSeconds() );
+
+            if ( !transfer.getResource().isRoot() && transfer.exists() && !transfer.isDirectory() && config.isTimeoutProcessingEnabled()
+                    && timeoutSeconds > 0 )
+            {
+                if ( isTimedOut( transfer, timeoutSeconds ) )
+                {
+                    final File f = new File( getFilePath( transfer.getResource() ) );
+                    try
+                    {
+                        logger.info( "Deleting cached file: {}", f );
+
+                        if ( f.exists() )
+                        {
+                            boolean deleted = fileManager.tryDelete( f, DELETE_TIMEOUT_MILLIS );
+                            //                                    FileUtils.forceDelete( mved );
+                            if ( !deleted )
+                            {
+                                logger.warn( "Deletion failed for: {}. Retrying." );
+                                toDelete.add( transfer );
+                            }
+                        }
+                    }
+                    catch ( final IOException | InterruptedException e )
+                    {
+                        logger.error( String.format( "Failed to tryDelete: %s.", f ), e );
+                    }
+                }
+            }
+        };
+    }
+
+    private boolean isTimedOut( final Transfer txfr, int timeoutSeconds )
+    {
+        final long current = System.currentTimeMillis();
+        final long lastModified = txfr.lastModified();
+        final int tos =
+                timeoutSeconds < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
+                        : timeoutSeconds;
+
+        final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
+
+        return current - lastModified > timeout;
     }
 
     @Override

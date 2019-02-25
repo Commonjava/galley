@@ -86,7 +86,8 @@ public class RoutingCacheProviderWrapperTest
     {
 
         final File cacheDir = temp.newFolder();
-        partylineFac = new PartyLineCacheProviderFactory( cacheDir );
+        partylineFac = new PartyLineCacheProviderFactory( cacheDir, Executors.newScheduledThreadPool( 2 ) );
+
         DefaultCacheManager cacheManager = getTestEmbeddedCacheManager();
         SimpleCacheInstance<String, String> cacheInstance =
                 new SimpleCacheInstance<>( "test", cacheManager.getCache( "simpleNfsCache" ) );
