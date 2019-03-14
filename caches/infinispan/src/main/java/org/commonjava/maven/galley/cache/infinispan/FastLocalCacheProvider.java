@@ -28,8 +28,8 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
-import org.commonjava.util.partyline.JoinableFileManager;
-import org.commonjava.util.partyline.LockLevel;
+import org.commonjava.util.partyline.Partyline;
+import org.commonjava.util.partyline.lock.LockLevel;
 import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachelistener.annotation.CacheEntryExpired;
 import org.infinispan.notifications.cachelistener.event.CacheEntryExpiredEvent;
@@ -110,7 +110,7 @@ public class FastLocalCacheProvider
 
     private PathGenerator pathGenerator;
 
-    private final JoinableFileManager fileManager = new JoinableFileManager();
+    private final Partyline fileManager = new Partyline();
 
     // Mapping key for ISPN transaction file counter in threadcontext, see #getFileCounter()
     private static final String ISPN_TX_FILE_COUNTER = "ISPN_TX_FILE_COUNTER";

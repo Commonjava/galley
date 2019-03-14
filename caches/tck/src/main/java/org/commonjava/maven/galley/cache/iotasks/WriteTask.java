@@ -64,6 +64,7 @@ public final class WriteTask
             if ( controlLatch != null )
             {
                 controlLatch.countDown();
+                System.out.println("Count down write task, controlLatch=" + controlLatch.getCount() );
             }
         }
         catch ( Exception e )

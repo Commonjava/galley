@@ -26,6 +26,7 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.util.partyline.Partyline;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.junit.BeforeClass;
@@ -84,7 +85,8 @@ public class FastLocalCacheProviderBaseTest
         System.setProperties( props );
         final String NON_EXISTS_PATH = "";
         new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
-                                                                Executors.newScheduledThreadPool( 2 ) ),
+                                                                Executors.newScheduledThreadPool( 2 ),
+                                                                new Partyline() ),
                                     new SimpleCacheInstance<>( "test", nfsOwnerCache ), pathgen, events, decorator,
                                     executor, NON_EXISTS_PATH,
                                     new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
@@ -95,9 +97,11 @@ public class FastLocalCacheProviderBaseTest
             throws IOException
     {
         System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, temp.newFolder().getCanonicalPath() );
-        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator, Executors.newScheduledThreadPool( 2 ) ),
-                                    new SimpleCacheInstance<>( "test", nfsOwnerCache ), pathgen, events, decorator, executor,
-                                    null, new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
+        new FastLocalCacheProvider( new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
+                                                                Executors.newScheduledThreadPool( 2 ),
+                                                                new Partyline() ),
+                                    new SimpleCacheInstance<>( "test", nfsOwnerCache ), pathgen, events, decorator,
+                                    executor, null, new SimpleCacheInstance<>( "localFileCache", localFileCache ) );
     }
 
     @Test
@@ -107,7 +111,9 @@ public class FastLocalCacheProviderBaseTest
         final File localDir = temp.newFolder();
         final File nfsDir = new File(localDir.getCanonicalPath()+"/nfs");
         System.setProperty( FastLocalCacheProvider.NFS_BASE_DIR_KEY, nfsDir.getCanonicalPath() );
-        final PartyLineCacheProvider plcp = new PartyLineCacheProvider( localDir, pathgen, events, decorator, Executors.newScheduledThreadPool( 2 ) );
+        final PartyLineCacheProvider plcp = new PartyLineCacheProvider( localDir, pathgen, events, decorator,
+                                                                        Executors.newScheduledThreadPool( 2 ),
+                                                                        new Partyline() );
         final FastLocalCacheProvider flcp =
                 new FastLocalCacheProvider( plcp, new SimpleCacheInstance<>( "test", nfsOwnerCache ), pathgen, events,
                                             decorator, executor, null,

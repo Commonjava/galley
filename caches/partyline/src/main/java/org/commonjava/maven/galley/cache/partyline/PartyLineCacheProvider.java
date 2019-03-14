@@ -26,7 +26,7 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
-import org.commonjava.util.partyline.JoinableFileManager;
+import org.commonjava.util.partyline.Partyline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class PartyLineCacheProvider
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final JoinableFileManager fileManager = new JoinableFileManager();
+    private final Partyline fileManager;
 
     private PartyLineCacheProviderConfig config;
 
@@ -72,13 +72,15 @@ public class PartyLineCacheProvider
 
     public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator,
                                    final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
-                                   final ScheduledExecutorService deleteExecutor )
+                                   final ScheduledExecutorService deleteExecutor,
+                                   final Partyline fileManager)
     {
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.config = new PartyLineCacheProviderConfig( cacheBasedir );
         this.deleteExecutor = deleteExecutor == null ? Executors.newScheduledThreadPool( 2 ) : deleteExecutor;
+        this.fileManager = fileManager;
 
         Integer threads = 2;
         if ( deleteExecutor instanceof ThreadPoolExecutor )

@@ -21,8 +21,13 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.util.partyline.Partyline;
+import org.commonjava.util.partyline.lock.global.GlobalLockManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ServiceLoader;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
@@ -31,16 +36,22 @@ import java.util.concurrent.ScheduledExecutorService;
 public class PartyLineCacheProviderFactory
         implements CacheProviderFactory
 {
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
+
     private File cacheDir;
 
     private ScheduledExecutorService deleteExecutor;
 
     private transient PartyLineCacheProvider provider;
 
-    public PartyLineCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor )
+    private GlobalLockManager globalLockManager;
+
+    public PartyLineCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor,
+                                          GlobalLockManager globalLockManager )
     {
         this.cacheDir = cacheDir;
         this.deleteExecutor = deleteExecutor;
+        this.globalLockManager = globalLockManager;
     }
 
     @Override
@@ -50,8 +61,17 @@ public class PartyLineCacheProviderFactory
     {
         if ( provider == null )
         {
+            Partyline fileManager;
+            if (globalLockManager != null)
+            {
+                fileManager = new Partyline( globalLockManager );
+            }
+            else
+            {
+                fileManager = new Partyline();
+            }
             provider = new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
-                                                   deleteExecutor );
+                                                   deleteExecutor, fileManager );
         }
 
         return provider;

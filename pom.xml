@@ -51,10 +51,10 @@
     <projectEmail>nos-devel@redhat.com</projectEmail>
     <!--<undertowVersion>1.3.33.Final</undertowVersion>-->
     <atlasVersion>1.0.1</atlasVersion>
-    <partylineVersion>1.16</partylineVersion>
-    <weftVersion>1.12</weftVersion>
+    <partylineVersion>2.0-SNAPSHOT</partylineVersion>
+    <weftVersion>1.13-SNAPSHOT</weftVersion>
     <jhttpcVersion>1.9</jhttpcVersion>
-    <infinispanVersion>9.1.7.Final</infinispanVersion>
+    <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
@@ -276,6 +276,11 @@
         <version>${infinispanVersion}</version>
       </dependency>
       <dependency>
+        <groupId>org.infinispan</groupId>
+        <artifactId>infinispan-commons</artifactId>
+        <version>${infinispanVersion}</version>
+      </dependency>
+      <dependency>
         <groupId>org.jboss.logging</groupId>
         <artifactId>jboss-logging</artifactId>
         <version>3.3.0.Final</version>
@@ -354,7 +359,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>animal-sniffer-maven-plugin</artifactId>
-          <version>1.14</version>
+          <version>1.16</version>
           <executions>
             <execution>
               <id>check-jdk-compat</id>

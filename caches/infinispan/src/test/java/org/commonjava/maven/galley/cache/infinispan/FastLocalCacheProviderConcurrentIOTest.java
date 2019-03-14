@@ -30,6 +30,7 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.util.partyline.Partyline;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.jboss.byteman.contrib.bmunit.BMScript;
@@ -114,7 +115,7 @@ public class FastLocalCacheProviderConcurrentIOTest
     {
         final String nfsBasePath = createNFSBaseDir( temp.newFolder().getCanonicalPath() );
         plProvider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
-                                                 Executors.newScheduledThreadPool( 2 ) );
+                                                 Executors.newScheduledThreadPool( 2 ), new Partyline() );
 
         provider = new FastLocalCacheProvider( plProvider, new SimpleCacheInstance<>( "test", cache ), pathgen, events,
                                                decorator, executor, nfsBasePath, new SimpleCacheInstance<>( "localFileCache", localFileCache ));

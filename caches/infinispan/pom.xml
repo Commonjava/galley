@@ -80,13 +80,13 @@
     </dependency>
   </dependencies>
 
-  <build>
+  <!--<build>
     <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>animal-sniffer-maven-plugin</artifactId>
-          <version>1.14</version>
+          <version>1.16</version>
           <executions>
             <execution>
               <id>check-jdk-compat</id>
@@ -107,12 +107,12 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
-            <!-- override javaVersion above so we can include this in PME, which has to run in JDK 1.6 environments still. -->
+            &lt;!&ndash; override javaVersion above so we can include this in PME, which has to run in JDK 1.6 environments still. &ndash;&gt;
             <source>${javaVersion}</source>
             <target>${javaVersion}</target>
           </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
-  </build>
+  </build>-->
 </project>
