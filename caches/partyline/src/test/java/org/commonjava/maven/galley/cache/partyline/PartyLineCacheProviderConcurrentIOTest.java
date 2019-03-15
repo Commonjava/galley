@@ -27,6 +27,7 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.util.partyline.Partyline;
 import org.jboss.byteman.contrib.bmunit.BMScript;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.junit.Before;
@@ -76,7 +77,7 @@ public class PartyLineCacheProviderConcurrentIOTest
             throws Exception
     {
         provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
-                                               Executors.newScheduledThreadPool( 2 ) );
+                                               Executors.newScheduledThreadPool( 2 ), new Partyline() );
         latch = new CountDownLatch( 2 );
     }
 

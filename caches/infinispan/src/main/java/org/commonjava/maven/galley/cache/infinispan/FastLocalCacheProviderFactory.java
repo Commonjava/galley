@@ -23,6 +23,7 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.commonjava.util.partyline.Partyline;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -80,7 +81,7 @@ public class FastLocalCacheProviderFactory
         {
             PartyLineCacheProvider pl =
                     new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
-                                                Executors.newScheduledThreadPool( 4 ) );
+                                                Executors.newScheduledThreadPool( 4 ), new Partyline() );
 
             provider =
                     new FastLocalCacheProvider( pl, nfsUsageCache, pathGenerator, fileEventManager, transferDecorator,
