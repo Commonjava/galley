@@ -266,10 +266,14 @@ public class TransferManagerImpl
     private ListingResult doList( final ConcreteResource resource, final boolean suppressFailures, EventMetadata metadata )
         throws TransferException
     {
+        logger.debug( "doList, resource: {}, metadata: {}", resource, metadata );
+
         final Transfer cachedListing = getCacheReference( resource.getChild( ".listing.txt" ) );
         Set<String> filenames = new HashSet<>();
         if ( cachedListing.exists() )
         {
+            logger.debug( "Listing file exists, {}", cachedListing );
+
             InputStream stream = null;
             try
             {
@@ -290,10 +294,10 @@ public class TransferManagerImpl
         }
         else
         {
-
             final Transfer cached = getCacheReference( resource );
             if ( cached.exists() )
             {
+                logger.debug( "Try cached transfer, ", cached );
                 if ( cached.isFile() )
                 {
                     throw new TransferException( "Cannot list: {}. It does not appear to be a directory.", resource );
@@ -344,16 +348,22 @@ public class TransferManagerImpl
                 }
             }
 
+
             final Boolean allowRemoteListDownload = metadata.get( ALLOW_REMOTE_LISTING_DOWNLOAD ) == null ?
                     true :
                     (Boolean)metadata.get( ALLOW_REMOTE_LISTING_DOWNLOAD );
-            if ( resource.getLocation()
-                         .allowsDownloading() && allowRemoteListDownload )
+
+            logger.debug( "Try remote listing, allowRemoteListDownload: {}", allowRemoteListDownload );
+
+            if ( resource.getLocation().allowsDownloading() && allowRemoteListDownload )
             {
+
                 final int timeoutSeconds = getTimeoutSeconds( resource );
                 Transport transport = getTransport( resource );
+
                 final ListingResult remoteResult =
                         lister.list( resource, cachedListing, timeoutSeconds, transport, suppressFailures );
+                logger.debug( "Remote listing done, remoteResult: {}", remoteResult );
 
                 if ( remoteResult != null )
                 {
@@ -365,16 +375,12 @@ public class TransferManagerImpl
                         {
                             try
                             {
-                                Logger logger = LoggerFactory.getLogger( getClass() );
-                                //noinspection ConfusingArgumentToVarargsMethod
                                 logger.debug( "Un-decorated listing:\n\n{}\n\n", Arrays.asList( remoteListing ) );
-
                                 remoteListing = decorator.decorateListing( cachedListing.getParent(), remoteListing, metadata );
                             }
                             catch ( final IOException e )
                             {
-                                logger.error( "Failed to decorate directory listing for: {}. Reason: {}",
-                                              e, resource, e.getMessage() );
+                                logger.error( "Failed to decorate directory listing for: " + resource, e );
                                 remoteListing = null;
                             }
                         }
@@ -384,24 +390,7 @@ public class TransferManagerImpl
                     {
                         if ( transport != null && transport.allowsCaching() )
                         {
-                            OutputStream stream = null;
-                            try
-                            {
-                                Logger logger = LoggerFactory.getLogger( getClass() );
-                                logger.debug( "Writing listing:\n\n{}\n\nto: {}", remoteListing, cachedListing );
-
-                                stream = cachedListing.openOutputStream( TransferOperation.DOWNLOAD );
-                                stream.write( join( remoteListing, "\n" ).getBytes( "UTF-8" ) );
-                            }
-                            catch ( final IOException e )
-                            {
-                                logger.debug( "Failed to store directory listing for: {}. Reason: {}",
-                                        e, resource, e.getMessage() );
-                            }
-                            finally
-                            {
-                                closeQuietly( stream );
-                            }
+                            writeListingTxt( cachedListing, remoteListing, resource );
                         }
 
                         filenames.addAll( Arrays.asList( remoteListing ) );
@@ -429,6 +418,20 @@ public class TransferManagerImpl
         logger.debug( "Final listing result:\n\n{}\n\n", resultingNames );
 
         return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
+    }
+
+    private void writeListingTxt( Transfer cachedListing, String[] remoteListing, ConcreteResource resource )
+    {
+        logger.debug( "Writing listing:\n\n{}\n\nto: {}", remoteListing, cachedListing );
+
+        try (OutputStream stream = cachedListing.openOutputStream( TransferOperation.DOWNLOAD ))
+        {
+            stream.write( join( remoteListing, "\n" ).getBytes( "UTF-8" ) );
+        }
+        catch ( final IOException e )
+        {
+            logger.debug( "Failed to store directory listing for: {}. Reason: {}", resource, e.getMessage(), e );
+        }
     }
 
     private boolean isEmptyFolder( Transfer childRef ) throws IOException
