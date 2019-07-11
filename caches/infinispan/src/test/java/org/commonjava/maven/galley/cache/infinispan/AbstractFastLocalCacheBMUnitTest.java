@@ -21,11 +21,11 @@ import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.util.partyline.Partyline;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -57,7 +57,7 @@ public abstract class AbstractFastLocalCacheBMUnitTest
 
     protected final FileEventManager events = new TestFileEventManager();
 
-    protected final TransferDecorator decorator = new TestTransferDecorator();
+    protected final TransferDecoratorManager decorator = new TransferDecoratorManager( new TestTransferDecorator() );
 
     protected final ExecutorService executor = Executors.newFixedThreadPool( 5 );
 

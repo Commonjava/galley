@@ -16,13 +16,13 @@
 package org.commonjava.maven.galley.cache.infinispan;
 
 import org.apache.commons.io.IOUtils;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.infinispan.io.GridFilesystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +48,10 @@ public class GridFileSystemCacheProvider
 
     private FileEventManager fileEventManager;
 
-    private TransferDecorator transferDecorator;
+    private TransferDecoratorManager transferDecorator;
 
     public GridFileSystemCacheProvider( final PathGenerator pathGenerator, final FileEventManager fileEventManager,
-                                        final TransferDecorator transferDecorator, GridFilesystem filesystem )
+                                        final TransferDecoratorManager transferDecorator, GridFilesystem filesystem )
     {
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;

@@ -16,15 +16,14 @@
 package org.commonjava.maven.galley.cache.partyline;
 
 import org.apache.commons.io.IOUtils;
-import org.commonjava.cdi.util.weft.PoolWeftExecutorService;
 import org.commonjava.cdi.util.weft.SingleThreadedExecutorService;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.partyline.Partyline;
 import org.slf4j.Logger;
@@ -41,7 +40,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -64,14 +62,14 @@ public class PartyLineCacheProvider
 
     private FileEventManager fileEventManager;
 
-    private TransferDecorator transferDecorator;
+    private TransferDecoratorManager transferDecorator;
 
     private ScheduledExecutorService deleteExecutor;
 
     private List<Transfer> toDelete = Collections.synchronizedList( new ArrayList<>() );
 
     public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator,
-                                   final FileEventManager fileEventManager, final TransferDecorator transferDecorator,
+                                   final FileEventManager fileEventManager, final TransferDecoratorManager transferDecorator,
                                    final ScheduledExecutorService deleteExecutor,
                                    final Partyline fileManager)
     {

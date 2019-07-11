@@ -22,6 +22,7 @@ import javax.inject.Inject;
 
 import org.commonjava.maven.galley.GalleyCore;
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
 import org.commonjava.maven.galley.maven.parse.MavenMetadataReader;
 import org.commonjava.maven.galley.maven.parse.MavenPomReader;
@@ -33,7 +34,6 @@ import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
@@ -161,7 +161,7 @@ public class GalleyMaven
         return core.getLocationResolver();
     }
 
-    public TransferDecorator getTransferDecorator()
+    public TransferDecoratorManager getTransferDecorator()
     {
         return core.getTransferDecorator();
     }

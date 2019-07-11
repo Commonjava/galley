@@ -20,15 +20,13 @@ import org.commonjava.maven.galley.cache.infinispan.GridFileSystemCacheProvider;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.infinispan.Cache;
-import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
-import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -64,7 +62,7 @@ public class GridFileSystemCacheProviderTest
     {
         final PathGenerator pathgen = new HashedLocationPathGenerator();
         final FileEventManager events = new TestFileEventManager();
-        final TransferDecorator decorator = new TestTransferDecorator();
+        final TransferDecoratorManager decorator = new TransferDecoratorManager( new TestTransferDecorator() );
 
         Cache<String, byte[]> data = CACHE_MANAGER.getCache( name.getMethodName() + "-data" );
         Cache<String, GridFile.Metadata> metadata = CACHE_MANAGER.getCache( name.getMethodName() + "-metadata" );

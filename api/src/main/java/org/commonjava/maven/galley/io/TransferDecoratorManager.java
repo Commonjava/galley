@@ -22,8 +22,10 @@ import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.inject.Alternative;
-import javax.inject.Named;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,24 +38,38 @@ import java.util.List;
  * {@link AbstractTransferDecorator} style that used nested decorators to build the pipeline, which relied on control
  * over the {@link TransferDecorator} constructor call and didn't offer much help to CDI-managed decorators.
  */
-@Alternative
-@Named
-public class TransferDecoratorPipeline
-        implements TransferDecorator
+@ApplicationScoped
+public class TransferDecoratorManager
 {
+    @Inject
+    private Instance<TransferDecorator> transferDecorators;
+
     private List<TransferDecorator> decorators;
 
-    public TransferDecoratorPipeline( List<TransferDecorator> decorators )
+    public TransferDecoratorManager()
+    {
+    }
+
+    @PostConstruct
+    private void initDecorators()
+    {
+        decorators = new ArrayList<>();
+        if ( transferDecorators != null )
+        {
+            transferDecorators.forEach( decorator -> decorators.add( decorator ) );
+        }
+    }
+
+    public TransferDecoratorManager( List<TransferDecorator> decorators )
     {
         this.decorators = decorators;
     }
 
-    public TransferDecoratorPipeline( TransferDecorator... decorators )
+    public TransferDecoratorManager( TransferDecorator... decorators )
     {
         this.decorators = Arrays.asList( decorators );
     }
 
-    @Override
     public OutputStream decorateWrite( final OutputStream stream, final Transfer transfer, final TransferOperation op,
                                        final EventMetadata metadata )
             throws IOException
@@ -67,7 +83,6 @@ public class TransferDecoratorPipeline
         return result;
     }
 
-    @Override
     public InputStream decorateRead( final InputStream stream, final Transfer transfer, final EventMetadata metadata )
             throws IOException
     {
@@ -84,7 +99,6 @@ public class TransferDecoratorPipeline
         return result;
     }
 
-    @Override
     public void decorateTouch( final Transfer transfer, final EventMetadata metadata )
     {
         for ( TransferDecorator decorator : decorators )
@@ -93,7 +107,6 @@ public class TransferDecoratorPipeline
         }
     }
 
-    @Override
     public OverriddenBooleanValue decorateExists( final Transfer transfer, final EventMetadata metadata )
     {
         OverriddenBooleanValue result = OverriddenBooleanValue.DEFER;
@@ -109,7 +122,6 @@ public class TransferDecoratorPipeline
         return result;
     }
 
-    @Override
     public void decorateCopyFrom( final Transfer from, final Transfer transfer, final EventMetadata metadata )
             throws IOException
     {
@@ -119,7 +131,6 @@ public class TransferDecoratorPipeline
         }
     }
 
-    @Override
     public void decorateDelete( final Transfer transfer, final EventMetadata metadata )
             throws IOException
     {
@@ -129,7 +140,6 @@ public class TransferDecoratorPipeline
         }
     }
 
-    @Override
     public String[] decorateListing( final Transfer transfer, final String[] listing, final EventMetadata metadata )
             throws IOException
     {
@@ -142,7 +152,6 @@ public class TransferDecoratorPipeline
         return result;
     }
 
-    @Override
     public void decorateMkdirs( final Transfer transfer, final EventMetadata metadata )
             throws IOException
     {
@@ -152,7 +161,6 @@ public class TransferDecoratorPipeline
         }
     }
 
-    @Override
     public void decorateCreateFile( final Transfer transfer, final EventMetadata metadata )
             throws IOException
     {

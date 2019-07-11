@@ -24,12 +24,12 @@ import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestIOUtils;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.util.partyline.Partyline;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -89,7 +89,7 @@ public class FastLocalCacheProviderConcurrentIOTest
 
     private final FileEventManager events = new TestFileEventManager();
 
-    private final TransferDecorator decorator = new TestTransferDecorator();
+    private final TransferDecoratorManager decorator = new TransferDecoratorManager( new TestTransferDecorator() );
 
     private final Cache<String, String> cache = CACHE_MANAGER.getCache( NFSOwnerCacheProducer.CACHE_NAME );
 

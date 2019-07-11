@@ -30,6 +30,7 @@ import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.ListingResult;
 import org.commonjava.maven.galley.model.Location;
@@ -42,7 +43,6 @@ import org.commonjava.maven.galley.model.VirtualResource;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -370,7 +370,7 @@ public class TransferManagerImpl
                     String[] remoteListing = remoteResult.getListing();
                     if ( remoteListing != null && remoteListing.length > 0 )
                     {
-                        final TransferDecorator decorator = cachedListing.getDecorator();
+                        final TransferDecoratorManager decorator = cachedListing.getDecorator();
                         if ( decorator != null )
                         {
                             try

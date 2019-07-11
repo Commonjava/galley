@@ -17,17 +17,16 @@ package org.commonjava.maven.galley.cache.partyline;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.util.partyline.Partyline;
 import org.commonjava.util.partyline.lock.global.GlobalLockManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ServiceLoader;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
@@ -55,7 +54,7 @@ public class PartyLineCacheProviderFactory
     }
 
     @Override
-    public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecorator transferDecorator,
+    public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecoratorManager transferDecorator,
                                  FileEventManager fileEventManager )
             throws GalleyInitException
     {

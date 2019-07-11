@@ -16,13 +16,13 @@
 package org.commonjava.maven.galley.cache;
 
 import org.apache.commons.io.FileUtils;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.slf4j.Logger;
@@ -57,12 +57,12 @@ public class FileCacheProvider
 
     private FileEventManager fileEventManager;
 
-    private TransferDecorator transferDecorator;
+    private TransferDecoratorManager transferDecorator;
 
     private final SimpleLockingSupport lockingSupport = new SimpleLockingSupport();
 
     public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
-                              final TransferDecorator transferDecorator, final boolean aliasLinking )
+                              final TransferDecoratorManager transferDecorator, final boolean aliasLinking )
     {
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
@@ -71,7 +71,7 @@ public class FileCacheProvider
     }
 
     public FileCacheProvider( final FileCacheProviderConfig config, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
-                              final TransferDecorator transferDecorator )
+                              final TransferDecoratorManager transferDecorator )
     {
         this.config = config;
         this.pathGenerator = pathGenerator;
@@ -80,7 +80,7 @@ public class FileCacheProvider
     }
 
     public FileCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator, final FileEventManager fileEventManager,
-                              final TransferDecorator transferDecorator )
+                              final TransferDecoratorManager transferDecorator )
     {
         this( cacheBasedir, pathGenerator, fileEventManager, transferDecorator, true );
     }

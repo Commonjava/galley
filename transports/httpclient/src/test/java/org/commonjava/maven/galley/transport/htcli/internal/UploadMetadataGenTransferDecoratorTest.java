@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.transport.htcli.internal;
 
 import org.apache.commons.io.FileUtils;
 import org.commonjava.maven.galley.event.EventMetadata;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -75,7 +76,7 @@ public class UploadMetadataGenTransferDecoratorTest
         tempFolder = folder.newFolder( "cache" );
         final UploadMetadataGenTransferDecorator decorator =
                 new UploadMetadataGenTransferDecorator( specialPathManager );
-        provider = new TestCacheProvider( tempFolder, events, decorator );
+        provider = new TestCacheProvider( tempFolder, events, new TransferDecoratorManager( decorator ) );
     }
 
     @Test

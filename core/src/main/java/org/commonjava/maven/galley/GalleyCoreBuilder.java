@@ -28,13 +28,13 @@ import org.commonjava.maven.galley.internal.xfer.UploadHandler;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
@@ -62,7 +62,7 @@ public class GalleyCoreBuilder
 
     private LocationResolver locationResolver;
 
-    private TransferDecorator decorator;
+    private TransferDecoratorManager decorator;
 
     private FileEventManager events;
 
@@ -125,7 +125,7 @@ public class GalleyCoreBuilder
 
         if ( decorator == null )
         {
-            decorator = new NoOpTransferDecorator();
+            decorator = new TransferDecoratorManager( new NoOpTransferDecorator() );
         }
 
         if ( events == null )
@@ -221,7 +221,7 @@ public class GalleyCoreBuilder
         return locationExpander;
     }
 
-    public TransferDecorator getTransferDecorator()
+    public TransferDecoratorManager getTransferDecorator()
     {
         return decorator;
     }
@@ -253,7 +253,7 @@ public class GalleyCoreBuilder
         return this;
     }
 
-    public GalleyCoreBuilder withTransferDecorator( final TransferDecorator decorator )
+    public GalleyCoreBuilder withTransferDecorator( final TransferDecoratorManager decorator )
     {
         this.decorator = decorator;
         return this;

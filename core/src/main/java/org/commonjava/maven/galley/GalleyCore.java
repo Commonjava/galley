@@ -25,10 +25,10 @@ import javax.inject.Inject;
 
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.WeftManaged;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
@@ -45,7 +45,7 @@ public class GalleyCore
     private LocationResolver locationResolver;
 
     @Inject
-    private TransferDecorator decorator;
+    private TransferDecoratorManager decorator;
 
     @Inject
     private FileEventManager events;
@@ -85,7 +85,7 @@ public class GalleyCore
     }
 
     public GalleyCore( final LocationExpander locationExpander, final LocationResolver locationResolver,
-                       final TransferDecorator decorator, final FileEventManager events, final CacheProvider cache,
+                       final TransferDecoratorManager decorator, final FileEventManager events, final CacheProvider cache,
                        final NotFoundCache nfc, final TransportManager transportManager,
                        final TransferManager transferManager, final List<Transport> transports,
                        final ExecutorService handlerExecutor, final ExecutorService batchExecutor,
@@ -133,7 +133,7 @@ public class GalleyCore
         return locationResolver;
     }
 
-    public TransferDecorator getTransferDecorator()
+    public TransferDecoratorManager getTransferDecorator()
     {
         return decorator;
     }

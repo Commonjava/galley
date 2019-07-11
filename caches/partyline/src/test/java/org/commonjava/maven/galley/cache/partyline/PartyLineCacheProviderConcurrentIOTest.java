@@ -21,6 +21,7 @@ import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestIOUtils;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -76,7 +77,7 @@ public class PartyLineCacheProviderConcurrentIOTest
     public void setup()
             throws Exception
     {
-        provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
+        provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, new TransferDecoratorManager( decorator ),
                                                Executors.newScheduledThreadPool( 2 ), new Partyline() );
         latch = new CountDownLatch( 2 );
     }

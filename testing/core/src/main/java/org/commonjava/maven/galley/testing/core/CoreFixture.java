@@ -25,10 +25,10 @@ import org.commonjava.maven.galley.GalleyCoreBuilder;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.cache.FileCacheProviderFactory;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
@@ -181,7 +181,7 @@ public class CoreFixture
         return core == null ? coreBuilder.getLocationResolver() : core.getLocationResolver();
     }
 
-    public TransferDecorator getTransferDecorator()
+    public TransferDecoratorManager getTransferDecorator()
     {
         return core == null ? coreBuilder.getTransferDecorator() : core.getTransferDecorator();
     }
@@ -240,7 +240,7 @@ public class CoreFixture
         return this;
     }
 
-    public CoreFixture withTransferDecorator( final TransferDecorator decorator )
+    public CoreFixture withTransferDecorator( final TransferDecoratorManager decorator )
     {
         checkInitialized();
         coreBuilder.withTransferDecorator( decorator );
@@ -364,7 +364,7 @@ public class CoreFixture
     }
 
     @Deprecated
-    public TransferDecorator getDecorator()
+    public TransferDecoratorManager getDecorator()
     {
         return core == null ? coreBuilder.getTransferDecorator() : core.getTransferDecorator();
     }
@@ -384,7 +384,7 @@ public class CoreFixture
     }
 
     @Deprecated
-    public CoreFixture setDecorator( final TransferDecorator decorator )
+    public CoreFixture setDecorator( final TransferDecoratorManager decorator )
     {
         checkInitialized();
         coreBuilder.withTransferDecorator( decorator );

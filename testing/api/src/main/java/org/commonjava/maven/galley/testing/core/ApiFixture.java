@@ -16,9 +16,9 @@
 package org.commonjava.maven.galley.testing.core;
 
 import org.commonjava.maven.galley.TransferManager;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.nfc.NoOpNotFoundCache;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -38,7 +38,7 @@ public class ApiFixture
 
     private LocationExpander locations;
 
-    private TransferDecorator decorator;
+    private TransferDecoratorManager decorator;
 
     private FileEventManager events;
 
@@ -71,7 +71,7 @@ public class ApiFixture
 
         if ( decorator == null )
         {
-            decorator = new TestTransferDecorator();
+            decorator = new TransferDecoratorManager( new TestTransferDecorator() );
         }
 
         if ( events == null )
@@ -121,7 +121,7 @@ public class ApiFixture
         return locations;
     }
 
-    public TransferDecorator getDecorator()
+    public TransferDecoratorManager getDecorator()
     {
         return decorator;
     }
@@ -158,7 +158,7 @@ public class ApiFixture
         return this;
     }
 
-    public ApiFixture setDecorator( final TransferDecorator decorator )
+    public ApiFixture setDecorator( final TransferDecoratorManager decorator )
     {
         this.decorator = decorator;
         return this;

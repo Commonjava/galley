@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.cache;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
@@ -71,7 +72,7 @@ public abstract class CacheProviderTCK
 
         cache.lockWrite( res );
 
-        final Transfer txfr = new Transfer( res, cache, new TestFileEventManager(), new TestTransferDecorator() );
+        final Transfer txfr = new Transfer( res, cache, new TestFileEventManager(), new TransferDecoratorManager( new TestTransferDecorator() ) );
 
         OutputStream out = null;
         try

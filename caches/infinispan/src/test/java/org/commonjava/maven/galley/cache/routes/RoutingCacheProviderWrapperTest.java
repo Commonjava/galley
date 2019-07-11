@@ -22,13 +22,13 @@ import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProviderFactory
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.infinispan.manager.DefaultCacheManager;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,7 +56,7 @@ public class RoutingCacheProviderWrapperTest
 
     private final FileEventManager events = new TestFileEventManager();
 
-    private final TransferDecorator decorator = new TestTransferDecorator();
+    private final TransferDecoratorManager decorator = new TransferDecoratorManager( new TestTransferDecorator() );
 
     private final RouteSelector selector = new RouteSelector()
     {
