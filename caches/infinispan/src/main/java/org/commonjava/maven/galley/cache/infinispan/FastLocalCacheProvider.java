@@ -20,13 +20,13 @@ import org.apache.commons.lang.StringUtils;
 import org.commonjava.cdi.util.weft.ContextSensitiveWeakHashMap;
 import org.commonjava.cdi.util.weft.ThreadContext;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.util.partyline.Partyline;
 import org.commonjava.util.partyline.lock.LockLevel;
@@ -104,7 +104,7 @@ public class FastLocalCacheProvider
 
     private FileEventManager fileEventManager;
 
-    private TransferDecorator transferDecorator;
+    private TransferDecoratorManager transferDecorator;
 
     private ExecutorService executor;
 
@@ -138,7 +138,7 @@ public class FastLocalCacheProvider
     protected FastLocalCacheProvider( final PartyLineCacheProvider plCacheProvider,
                                       final CacheInstance<String, String> nfsUsageCache,
                                       final PathGenerator pathGenerator, final FileEventManager fileEventManager,
-                                      final TransferDecorator transferDecorator, final ExecutorService executor,
+                                      final TransferDecoratorManager transferDecorator, final ExecutorService executor,
                                       final String nfsBaseDir,
                                       final CacheInstance<String, ConcreteResource> localFileCache )
     {

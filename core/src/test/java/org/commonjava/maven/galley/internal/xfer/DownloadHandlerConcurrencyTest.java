@@ -25,12 +25,12 @@ import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
-import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.transport.htcli.HttpClientTransport;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
@@ -87,7 +87,7 @@ public class DownloadHandlerConcurrencyTest
 
         cacheProvider =
                 new FileCacheProvider( temp.newFolder(), new HashedLocationPathGenerator(), new NoOpFileEventManager(),
-                                       new NoOpTransferDecorator(), false );
+                                       new TransferDecoratorManager( new NoOpTransferDecorator() ), false );
 
         transport = new HttpClientTransport( new HttpImpl( new MemoryPasswordManager() ), new ObjectMapper(),
                                                              new GlobalHttpConfiguration(), null, null );

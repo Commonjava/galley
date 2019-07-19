@@ -21,9 +21,9 @@ import org.commonjava.maven.galley.event.FileDeletionEvent;
 import org.commonjava.maven.galley.event.FileErrorEvent;
 import org.commonjava.maven.galley.event.FileStorageEvent;
 import org.commonjava.maven.galley.io.OverriddenBooleanValue;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.util.TransferInputStream;
 import org.commonjava.maven.galley.util.TransferOutputStream;
 import org.slf4j.Logger;
@@ -47,12 +47,12 @@ public class Transfer
 
     private final CacheProvider provider;
 
-    private final TransferDecorator decorator;
+    private final TransferDecoratorManager decorator;
 
     private final FileEventManager fileEventManager;
 
     public Transfer( final Location loc, final CacheProvider provider, final FileEventManager fileEventManager,
-                     final TransferDecorator decorator, final String... path )
+                     final TransferDecoratorManager decorator, final String... path )
     {
         this.resource = new ConcreteResource( loc, path );
         this.fileEventManager = fileEventManager;
@@ -61,7 +61,7 @@ public class Transfer
     }
 
     public Transfer( final ConcreteResource resource, final CacheProvider provider,
-                     final FileEventManager fileEventManager, final TransferDecorator decorator )
+                     final FileEventManager fileEventManager, final TransferDecoratorManager decorator )
     {
         this.resource = resource;
         this.fileEventManager = fileEventManager;
@@ -509,7 +509,7 @@ public class Transfer
         return provider.isWriteLocked( resource );
     }
 
-    public TransferDecorator getDecorator()
+    public TransferDecoratorManager getDecorator()
     {
         return decorator;
     }

@@ -19,6 +19,7 @@ import org.commonjava.maven.galley.cache.CacheProviderTCK;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
@@ -47,7 +48,7 @@ public class PartyLineCacheProviderTest
         final FileEventManager events = new TestFileEventManager();
         final TransferDecorator decorator = new TestTransferDecorator();
 
-        provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, decorator,
+        provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, new TransferDecoratorManager( decorator ),
                                                Executors.newScheduledThreadPool( 2 ), new Partyline() );
     }
 

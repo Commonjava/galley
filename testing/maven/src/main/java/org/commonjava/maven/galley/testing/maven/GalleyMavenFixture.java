@@ -20,6 +20,7 @@ import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
 import org.commonjava.maven.galley.cache.FileCacheProviderFactory;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.maven.ArtifactManager;
 import org.commonjava.maven.galley.maven.ArtifactMetadataManager;
 import org.commonjava.maven.galley.maven.GalleyMaven;
@@ -37,7 +38,6 @@ import org.commonjava.maven.galley.maven.spi.version.VersionResolver;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
@@ -313,7 +313,7 @@ public class GalleyMavenFixture
     }
 
     @Deprecated
-    public TransferDecorator getDecorator()
+    public TransferDecoratorManager getDecorator()
     {
         return maven == null ? mavenBuilder.getTransferDecorator() : mavenBuilder.getTransferDecorator();
     }
@@ -333,7 +333,7 @@ public class GalleyMavenFixture
     }
 
     @Deprecated
-    public GalleyMavenFixture setDecorator( final TransferDecorator decorator )
+    public GalleyMavenFixture setDecorator( final TransferDecoratorManager decorator )
     {
         checkInitialized();
         mavenBuilder.withTransferDecorator( decorator );
@@ -525,7 +525,7 @@ public class GalleyMavenFixture
         return maven == null ? mavenBuilder.getLocationResolver() : maven.getLocationResolver();
     }
 
-    public TransferDecorator getTransferDecorator()
+    public TransferDecoratorManager getTransferDecorator()
     {
         return maven == null ? mavenBuilder.getTransferDecorator() : maven.getTransferDecorator();
     }
@@ -654,7 +654,7 @@ public class GalleyMavenFixture
         return this;
     }
 
-    public GalleyMavenFixture withTransferDecorator( final TransferDecorator decorator )
+    public GalleyMavenFixture withTransferDecorator( final TransferDecoratorManager decorator )
     {
         checkInitialized();
         mavenBuilder.withTransferDecorator( decorator );

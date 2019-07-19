@@ -19,6 +19,7 @@ import org.commonjava.maven.galley.GalleyCoreBuilder;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.maven.internal.ArtifactManagerImpl;
 import org.commonjava.maven.galley.maven.internal.ArtifactMetadataManagerImpl;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
@@ -37,7 +38,6 @@ import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
@@ -276,7 +276,7 @@ public class GalleyMavenBuilder
         return coreBuilder.getLocationResolver();
     }
 
-    public TransferDecorator getTransferDecorator()
+    public TransferDecoratorManager getTransferDecorator()
     {
         return coreBuilder.getTransferDecorator();
     }
@@ -308,7 +308,7 @@ public class GalleyMavenBuilder
         return this;
     }
 
-    public GalleyMavenBuilder withTransferDecorator( final TransferDecorator decorator )
+    public GalleyMavenBuilder withTransferDecorator( final TransferDecoratorManager decorator )
     {
         coreBuilder.withTransferDecorator( decorator );
         return this;

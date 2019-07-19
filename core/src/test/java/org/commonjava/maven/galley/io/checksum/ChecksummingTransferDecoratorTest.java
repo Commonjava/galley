@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.ChecksummingTransferDecorator;
 import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.io.checksum.testutil.TestDecoratorAdvisor;
 import org.commonjava.maven.galley.io.checksum.testutil.TestMetadataConsumer;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -72,9 +73,10 @@ public class ChecksummingTransferDecoratorTest
     public void forceChecksumOnReadWhenChecksumsAreDisabledForReads()
             throws Exception
     {
-        fixture.setDecorator( new ChecksummingTransferDecorator( Collections.<TransferOperation>emptySet(),
-                                                                 new SpecialPathManagerImpl(), false, false,
-                                                                 metadataConsumer, new Md5GeneratorFactory() ) );
+        fixture.setDecorator( new TransferDecoratorManager(
+                        new ChecksummingTransferDecorator( Collections.<TransferOperation>emptySet(),
+                                                           new SpecialPathManagerImpl(), false, false, metadataConsumer,
+                                                           new Md5GeneratorFactory() ) ) );
         fixture.initMissingComponents();
         fixture.getCache().startReporting();
 
@@ -120,9 +122,10 @@ public class ChecksummingTransferDecoratorTest
     public void noChecksumOnReadWhenChecksumsAreDisabledForReads()
             throws Exception
     {
-        fixture.setDecorator( new ChecksummingTransferDecorator( Collections.<TransferOperation>emptySet(),
-                                                                 new SpecialPathManagerImpl(), false, false,
-                                                                 metadataConsumer, new Md5GeneratorFactory() ) );
+        fixture.setDecorator( new TransferDecoratorManager(
+                        new ChecksummingTransferDecorator( Collections.<TransferOperation>emptySet(),
+                                                           new SpecialPathManagerImpl(), false, false, metadataConsumer,
+                                                           new Md5GeneratorFactory() ) ) );
         fixture.initMissingComponents();
         fixture.getCache().startReporting();
 
@@ -165,10 +168,11 @@ public class ChecksummingTransferDecoratorTest
     {
         String path = "my-path.txt";
 
-        fixture.setDecorator(
-                new ChecksummingTransferDecorator( new TestDecoratorAdvisor(), new DisabledChecksummingDecoratorAdvisor(),
-                                                   new SpecialPathManagerImpl(), metadataConsumer,
-                                                   new Md5GeneratorFactory() ) );
+        fixture.setDecorator( new TransferDecoratorManager(
+                        new ChecksummingTransferDecorator( new TestDecoratorAdvisor(),
+                                                           new DisabledChecksummingDecoratorAdvisor(),
+                                                           new SpecialPathManagerImpl(), metadataConsumer,
+                                                           new Md5GeneratorFactory() ) ) );
         fixture.initMissingComponents();
         fixture.getCache().startReporting();
 

@@ -25,12 +25,12 @@ import java.io.OutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.cache.SimpleLockingSupport;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 public class TestCacheProvider
     implements CacheProvider
@@ -40,11 +40,11 @@ public class TestCacheProvider
 
     private final FileEventManager events;
 
-    private final TransferDecorator decorator;
+    private final TransferDecoratorManager decorator;
 
     private final SimpleLockingSupport lockingSupport = new SimpleLockingSupport();
 
-    public TestCacheProvider( final File dir, final FileEventManager events, final TransferDecorator decorator )
+    public TestCacheProvider( final File dir, final FileEventManager events, final TransferDecoratorManager decorator )
     {
         this.dir = dir;
         this.events = events;

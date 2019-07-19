@@ -17,10 +17,10 @@ package org.commonjava.maven.galley.cache.routes;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
+import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.TransferDecorator;
 
 public class RoutingCacheProviderFactory
         implements CacheProviderFactory
@@ -54,7 +54,7 @@ public class RoutingCacheProviderFactory
     }
 
     @Override
-    public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecorator transferDecorator,
+    public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecoratorManager transferDecorator,
                                               FileEventManager fileEventManager )
             throws GalleyInitException
     {
