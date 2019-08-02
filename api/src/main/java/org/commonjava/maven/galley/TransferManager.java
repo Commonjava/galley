@@ -31,6 +31,8 @@ public interface TransferManager
 
     static final String ALLOW_REMOTE_LISTING_DOWNLOAD = "Allow-remote-listing-download";
 
+    static final String PKG_METDATA_RE_DOWNLOAD = "Package-metadata-re-download";
+
     <T extends TransferBatch> T batchRetrieve( T batch )
     throws TransferException;
 

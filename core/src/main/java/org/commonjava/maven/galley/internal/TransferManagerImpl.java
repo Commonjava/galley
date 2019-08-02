@@ -577,10 +577,26 @@ public class TransferManagerImpl
             // TODO: (see above re:storing) Handle things like local archives that really don't need to be cached...
             target = getCacheReference( resource );
 
+            // This is for npm metadata handling. For npm central request, its metadata is using path of /package
+            // But we cached it as $package/package.json to differentiate folder and files. So if this package.json
+            // is removed, request from indy using /package will cause error. So here added a meta of redownload to
+            // let us can choose when to download this metadata again.
+            Boolean metaRedownload = (Boolean) eventMetadata.get( TransferManager.PKG_METDATA_RE_DOWNLOAD );
+            metaRedownload = metaRedownload == null ? false : metaRedownload;
+            logger.debug( "Need re-download for resource {}? : {}", resource, metaRedownload );
+
             if ( target.exists() )
             {
-                logger.debug( "Using cached copy of: {}", target );
-                return target;
+                if ( !metaRedownload )
+                {
+                    logger.debug( "Using cached copy of: {}", target );
+                    return target;
+                }
+                else
+                {
+                    logger.debug( "Cache copy exists but still need downloads as metadata set. Transfer is: {}",
+                                  target );
+                }
             }
 
             SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource, eventMetadata.getPackageType() );

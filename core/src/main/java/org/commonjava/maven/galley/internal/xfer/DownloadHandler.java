@@ -20,6 +20,7 @@ import org.commonjava.cdi.util.weft.WeftManaged;
 import org.commonjava.maven.galley.TransferContentException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
+import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.EventMetadata;
@@ -116,8 +117,10 @@ public class DownloadHandler
         boolean created = false;
         synchronized ( DOWNLOAD_MUTEX )
         {
-            // if the target file already exists, skip joining.
-            if ( target.exists() )
+            // if the target file already exists and do not need to force to re-download, skip joining.
+            Boolean metaRedownload = (Boolean) eventMetadata.get( TransferManager.PKG_METDATA_RE_DOWNLOAD );
+            metaRedownload = metaRedownload == null ? false : metaRedownload;
+            if ( target.exists() && !metaRedownload )
             {
                 return target;
             }
