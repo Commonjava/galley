@@ -70,6 +70,10 @@ public interface CacheProvider
 
     String getFilePath( ConcreteResource resource );
 
+    default String getGeneratedPath(ConcreteResource resource){
+        return resource.getPath();
+    }
+
     boolean delete( ConcreteResource resource )
         throws IOException;
 

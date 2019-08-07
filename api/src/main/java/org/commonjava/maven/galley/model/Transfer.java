@@ -461,17 +461,13 @@ public class Transfer
             return null;
         }
 
-        final String named = resource.getPath() + extension;
+        final String generatedPath = provider.getGeneratedPath( resource );
+
+        final String named = generatedPath + extension;
 
         final Transfer tx = this;
-        logger.debug( "Creating meta-transfer sibling for: {}", new Object()
-        {
-            @Override
-            public String toString()
-            {
-                return tx + " with name: " + named + " (parent: " + tx.getParent() + ")";
-            }
-        } );
+        logger.debug( "Creating meta-transfer sibling for: {}",
+                      String.format( "%s with name: %s (parent: %s)", tx, named, tx.getParent() ) );
 
         return provider.getTransfer( new ConcreteResource( getLocation(), named ) );
     }
