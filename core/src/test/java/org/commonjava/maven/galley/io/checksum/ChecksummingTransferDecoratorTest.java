@@ -52,7 +52,6 @@ import static org.commonjava.maven.galley.io.checksum.testutil.TestDecoratorAdvi
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -74,7 +73,7 @@ public class ChecksummingTransferDecoratorTest
             throws Exception
     {
         fixture.setDecorator( new TransferDecoratorManager(
-                        new ChecksummingTransferDecorator( Collections.<TransferOperation>emptySet(),
+                        new ChecksummingTransferDecorator( Collections.emptySet(),
                                                            new SpecialPathManagerImpl(), false, false, metadataConsumer,
                                                            new Md5GeneratorFactory() ) ) );
         fixture.initMissingComponents();

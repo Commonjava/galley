@@ -20,12 +20,14 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.SpecialPathMatcher;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +43,7 @@ import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN
  * Created by jdcasey on 1/27/16.
  */
 @ApplicationScoped
+@Alternative
 public class SpecialPathManagerImpl
         implements SpecialPathManager
 {
@@ -50,9 +53,17 @@ public class SpecialPathManagerImpl
 
     private Map<String, SpecialPathSet> pkgtypes;
 
+    private CacheProvider cacheProvider;
+
     public SpecialPathManagerImpl()
     {
         initPkgPathSets();
+    }
+
+    public SpecialPathManagerImpl( CacheProvider cacheProvider )
+    {
+        this();
+        this.cacheProvider = cacheProvider;
     }
 
     @PostConstruct
@@ -60,7 +71,7 @@ public class SpecialPathManagerImpl
     {
         stdSpecialPaths = new ArrayList<>();
         stdSpecialPaths.addAll( SpecialPathConstants.STANDARD_SPECIAL_PATHS );
-        pkgtypes = new ConcurrentHashMap<>(  );
+        pkgtypes = new ConcurrentHashMap<>();
         pkgtypes.put( MVN_SP_PATH_SET.getPackageType(), MVN_SP_PATH_SET );
         pkgtypes.put( NPM_SP_PATH_SET.getPackageType(), NPM_SP_PATH_SET );
     }
@@ -74,7 +85,7 @@ public class SpecialPathManagerImpl
     @Override
     public void registerSpecialPathInfo( SpecialPathInfo pathInfo, final String pkgType )
     {
-        pkgtypes.get(pkgType).registerSpecialPathInfo( pathInfo );
+        pkgtypes.get( pkgType ).registerSpecialPathInfo( pathInfo );
     }
 
     @Override
@@ -86,7 +97,7 @@ public class SpecialPathManagerImpl
     @Override
     public void deregisterSpecialPathInfo( SpecialPathInfo pathInfo, String pkgType )
     {
-        pkgtypes.get(pkgType).deregisterSpecialPathInfo( pathInfo );
+        pkgtypes.get( pkgType ).deregisterSpecialPathInfo( pathInfo );
     }
 
     @Override
@@ -109,8 +120,9 @@ public class SpecialPathManagerImpl
                 pathMatchers.add( info.getMatcher() );
             }
 
-            logger.trace( "Enabling special paths for package: '{}'\n  - {}\n\nCalled from: {}", pathSet.getPackageType(),
-                          join( pathMatchers, "\n  - " ), Thread.currentThread().getStackTrace()[1] );
+            logger.trace( "Enabling special paths for package: '{}'\n  - {}\n\nCalled from: {}",
+                          pathSet.getPackageType(), join( pathMatchers, "\n  - " ),
+                          Thread.currentThread().getStackTrace()[1] );
         }
     }
 
@@ -139,7 +151,13 @@ public class SpecialPathManagerImpl
     {
         if ( resource != null )
         {
-            return getSpecialPathInfo( resource.getLocation(), resource.getPath(), pkgType );
+            SpecialPathInfo info = getSpecialPathInfo( resource.getLocation(), resource.getPath(), pkgType );
+            if ( info == null && cacheProvider != null )
+            {
+                info = getSpecialPathInfo( resource.getLocation(), cacheProvider.getStoragePath( resource ), pkgType );
+
+            }
+            return info;
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
@@ -176,11 +194,7 @@ public class SpecialPathManagerImpl
 
         if ( pkgtypes.containsKey( pkgType ) )
         {
-            info = getPathInfo( location, path, pkgtypes.get( pkgType ).getSpecialPathInfos() );
-            if ( info != null )
-            {
-                return info;
-            }
+            return getPathInfo( location, path, pkgtypes.get( pkgType ).getSpecialPathInfos() );
         }
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return null;
@@ -194,7 +208,13 @@ public class SpecialPathManagerImpl
         {
             for ( SpecialPathInfo info : from )
             {
-                if ( info.getMatcher().matches( location, path ) )
+                final boolean originalMatched =
+                        info.getMatcher().matches( location, path );
+                final boolean storagePathMatched = cacheProvider != null && info.getMatcher()
+                                                                                .matches( location,
+                                                                                          cacheProvider.getStoragePath(
+                                                                                                  location, path ) );
+                if ( originalMatched || storagePathMatched )
                 {
                     if ( firstHit != null )
                     {
@@ -227,5 +247,13 @@ public class SpecialPathManagerImpl
         // TODO: seems that all SpecialPathMatcher impl classes does not use the Location, so we should consider to remove the Location arg next step.
         // TODO: When path is null, return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
         return path == null ? null : getSpecialPathInfo( null, path, SpecialPathConstants.PKG_TYPE_MAVEN );
+    }
+
+    public void setCacheProvider( CacheProvider provider )
+    {
+        if ( this.cacheProvider == null )
+        {
+            this.cacheProvider = provider;
+        }
     }
 }

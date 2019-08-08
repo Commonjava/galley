@@ -15,6 +15,10 @@
  */
 package org.commonjava.maven.galley.spi.cache;
 
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.Transfer;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,9 +26,6 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.Transfer;
 
 public interface CacheProvider
 {
@@ -70,8 +71,14 @@ public interface CacheProvider
 
     String getFilePath( ConcreteResource resource );
 
-    default String getStoragePath( ConcreteResource resource){
+    default String getStoragePath( ConcreteResource resource )
+    {
         return resource.getPath();
+    }
+
+    default String getStoragePath( Location location, String path )
+    {
+        return path;
     }
 
     boolean delete( ConcreteResource resource )

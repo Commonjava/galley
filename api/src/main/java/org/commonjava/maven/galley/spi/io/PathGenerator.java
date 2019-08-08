@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.spi.io;
 
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 
 public interface PathGenerator
 {
@@ -24,5 +25,9 @@ public interface PathGenerator
     default String getPath( final ConcreteResource resource )
     {
         return resource.getPath();
+    }
+
+    default String getPath( final Location location, final String path ){
+        return path;
     }
 }
