@@ -327,7 +327,7 @@ public class PartyLineCacheProvider
     }
 
     @Override
-    public String getGeneratedPath(final ConcreteResource resource){
+    public String getStoragePath( final ConcreteResource resource){
         return pathGenerator.getPath( resource );
     }
 

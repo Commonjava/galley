@@ -70,7 +70,7 @@ public interface CacheProvider
 
     String getFilePath( ConcreteResource resource );
 
-    default String getGeneratedPath(ConcreteResource resource){
+    default String getStoragePath( ConcreteResource resource){
         return resource.getPath();
     }
 

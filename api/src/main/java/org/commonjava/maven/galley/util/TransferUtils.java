@@ -43,7 +43,7 @@ public class TransferUtils
         {
             if ( !transfer.isDirectory() )
             {
-                final String path = transfer.getPath();
+                final String path = transfer.getStoragePath();
                 // pattern for "groupId path/(artifactId)/(version)/(filename)"
                 // where the filename starts with artifactId-version and is followed by - or .
                 //                final Pattern pattern = Pattern.compile( ".*/([^/]+)/([^/]+)/(\\1-\\2[-.][^/]+)$" );

@@ -89,6 +89,11 @@ public class Transfer
         return resource.getPath();
     }
 
+    public String getStoragePath()
+    {
+        return provider.getStoragePath( resource );
+    }
+
     public ConcreteResource getResource()
     {
         return resource;
@@ -461,9 +466,7 @@ public class Transfer
             return null;
         }
 
-        final String generatedPath = provider.getGeneratedPath( resource );
-
-        final String named = generatedPath + extension;
+        final String named = getStoragePath() + extension;
 
         final Transfer tx = this;
         logger.debug( "Creating meta-transfer sibling for: {}",

@@ -158,7 +158,7 @@ public class SpecialPathManagerImpl
     {
         if ( transfer != null )
         {
-            return getSpecialPathInfo( transfer.getLocation(), transfer.getPath(), pkgType );
+            return getSpecialPathInfo( transfer.getLocation(), transfer.getStoragePath(), pkgType );
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
