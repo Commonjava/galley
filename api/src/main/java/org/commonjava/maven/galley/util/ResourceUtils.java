@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.util;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 
+@Deprecated
 public final class ResourceUtils
 {
     public ResourceUtils()

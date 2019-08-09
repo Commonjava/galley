@@ -16,9 +16,9 @@
 package org.commonjava.maven.galley.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.commonjava.atlas.maven.ident.util.JoinString;
 import org.commonjava.cdi.util.weft.ExecutorConfig;
 import org.commonjava.cdi.util.weft.WeftManaged;
-import org.commonjava.atlas.maven.ident.util.JoinString;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferManager;
@@ -46,7 +46,6 @@ import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
-import org.commonjava.maven.galley.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +55,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,7 +64,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -74,7 +73,6 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.join;
 import static org.commonjava.maven.galley.model.Transfer.DELETE_CONTENT_LOG;
-import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
 import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 
 @ApplicationScoped
@@ -209,14 +207,7 @@ public class TransferManagerImpl
         final Map<ConcreteResource, Future<ListingResult>> futureList = new HashMap<>();
         for ( final ConcreteResource res : virt )
         {
-            final Future<ListingResult> listingFuture = executorService.submit( new Callable<ListingResult>()
-            {
-                @Override
-                public ListingResult call() throws TransferException
-                {
-                    return doList( res, true, metadata );
-                }
-            });
+            final Future<ListingResult> listingFuture = executorService.submit( () -> doList( res, true, metadata ) );
             futureList.put( res, listingFuture );
         }
 
@@ -297,7 +288,7 @@ public class TransferManagerImpl
             final Transfer cached = getCacheReference( resource );
             if ( cached.exists() )
             {
-                logger.debug( "Try cached transfer, ", cached );
+                logger.debug( "Try cached transfer {}", cached );
                 if ( cached.isFile() )
                 {
                     throw new TransferException( "Cannot list: {}. It does not appear to be a directory.", resource );
@@ -313,13 +304,6 @@ public class TransferManagerImpl
                         {
                             for ( String fname : fnames )
                             {
-                                // npm will only show the project as a file path no matter it's a real file or path,
-                                // this will avoid some package.json redirect path empty errors, especially for the group.
-                                if ( metadata.get( STORAGE_PATH ) != null )
-                                {
-                                    filenames.add( fname );
-                                    continue;
-                                }
                                 final ConcreteResource child = resource.getChild( fname );
                                 final Transfer childRef = getCacheReference( child );
                                 if ( childRef.isFile() )
@@ -417,7 +401,7 @@ public class TransferManagerImpl
 
         logger.debug( "Final listing result:\n\n{}\n\n", resultingNames );
 
-        return new ListingResult( resource, resultingNames.toArray( new String[resultingNames.size()] ) );
+        return new ListingResult( resource, resultingNames.toArray( new String[0] ) );
     }
 
     private void writeListingTxt( Transfer cachedListing, String[] remoteListing, ConcreteResource resource )
@@ -426,7 +410,7 @@ public class TransferManagerImpl
 
         try (OutputStream stream = cachedListing.openOutputStream( TransferOperation.DOWNLOAD ))
         {
-            stream.write( join( remoteListing, "\n" ).getBytes( "UTF-8" ) );
+            stream.write( join( remoteListing, "\n" ).getBytes( StandardCharsets.UTF_8 ) );
         }
         catch ( final IOException e )
         {
@@ -439,10 +423,7 @@ public class TransferManagerImpl
         if ( childRef.isDirectory() )
         {
             String[] list = childRef.list();
-            if ( list == null || list.length == 0 )
-            {
-                return true;
-            }
+            return list == null || list.length == 0;
         }
         return false;
     }
@@ -639,10 +620,6 @@ public class TransferManagerImpl
     public Transfer store( ConcreteResource resource , final InputStream stream , final EventMetadata eventMetadata  )
         throws TransferException
     {
-        if ( eventMetadata.get( STORAGE_PATH ) != null )
-        {
-            resource = ResourceUtils.storageResource( resource, eventMetadata );
-        }
         SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( resource, eventMetadata.getPackageType() );
         if ( !resource.allowsStoring() || ( specialPathInfo != null && !specialPathInfo.isStorable() ) )
         {
@@ -929,7 +906,7 @@ public class TransferManagerImpl
                     final TransferException error = retriever.getError();
                     if ( error != null )
                     {
-                        logger.warn( "ERROR: {}...{}", error, resource, error.getMessage() );
+                        logger.warn( String.format( "ERROR: %s...%s", resource, error.getMessage() ), error );
                         retrievers.remove( retriever );
 
                         if ( !( error instanceof TransferLocationException ) )

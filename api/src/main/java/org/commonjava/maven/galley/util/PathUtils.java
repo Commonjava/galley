@@ -112,6 +112,7 @@ public final class PathUtils
         return sb.toString();
     }
 
+    @Deprecated
     public static String storagePath ( final String path, final EventMetadata eventMetadata )
     {
         String storage = (String) eventMetadata.get( STORAGE_PATH );
