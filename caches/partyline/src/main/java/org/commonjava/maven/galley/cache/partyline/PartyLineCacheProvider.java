@@ -327,6 +327,11 @@ public class PartyLineCacheProvider
     }
 
     @Override
+    public String getStoragePath( final ConcreteResource resource){
+        return pathGenerator.getPath( resource );
+    }
+
+    @Override
     public Transfer getTransfer( final ConcreteResource resource )
     {
         Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );

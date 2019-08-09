@@ -20,4 +20,9 @@ import org.commonjava.maven.galley.model.ConcreteResource;
 public interface PathGenerator
 {
     String getFilePath( final ConcreteResource resource );
+
+    default String getPath( final ConcreteResource resource )
+    {
+        return resource.getPath();
+    }
 }
