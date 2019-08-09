@@ -16,7 +16,6 @@
 package org.commonjava.maven.galley.spi.cache;
 
 import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 
 import java.io.File;
@@ -74,11 +73,6 @@ public interface CacheProvider
     default String getStoragePath( ConcreteResource resource )
     {
         return resource.getPath();
-    }
-
-    default String getStoragePath( Location location, String path )
-    {
-        return path;
     }
 
     boolean delete( ConcreteResource resource )

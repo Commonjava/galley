@@ -21,12 +21,10 @@ import org.commonjava.cdi.util.weft.config.WeftConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.filearc.FileTransportConfig;
-import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
 import org.commonjava.maven.galley.spi.transport.LocationResolver;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
@@ -67,8 +65,6 @@ public class TestCDIProvider
     private WeftConfig weftConfig;
 
     private MetricRegistry metricRegistry;
-
-    private SpecialPathManager specialPathManager;
 
     private TransportMetricConfig transportMetricConfig = new TransportMetricConfig()
     {
@@ -125,8 +121,6 @@ public class TestCDIProvider
         metricRegistry = new MetricRegistry();
 
         weftConfig = new DefaultWeftConfig(  );
-
-        specialPathManager = new SpecialPathManagerImpl(  );
     }
 
     @PreDestroy
@@ -189,12 +183,5 @@ public class TestCDIProvider
     public TransportMetricConfig getTransportMetricConfig()
     {
         return transportMetricConfig;
-    }
-
-    @Produces
-    @Default
-    public SpecialPathManager getSpecialPathManager()
-    {
-        return specialPathManager;
     }
 }

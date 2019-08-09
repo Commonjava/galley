@@ -20,14 +20,13 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.SpecialPathMatcher;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.spi.cache.CacheProvider;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Alternative;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +42,6 @@ import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN
  * Created by jdcasey on 1/27/16.
  */
 @ApplicationScoped
-@Alternative
 public class SpecialPathManagerImpl
         implements SpecialPathManager
 {
@@ -53,17 +51,17 @@ public class SpecialPathManagerImpl
 
     private Map<String, SpecialPathSet> pkgtypes;
 
-    private CacheProvider cacheProvider;
+    private PathGenerator pathGenerator;
 
     public SpecialPathManagerImpl()
     {
         initPkgPathSets();
     }
 
-    public SpecialPathManagerImpl( CacheProvider cacheProvider )
+    public SpecialPathManagerImpl( PathGenerator pathGenerator )
     {
         this();
-        this.cacheProvider = cacheProvider;
+        this.pathGenerator = pathGenerator;
     }
 
     @PostConstruct
@@ -151,10 +149,12 @@ public class SpecialPathManagerImpl
     {
         if ( resource != null )
         {
-            SpecialPathInfo info = getSpecialPathInfo( resource.getLocation(), resource.getPath(), pkgType );
-            if ( info == null && cacheProvider != null )
+            final Location location = resource.getLocation();
+            final String path = resource.getPath();
+            SpecialPathInfo info = getSpecialPathInfo( location, path, pkgType );
+            if ( info == null )
             {
-                info = getSpecialPathInfo( resource.getLocation(), cacheProvider.getStoragePath( resource ), pkgType );
+                info = getSpecialPathInfo( location, getStoragePath( resource ), pkgType );
 
             }
             return info;
@@ -176,7 +176,7 @@ public class SpecialPathManagerImpl
     {
         if ( transfer != null )
         {
-            return getSpecialPathInfo( transfer.getLocation(), transfer.getStoragePath(), pkgType );
+            return getSpecialPathInfo( transfer.getLocation(), transfer.getPath(), pkgType );
         }
 
         // TODO: Return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
@@ -203,17 +203,17 @@ public class SpecialPathManagerImpl
     private SpecialPathInfo getPathInfo( Location location, String path, Collection<SpecialPathInfo> from )
     {
         SpecialPathInfo firstHit = null;
-        // Location is not used in current SpecialPathMatcher impl classes, so removed the null check.
         if ( path != null )
         {
             for ( SpecialPathInfo info : from )
             {
-                final boolean originalMatched =
-                        info.getMatcher().matches( location, path );
-                final boolean storagePathMatched = cacheProvider != null && info.getMatcher()
-                                                                                .matches( location,
-                                                                                          cacheProvider.getStoragePath(
-                                                                                                  location, path ) );
+                final boolean originalMatched = info.getMatcher().matches( location, path );
+                boolean storagePathMatched = originalMatched;
+                if ( location != null )
+                {
+                    final ConcreteResource resource = new ConcreteResource( location, path );
+                    storagePathMatched = info.getMatcher().matches( location, getStoragePath( resource ) );
+                }
                 if ( originalMatched || storagePathMatched )
                 {
                     if ( firstHit != null )
@@ -249,11 +249,14 @@ public class SpecialPathManagerImpl
         return path == null ? null : getSpecialPathInfo( null, path, SpecialPathConstants.PKG_TYPE_MAVEN );
     }
 
-    public void setCacheProvider( CacheProvider provider )
+    private String getStoragePath( ConcreteResource resource )
     {
-        if ( this.cacheProvider == null )
+        String storagePath = resource.getPath();
+        if ( pathGenerator != null )
         {
-            this.cacheProvider = provider;
+            final ConcreteResource storeRes = new ConcreteResource( resource.getLocation(), storagePath );
+            storagePath = pathGenerator.getPath( storeRes );
         }
+        return storagePath;
     }
 }
