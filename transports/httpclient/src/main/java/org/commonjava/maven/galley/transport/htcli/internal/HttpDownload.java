@@ -33,7 +33,6 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
-import org.commonjava.maven.galley.util.ResourceUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +42,6 @@ import java.util.Map;
 import static com.codahale.metrics.MetricRegistry.name;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORAGE_PATH;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -182,10 +180,6 @@ public final class HttpDownload
     @Override
     public Transfer getTransfer()
     {
-        if ( eventMetadata.get( STORAGE_PATH ) != null )
-        {
-            target.setResource( ResourceUtils.storageResource( target.getResource(), eventMetadata ) );
-        }
         return target;
     }
 

@@ -32,6 +32,7 @@ public interface CacheProvider
 
     String SUFFIX_TO_WRITE = ".to-write";
 
+    @Deprecated
     String STORAGE_PATH = "storage-path";
 
     String STORE_HTTP_HEADERS = "store-http-headers";
