@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,6 +52,7 @@ public class SpecialPathManagerImpl
 
     private Map<String, SpecialPathSet> pkgtypes;
 
+    @Inject
     private PathGenerator pathGenerator;
 
     public SpecialPathManagerImpl()
