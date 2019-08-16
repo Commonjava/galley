@@ -21,8 +21,7 @@ import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.util.partyline.Partyline;
-import org.commonjava.util.partyline.lock.global.GlobalLockManager;
+import org.commonjava.util.partyline.JoinableFileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,14 +42,10 @@ public class PartyLineCacheProviderFactory
 
     private transient PartyLineCacheProvider provider;
 
-    private GlobalLockManager globalLockManager;
-
-    public PartyLineCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor,
-                                          GlobalLockManager globalLockManager )
+    public PartyLineCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor )
     {
         this.cacheDir = cacheDir;
         this.deleteExecutor = deleteExecutor;
-        this.globalLockManager = globalLockManager;
     }
 
     @Override
@@ -60,15 +55,7 @@ public class PartyLineCacheProviderFactory
     {
         if ( provider == null )
         {
-            Partyline fileManager;
-            if (globalLockManager != null)
-            {
-                fileManager = new Partyline( globalLockManager );
-            }
-            else
-            {
-                fileManager = new Partyline();
-            }
+            JoinableFileManager fileManager = new JoinableFileManager();
             provider = new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
                                                    deleteExecutor, fileManager );
         }
