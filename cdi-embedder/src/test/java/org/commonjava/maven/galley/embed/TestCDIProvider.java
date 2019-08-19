@@ -31,7 +31,7 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
-import org.commonjava.util.partyline.Partyline;
+import org.commonjava.util.partyline.JoinableFileManager;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
@@ -106,7 +106,7 @@ public class TestCDIProvider
             temp.create();
             cacheProvider =
                     new PartyLineCacheProvider( temp.newFolder(), pathGenerator, eventManager, transferDecorator,
-                                                Executors.newScheduledThreadPool( 2 ), new Partyline() );
+                                                Executors.newScheduledThreadPool( 2 ), new JoinableFileManager() );
             fileTransportConfig = new FileTransportConfig( temp.newFolder(), pathGenerator );
         }
         catch ( IOException e )
