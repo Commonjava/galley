@@ -170,7 +170,7 @@ public class ChecksummingTransferDecoratorTest
         fixture.setDecorator( new TransferDecoratorManager(
                         new ChecksummingTransferDecorator( new TestDecoratorAdvisor(),
                                                            new DisabledChecksummingDecoratorAdvisor(),
-                                                           new SpecialPathManagerImpl(), metadataConsumer,
+                                                           new SpecialPathManagerImpl(), null, metadataConsumer,
                                                            new Md5GeneratorFactory() ) ) );
         fixture.initMissingComponents();
         fixture.getCache().startReporting();

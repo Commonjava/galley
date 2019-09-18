@@ -75,7 +75,7 @@ public class ChecksummingOutputStreamTest
         {
             stream = new ChecksummingOutputStream( new HashSet<AbstractChecksumGeneratorFactory<?>>(
                     Arrays.asList( new Md5GeneratorFactory(), new Sha1GeneratorFactory(),
-                                   new Sha256GeneratorFactory() ) ), os, txfr, testConsumer, true );
+                                   new Sha256GeneratorFactory() ) ), os, txfr, testConsumer, true, null );
 
             stream.write( data );
         }
