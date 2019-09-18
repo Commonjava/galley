@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
@@ -31,6 +33,9 @@ import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
 public abstract class AbstractChecksumGenerator
 {
+    protected static final String CHECKSUM_WRITE = "io.checksum.gen.write";
+
+    protected static final String CHECKSUM_WRITE_OPEN = CHECKSUM_WRITE + ".open";
 
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -42,17 +47,21 @@ public abstract class AbstractChecksumGenerator
 
     private final boolean writeChecksumFile;
 
+    private MetricRegistry metricRegistry;
+
     private final Transfer checksumTransfer;
 
     private String digestHex;
 
     protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension,
-                                         final ContentDigest type, final boolean writeChecksumFile )
+                                         final ContentDigest type, final boolean writeChecksumFile, final
+                                         MetricRegistry metricRegistry )
             throws IOException
     {
         this.checksumExtension = checksumExtension;
         digestType = type;
         this.writeChecksumFile = writeChecksumFile;
+        this.metricRegistry = metricRegistry;
         try
         {
             digester = MessageDigest.getInstance( digestType.digestName() );
@@ -93,20 +102,24 @@ public abstract class AbstractChecksumGenerator
             return;
         }
 
-        logger.info( "Writing {} file: {}", checksumExtension, checksumTransfer );
-
-        PrintStream out = null;
-        OutputStream stream = null;
+        Timer.Context writeTimer = metricRegistry == null ? null : metricRegistry.timer( CHECKSUM_WRITE ).time();
         try
         {
-            stream = checksumTransfer.openOutputStream( TransferOperation.GENERATE );
-            out = new PrintStream( stream );
-            out.print( getDigestHex() );
+            logger.info( "Writing {} file: {}", checksumExtension, checksumTransfer );
+
+            Timer.Context openTimer = metricRegistry == null ? null : metricRegistry.timer( CHECKSUM_WRITE ).time();
+            try (PrintStream out = new PrintStream( checksumTransfer.openOutputStream( TransferOperation.GENERATE ) ))
+            {
+                openTimer.stop();
+                out.print( getDigestHex() );
+            }
         }
         finally
         {
-            IOUtils.closeQuietly( out );
-            IOUtils.closeQuietly( stream );
+            if ( writeTimer != null )
+            {
+                writeTimer.stop();
+            }
         }
     }
 

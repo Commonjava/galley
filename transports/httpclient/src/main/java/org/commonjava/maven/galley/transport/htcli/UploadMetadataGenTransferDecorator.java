@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.transport.htcli;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORE_HTTP_HEADERS;
+import static org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata.FILE_EXTENSION;
 
 /**
  * This TransferDecorator is used to generate http-metadata.json when uploading artifacts. It will use {@link EventMetadata}
@@ -49,13 +52,19 @@ import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORE_HTTP_HEA
 public class UploadMetadataGenTransferDecorator
         extends AbstractTransferDecorator
 {
+    private static final String HTTP_METADATA_WRITE = "io.http-metadata.write";
+    private static final String HTTP_METADATA_WRITE_OPEN = HTTP_METADATA_WRITE + ".open";
+
     private static final Logger logger = LoggerFactory.getLogger( UploadMetadataGenTransferDecorator.class );
 
     private SpecialPathManager specialPathManager;
 
-    public UploadMetadataGenTransferDecorator( SpecialPathManager specialPathManager )
+    private MetricRegistry metricRegistry;
+
+    public UploadMetadataGenTransferDecorator( SpecialPathManager specialPathManager, MetricRegistry metricRegistry )
     {
         this.specialPathManager = specialPathManager;
+        this.metricRegistry = metricRegistry;
     }
 
     @Override
@@ -63,6 +72,11 @@ public class UploadMetadataGenTransferDecorator
                                        EventMetadata metadata )
             throws IOException
     {
+        if ( transfer.getPath().endsWith( FILE_EXTENSION ) )
+        {
+            return super.decorateWrite( stream, transfer, op, metadata );
+        }
+
         final SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer, metadata.getPackageType() );
 
         final Boolean isMetadata = specialPathInfo != null && specialPathInfo.isMetadata();
@@ -81,62 +95,70 @@ public class UploadMetadataGenTransferDecorator
 
     private void writeMetadata( final Transfer target, final ObjectMapper mapper, final Map<String, List<String>> requestHeaders )
     {
-        Transfer metaTxfr = target.getSiblingMeta( HttpExchangeMetadata.FILE_EXTENSION );
-        if ( metaTxfr == null )
-        {
-            if ( target.isDirectory() )
-            {
-                logger.trace( "DIRECTORY. Using HTTP exchange metadata file INSIDE directory called: {}", HttpExchangeMetadata.FILE_EXTENSION );
-                metaTxfr = target.getChild( HttpExchangeMetadata.FILE_EXTENSION );
-            }
-            else
-            {
-                logger.trace( "SKIP: Cannot retrieve HTTP exchange metadata Transfer instance for: {}", target );
-                return;
-            }
-        }
-
-        final HttpExchangeMetadata metadata = new HttpExchangeMetadataFromRequestHeader( requestHeaders );
-        OutputStream out = null;
+        Timer.Context writeTimer = metricRegistry == null ? null : metricRegistry.timer( HTTP_METADATA_WRITE ).time();
         try
         {
-            final Transfer finalMeta = metaTxfr;
-            out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false );
-            logger.trace( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
+            Transfer metaTxfr = target.getSiblingMeta( FILE_EXTENSION );
+            if ( metaTxfr == null )
             {
-                @Override
-                public String toString()
+                if ( target.isDirectory() )
                 {
-                    try
-                    {
-                        return mapper.writeValueAsString( metadata );
-                    }
-                    catch ( final JsonProcessingException e )
-                    {
-                        logger.warn( String.format("Failed to write HTTP exchange metadata: %s. Reason: %s", finalMeta, e.getMessage()), e );
-                    }
-
-                    return "ERROR RENDERING METADATA";
+                    logger.trace( "DIRECTORY. Using HTTP exchange metadata file INSIDE directory called: {}", FILE_EXTENSION );
+                    metaTxfr = target.getChild( FILE_EXTENSION );
                 }
-            } );
-
-            out.write( mapper.writeValueAsBytes( metadata ) );
-        }
-        catch ( final IOException e )
-        {
-            if ( logger.isTraceEnabled() )
-            {
-                logger.trace( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,
-                                             e.getMessage() ), e );
+                else
+                {
+                    logger.trace( "SKIP: Cannot retrieve HTTP exchange metadata Transfer instance for: {}", target );
+                    return;
+                }
             }
-            else
+
+            final HttpExchangeMetadata metadata = new HttpExchangeMetadataFromRequestHeader( requestHeaders );
+            final Transfer finalMeta = metaTxfr;
+
+            Timer.Context openTimer = metricRegistry == null ? null : metricRegistry.timer( HTTP_METADATA_WRITE ).time();
+            try(OutputStream out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false ) )
             {
-                logger.warn( "Failed to write metadata for HTTP exchange to: {}. Reason: {}", metaTxfr, e.getMessage() );
+                openTimer.stop();
+                logger.trace( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
+                {
+                    @Override
+                    public String toString()
+                    {
+                        try
+                        {
+                            return mapper.writeValueAsString( metadata );
+                        }
+                        catch ( final JsonProcessingException e )
+                        {
+                            logger.warn( String.format("Failed to write HTTP exchange metadata: %s. Reason: %s", finalMeta, e.getMessage()), e );
+                        }
+
+                        return "ERROR RENDERING METADATA";
+                    }
+                } );
+
+                mapper.writeValue( out, metadata );
+            }
+            catch ( final IOException e )
+            {
+                if ( logger.isTraceEnabled() )
+                {
+                    logger.trace( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,
+                                                 e.getMessage() ), e );
+                }
+                else
+                {
+                    logger.warn( "Failed to write metadata for HTTP exchange to: {}. Reason: {}", metaTxfr, e.getMessage() );
+                }
             }
         }
         finally
         {
-            IOUtils.closeQuietly( out );
+            if ( writeTimer != null )
+            {
+                writeTimer.stop();
+            }
         }
     }
 

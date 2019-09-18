@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.io.checksum;
 
 import java.io.IOException;
 
+import com.codahale.metrics.MetricRegistry;
 import org.commonjava.maven.galley.io.checksum.Sha384GeneratorFactory.Sha384Generator;
 import org.commonjava.maven.galley.model.Transfer;
 
@@ -31,20 +32,22 @@ public final class Sha384GeneratorFactory
     }
 
     @Override
-    protected Sha384Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile )
+    protected Sha384Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile,
+                                            final MetricRegistry metricRegistry )
         throws IOException
     {
-        return new Sha384Generator( transfer, writeChecksumFile );
+        return new Sha384Generator( transfer, writeChecksumFile, metricRegistry );
     }
 
     public static final class Sha384Generator
         extends AbstractChecksumGenerator
     {
 
-        protected Sha384Generator( final Transfer transfer, final boolean writeChecksumFile )
+        protected Sha384Generator( final Transfer transfer, final boolean writeChecksumFile,
+                                   final MetricRegistry metricRegistry )
             throws IOException
         {
-            super( transfer, ".sha384", SHA_384, writeChecksumFile );
+            super( transfer, ".sha384", SHA_384, writeChecksumFile, metricRegistry );
         }
 
     }
