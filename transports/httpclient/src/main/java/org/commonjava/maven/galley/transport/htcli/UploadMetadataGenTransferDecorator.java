@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -69,12 +70,10 @@ public class UploadMetadataGenTransferDecorator
         final Boolean hasRequestHeaders =
                 metadata.get( STORE_HTTP_HEADERS ) != null && metadata.get( STORE_HTTP_HEADERS ) instanceof Map;
 
-        // We only care about non-metadata artifact uploading for http-metadata generation
         if ( isUpload && !isMetadata && hasRequestHeaders )
         {
-            @SuppressWarnings( "unchecked" ) Map<String, List<String>> storeHttpHeaders =
-                    (Map<String, List<String>>) metadata.get( STORE_HTTP_HEADERS );
-            writeMetadata( transfer, new ObjectMapper(), storeHttpHeaders );
+            // we defer writing http-metadata.json until the main stream closes, to avoid trouble with directory-level write locks.
+            return new HttpMetadataWrapperOutputStream( stream, transfer, metadata );
         }
 
         return super.decorateWrite( stream, transfer, op, metadata );
@@ -138,6 +137,39 @@ public class UploadMetadataGenTransferDecorator
         finally
         {
             IOUtils.closeQuietly( out );
+        }
+    }
+
+    private class HttpMetadataWrapperOutputStream
+            extends FilterOutputStream
+    {
+        private final Transfer transfer;
+
+        private final EventMetadata metadata;
+
+        public HttpMetadataWrapperOutputStream( final OutputStream delegate, final Transfer transfer,
+                                                final EventMetadata metadata )
+        {
+            super( delegate );
+            this.transfer = transfer;
+            this.metadata = metadata;
+        }
+
+        @Override
+        public void close()
+                throws IOException
+        {
+            super.close();
+
+            Logger logger = LoggerFactory.getLogger( getClass() );
+            logger.debug( "START: Write http-metadata for: ", transfer );
+
+            // We only care about non-metadata artifact uploading for http-metadata generation
+            @SuppressWarnings( "unchecked" ) Map<String, List<String>> storeHttpHeaders =
+                    (Map<String, List<String>>) metadata.get( STORE_HTTP_HEADERS );
+            writeMetadata( transfer, new ObjectMapper(), storeHttpHeaders );
+
+            logger.debug( "END: Write http-metadata for: ", transfer );
         }
     }
 }
