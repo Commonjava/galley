@@ -15,11 +15,12 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import java.io.IOException;
-
-import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.io.checksum.Md5GeneratorFactory.Md5Generator;
 import org.commonjava.maven.galley.model.Transfer;
+
+import java.io.IOException;
+import java.util.function.Function;
 
 public final class Md5GeneratorFactory
     extends AbstractChecksumGeneratorFactory<Md5Generator>
@@ -31,10 +32,10 @@ public final class Md5GeneratorFactory
 
     @Override
     protected Md5Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile,
-                                         final MetricRegistry metricRegistry )
+                                         final Function<String, Timer.Context> timerProvider )
         throws IOException
     {
-        return new Md5Generator( transfer, writeChecksumFile, metricRegistry );
+        return new Md5Generator( transfer, writeChecksumFile, timerProvider );
     }
 
     public static final class Md5Generator
@@ -42,10 +43,10 @@ public final class Md5GeneratorFactory
     {
 
         protected Md5Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                final MetricRegistry metricRegistry )
+                                final Function<String, Timer.Context> timerProvider )
             throws IOException
         {
-            super( transfer, ".md5", ContentDigest.MD5, writeChecksumFile, metricRegistry );
+            super( transfer, ".md5", ContentDigest.MD5, writeChecksumFile, timerProvider );
         }
 
     }

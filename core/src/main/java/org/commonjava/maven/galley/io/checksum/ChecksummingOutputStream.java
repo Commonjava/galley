@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.model.Transfer;
 import org.slf4j.Logger;
@@ -28,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public final class ChecksummingOutputStream
         extends FilterOutputStream
@@ -47,23 +47,23 @@ public final class ChecksummingOutputStream
 
     private final boolean writeChecksumFiles;
 
-    private MetricRegistry metricRegistry;
+    private Function<String, Timer.Context> timerProvider;
 
     public ChecksummingOutputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                      final OutputStream stream, final Transfer transfer,
                                      final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles,
-                                     final MetricRegistry metricRegistry )
+                                     final Function<String, Timer.Context> timerProvider )
             throws IOException
     {
         super( stream );
         this.transfer = transfer;
         this.metadataConsumer = metadataConsumer;
         this.writeChecksumFiles = writeChecksumFiles;
-        this.metricRegistry = metricRegistry;
+        this.timerProvider = timerProvider == null ? (s)->null : timerProvider;
         checksums = new HashSet<>();
         for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
         {
-            checksums.add( factory.createGenerator( transfer, writeChecksumFiles, metricRegistry ) );
+            checksums.add( factory.createGenerator( transfer, writeChecksumFiles, timerProvider ) );
         }
     }
 
@@ -71,7 +71,7 @@ public final class ChecksummingOutputStream
     public void close()
             throws IOException
     {
-        Timer.Context closeTimer = metricRegistry == null ? null : metricRegistry.timer( CHECKSUM_CLOSE ).time();
+        Timer.Context closeTimer = timerProvider.apply( CHECKSUM_CLOSE );
         try
         {
             logger.trace( "START CLOSE: {}", transfer );

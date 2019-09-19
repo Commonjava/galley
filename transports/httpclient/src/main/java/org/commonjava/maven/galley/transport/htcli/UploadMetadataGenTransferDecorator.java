@@ -15,11 +15,9 @@
  */
 package org.commonjava.maven.galley.transport.htcli;
 
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.AbstractTransferDecorator;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
@@ -38,6 +36,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.commonjava.maven.galley.spi.cache.CacheProvider.STORE_HTTP_HEADERS;
 import static org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata.FILE_EXTENSION;
@@ -59,12 +58,12 @@ public class UploadMetadataGenTransferDecorator
 
     private SpecialPathManager specialPathManager;
 
-    private MetricRegistry metricRegistry;
+    private Function<String, Timer.Context> timerProvider;
 
-    public UploadMetadataGenTransferDecorator( SpecialPathManager specialPathManager, MetricRegistry metricRegistry )
+    public UploadMetadataGenTransferDecorator( SpecialPathManager specialPathManager, Function<String, Timer.Context> timerProvider )
     {
         this.specialPathManager = specialPathManager;
-        this.metricRegistry = metricRegistry;
+        this.timerProvider = timerProvider;
     }
 
     @Override
@@ -74,6 +73,7 @@ public class UploadMetadataGenTransferDecorator
     {
         if ( transfer.getPath().endsWith( FILE_EXTENSION ) )
         {
+            logger.debug( "NOT writing http-metadata for: {}", transfer );
             return super.decorateWrite( stream, transfer, op, metadata );
         }
 
@@ -86,16 +86,20 @@ public class UploadMetadataGenTransferDecorator
 
         if ( isUpload && !isMetadata && hasRequestHeaders )
         {
+            logger.debug( "Writing http-metadata for: {}", transfer );
+
             // we defer writing http-metadata.json until the main stream closes, to avoid trouble with directory-level write locks.
             return new HttpMetadataWrapperOutputStream( stream, transfer, metadata );
         }
 
+        logger.debug( "NOT writing http-metadata for: {}", transfer );
         return super.decorateWrite( stream, transfer, op, metadata );
     }
 
     private void writeMetadata( final Transfer target, final ObjectMapper mapper, final Map<String, List<String>> requestHeaders )
     {
-        Timer.Context writeTimer = metricRegistry == null ? null : metricRegistry.timer( HTTP_METADATA_WRITE ).time();
+        Timer.Context writeTimer = timerProvider.apply( HTTP_METADATA_WRITE );
+        logger.debug( "http-metadata write-timer is: {}", writeTimer );
         try
         {
             Transfer metaTxfr = target.getSiblingMeta( FILE_EXTENSION );
@@ -116,10 +120,15 @@ public class UploadMetadataGenTransferDecorator
             final HttpExchangeMetadata metadata = new HttpExchangeMetadataFromRequestHeader( requestHeaders );
             final Transfer finalMeta = metaTxfr;
 
-            Timer.Context openTimer = metricRegistry == null ? null : metricRegistry.timer( HTTP_METADATA_WRITE ).time();
+            Timer.Context openTimer = timerProvider.apply( HTTP_METADATA_WRITE_OPEN );
+            logger.debug( "http-metadata open-timer is: {}", openTimer );
             try(OutputStream out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false ) )
             {
-                openTimer.stop();
+                if ( openTimer != null )
+                {
+                    openTimer.stop();
+                }
+
                 logger.trace( "Writing HTTP exchange metadata:\n\n{}\n\n", new Object()
                 {
                     @Override
@@ -181,17 +190,19 @@ public class UploadMetadataGenTransferDecorator
         public void close()
                 throws IOException
         {
-            super.close();
+            super.flush();
 
             Logger logger = LoggerFactory.getLogger( getClass() );
-            logger.debug( "START: Write http-metadata for: ", transfer );
+            logger.debug( "START: Write http-metadata for: {}", transfer );
 
             // We only care about non-metadata artifact uploading for http-metadata generation
             @SuppressWarnings( "unchecked" ) Map<String, List<String>> storeHttpHeaders =
                     (Map<String, List<String>>) metadata.get( STORE_HTTP_HEADERS );
             writeMetadata( transfer, new ObjectMapper(), storeHttpHeaders );
 
-            logger.debug( "END: Write http-metadata for: ", transfer );
+            logger.debug( "END: Write http-metadata for: {}. Resuming stream close() method.", transfer );
+
+            super.close();
         }
     }
 }

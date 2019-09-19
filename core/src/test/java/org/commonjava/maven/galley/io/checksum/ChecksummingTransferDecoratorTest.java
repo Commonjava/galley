@@ -46,6 +46,7 @@ import java.util.Map;
 
 import static java.lang.Boolean.TRUE;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.commonjava.maven.galley.io.ChecksummingTransferDecorator.FORCE_CHECKSUM;
 import static org.commonjava.maven.galley.io.checksum.ContentDigest.MD5;
 import static org.commonjava.maven.galley.io.checksum.testutil.TestDecoratorAdvisor.DO_CHECKSUMS;
@@ -142,14 +143,23 @@ public class ChecksummingTransferDecoratorTest
 
         logger.info( "Opening transfer input stream" );
         EventMetadata forceEventMetadata = new EventMetadata();
-        try (InputStream stream = txfr.openInputStream( false, forceEventMetadata ))
+        InputStream stream = null;
+        try
         {
+            stream = txfr.openInputStream( false, forceEventMetadata );
             logger.info( "Reading stream" );
             byte[] resultData = IOUtils.toByteArray( stream );
 
             logger.debug( "Result is {} bytes", resultData.length );
 
             assertThat( Arrays.equals( resultData, data ), equalTo( true ) );
+        }
+        finally
+        {
+//            if ( stream != null )
+//            {
+                closeQuietly( stream );
+//            }
         }
 
         logger.debug( "Verifying .md5 file is missing" );
@@ -212,14 +222,23 @@ public class ChecksummingTransferDecoratorTest
                              final boolean checksumFileExists, final boolean metadataConsumerContains )
             throws IOException
     {
-        try (InputStream stream = txfr.openInputStream( false, em ))
+        InputStream stream = null;
+        try
         {
+            stream = txfr.openInputStream( false, em );
             logger.info( "Reading stream" );
             byte[] resultData = IOUtils.toByteArray( stream );
 
             logger.debug( "Result is {} bytes", resultData.length );
 
             assertThat( Arrays.equals( resultData, data ), equalTo( true ) );
+        }
+        finally
+        {
+//            if ( stream != null )
+//            {
+                closeQuietly( stream );
+//            }
         }
 
         logger.debug( "Verifying .md5 file is {}", checksumFileExists ? "available" : "misssing" );

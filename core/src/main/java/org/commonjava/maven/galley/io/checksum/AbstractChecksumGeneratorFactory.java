@@ -15,10 +15,11 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import java.io.IOException;
-
-import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.model.Transfer;
+
+import java.io.IOException;
+import java.util.function.Function;
 
 public abstract class AbstractChecksumGeneratorFactory<T extends AbstractChecksumGenerator>
 {
@@ -36,14 +37,14 @@ public abstract class AbstractChecksumGeneratorFactory<T extends AbstractChecksu
     }
 
     public final T createGenerator( final Transfer transfer, boolean writeChecksumFiles,
-                                    final MetricRegistry metricRegistry )
+                                    final Function<String, Timer.Context> timerProvider )
             throws IOException
     {
-        return newGenerator( transfer, writeChecksumFiles, metricRegistry );
+        return newGenerator( transfer, writeChecksumFiles, timerProvider == null ? (s)->null : timerProvider );
     }
 
     protected abstract T newGenerator( Transfer transfer, boolean writeChecksumFiles,
-                                       final MetricRegistry metricRegistry )
+                                       final Function<String, Timer.Context> timerProvider )
         throws IOException;
 
 }
