@@ -15,22 +15,25 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import org.apache.commons.io.IOUtils;
+import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.function.Function;
 
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
 public abstract class AbstractChecksumGenerator
 {
+    protected static final String CHECKSUM_WRITE = "io.checksum.gen.write";
+
+    protected static final String CHECKSUM_WRITE_OPEN = CHECKSUM_WRITE + ".open";
 
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -42,17 +45,21 @@ public abstract class AbstractChecksumGenerator
 
     private final boolean writeChecksumFile;
 
+    private Function<String, Timer.Context> timerProvider;
+
     private final Transfer checksumTransfer;
 
     private String digestHex;
 
     protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension,
-                                         final ContentDigest type, final boolean writeChecksumFile )
+                                         final ContentDigest type, final boolean writeChecksumFile,
+                                         final Function<String, Timer.Context> timerProvider )
             throws IOException
     {
         this.checksumExtension = checksumExtension;
         digestType = type;
         this.writeChecksumFile = writeChecksumFile;
+        this.timerProvider = timerProvider == null ? (s)->null : timerProvider;
         try
         {
             digester = MessageDigest.getInstance( digestType.digestName() );
@@ -93,20 +100,28 @@ public abstract class AbstractChecksumGenerator
             return;
         }
 
-        logger.info( "Writing {} file: {}", checksumExtension, checksumTransfer );
-
-        PrintStream out = null;
-        OutputStream stream = null;
+        Timer.Context writeTimer = timerProvider.apply( CHECKSUM_WRITE );
         try
         {
-            stream = checksumTransfer.openOutputStream( TransferOperation.GENERATE );
-            out = new PrintStream( stream );
-            out.print( getDigestHex() );
+            logger.info( "Writing {} file: {}", checksumExtension, checksumTransfer );
+
+            Timer.Context openTimer = timerProvider.apply( CHECKSUM_WRITE_OPEN );
+            try (PrintStream out = new PrintStream( checksumTransfer.openOutputStream( TransferOperation.GENERATE ) ))
+            {
+                if ( openTimer != null )
+                {
+                    openTimer.stop();
+                }
+
+                out.print( getDigestHex() );
+            }
         }
         finally
         {
-            IOUtils.closeQuietly( out );
-            IOUtils.closeQuietly( stream );
+            if ( writeTimer != null )
+            {
+                writeTimer.stop();
+            }
         }
     }
 

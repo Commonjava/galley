@@ -75,7 +75,7 @@ public class UploadMetadataGenTransferDecoratorTest
     {
         tempFolder = folder.newFolder( "cache" );
         final UploadMetadataGenTransferDecorator decorator =
-                new UploadMetadataGenTransferDecorator( specialPathManager );
+                new UploadMetadataGenTransferDecorator( specialPathManager, null );
         provider = new TestCacheProvider( tempFolder, events, new TransferDecoratorManager( decorator ) );
     }
 

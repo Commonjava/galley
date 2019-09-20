@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013 Red Hat, Inc. (nos-devel@redhat.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
+import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.model.Transfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +27,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public final class ChecksummingInputStream
         extends FilterInputStream
 {
+
+    private static final String CHECKSUM_CLOSE = "io.checksum.in.close";
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -43,19 +47,23 @@ public final class ChecksummingInputStream
 
     private boolean writeChecksumFiles;
 
+    private Function<String, Timer.Context> timerProvider;
+
     public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                     final InputStream stream, final Transfer transfer,
-                                    final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles )
+                                    final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles,
+                                    final Function<String, Timer.Context> timerProvider )
             throws IOException
     {
         super( stream );
         this.transfer = transfer;
         this.metadataConsumer = metadataConsumer;
         this.writeChecksumFiles = writeChecksumFiles;
+        this.timerProvider = timerProvider == null ? (s)->null : timerProvider;
         checksums = new HashSet<>();
         for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
         {
-            checksums.add( factory.createGenerator( transfer, writeChecksumFiles ) );
+            checksums.add( factory.createGenerator( transfer, writeChecksumFiles, timerProvider ) );
         }
     }
 
@@ -63,10 +71,12 @@ public final class ChecksummingInputStream
     public void close()
             throws IOException
     {
+        Timer.Context closeTimer = timerProvider.apply( CHECKSUM_CLOSE );
         try
         {
             logger.trace( "START CLOSE: {}", transfer );
-            logger.trace( "Read done: {} in: {}. Now, creating checksums.", transfer.getPath(), transfer.getLocation() );
+            logger.trace( "Read done: {} in: {}. Now, creating checksums.", transfer.getPath(),
+                          transfer.getLocation() );
             Map<ContentDigest, String> hexDigests = new HashMap<>();
             for ( final AbstractChecksumGenerator checksum : checksums )
             {
@@ -87,10 +97,14 @@ public final class ChecksummingInputStream
             {
                 logger.trace( "No metadata consumer. NOT adding metadata." );
             }
-
         }
         finally
         {
+            if ( closeTimer != null )
+            {
+                closeTimer.stop();
+            }
+
             // NOTE: We close the main stream LAST, in case it's holding a file (or other) lock. This allows us to
             // finish out tasks BEFORE releasing that lock.
             super.close();
@@ -103,29 +117,28 @@ public final class ChecksummingInputStream
      *
      * NOTE: It's not enough to override {@link FilterInputStream#read()}. This method is NOT called by
      * {@link FilterInputStream#read(byte[], int, int)}, so you MUST override both to get consistent behavior.
-
      * @throws IOException in case of nested read error
      */
     @Override
     public int read()
             throws IOException
     {
-//        logger.trace( "READ: {}", transfer );
+        //        logger.trace( "READ: {}", transfer );
         int data = super.read();
         logger.trace( "{} input", data );
         if ( data > -1 )
         {
             size++;
-//            logger.trace( "Updating with: {} (raw: {})", ( (byte) data & 0xff ), data );
+            //            logger.trace( "Updating with: {} (raw: {})", ( (byte) data & 0xff ), data );
             for ( final AbstractChecksumGenerator checksum : checksums )
             {
                 checksum.update( (byte) data );
             }
         }
-//        else
-//        {
-//            logger.trace( "READ: <EOF>" );
-//        }
+        //        else
+        //        {
+        //            logger.trace( "READ: <EOF>" );
+        //        }
 
         return data;
     }
@@ -135,7 +148,6 @@ public final class ChecksummingInputStream
      *
      * NOTE: If you override {@link FilterInputStream#read(byte[])} as well as this method, and you call super.read(), you will
      * get DUPLICATE behavior (twice the effect) because this method DOES call {@link FilterInputStream#read(byte[], int, int)}.
-
      * @throws IOException in case of nested read error
      */
     @Override
@@ -155,7 +167,7 @@ public final class ChecksummingInputStream
         }
 
         size += read;
-//        logger.trace( "Updating with [buffer of size: {}]", read );
+        //        logger.trace( "Updating with [buffer of size: {}]", read );
         for ( final AbstractChecksumGenerator checksum : checksums )
         {
             for ( int i = off; i < off + read; i++ )

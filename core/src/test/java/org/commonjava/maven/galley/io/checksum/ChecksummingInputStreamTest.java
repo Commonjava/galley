@@ -81,7 +81,7 @@ public class ChecksummingInputStreamTest
         {
             stream = new ChecksummingInputStream( new HashSet<AbstractChecksumGeneratorFactory<?>>(
                     Arrays.asList( new Md5GeneratorFactory(), new Sha1GeneratorFactory(),
-                                   new Sha256GeneratorFactory() ) ), is, txfr, testConsumer, true );
+                                   new Sha256GeneratorFactory() ) ), is, txfr, testConsumer, true, null );
 
             logger.debug( "Reading stream with {} bytes", data.length );
             byte[] resultData = IOUtils.toByteArray( stream );
