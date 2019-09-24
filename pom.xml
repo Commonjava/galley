@@ -59,7 +59,7 @@
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
     <metrics.version>4.0.2</metrics.version>
-
+    <hibernateVersion>5.4.4.Final</hibernateVersion>
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
 
@@ -308,6 +308,29 @@
         <artifactId>metrics-core</artifactId>
         <version>${metrics.version}</version>
       </dependency>
+
+      <!-- JPA support-->
+      <dependency>
+        <groupId>javax.persistence</groupId>
+        <artifactId>javax.persistence-api</artifactId>
+        <version>2.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-entitymanager</artifactId>
+        <version>${hibernateVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>${hibernateVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>1.4.188</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 

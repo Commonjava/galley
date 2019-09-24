@@ -32,6 +32,7 @@
   
   <modules>
     <module>partyline</module>
+    <module>path-mapped</module>
     <module>tck</module>
   </modules>
   
