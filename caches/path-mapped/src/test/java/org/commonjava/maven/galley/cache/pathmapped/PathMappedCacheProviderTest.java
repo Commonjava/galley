@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
+import org.commonjava.maven.galley.cache.pathmapped.config.DefaultPathMappedStorageConfig;
 import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.cache.pathmapped.core.RDBMSPathDB;
@@ -58,10 +59,10 @@ public class PathMappedCacheProviderTest
         final TransferDecorator decorator = new TestTransferDecorator();
 
         File baseDir = temp.newFolder();
-        provider = new PathMappedCacheProvider( baseDir, events,
-                                                new TransferDecoratorManager( decorator ),
+        provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
                                                 Executors.newScheduledThreadPool( 2 ),
-                                                new PathMappedFileManager( new RDBMSPathDB( "test" ),
+                                                new PathMappedFileManager( new DefaultPathMappedStorageConfig(),
+                                                                           new RDBMSPathDB( "test" ),
                                                                            new FileBasedPhysicalStore( baseDir ) ) );
     }
 
@@ -72,8 +73,7 @@ public class PathMappedCacheProviderTest
     }
 
     @Test
-    public void moveAndReadNewFile()
-                    throws Exception
+    public void moveAndReadNewFile() throws Exception
     {
         final String content = "This is a test";
 

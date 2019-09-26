@@ -1,5 +1,6 @@
 package org.commonjava.maven.galley.cache.pathmapped.core;
 
+import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConfig;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathKey;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PathDB;
@@ -23,10 +24,13 @@ public class PathMappedFileManager
 
     private final PhysicalStore physicalStore;
 
-    public PathMappedFileManager( PathDB pathDB, PhysicalStore physicalStore )
+    private final PathMappedStorageConfig config;
+
+    public PathMappedFileManager( PathMappedStorageConfig config, PathDB pathDB, PhysicalStore physicalStore )
     {
         this.pathDB = pathDB;
         this.physicalStore = physicalStore;
+        this.config = config;
     }
 
     public InputStream openInputStream( String fileSystem, String path ) throws IOException
