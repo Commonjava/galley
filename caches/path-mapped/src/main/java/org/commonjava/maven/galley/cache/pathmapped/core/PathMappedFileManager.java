@@ -31,7 +31,12 @@ public class PathMappedFileManager
 
     public InputStream openInputStream( String fileSystem, String path ) throws IOException
     {
-        return physicalStore.getInputStream( pathDB.getStorageFile( fileSystem, path ) );
+        String storageFile = pathDB.getStorageFile( fileSystem, path );
+        if ( storageFile == null )
+        {
+            return null;
+        }
+        return physicalStore.getInputStream( storageFile );
     }
 
     public OutputStream openOutputStream( String fileSystem, String path ) throws IOException

@@ -69,6 +69,12 @@ public interface CacheProvider
     void copy( ConcreteResource from, ConcreteResource to )
         throws IOException;
 
+    default void move( ConcreteResource from, ConcreteResource to ) throws IOException
+    {
+        copy( from, to );
+        delete( from );
+    }
+
     String getFilePath( ConcreteResource resource );
 
     default String getStoragePath( ConcreteResource resource )
