@@ -214,10 +214,26 @@ public class RDBMSPathDB
         PathMap pathMap = entitymanager.find( PathMap.class, from );
         if ( pathMap == null )
         {
-            logger.warn( "PathKey not found, {}", from );
+            logger.warn( "Source PathKey not found, {}", from );
             return;
         }
+
         PathKey to = getPathKey( toFileSystem, toPath );
+        PathMap target = entitymanager.find( PathMap.class, to );
+        if ( target != null )
+        {
+            logger.info( "Target PathKey already exists, delete it. {}", to );
+            delete( toFileSystem, toPath );
+        }
+
+        // check parent paths
+        String parentPath = to.getParentPath();
+        String toParentPath = to.getParentPath();
+        if ( !parentPath.equals( toParentPath ) )
+        {
+            makeDirs( toFileSystem, toParentPath );
+        }
+
         transactionAnd( () -> {
             entitymanager.persist( new PathMap( to, pathMap.getFileId(), pathMap.getCreation(), pathMap.getSize(), pathMap.getFileStorage() ) );
         } );
