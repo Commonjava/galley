@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
+import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConfig;
 import org.commonjava.maven.galley.cache.pathmapped.core.CassandraPathDB;
 import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
@@ -37,14 +38,18 @@ public class PathMappedCacheProviderFactory
 
     private File cacheDir;
 
+    private PathMappedStorageConfig config;
+
     private ScheduledExecutorService deleteExecutor;
 
     private transient PathMappedCacheProvider provider;
 
-    public PathMappedCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor )
+    public PathMappedCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor,
+                                           PathMappedStorageConfig config )
     {
         this.cacheDir = cacheDir;
         this.deleteExecutor = deleteExecutor;
+        this.config = config;
     }
 
     @Override
@@ -53,10 +58,11 @@ public class PathMappedCacheProviderFactory
     {
         if ( provider == null )
         {
-            provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator,
-                                                    deleteExecutor, new PathMappedFileManager( new CassandraPathDB(),
-                                                                                               new FileBasedPhysicalStore(
-                                                                                                               cacheDir ) ) );
+            provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, deleteExecutor,
+                                                    new PathMappedFileManager( config,
+                                                                               new CassandraPathDB(),
+                                                                               new FileBasedPhysicalStore(
+                                                                                               cacheDir ) ) );
         }
         return provider;
     }
