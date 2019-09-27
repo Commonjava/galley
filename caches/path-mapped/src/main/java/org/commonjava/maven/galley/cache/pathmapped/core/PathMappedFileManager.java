@@ -46,7 +46,8 @@ public class PathMappedFileManager
     public OutputStream openOutputStream( String fileSystem, String path ) throws IOException
     {
         FileInfo fileInfo = physicalStore.getFileInfo( fileSystem, path );
-        return new PathDBOutputStream( pathDB, fileSystem, path, fileInfo, physicalStore.getOutputStream( fileInfo ) );
+        return new PathDBOutputStream( pathDB, physicalStore, fileSystem, path, fileInfo,
+                                       physicalStore.getOutputStream( fileInfo ) );
     }
 
     public boolean delete( String fileSystem, String path )

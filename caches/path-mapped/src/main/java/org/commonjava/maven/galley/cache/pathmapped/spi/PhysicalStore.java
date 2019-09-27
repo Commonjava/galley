@@ -13,4 +13,6 @@ public interface PhysicalStore
     OutputStream getOutputStream( FileInfo fileInfo ) throws IOException;
 
     InputStream getInputStream( String storageFile ) throws IOException;
+
+    boolean delete( FileInfo fileInfo );
 }
