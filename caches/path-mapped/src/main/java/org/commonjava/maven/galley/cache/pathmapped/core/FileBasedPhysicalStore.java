@@ -2,6 +2,8 @@ package org.commonjava.maven.galley.cache.pathmapped.core;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PhysicalStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,11 +11,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getStoragePathByFileId;
 
 public class FileBasedPhysicalStore implements PhysicalStore
 {
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
+
     private final File baseDir;
 
     public FileBasedPhysicalStore( File baseDir )
@@ -55,7 +61,16 @@ public class FileBasedPhysicalStore implements PhysicalStore
     public boolean delete( FileInfo fileInfo )
     {
         File f = new File( baseDir, fileInfo.getFileStorage() );
-        return f.delete();
+        try
+        {
+            Files.deleteIfExists( Paths.get( f.getAbsolutePath() ) );
+        }
+        catch ( IOException e )
+        {
+            logger.error( "Failed to delete file: " + fileInfo, e );
+            return false;
+        }
+        return true;
     }
 
 }
