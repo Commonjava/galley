@@ -51,4 +51,11 @@ public class FileBasedPhysicalStore implements PhysicalStore
         return new FileInputStream( new File( baseDir, storageFile ) );
     }
 
+    @Override
+    public boolean delete( FileInfo fileInfo )
+    {
+        File f = new File( baseDir, fileInfo.getFileStorage() );
+        return f.delete();
+    }
+
 }
