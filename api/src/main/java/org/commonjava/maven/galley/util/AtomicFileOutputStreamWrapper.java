@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AtomicFileOutputStreamWrapper
-    extends FilterOutputStream
+    extends IdempotentCloseOutputStream
 {
 
     public static abstract class AtomicStreamCallbacks

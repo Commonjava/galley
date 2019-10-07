@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.io.nocache;
 
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.util.IdempotentCloseInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ import static org.commonjava.maven.galley.io.SpecialPathConstants.HTTP_METADATA_
  * Created by ruhan on 4/25/17.
  */
 public class NoCacheInputStream
-                extends FilterInputStream
+        extends IdempotentCloseInputStream
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 

@@ -24,6 +24,7 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.util.AtomicFileOutputStreamWrapper;
+import org.commonjava.maven.galley.util.IdempotentCloseInputStream;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -416,7 +417,7 @@ public class FileCacheProvider
     }
 
     private class UnlockInputStream
-            extends FilterInputStream
+            extends IdempotentCloseInputStream
     {
         private final ConcreteResource resource;
 
