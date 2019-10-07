@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.io.checksum;
 
 import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.util.IdempotentCloseInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 public final class ChecksummingInputStream
-        extends FilterInputStream
+        extends IdempotentCloseInputStream
 {
 
     private static final String CHECKSUM_CLOSE = "io.checksum.in.close";

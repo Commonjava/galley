@@ -22,9 +22,11 @@ import java.io.OutputStream;
 import org.commonjava.maven.galley.event.FileStorageEvent;
 import org.commonjava.maven.galley.model.Transfer.TransferUnlocker;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransferOutputStream
-    extends FilterOutputStream
+    extends IdempotentCloseOutputStream
 {
 
     private final TransferUnlocker unlocker;

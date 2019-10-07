@@ -15,35 +15,39 @@
  */
 package org.commonjava.maven.galley.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FilterInputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.commonjava.maven.galley.event.FileAccessEvent;
-import org.commonjava.maven.galley.spi.event.FileEventManager;
-
-public class TransferInputStream
-    extends IdempotentCloseInputStream
+public class IdempotentCloseInputStream
+        extends FilterInputStream
 {
+    private AtomicBoolean closed = new AtomicBoolean( false );
 
-    private final FileAccessEvent event;
-
-    private final FileEventManager fileEventManager;
-
-    public TransferInputStream( final InputStream in, final FileAccessEvent event,
-                                final FileEventManager fileEventManager )
+    protected IdempotentCloseInputStream( final InputStream in )
     {
         super( in );
-        this.event = event;
-        this.fileEventManager = fileEventManager;
     }
 
     @Override
     public void close()
-        throws IOException
+            throws IOException
     {
-        super.close();
-        fileEventManager.fire( event );
+        Logger logger = LoggerFactory.getLogger( getClass() );
+        if ( !closed.getAndSet( true ) ) // if previous value was false, skip this and log it!
+        {
+            logger.trace( "Closing: {}", this );
+            super.close();
+        }
+        else
+        {
+            logger.warn( "Preventing duplicate close() call to: {}", this );
+        }
     }
-
 }

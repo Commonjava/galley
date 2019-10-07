@@ -26,6 +26,7 @@ import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadataFromRequestHeader;
+import org.commonjava.maven.galley.util.IdempotentCloseOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +123,7 @@ public class UploadMetadataGenTransferDecorator
 
             Timer.Context openTimer = timerProvider.apply( HTTP_METADATA_WRITE_OPEN );
             logger.debug( "http-metadata open-timer is: {}", openTimer );
-            try(OutputStream out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false ) )
+            try( OutputStream out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false ) )
             {
                 if ( openTimer != null )
                 {
@@ -172,7 +173,7 @@ public class UploadMetadataGenTransferDecorator
     }
 
     private class HttpMetadataWrapperOutputStream
-            extends FilterOutputStream
+            extends IdempotentCloseOutputStream
     {
         private final Transfer transfer;
 
