@@ -1,6 +1,7 @@
 package org.commonjava.maven.galley.cache.pathmapped.core;
 
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
+import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PathDB;
 
 import java.util.List;
@@ -72,4 +73,7 @@ public class CassandraPathDB
     {
 
     }
+
+    @Override
+    public List<Reclaim> listOrphanedFiles() { return null; }
 }

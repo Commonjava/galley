@@ -1,6 +1,7 @@
 package org.commonjava.maven.galley.cache.pathmapped.spi;
 
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
+import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 
 import java.io.File;
 import java.util.List;
@@ -28,4 +29,6 @@ public interface PathDB
     void copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath );
 
     void makeDirs( String fileSystem, String path );
+
+    List<Reclaim> listOrphanedFiles();
 }
