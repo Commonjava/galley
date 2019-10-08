@@ -314,6 +314,13 @@ public class RDBMSPathDB
         return query.getResultList();
     }
 
+    @Override
+    public List<Reclaim> listOrphanedFiles()
+    {
+        Query query = entitymanager.createQuery(
+                        "Select r from Reclaim r" );
+        return query.getResultList();
+    }
 /*
     private Query getQuery( String fileSystem, String path )
     {
