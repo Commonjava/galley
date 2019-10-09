@@ -143,7 +143,7 @@ public class PathMapUtils
         Duration duration = Duration.between( LocalDateTime.now(),
                                               LocalDateTime.ofInstant( date.toInstant(),
                                                                        ZoneId.systemDefault() ) );
-        return Math.abs( duration.toMinutes() );
+        return Math.abs( duration.toHours() );
     }
 
 }
