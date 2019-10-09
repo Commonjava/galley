@@ -3,6 +3,7 @@ package org.commonjava.maven.galley.cache.pathmapped.core;
 import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConfig;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathKey;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
+import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PathDB;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PhysicalStore;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -15,7 +16,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PathMappedFileManager
@@ -120,6 +123,20 @@ public class PathMappedFileManager
     public String getFileStoragePath( String fileSystem, String path )
     {
         return pathDB.getStorageFile( fileSystem, path );
+    }
+
+    public Map<FileInfo, Boolean> gc()
+    {
+        Map<FileInfo, Boolean> gcResults = new HashMap<>();
+        List<Reclaim> reclaims = pathDB.listOrphanedFiles();
+        reclaims.stream().forEach( ( reclaim ) -> {
+            FileInfo fileInfo = new FileInfo();
+            fileInfo.setFileId( reclaim.getFileId() );
+            fileInfo.setFileStorage( reclaim.getStorage() );
+            boolean result = physicalStore.delete( fileInfo );
+            gcResults.put( fileInfo, Boolean.valueOf( result ) );
+        } );
+        return gcResults;
     }
 
 }
