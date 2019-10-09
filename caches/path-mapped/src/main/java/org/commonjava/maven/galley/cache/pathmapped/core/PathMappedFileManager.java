@@ -6,6 +6,7 @@ import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PathDB;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PhysicalStore;
+import org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 
@@ -133,8 +134,15 @@ public class PathMappedFileManager
             FileInfo fileInfo = new FileInfo();
             fileInfo.setFileId( reclaim.getFileId() );
             fileInfo.setFileStorage( reclaim.getStorage() );
-            boolean result = physicalStore.delete( fileInfo );
-            gcResults.put( fileInfo, Boolean.valueOf( result ) );
+            if ( PathMapUtils.calculateDuration( reclaim.getDeletion() ) >= config.getGCIntervalInMinutes() )
+            {
+                boolean result = physicalStore.delete( fileInfo );
+                gcResults.put( fileInfo, Boolean.valueOf( result ) );
+            }
+            else
+            {
+                gcResults.put( fileInfo, Boolean.FALSE );
+            }
         } );
         return gcResults;
     }
