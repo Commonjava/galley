@@ -5,6 +5,8 @@ public interface PathMappedStorageConfig
 
     int getGCIntervalInMinutes();
 
+    int getGCGracePeriodInHours();
+
     boolean isSubsystemEnabled( String fileSystem );
 
 }
