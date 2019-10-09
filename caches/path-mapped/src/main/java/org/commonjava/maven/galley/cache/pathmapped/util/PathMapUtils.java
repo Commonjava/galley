@@ -8,10 +8,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
@@ -111,27 +109,6 @@ public class PathMapUtils
         List<PathMap> l = getParents( pathMap );
         Collections.reverse( l );
         return l;
-    }
-
-    public static String renderPathKeys( Set<PathKey> pathKeys )
-    {
-        StringBuilder sb = new StringBuilder();
-        pathKeys.forEach( pathKey -> sb.append( pathKey.marshall() + "," ) );
-        return sb.toString();
-    }
-
-    public static Set<PathKey> parsePathKeys( String paths )
-    {
-        Set<PathKey> ret = new HashSet<>();
-        String[] toks = paths.split( "," );
-        for ( String tok : toks )
-        {
-            if ( !isBlank( tok ) )
-            {
-                ret.add( PathKey.parse( tok ) );
-            }
-        }
-        return ret;
     }
 
     public static long calculateDuration( Date date )

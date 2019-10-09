@@ -16,15 +16,13 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.ROOT_DIR;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getParentsBottomUp;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getPathKey;
-import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.parsePathKeys;
-import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.renderPathKeys;
 
 public class RDBMSPathDB
                 implements PathDB
@@ -163,30 +161,22 @@ public class RDBMSPathDB
             return false;
         }
 
-        // delete the path map
         transactionAnd( () -> entitymanager.remove( pathMap ) );
 
         // update reverse map
-        List<ReverseMap> l = getReverseMapList( pathMap.getFileId() );
-        if ( !l.isEmpty() )
+        ReverseMap reverseMap = getReverseMap( pathMap.getFileId() );
+        if ( reverseMap != null )
         {
-            ReverseMap last = l.get( l.size() - 1 );
-            String paths = last.getPaths();
-            String updatedPaths = updatePaths( paths, pathMap.getPathKey() );
-            if ( isBlank( updatedPaths ) )
+            Set<String> updatedPaths = updatePaths( reverseMap.getPaths(), pathMap.getPathKey() );
+            if ( updatedPaths.isEmpty() )
             {
-                // remove reverses and reclaim
-                transactionAnd( () -> {
-                    l.forEach( e -> entitymanager.remove( e ) );
-                } );
+                // reclaim, but not remove from reverse table immediately (for race-detection/double-check)
                 reclaim( fileId, pathMap.getFileStorage() );
             }
             else
             {
-                // update reverse (insert version+1 mapping)
-                int version = last.getReverseKey().getVersion() + 1;
-                ReverseMap reverseMap = new ReverseMap( new ReverseKey( fileId, version ), updatedPaths );
-                transactionAnd( () -> entitymanager.persist( reverseMap ) );
+                ReverseMap updatedReverseMap = new ReverseMap( new ReverseKey( fileId, 0 ), new HashSet<>( updatedPaths ) );
+                transactionAnd( () -> entitymanager.persist( updatedReverseMap ) );
             }
         }
         else
@@ -295,23 +285,15 @@ public class RDBMSPathDB
         } );
     }
 
-    private String updatePaths( String paths, PathKey pathKey )
+    private Set<String> updatePaths( Set<String> paths, PathKey pathKey )
     {
-        Set<PathKey> pathKeys = parsePathKeys( paths );
-        pathKeys.remove( pathKey );
-        if ( pathKeys.isEmpty() )
-        {
-            return null;
-        }
-        return renderPathKeys( pathKeys );
+        paths.remove( pathKey.marshall() );
+        return paths;
     }
 
-    private List<ReverseMap> getReverseMapList( String fileId )
+    private ReverseMap getReverseMap( String fileId )
     {
-        Query query = entitymanager.createQuery(
-                        "Select r from ReverseMap r where r.reverseKey.fileId=?1 order by r.reverseKey.version" )
-                                   .setParameter( 1, fileId );
-        return query.getResultList();
+        return entitymanager.find( ReverseMap.class, new ReverseKey( fileId, 0 ) );
     }
 
     @Override
