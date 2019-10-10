@@ -4,7 +4,9 @@ import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table( name = "reversemap" )
@@ -15,13 +17,13 @@ public class ReverseMap
     private ReverseKey reverseKey;
 
     @Column
-    private String paths;
+    private HashSet<String> paths;
 
     public ReverseMap()
     {
     }
 
-    public ReverseMap( ReverseKey reverseKey, String paths )
+    public ReverseMap( ReverseKey reverseKey, HashSet<String> paths )
     {
         this.reverseKey = reverseKey;
         this.paths = paths;
@@ -37,12 +39,12 @@ public class ReverseMap
         this.reverseKey = reverseKey;
     }
 
-    public String getPaths()
+    public Set<String> getPaths()
     {
         return paths;
     }
 
-    public void setPaths( String paths )
+    public void setPaths( HashSet<String> paths )
     {
         this.paths = paths;
     }
