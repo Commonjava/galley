@@ -4,12 +4,12 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
     <persistence-unit name="test"
                       transaction-type="RESOURCE_LOCAL">
-        <class>org.commonjava.maven.galley.cache.pathmapped.model.PathKey</class>
-        <class>org.commonjava.maven.galley.cache.pathmapped.model.PathMap</class>
-        <class>org.commonjava.maven.galley.cache.pathmapped.model.FileChecksum</class>
-        <class>org.commonjava.maven.galley.cache.pathmapped.model.ReverseKey</class>
-        <class>org.commonjava.maven.galley.cache.pathmapped.model.ReverseMap</class>
-        <class>org.commonjava.maven.galley.cache.pathmapped.model.Reclaim</class>
+        <class>org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaPathKey</class>
+        <class>org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaPathMap</class>
+        <class>org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaFileChecksum</class>
+        <class>org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaReverseKey</class>
+        <class>org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaReverseMap</class>
+        <class>org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaReclaim</class>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
             <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test"/>

@@ -1,7 +1,5 @@
 package org.commonjava.maven.galley.cache.pathmapped.core;
 
-import org.commonjava.maven.galley.cache.pathmapped.model.PathKey;
-import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PathDB;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PhysicalStore;
 
@@ -9,8 +7,6 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
-
-import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getPathKey;
 
 public class PathDBOutputStream
                 extends FilterOutputStream
@@ -31,7 +27,8 @@ public class PathDBOutputStream
 
     private int size;
 
-    public PathDBOutputStream( PathDB pathDB, PhysicalStore physicalStore, String fileSystem, String path, FileInfo fileInfo, OutputStream out )
+    public PathDBOutputStream( PathDB pathDB, PhysicalStore physicalStore, String fileSystem, String path,
+                               FileInfo fileInfo, OutputStream out )
     {
         super( out );
         this.pathDB = pathDB;
@@ -63,12 +60,6 @@ public class PathDBOutputStream
     public void close() throws IOException
     {
         super.close();
-        PathMap pathMap = new PathMap();
-        pathMap.setPathKey( getPathKey( fileSystem, path ) );
-        pathMap.setCreation( new Date() );
-        pathMap.setFileId( fileId );
-        pathMap.setFileStorage( fileStorage );
-        pathMap.setSize( size );
-        pathDB.insert( pathMap );
+        pathDB.insert( fileSystem, path, new Date(), fileId, size, fileStorage );
     }
 }

@@ -1,9 +1,12 @@
-package org.commonjava.maven.galley.cache.pathmapped.core;
+package org.commonjava.maven.galley.cache.pathmapped.jpa;
 
-import org.commonjava.maven.galley.cache.pathmapped.model.PathKey;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaPathKey;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaPathMap;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaReclaim;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaReverseKey;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaReverseMap;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
-import org.commonjava.maven.galley.cache.pathmapped.model.ReverseKey;
 import org.commonjava.maven.galley.cache.pathmapped.model.ReverseMap;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PathDB;
 import org.commonjava.maven.galley.util.PathUtils;
@@ -18,13 +21,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.ROOT_DIR;
+import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getFilename;
+import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getParentPath;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getParentsBottomUp;
-import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getPathKey;
+import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.marshall;
 
-public class RDBMSPathDB
+public class JPAPathDB
                 implements PathDB
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -33,7 +37,7 @@ public class RDBMSPathDB
 
     private final EntityManager entitymanager;
 
-    public RDBMSPathDB( String persistenceUnitName )
+    public JPAPathDB( String persistenceUnitName )
     {
         factory = Persistence.createEntityManagerFactory( persistenceUnitName );
         entitymanager = factory.createEntityManager();
@@ -47,7 +51,7 @@ public class RDBMSPathDB
         }
 
         Query query = entitymanager.createQuery(
-                        "Select p from PathMap p where p.pathKey.fileSystem=?1 and p.pathKey.parentPath=?2" )
+                        "Select p from JpaPathMap p where p.pathKey.fileSystem=?1 and p.pathKey.parentPath=?2" )
                                    .setParameter( 1, fileSystem )
                                    .setParameter( 2, path );
 
@@ -58,7 +62,7 @@ public class RDBMSPathDB
     @Override
     public int getFileLength( String fileSystem, String path )
     {
-        PathMap pathMap = entitymanager.find( PathMap.class, getPathKey( fileSystem, path ) );
+        PathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap != null )
         {
             return pathMap.getSize();
@@ -66,10 +70,15 @@ public class RDBMSPathDB
         return -1;
     }
 
+    private JpaPathMap findPathMap( String fileSystem, String path )
+    {
+        return entitymanager.find( JpaPathMap.class, getPathKey( fileSystem, path ) );
+    }
+
     @Override
     public long getFileLastModified( String fileSystem, String path )
     {
-        PathMap pathMap = entitymanager.find( PathMap.class, getPathKey( fileSystem, path ) );
+        PathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap != null )
         {
             return pathMap.getCreation().getTime();
@@ -80,7 +89,7 @@ public class RDBMSPathDB
     @Override
     public boolean exists( String fileSystem, String path )
     {
-        PathMap pathMap = entitymanager.find( PathMap.class, getPathKey( fileSystem, path ) );
+        PathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap != null )
         {
             return true;
@@ -89,30 +98,58 @@ public class RDBMSPathDB
     }
 
     @Override
+    public void insert( String fileSystem, String path, Date date, String fileId, int size, String fileStorage )
+    {
+        JpaPathMap pathMap = new JpaPathMap();
+        JpaPathKey pathKey = getPathKey( fileSystem, path );
+        pathMap.setPathKey( pathKey );
+        pathMap.setCreation( date );
+        pathMap.setFileId( fileId );
+        pathMap.setFileStorage( fileStorage );
+        pathMap.setSize( size );
+        insert( pathMap );
+    }
+
+    @Override
     public void insert( PathMap pathMap )
     {
         logger.debug( "Insert: {}", pathMap );
 
-        PathKey key = pathMap.getPathKey();
-        String fileSystem = key.getFileSystem();
-        String parent = key.getParentPath();
+        String fileSystem = pathMap.getFileSystem();
+        String parent = pathMap.getParentPath();
 
         makeDirs( fileSystem, parent );
 
-        // before insertion, we need to get the prev entry and check for reclaim
-        // we can thread off it in future
-        // Cassandra can do it very easily by "insert ... if not exists"
+        String path = PathUtils.normalize( parent, pathMap.getFilename() );
 
-        PathMap prev = entitymanager.find( PathMap.class, pathMap.getPathKey() );
+        // before insertion, we need to get the prev entry and check for reclaim
+        JpaPathKey key = ( (JpaPathMap) pathMap ).getPathKey();
+        PathMap prev = entitymanager.find( JpaPathMap.class, key );
         if ( prev != null )
         {
-            delete( fileSystem, PathUtils.normalize( parent, key.getFilename() ) );
+            delete( fileSystem, path );
         }
 
-        // insert new entry
+        // insert path mapping and reverse mapping
         transactionAnd( () -> {
             entitymanager.persist( pathMap );
         } );
+
+        // insert reverse mapping
+        addToReverseMap( pathMap.getFileId(), fileSystem, path );
+    }
+
+    private void addToReverseMap( String fileId, String fileSystem, String path )
+    {
+        HashSet<String> updatedPaths = new HashSet<>();
+        ReverseMap reverseMap = getReverseMap( fileId );
+        if ( reverseMap != null )
+        {
+            updatedPaths.addAll( reverseMap.getPaths() );
+        }
+        updatedPaths.add( marshall( fileSystem, path ) );
+        ReverseMap updatedReverseMap = new JpaReverseMap( new JpaReverseKey( fileId, 0 ), updatedPaths );
+        transactionAnd( () -> entitymanager.persist( updatedReverseMap ) );
     }
 
     private void transactionAnd( Runnable job )
@@ -125,7 +162,7 @@ public class RDBMSPathDB
     @Override
     public boolean isDirectory( String fileSystem, String path )
     {
-        PathMap pathMap = entitymanager.find( PathMap.class, getPathKey( fileSystem, path ) );
+        PathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap != null )
         {
             return pathMap.getFileId() == null;
@@ -136,7 +173,7 @@ public class RDBMSPathDB
     @Override
     public boolean isFile( String fileSystem, String path )
     {
-        PathMap pathMap = entitymanager.find( PathMap.class, getPathKey( fileSystem, path ) );
+        PathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap != null )
         {
             return pathMap.getFileId() != null;
@@ -147,7 +184,7 @@ public class RDBMSPathDB
     @Override
     public boolean delete( String fileSystem, String path )
     {
-        PathMap pathMap = entitymanager.find( PathMap.class, getPathKey( fileSystem, path ) );
+        PathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap == null )
         {
             logger.debug( "File not exists, {}", pathMap );
@@ -163,11 +200,19 @@ public class RDBMSPathDB
 
         transactionAnd( () -> entitymanager.remove( pathMap ) );
 
-        // update reverse map
-        ReverseMap reverseMap = getReverseMap( pathMap.getFileId() );
+        removeFromReverseMap( fileSystem, path, pathMap );
+        return true;
+    }
+
+    private void removeFromReverseMap( String fileSystem, String path, PathMap pathMap )
+    {
+        String fileId = pathMap.getFileId();
+        ReverseMap reverseMap = getReverseMap( fileId );
         if ( reverseMap != null )
         {
-            Set<String> updatedPaths = updatePaths( reverseMap.getPaths(), pathMap.getPathKey() );
+            HashSet<String> updatedPaths = new HashSet<>( reverseMap.getPaths() );
+            updatedPaths.remove( marshall( fileSystem, path ) );
+
             if ( updatedPaths.isEmpty() )
             {
                 // reclaim, but not remove from reverse table immediately (for race-detection/double-check)
@@ -175,7 +220,7 @@ public class RDBMSPathDB
             }
             else
             {
-                ReverseMap updatedReverseMap = new ReverseMap( new ReverseKey( fileId, 0 ), new HashSet<>( updatedPaths ) );
+                ReverseMap updatedReverseMap = new JpaReverseMap( new JpaReverseKey( fileId, 0 ), updatedPaths );
                 transactionAnd( () -> entitymanager.persist( updatedReverseMap ) );
             }
         }
@@ -183,13 +228,12 @@ public class RDBMSPathDB
         {
             reclaim( fileId, pathMap.getFileStorage() );
         }
-        return true;
     }
 
     @Override
     public String getStorageFile( String fileSystem, String path )
     {
-        PathMap pathMap = entitymanager.find( PathMap.class, getPathKey( fileSystem, path ) );
+        PathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap != null )
         {
             return pathMap.getFileStorage();
@@ -200,16 +244,15 @@ public class RDBMSPathDB
     @Override
     public void copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath )
     {
-        PathKey from = getPathKey( fromFileSystem, fromPath );
-        PathMap pathMap = entitymanager.find( PathMap.class, from );
+        PathMap pathMap = findPathMap( fromFileSystem, fromPath );
         if ( pathMap == null )
         {
-            logger.warn( "Source PathKey not found, {}", from );
+            logger.warn( "Source PathKey not found, {}:{}", fromFileSystem, fromPath );
             return;
         }
 
-        PathKey to = getPathKey( toFileSystem, toPath );
-        PathMap target = entitymanager.find( PathMap.class, to );
+        JpaPathKey to = getPathKey( toFileSystem, toPath );
+        PathMap target = findPathMap( toFileSystem, toPath );
         if ( target != null )
         {
             logger.info( "Target PathKey already exists, delete it. {}", to );
@@ -225,7 +268,8 @@ public class RDBMSPathDB
         }
 
         transactionAnd( () -> {
-            entitymanager.persist( new PathMap( to, pathMap.getFileId(), pathMap.getCreation(), pathMap.getSize(), pathMap.getFileStorage() ) );
+            entitymanager.persist( new JpaPathMap( to, pathMap.getFileId(), pathMap.getCreation(), pathMap.getSize(),
+                                                   pathMap.getFileStorage() ) );
         } );
     }
 
@@ -234,7 +278,7 @@ public class RDBMSPathDB
     {
         logger.debug( "Make dir, fileSystem: {}, path: {}", fileSystem, path );
 
-        if ( ROOT_DIR.equals( path) )
+        if ( ROOT_DIR.equals( path ) )
         {
             return;
         }
@@ -242,27 +286,32 @@ public class RDBMSPathDB
         {
             path += "/";
         }
-        PathKey pathKey = getPathKey( fileSystem, path );
-        PathMap pathMap = entitymanager.find( PathMap.class, pathKey );
+
+        JpaPathMap pathMap = findPathMap( fileSystem, path );
         if ( pathMap != null )
         {
-            logger.debug( "Dir exists, {}", pathKey );
+            logger.debug( "Dir exists, {}:{}", fileSystem, path );
             return;
         }
 
-        pathMap = new PathMap();
+        JpaPathKey pathKey = getPathKey( fileSystem, path );
+        pathMap = new JpaPathMap();
         pathMap.setPathKey( pathKey );
 
-        final List<PathMap> parents = getParentsBottomUp( pathMap );
+        final List<JpaPathMap> parents = getParentsBottomUp( pathMap, ( fSystem, pPath, fName ) -> {
+            JpaPathMap p = new JpaPathMap();
+            p.setPathKey( new JpaPathKey( fSystem, pPath, fName ) );
+            return p;
+        } );
 
-        List<PathMap> persist = new ArrayList<>(  );
+        List<JpaPathMap> persist = new ArrayList<>();
         persist.add( pathMap );
 
-        logger.debug( "Get persist: {}", parents );
+        logger.debug( "Get persist: {}", persist );
 
-        for ( PathMap p : parents )
+        for ( JpaPathMap p : parents )
         {
-            PathMap o = entitymanager.find( PathMap.class, p.getPathKey() );
+            JpaPathMap o = entitymanager.find( JpaPathMap.class, p.getPathKey() );
             if ( o != null )
             {
                 break;
@@ -270,51 +319,33 @@ public class RDBMSPathDB
             persist.add( p );
         }
 
-        transactionAnd( () -> {
-            for ( PathMap p : persist )
-            {
-                entitymanager.persist( p );
-            }
-        } );
+        transactionAnd( () -> persist.forEach( p -> entitymanager.persist( p ) ) );
     }
 
     private void reclaim( String fileId, String fileStorage )
     {
         transactionAnd( () -> {
-            entitymanager.persist( new Reclaim( fileId, new Date(), fileStorage ) );
+            entitymanager.persist( new JpaReclaim( fileId, new Date(), fileStorage ) );
         } );
-    }
-
-    private Set<String> updatePaths( Set<String> paths, PathKey pathKey )
-    {
-        paths.remove( pathKey.marshall() );
-        return paths;
     }
 
     private ReverseMap getReverseMap( String fileId )
     {
-        return entitymanager.find( ReverseMap.class, new ReverseKey( fileId, 0 ) );
+        return entitymanager.find( JpaReverseMap.class, new JpaReverseKey( fileId, 0 ) );
     }
 
     @Override
     public List<Reclaim> listOrphanedFiles()
     {
-        Query query = entitymanager.createQuery(
-                        "Select r from Reclaim r" );
+        Query query = entitymanager.createQuery( "Select r from Reclaim r" );
         return query.getResultList();
     }
-/*
-    private Query getQuery( String fileSystem, String path )
+
+    private JpaPathKey getPathKey( String fileSystem, String path )
     {
-        int index = path.lastIndexOf( "/" );
-        String parentPath = path.substring( 0, index );
-        String filename = path.substring( index + 1 );
-        Query query = entitymanager.createQuery(
-                        "Select p from PathMap p where p.pathKey.fileSystem=?1 and p.pathKey.parentPath=?2 and p.pathKey.filename=?3" )
-                                   .setParameter( 1, fileSystem )
-                                   .setParameter( 2, parentPath )
-                                   .setParameter( 3, filename );
-        return query;
+        String parentPath = getParentPath( path );
+        String filename = getFilename( path );
+        return new JpaPathKey( fileSystem, parentPath, filename );
     }
-*/
+
 }

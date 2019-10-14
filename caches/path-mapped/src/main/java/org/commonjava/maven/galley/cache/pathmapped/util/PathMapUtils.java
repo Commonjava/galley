@@ -1,6 +1,5 @@
 package org.commonjava.maven.galley.cache.pathmapped.util;
 
-import org.commonjava.maven.galley.cache.pathmapped.model.PathKey;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 
 import java.time.Duration;
@@ -55,13 +54,6 @@ public class PathMapUtils
         return toks[toks.length - 1];
     }
 
-    public static PathKey getPathKey( String fileSystem, String path )
-    {
-        String parentPath = getParentPath( path );
-        String filename = getFilename( path );
-        return new PathKey( fileSystem, parentPath, filename );
-    }
-
     public static String getStoragePathByFileId( String id )
     {
         String folder = id.substring( 0, 1 );
@@ -73,13 +65,13 @@ public class PathMapUtils
     /**
      * Get parents starting in top-down order.
      */
-    public static List<PathMap> getParents( PathMap pathMap )
+    public static <R> List<R> getParents( PathMap pathMap,
+                                             PathMapCreation<String, String, String, R> pathMapCreation )
     {
-        PathKey key = pathMap.getPathKey();
-        String fileSystem = key.getFileSystem();
-        String parent = key.getParentPath(); // e.g, /foo/bar/1.0
+        String fileSystem = pathMap.getFileSystem();
+        String parent = pathMap.getParentPath(); // e.g, /foo/bar/1.0
 
-        LinkedList<PathMap> l = new LinkedList<>();
+        LinkedList<R> l = new LinkedList<>();
 
         String parentPath = ROOT_DIR;
 
@@ -91,9 +83,7 @@ public class PathMapUtils
                 continue;
             }
             String filename = tok + "/";
-            PathMap o = new PathMap();
-            PathKey k = new PathKey( fileSystem, parentPath, filename );
-            o.setPathKey( k );
+            R o = pathMapCreation.apply( fileSystem, parentPath, filename );
             l.add( o );
             if ( !parentPath.endsWith( "/" ) )
             {
@@ -104,9 +94,16 @@ public class PathMapUtils
         return l;
     }
 
-    public static List<PathMap> getParentsBottomUp( PathMap pathMap )
+    @FunctionalInterface
+    public interface PathMapCreation<T1, T2, T3, R>
     {
-        List<PathMap> l = getParents( pathMap );
+        R apply( T1 fileSystem, T2 parentPath, T3 filename );
+    }
+
+    public static <R> List<R> getParentsBottomUp( PathMap pathMap,
+                                                    PathMapCreation<String, String, String, R> pathMapCreation )
+    {
+        List<R> l = getParents( pathMap, pathMapCreation );
         Collections.reverse( l );
         return l;
     }
@@ -118,9 +115,13 @@ public class PathMapUtils
             return 0;
         }
         Duration duration = Duration.between( LocalDateTime.now(),
-                                              LocalDateTime.ofInstant( date.toInstant(),
-                                                                       ZoneId.systemDefault() ) );
+                                              LocalDateTime.ofInstant( date.toInstant(), ZoneId.systemDefault() ) );
         return Math.abs( duration.toHours() );
+    }
+
+    public static String marshall( String fileSystem, String path )
+    {
+        return fileSystem + ":" + path;
     }
 
 }

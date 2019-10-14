@@ -3,7 +3,7 @@ package org.commonjava.maven.galley.cache.pathmapped.spi;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 
-import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 public interface PathDB
@@ -15,6 +15,8 @@ public interface PathDB
     long getFileLastModified( String fileSystem, String path );
 
     boolean exists( String fileSystem, String path );
+
+    void insert( String fileSystem, String path, Date date, String fileId, int size, String fileStorage );
 
     void insert( PathMap pathMap );
 
@@ -31,4 +33,5 @@ public interface PathDB
     void makeDirs( String fileSystem, String path );
 
     List<Reclaim> listOrphanedFiles();
+
 }

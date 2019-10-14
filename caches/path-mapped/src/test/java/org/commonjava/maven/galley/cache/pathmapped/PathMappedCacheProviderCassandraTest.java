@@ -15,11 +15,14 @@
  */
 package org.commonjava.maven.galley.cache.pathmapped;
 
+import com.datastax.driver.core.Session;
+import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
 import org.commonjava.maven.galley.cache.pathmapped.config.DefaultPathMappedStorageConfig;
+import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConfig;
+import org.commonjava.maven.galley.cache.pathmapped.datastax.CassandraPathDB;
 import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
-import org.commonjava.maven.galley.cache.pathmapped.jpa.JPAPathDB;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
@@ -29,7 +32,9 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,12 +43,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_HOST;
+import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_KEYSPACE;
+import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_PORT;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class PathMappedCacheProviderTest
+public class PathMappedCacheProviderCassandraTest
                 extends CacheProviderTCK
 {
 
@@ -52,18 +62,47 @@ public class PathMappedCacheProviderTest
 
     private PathMappedCacheProvider provider;
 
+    private PathMappedStorageConfig config;
+
+    private CassandraPathDB pathDB;
+
+    @BeforeClass
+    public static void startEmbeddedCassandra() throws Exception
+    {
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+    }
+
+    private final String keyspace = "test";
+
     @Before
     public void setup() throws Exception
     {
+        Map<String, Object> props = new HashMap<>();
+        props.put( PROP_CASSANDRA_HOST, "localhost" );
+        props.put( PROP_CASSANDRA_PORT, 9142 );
+        props.put( PROP_CASSANDRA_KEYSPACE, keyspace );
+
+        config = new DefaultPathMappedStorageConfig( props );
+
         final FileEventManager events = new TestFileEventManager();
         final TransferDecorator decorator = new TestTransferDecorator();
 
         File baseDir = temp.newFolder();
+        pathDB = new CassandraPathDB( config );
         provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
                                                 Executors.newScheduledThreadPool( 2 ),
                                                 new PathMappedFileManager( new DefaultPathMappedStorageConfig(),
-                                                                           new JPAPathDB( "test" ),
+                                                                           pathDB,
                                                                            new FileBasedPhysicalStore( baseDir ) ) );
+    }
+
+    @After
+    public void tearDown() throws Exception
+    {
+        Session session = pathDB.getSession();
+        session.execute("TRUNCATE " + keyspace + ".pathmap");
+        session.execute("TRUNCATE " + keyspace + ".reversemap");
+        session.execute("TRUNCATE " + keyspace + ".reclaim");
     }
 
     @Override

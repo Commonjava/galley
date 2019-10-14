@@ -1,19 +1,12 @@
 package org.commonjava.maven.galley.cache.pathmapped.core;
 
 import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConfig;
-import org.commonjava.maven.galley.cache.pathmapped.model.PathKey;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PathDB;
 import org.commonjava.maven.galley.cache.pathmapped.spi.PhysicalStore;
 import org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils;
-import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.Location;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -76,8 +69,7 @@ public class PathMappedFileManager
     {
         List<PathMap> paths = pathDB.list( fileSystem, path );
         return paths.stream().map( x -> {
-            PathKey pk = x.getPathKey();
-            String p = pk.getFilename();
+            String p = x.getFilename();
             if ( x.getFileId() == null )
             {
                 p += "/";
