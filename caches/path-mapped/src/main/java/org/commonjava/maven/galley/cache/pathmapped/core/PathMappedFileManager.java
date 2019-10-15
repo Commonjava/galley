@@ -126,15 +126,12 @@ public class PathMappedFileManager
             FileInfo fileInfo = new FileInfo();
             fileInfo.setFileId( reclaim.getFileId() );
             fileInfo.setFileStorage( reclaim.getStorage() );
-            if ( PathMapUtils.calculateDuration( reclaim.getDeletion() ) >= config.getGCGracePeriodInHours() )
+            boolean result = physicalStore.delete( fileInfo );
+            if ( result )
             {
-                boolean result = physicalStore.delete( fileInfo );
-                gcResults.put( fileInfo, Boolean.valueOf( result ) );
+                pathDB.removeFromReclaim( reclaim );
             }
-            else
-            {
-                gcResults.put( fileInfo, Boolean.FALSE );
-            }
+            gcResults.put( fileInfo, Boolean.valueOf( result ) );
         } );
         return gcResults;
     }

@@ -19,17 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_HOST;
-import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_KEYSPACE;
-import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_PORT;
-import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.getSchema_CREATE_KEYSPACE;
-import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.getSchema_CREATE_TABLE_PATHMAP;
-import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.getSchema_CREATE_TABLE_RECLAIM;
-import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.getSchema_CREATE_TABLE_REVERSEMAP;
+import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.*;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.ROOT_DIR;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getFilename;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getParentPath;
@@ -69,10 +64,10 @@ public class CassandraPathDB
 
         keyspace = (String) config.getProperty( PROP_CASSANDRA_KEYSPACE );
 
-        session.execute( getSchema_CREATE_KEYSPACE( keyspace ) );
-        session.execute( getSchema_CREATE_TABLE_PATHMAP( keyspace ) );
-        session.execute( getSchema_CREATE_TABLE_REVERSEMAP( keyspace ) );
-        session.execute( getSchema_CREATE_TABLE_RECLAIM( keyspace ) );
+        session.execute( getSchemaCreateKeyspace( keyspace ) );
+        session.execute( getSchemaCreateTablePathmap( keyspace ) );
+        session.execute( getSchemaCreateTableReversemap( keyspace ) );
+        session.execute( getSchemaCreateTableReclaim( keyspace ) );
 
         MappingManager manager = new MappingManager( session );
 
@@ -143,12 +138,7 @@ public class CassandraPathDB
     @Override
     public boolean exists( String fileSystem, String path )
     {
-        PathMap pathMap = getPathMap( fileSystem, path );
-        if ( pathMap != null )
-        {
-            return true;
-        }
-        return false;
+        return getPathMap( fileSystem, path ) != null;
     }
 
     @Override
@@ -269,13 +259,13 @@ public class CassandraPathDB
     }
 
     @Override
-    public void copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath )
+    public boolean copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath )
     {
         PathMap pathMap = getPathMap( fromFileSystem, fromPath );
         if ( pathMap == null )
         {
             logger.warn( "Source not found, {}:{}", fromFileSystem, fromPath );
-            return;
+            return false;
         }
 
         PathMap target = getPathMap( toFileSystem, toPath );
@@ -296,6 +286,7 @@ public class CassandraPathDB
         String toFilename = getFilename( toPath );
         pathMapMapper.save( new DtxPathMap( toFileSystem, toParentPath, toFilename, pathMap.getFileId(),
                                             pathMap.getCreation(), pathMap.getSize(), pathMap.getFileStorage() ) );
+        return true;
     }
 
     @Override
@@ -336,13 +327,28 @@ public class CassandraPathDB
     @Override
     public List<Reclaim> listOrphanedFiles()
     {
-        ResultSet result = session.execute( "SELECT * FROM " + keyspace + ".reclaim;" );
+        // timestamp data type is encoded as the number of milliseconds since epoch
+        long threshold = getReclaimThreshold( new Date(), config.getGCGracePeriodInHours() );
+        ResultSet result =
+                        session.execute( "SELECT * FROM " + keyspace + ".reclaim WHERE partition = 0 AND deletion < ?;",
+                                         threshold );
         List<Reclaim> list = new ArrayList<>();
         Result<DtxReclaim> ret = reclaimMapper.map( result );
         ret.all().forEach( row -> {
             list.add( row );
         } );
         return list;
+    }
+
+    @Override
+    public void removeFromReclaim( Reclaim reclaim )
+    {
+        reclaimMapper.delete( (DtxReclaim) reclaim );
+    }
+
+    private long getReclaimThreshold( Date date, int gcGracePeriodInHours )
+    {
+        return date.getTime() - Duration.ofHours( gcGracePeriodInHours ).toMillis();
     }
 
 }

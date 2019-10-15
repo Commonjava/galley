@@ -8,13 +8,13 @@ public class CassandraPathDBUtils
 
     public static final String PROP_CASSANDRA_KEYSPACE = "cassandra_keyspace";
 
-    public static String getSchema_CREATE_KEYSPACE( String keyspace )
+    public static String getSchemaCreateKeyspace( String keyspace )
     {
         return "CREATE KEYSPACE IF NOT EXISTS " + keyspace
                         + " WITH REPLICATION = {'class':'SimpleStrategy', 'replication_factor':1};";
     }
 
-    public static String getSchema_CREATE_TABLE_PATHMAP( String keyspace )
+    public static String getSchemaCreateTablePathmap( String keyspace )
     {
         return "CREATE TABLE IF NOT EXISTS " + keyspace + ".pathmap ("
                         + "filesystem varchar,"
@@ -28,7 +28,7 @@ public class CassandraPathDBUtils
                         + ");";
     }
 
-    public static String getSchema_CREATE_TABLE_REVERSEMAP( String keyspace )
+    public static String getSchemaCreateTableReversemap( String keyspace )
     {
         return "CREATE TABLE IF NOT EXISTS " + keyspace + ".reversemap ("
                         + "fileid varchar,"
@@ -37,13 +37,15 @@ public class CassandraPathDBUtils
                         + ");";
     }
 
-    public static String getSchema_CREATE_TABLE_RECLAIM( String keyspace )
+    public static String getSchemaCreateTableReclaim( String keyspace )
     {
         return "CREATE TABLE IF NOT EXISTS " + keyspace + ".reclaim ("
-                        + "fileid varchar,"
+                        + "partition int,"
                         + "deletion timestamp,"
+                        + "fileid varchar,"
                         + "storage varchar,"
-                        + "PRIMARY KEY (fileid)"
+                        + "PRIMARY KEY (partition, deletion, fileid)"
                         + ");";
     }
+
 }

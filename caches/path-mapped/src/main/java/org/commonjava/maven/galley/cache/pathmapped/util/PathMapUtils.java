@@ -2,11 +2,7 @@ package org.commonjava.maven.galley.cache.pathmapped.util;
 
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,17 +102,6 @@ public class PathMapUtils
         List<R> l = getParents( pathMap, pathMapCreation );
         Collections.reverse( l );
         return l;
-    }
-
-    public static long calculateDuration( Date date )
-    {
-        if ( date == null )
-        {
-            return 0;
-        }
-        Duration duration = Duration.between( LocalDateTime.now(),
-                                              LocalDateTime.ofInstant( date.toInstant(), ZoneId.systemDefault() ) );
-        return Math.abs( duration.toHours() );
     }
 
     public static String marshall( String fileSystem, String path )

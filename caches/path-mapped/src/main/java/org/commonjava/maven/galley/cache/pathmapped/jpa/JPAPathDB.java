@@ -242,13 +242,13 @@ public class JPAPathDB
     }
 
     @Override
-    public void copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath )
+    public boolean copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath )
     {
         PathMap pathMap = findPathMap( fromFileSystem, fromPath );
         if ( pathMap == null )
         {
             logger.warn( "Source PathKey not found, {}:{}", fromFileSystem, fromPath );
-            return;
+            return false;
         }
 
         JpaPathKey to = getPathKey( toFileSystem, toPath );
@@ -271,6 +271,7 @@ public class JPAPathDB
             entitymanager.persist( new JpaPathMap( to, pathMap.getFileId(), pathMap.getCreation(), pathMap.getSize(),
                                                    pathMap.getFileStorage() ) );
         } );
+        return true;
     }
 
     @Override
@@ -339,6 +340,12 @@ public class JPAPathDB
     {
         Query query = entitymanager.createQuery( "Select r from Reclaim r" );
         return query.getResultList();
+    }
+
+    @Override
+    public void removeFromReclaim( Reclaim reclaim )
+    {
+        entitymanager.remove( reclaim );
     }
 
     private JpaPathKey getPathKey( String fileSystem, String path )

@@ -1,5 +1,6 @@
 package org.commonjava.maven.galley.cache.pathmapped.datastax.model;
 
+import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
@@ -12,10 +13,13 @@ import java.util.Objects;
 public class DtxReclaim implements Reclaim
 {
     @PartitionKey
-    private String fileId;
+    private int partition; // use fixed partition 0 in order to run SELECT fast
 
-    @Column
+    @ClusteringColumn(0)
     private Date deletion;
+
+    @ClusteringColumn(1)
+    private String fileId;
 
     @Column
     private String storage;
@@ -31,6 +35,16 @@ public class DtxReclaim implements Reclaim
         this.storage = storage;
     }
 
+    public int getPartition()
+    {
+        return partition;
+    }
+
+    public void setPartition( int partition )
+    {
+    }
+
+    @Override
     public String getFileId()
     {
         return fileId;
@@ -41,6 +55,7 @@ public class DtxReclaim implements Reclaim
         this.fileId = fileId;
     }
 
+    @Override
     public Date getDeletion()
     {
         return deletion;
@@ -51,6 +66,7 @@ public class DtxReclaim implements Reclaim
         this.deletion = deletion;
     }
 
+    @Override
     public String getStorage()
     {
         return storage;
@@ -68,20 +84,20 @@ public class DtxReclaim implements Reclaim
             return true;
         if ( o == null || getClass() != o.getClass() )
             return false;
-        DtxReclaim reclaim = (DtxReclaim) o;
-        return fileId.equals( reclaim.fileId );
+        DtxReclaim that = (DtxReclaim) o;
+        return partition == that.partition && deletion.equals( that.deletion ) && fileId.equals( that.fileId );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( fileId );
+        return Objects.hash( partition, deletion, fileId );
     }
 
     @Override
     public String toString()
     {
-        return "DtxReclaim{" + "fileId='" + fileId + '\'' + ", deletion=" + deletion + ", storage='" + storage + '\''
-                        + '}';
+        return "DtxReclaim{" + "partition=" + partition + ", deletion=" + deletion + ", fileId='" + fileId + '\''
+                        + ", storage='" + storage + '\'' + '}';
     }
 }

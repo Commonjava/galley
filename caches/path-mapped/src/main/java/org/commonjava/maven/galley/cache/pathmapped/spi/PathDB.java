@@ -28,10 +28,11 @@ public interface PathDB
 
     String getStorageFile( String fileSystem, String path );
 
-    void copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath );
+    boolean copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath );
 
     void makeDirs( String fileSystem, String path );
 
     List<Reclaim> listOrphanedFiles();
 
+    void removeFromReclaim( Reclaim reclaim );
 }
