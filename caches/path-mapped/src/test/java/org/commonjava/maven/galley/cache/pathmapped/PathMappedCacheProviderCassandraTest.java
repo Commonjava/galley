@@ -23,12 +23,14 @@ import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConf
 import org.commonjava.maven.galley.cache.pathmapped.datastax.CassandraPathDB;
 import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
+import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.SimpleLocation;
+import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
@@ -44,14 +46,19 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static java.util.Objects.isNull;
 import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_HOST;
 import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_KEYSPACE;
 import static org.commonjava.maven.galley.cache.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_PORT;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class PathMappedCacheProviderCassandraTest
                 extends CacheProviderTCK
@@ -62,9 +69,11 @@ public class PathMappedCacheProviderCassandraTest
 
     private PathMappedCacheProvider provider;
 
-    private PathMappedStorageConfig config;
+    private DefaultPathMappedStorageConfig config;
 
     private CassandraPathDB pathDB;
+
+    private PathMappedFileManager fileManager;
 
     @BeforeClass
     public static void startEmbeddedCassandra() throws Exception
@@ -89,11 +98,11 @@ public class PathMappedCacheProviderCassandraTest
 
         File baseDir = temp.newFolder();
         pathDB = new CassandraPathDB( config );
+        fileManager = new PathMappedFileManager( new DefaultPathMappedStorageConfig(), pathDB,
+                                                 new FileBasedPhysicalStore( baseDir ) );
         provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
                                                 Executors.newScheduledThreadPool( 2 ),
-                                                new PathMappedFileManager( new DefaultPathMappedStorageConfig(),
-                                                                           pathDB,
-                                                                           new FileBasedPhysicalStore( baseDir ) ) );
+                                                fileManager );
     }
 
     @After
@@ -144,6 +153,80 @@ public class PathMappedCacheProviderCassandraTest
         // source file should have been removed
         InputStream src = provider.openInputStream( new ConcreteResource( loc, fname ) );
         assertThat( src, equalTo( null ) );
+    }
+
+    @Test
+    public void deleteAndReclaim() throws Exception
+    {
+        final String content = "This is a test";
+
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String fname = "/path/to/my/file.txt";
+
+        ConcreteResource resource = new ConcreteResource( loc, fname );
+
+        final CacheProvider provider = getCacheProvider();
+
+        final OutputStream out = provider.openOutputStream( resource );
+        out.write( content.getBytes( "UTF-8" ) );
+        out.close();
+
+        provider.delete( resource );
+
+        InputStream src = provider.openInputStream( resource );
+        assertThat( src, equalTo( null ) );
+
+        Transfer transfer = provider.getTransfer( resource );
+        assertThat( transfer, equalTo( null ) );
+
+        config.setGcGracePeriodInHours( 0 );
+        List<Reclaim> l = pathDB.listOrphanedFiles();
+        assertNotNull( l );
+        assertFalse( l.isEmpty() );
+        l.forEach( reclaim -> System.out.println( ">>> " + reclaim ) );
+    }
+
+    @Test
+    public void replaceAndReclaim() throws Exception
+    {
+        final String content = "This is a test";
+        final String content2 = "This is another test";
+
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String fname = "/path/to/my/file.txt";
+
+        ConcreteResource resource = new ConcreteResource( loc, fname );
+
+        final CacheProvider provider = getCacheProvider();
+
+        // write once
+        final OutputStream out = provider.openOutputStream( resource );
+        out.write( content.getBytes( "UTF-8" ) );
+        out.close();
+
+        // write again
+        final OutputStream out2 = provider.openOutputStream( resource );
+        out2.write( content2.getBytes( "UTF-8" ) );
+        out2.close();
+
+        // read
+        final InputStream in = provider.openInputStream( resource );
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int read = -1;
+        final byte[] buf = new byte[512];
+        while ( ( read = in.read( buf ) ) > -1 )
+        {
+            baos.write( buf, 0, read );
+        }
+        final String result = new String( baos.toByteArray(), "UTF-8" );
+        assertThat( result, equalTo( content2 ) );
+
+        // check reclaim
+        config.setGcGracePeriodInHours( 0 );
+        List<Reclaim> l = pathDB.listOrphanedFiles();
+        assertNotNull( l );
+        assertFalse( l.isEmpty() );
+        l.forEach( reclaim -> System.out.println( ">>> " + reclaim ) );
     }
 
 }

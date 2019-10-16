@@ -348,7 +348,12 @@ public class CassandraPathDB
 
     private long getReclaimThreshold( Date date, int gcGracePeriodInHours )
     {
-        return date.getTime() - Duration.ofHours( gcGracePeriodInHours ).toMillis();
+        long ret = date.getTime();
+        if ( gcGracePeriodInHours <= 0 )
+        {
+            return ret;
+        }
+        return ret - Duration.ofHours( gcGracePeriodInHours ).toMillis();
     }
 
 }

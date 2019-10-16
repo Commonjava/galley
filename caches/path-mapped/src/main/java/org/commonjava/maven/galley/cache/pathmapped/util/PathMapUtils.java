@@ -52,9 +52,9 @@ public class PathMapUtils
 
     public static String getStoragePathByFileId( String id )
     {
-        String folder = id.substring( 0, 1 );
-        String subFolder = id.substring( 1, 3 );
-        String filename = id.substring( 3 );
+        String folder = id.substring( 0, 2 );
+        String subFolder = id.substring( 2, 4 );
+        String filename = id.substring( 4 );
         return folder + "/" + subFolder + "/" + filename;
     }
 

@@ -5,6 +5,14 @@ import java.util.Map;
 public class DefaultPathMappedStorageConfig
                 implements PathMappedStorageConfig
 {
+    private final int DEFAULT_GC_INTERVAL_IN_MINUTES = 60;
+
+    private final int DEFAULT_GC_GRACE_PERIOD_IN_HOURS = 24;
+
+    private int gcGracePeriodInHours = DEFAULT_GC_GRACE_PERIOD_IN_HOURS;
+
+    private int gcIntervalInMinutes = DEFAULT_GC_INTERVAL_IN_MINUTES;
+
     public DefaultPathMappedStorageConfig()
     {
     }
@@ -14,20 +22,26 @@ public class DefaultPathMappedStorageConfig
         this.properties = properties;
     }
 
-    private final int defaultGCIntervalInMinutes = 60;
-
-    private final int defaultGCGracePeriodInHours = 24;
-
     @Override
     public int getGCIntervalInMinutes()
     {
-        return defaultGCIntervalInMinutes;
+        return gcIntervalInMinutes;
     }
 
     @Override
     public int getGCGracePeriodInHours()
     {
-        return defaultGCGracePeriodInHours;
+        return gcGracePeriodInHours;
+    }
+
+    public void setGcGracePeriodInHours( int gcGracePeriodInHours )
+    {
+        this.gcGracePeriodInHours = gcGracePeriodInHours;
+    }
+
+    public void setGcIntervalInMinutes( int gcIntervalInMinutes )
+    {
+        this.gcIntervalInMinutes = gcIntervalInMinutes;
     }
 
     @Override
