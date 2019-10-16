@@ -18,7 +18,7 @@ package org.commonjava.maven.galley.cache.pathmapped;
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConfig;
-import org.commonjava.maven.galley.cache.pathmapped.core.CassandraPathDB;
+import org.commonjava.maven.galley.cache.pathmapped.datastax.CassandraPathDB;
 import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
@@ -60,7 +60,7 @@ public class PathMappedCacheProviderFactory
         {
             provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, deleteExecutor,
                                                     new PathMappedFileManager( config,
-                                                                               new CassandraPathDB(),
+                                                                               new CassandraPathDB( config ),
                                                                                new FileBasedPhysicalStore(
                                                                                                cacheDir ) ) );
         }

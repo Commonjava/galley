@@ -3,7 +3,7 @@ package org.commonjava.maven.galley.cache.pathmapped.spi;
 import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
 import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 
-import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 public interface PathDB
@@ -16,6 +16,8 @@ public interface PathDB
 
     boolean exists( String fileSystem, String path );
 
+    void insert( String fileSystem, String path, Date date, String fileId, int size, String fileStorage );
+
     void insert( PathMap pathMap );
 
     boolean isDirectory( String fileSystem, String path );
@@ -26,9 +28,11 @@ public interface PathDB
 
     String getStorageFile( String fileSystem, String path );
 
-    void copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath );
+    boolean copy( String fromFileSystem, String fromPath, String toFileSystem, String toPath );
 
     void makeDirs( String fileSystem, String path );
 
     List<Reclaim> listOrphanedFiles();
+
+    void removeFromReclaim( Reclaim reclaim );
 }

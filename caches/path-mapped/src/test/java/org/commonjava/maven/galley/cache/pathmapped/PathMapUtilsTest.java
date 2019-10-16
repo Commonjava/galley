@@ -1,15 +1,15 @@
 package org.commonjava.maven.galley.cache.pathmapped;
 
-import org.commonjava.maven.galley.cache.pathmapped.model.PathKey;
-import org.commonjava.maven.galley.cache.pathmapped.model.PathMap;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaPathKey;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.model.JpaPathMap;
 import org.junit.Test;
 
 import java.util.List;
 
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getFilename;
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getParentPath;
+
 import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getParents;
-import static org.commonjava.maven.galley.cache.pathmapped.util.PathMapUtils.getPathKey;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -19,12 +19,16 @@ public class PathMapUtilsTest
     @Test
     public void getParentsTest()
     {
-        PathKey key = getPathKey( "http://foo.com", "/path/to/my/file.txt" );
-        PathMap pathMap = new PathMap();
+        JpaPathKey key = new JpaPathKey( "http://foo.com", "/path/to/my", "file.txt" );
+        JpaPathMap pathMap = new JpaPathMap();
         pathMap.setPathKey( key );
 
-        List<PathMap> l = getParents( pathMap );
-        for ( PathMap map : l )
+        List<JpaPathMap> l = getParents( pathMap, ( fSystem, pPath, fName ) -> {
+            JpaPathMap p = new JpaPathMap();
+            p.setPathKey( new JpaPathKey( fSystem, pPath, fName ) );
+            return p;
+        } );
+        for ( JpaPathMap map : l )
         {
             System.out.println( ">> " + map.getPathKey() );
         }

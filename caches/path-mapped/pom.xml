@@ -10,7 +10,7 @@
         <version>0.17.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>path-mapped</artifactId>
+    <artifactId>galley-cache-path-mapped</artifactId>
 
     <name>Galley :: Caches :: PathMapped</name>
 
@@ -33,13 +33,29 @@
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
         </dependency>
+
+        <!--Datastax Java Driver-->
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-mapping</artifactId>
+            <version>3.7.2</version>
+        </dependency>
+
+        <!--Test-->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -50,6 +66,12 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.26</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cassandraunit</groupId>
+            <artifactId>cassandra-unit</artifactId>
+            <version>3.7.1.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

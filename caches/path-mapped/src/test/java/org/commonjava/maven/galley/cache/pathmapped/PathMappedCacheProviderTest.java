@@ -19,7 +19,7 @@ import org.commonjava.maven.galley.cache.CacheProviderTCK;
 import org.commonjava.maven.galley.cache.pathmapped.config.DefaultPathMappedStorageConfig;
 import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
-import org.commonjava.maven.galley.cache.pathmapped.core.RDBMSPathDB;
+import org.commonjava.maven.galley.cache.pathmapped.jpa.JPAPathDB;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
@@ -62,7 +62,7 @@ public class PathMappedCacheProviderTest
         provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
                                                 Executors.newScheduledThreadPool( 2 ),
                                                 new PathMappedFileManager( new DefaultPathMappedStorageConfig(),
-                                                                           new RDBMSPathDB( "test" ),
+                                                                           new JPAPathDB( "test" ),
                                                                            new FileBasedPhysicalStore( baseDir ) ) );
     }
 
