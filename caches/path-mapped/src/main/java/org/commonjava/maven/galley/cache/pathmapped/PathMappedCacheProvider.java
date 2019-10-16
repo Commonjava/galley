@@ -231,8 +231,14 @@ public class PathMappedCacheProvider
     public Transfer getTransfer( final ConcreteResource resource )
     {
         Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );
-        File f = new File( getFilePath( resource ) );
+        String filePath = getFilePath( resource );
+        if ( filePath == null )
+        {
+            logger.debug( "No storage filePath for {}", resource );
+            return null;
+        }
 
+        File f = new File( filePath );
         final int timeoutSeconds = resource.getLocation()
                                            .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
                                                           config.getDefaultTimeoutSeconds() );

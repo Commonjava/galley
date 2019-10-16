@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.cache.pathmapped.model;
+package org.commonjava.maven.galley.cache.pathmapped.jpa.model;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
-public class ReverseKey
+public class JpaReverseKey
                 implements Serializable
 {
     @Column( name = "fileid", nullable = false )
@@ -15,11 +15,11 @@ public class ReverseKey
     @Column( nullable = false )
     private int version;
 
-    public ReverseKey()
+    public JpaReverseKey()
     {
     }
 
-    public ReverseKey( String fileId, int version )
+    public JpaReverseKey( String fileId, int version )
     {
         this.fileId = fileId;
         this.version = version;
@@ -52,7 +52,7 @@ public class ReverseKey
             return true;
         if ( o == null || getClass() != o.getClass() )
             return false;
-        ReverseKey that = (ReverseKey) o;
+        JpaReverseKey that = (JpaReverseKey) o;
         return version == that.version && fileId.equals( that.fileId );
     }
 

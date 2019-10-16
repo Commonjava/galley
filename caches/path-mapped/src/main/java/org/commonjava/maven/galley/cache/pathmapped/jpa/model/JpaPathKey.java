@@ -1,4 +1,4 @@
-package org.commonjava.maven.galley.cache.pathmapped.model;
+package org.commonjava.maven.galley.cache.pathmapped.jpa.model;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
-public class PathKey
+public class JpaPathKey
                 implements Serializable
 {
     @Column( name = "filesystem", nullable = false )
@@ -18,11 +18,11 @@ public class PathKey
     @Column( nullable = false )
     private String filename;
 
-    public PathKey()
+    public JpaPathKey()
     {
     }
 
-    public PathKey( String fileSystem, String parentPath, String filename )
+    public JpaPathKey( String fileSystem, String parentPath, String filename )
     {
         this.fileSystem = fileSystem;
         this.parentPath = parentPath;
@@ -66,7 +66,7 @@ public class PathKey
             return true;
         if ( o == null || getClass() != o.getClass() )
             return false;
-        PathKey pathKey = (PathKey) o;
+        JpaPathKey pathKey = (JpaPathKey) o;
         return fileSystem.equals( pathKey.fileSystem ) && parentPath.equals( pathKey.parentPath ) && filename.equals(
                         pathKey.filename );
     }
@@ -84,23 +84,4 @@ public class PathKey
                         + filename + '\'' + '}';
     }
 
-
-    // marshall to string and parse from string
-
-    private static final String DELIMITER = "|";
-
-    public String marshall()
-    {
-        return fileSystem + DELIMITER + parentPath + DELIMITER + filename;
-    }
-
-    public static PathKey parse( String s )
-    {
-        String[] toks = s.split( DELIMITER );
-        if ( toks.length != 3 )
-        {
-            return null;
-        }
-        return new PathKey( toks[0], toks[1], toks[2] );
-    }
 }
