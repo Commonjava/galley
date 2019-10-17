@@ -122,42 +122,31 @@ public class PathMappedCacheProvider
     @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        return fileManager.isDirectory( fileSystem, resource.getPath() );
+        return handleResource( resource, (f, p)-> fileManager.isDirectory( f, p ) );
     }
 
     @Override
     public boolean isFile( final ConcreteResource resource )
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        return fileManager.isFile( fileSystem, resource.getPath() );
+        return handleResource( resource, (f, p)-> fileManager.isFile( f, p ) );
     }
 
     @Override
     public InputStream openInputStream( final ConcreteResource resource ) throws IOException
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        return fileManager.openInputStream( fileSystem, resource.getPath() );
+        return handleResourceIO( resource, (f, p)-> fileManager.openInputStream( f, p ) );
     }
 
     @Override
     public OutputStream openOutputStream( final ConcreteResource resource ) throws IOException
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        String realPath = pathGenerator.getPath( resource );
-        return fileManager.openOutputStream( fileSystem, realPath );
+        return handleResourceIO( resource, (f, p)-> fileManager.openOutputStream( f, p ) );
     }
 
     @Override
     public boolean exists( final ConcreteResource resource )
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        return fileManager.exists( fileSystem, resource.getPath() );
+        return handleResource( resource, ( f, p ) -> fileManager.exists( f, p ) );
     }
 
     @Override
@@ -165,11 +154,11 @@ public class PathMappedCacheProvider
     {
         Location loc = from.getLocation();
         String fromFileSystem = loc.getName();
-        String fromPath = from.getPath();
+        String fromPath = pathGenerator.getPath( from );
 
         loc = to.getLocation();
         String toFileSystem = loc.getName();
-        String toPath = to.getPath();
+        String toPath = pathGenerator.getPath( to );
 
         fileManager.copy( fromFileSystem, fromPath, toFileSystem, toPath );
     }
@@ -177,9 +166,7 @@ public class PathMappedCacheProvider
     @Override
     public boolean delete( final ConcreteResource resource ) throws IOException
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        return fileManager.delete( fileSystem, resource.getPath() );
+        return handleResource( resource, (f, p)-> fileManager.delete( f, p ) );
     }
 
     @Override
@@ -228,10 +215,7 @@ public class PathMappedCacheProvider
     @Override
     public String getStoragePath( final ConcreteResource resource )
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        String realPath = pathGenerator.getPath(resource);
-        return fileManager.getFileStoragePath( fileSystem, realPath );
+        return handleResource( resource, (f, p)-> fileManager.getFileStoragePath( f, p ) );
     }
 
     @Override
@@ -294,9 +278,7 @@ public class PathMappedCacheProvider
     {
         final long current = System.currentTimeMillis();
         final long lastModified = txfr.lastModified();
-        final int tos = timeoutSeconds < Location.MIN_CACHE_TIMEOUT_SECONDS ?
-                        Location.MIN_CACHE_TIMEOUT_SECONDS :
-                        timeoutSeconds;
+        final int tos = Math.max( timeoutSeconds, Location.MIN_CACHE_TIMEOUT_SECONDS );
 
         final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
 
@@ -312,17 +294,13 @@ public class PathMappedCacheProvider
     @Override
     public long length( final ConcreteResource resource )
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        return fileManager.getFileLength( fileSystem, resource.getPath() );
+        return handleResource( resource, (f, p)-> (long)fileManager.getFileLength( f, p ) );
     }
 
     @Override
     public long lastModified( final ConcreteResource resource )
     {
-        Location loc = resource.getLocation();
-        String fileSystem = loc.getName();
-        return fileManager.getFileLastModified( fileSystem, resource.getPath() );
+        return handleResource( resource, (f, p)-> fileManager.getFileLastModified( f, p ) );
     }
 
     @Override
@@ -395,5 +373,35 @@ public class PathMappedCacheProvider
     public void stopReporting()
     {
         fileManager.stopReporting();
+    }
+
+    @FunctionalInterface
+    interface PathMappedPathHandler<T>
+    {
+        T handlePath( String fileSystem, String path );
+    }
+
+    private <T> T handleResource( ConcreteResource resource, PathMappedPathHandler<T> handler )
+    {
+        Location loc = resource.getLocation();
+        String fileSystem = loc.getName();
+        String realPath = pathGenerator.getPath( resource );
+        return handler.handlePath( fileSystem, realPath );
+    }
+
+    @FunctionalInterface
+    interface PathMappedPathIOHandler<T>
+    {
+        T handlePath( String fileSystem, String path )
+                throws IOException;
+    }
+
+    private <T> T handleResourceIO( ConcreteResource resource, PathMappedPathIOHandler<T> handler )
+            throws IOException
+    {
+        Location loc = resource.getLocation();
+        String fileSystem = loc.getName();
+        String realPath = pathGenerator.getPath( resource );
+        return handler.handlePath( fileSystem, realPath );
     }
 }
