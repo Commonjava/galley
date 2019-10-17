@@ -17,10 +17,10 @@ package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
-import org.commonjava.maven.galley.cache.pathmapped.config.PathMappedStorageConfig;
-import org.commonjava.maven.galley.cache.pathmapped.datastax.CassandraPathDB;
-import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
-import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
+import org.commonjava.storage.pathmapped.config.PathMappedStorageConfig;
+import org.commonjava.storage.pathmapped.datastax.CassandraPathDB;
+import org.commonjava.storage.pathmapped.core.FileBasedPhysicalStore;
+import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;

@@ -16,10 +16,10 @@
 package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
-import org.commonjava.maven.galley.cache.pathmapped.config.DefaultPathMappedStorageConfig;
-import org.commonjava.maven.galley.cache.pathmapped.core.FileBasedPhysicalStore;
-import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
-import org.commonjava.maven.galley.cache.pathmapped.jpa.JPAPathDB;
+import org.commonjava.storage.pathmapped.config.DefaultPathMappedStorageConfig;
+import org.commonjava.storage.pathmapped.core.FileBasedPhysicalStore;
+import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
+import org.commonjava.storage.pathmapped.jpa.JPAPathDB;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;

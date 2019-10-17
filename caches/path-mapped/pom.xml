@@ -14,66 +14,45 @@
 
     <name>Galley :: Caches :: PathMapped</name>
 
+    <properties>
+        <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
+        <hibernateVersion>5.4.4.Final</hibernateVersion>
+        <h2Version>1.4.188</h2Version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.commonjava.maven.galley</groupId>
             <artifactId>galley-cache-tck</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>org.commonjava</groupId>
+            <artifactId>path-mapped-storage</artifactId>
         </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-
-        <!-- JPA support-->
-        <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
-        </dependency>
-
-        <!--Datastax Java Driver-->
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>3.7.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-mapping</artifactId>
-            <version>3.7.2</version>
-        </dependency>
-
-        <!--Test-->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
+            <version>${hibernateVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
+            <version>${hibernateVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.26</version>
+            <version>${h2Version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit</artifactId>
-            <version>3.7.1.0</version>
+            <version>${cassandraUnitVersion}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
 </project>
