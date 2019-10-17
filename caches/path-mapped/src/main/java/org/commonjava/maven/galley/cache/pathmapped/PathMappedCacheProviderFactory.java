@@ -62,7 +62,7 @@ public class PathMappedCacheProviderFactory
                                                     new PathMappedFileManager( config,
                                                                                new CassandraPathDB( config ),
                                                                                new FileBasedPhysicalStore(
-                                                                                               cacheDir ) ) );
+                                                                                               cacheDir ) ),pathGenerator );
         }
         return provider;
     }

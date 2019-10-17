@@ -23,6 +23,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,13 +58,16 @@ public class PathMappedCacheProvider
 
     private ScheduledExecutorService deleteExecutor;
 
+    private PathGenerator pathGenerator;
+
     private List<Transfer> toDelete = Collections.synchronizedList( new ArrayList<>() );
 
     public PathMappedCacheProvider( final File cacheBasedir,
                                     final FileEventManager fileEventManager,
                                     final TransferDecoratorManager transferDecorator,
                                     final ScheduledExecutorService deleteExecutor,
-                                    final PathMappedFileManager fileManager )
+                                    final PathMappedFileManager fileManager,
+                                    final PathGenerator pathGenerator)
     {
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
@@ -74,6 +78,7 @@ public class PathMappedCacheProvider
                         deleteExecutor == null ? Executors.newScheduledThreadPool( corePoolSize ) : deleteExecutor;
         this.fileManager = fileManager;
 
+        this.pathGenerator = pathGenerator;
         if ( deleteExecutor instanceof ThreadPoolExecutor )
         {
             corePoolSize = ( (ThreadPoolExecutor) deleteExecutor ).getPoolSize();
@@ -143,7 +148,8 @@ public class PathMappedCacheProvider
     {
         Location loc = resource.getLocation();
         String fileSystem = loc.getName();
-        return fileManager.openOutputStream( fileSystem, resource.getPath() );
+        String realPath = pathGenerator.getPath( resource );
+        return fileManager.openOutputStream( fileSystem, realPath );
     }
 
     @Override
@@ -224,7 +230,8 @@ public class PathMappedCacheProvider
     {
         Location loc = resource.getLocation();
         String fileSystem = loc.getName();
-        return fileManager.getFileStoragePath( fileSystem, resource.getPath() );
+        String realPath = pathGenerator.getPath(resource);
+        return fileManager.getFileStoragePath( fileSystem, realPath );
     }
 
     @Override
