@@ -16,7 +16,7 @@
 package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.cdi.util.weft.SingleThreadedExecutorService;
-import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
+import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
