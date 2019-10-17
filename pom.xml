@@ -60,7 +60,9 @@
     <javaVersion>1.8</javaVersion>
     <byteman.version>3.0.6</byteman.version>
     <metrics.version>4.0.2</metrics.version>
+    <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.4.Final</hibernateVersion>
+    <h2Version>1.4.188</h2Version>
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
 
@@ -335,7 +337,12 @@
       <dependency>
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
-        <version>1.4.188</version>
+        <version>${h2Version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cassandraunit</groupId>
+        <artifactId>cassandra-unit</artifactId>
+        <version>${cassandraUnitVersion}</version>
       </dependency>
 
     </dependencies>
