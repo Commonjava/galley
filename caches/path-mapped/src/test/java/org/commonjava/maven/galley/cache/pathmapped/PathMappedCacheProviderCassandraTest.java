@@ -26,6 +26,7 @@ import org.commonjava.maven.galley.cache.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.cache.pathmapped.model.Reclaim;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
+import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -33,6 +34,7 @@ import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.junit.After;
 import org.junit.Before;
@@ -96,13 +98,15 @@ public class PathMappedCacheProviderCassandraTest
         final FileEventManager events = new TestFileEventManager();
         final TransferDecorator decorator = new TestTransferDecorator();
 
+        final PathGenerator pathgen = new HashedLocationPathGenerator();
+
         File baseDir = temp.newFolder();
         pathDB = new CassandraPathDB( config );
         fileManager = new PathMappedFileManager( new DefaultPathMappedStorageConfig(), pathDB,
                                                  new FileBasedPhysicalStore( baseDir ) );
         provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
                                                 Executors.newScheduledThreadPool( 2 ),
-                                                fileManager );
+                                                fileManager, pathgen );
     }
 
     @After
