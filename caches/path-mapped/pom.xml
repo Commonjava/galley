@@ -20,7 +20,7 @@
             <artifactId>galley-cache-tck</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.commonjava</groupId>
+            <groupId>org.commonjava.util</groupId>
             <artifactId>path-mapped-storage</artifactId>
         </dependency>
         <dependency>

@@ -135,7 +135,7 @@
       </dependency>
 
       <dependency>
-        <groupId>org.commonjava</groupId>
+        <groupId>org.commonjava.util</groupId>
         <artifactId>path-mapped-storage</artifactId>
         <version>${pathmappedStorageVersion}</version>
       </dependency>
