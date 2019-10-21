@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.cdi.util.weft.SingleThreadedExecutorService;
+import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -116,7 +117,7 @@ public class PathMappedCacheProvider
     @Override
     public File getDetachedFile( final ConcreteResource resource )
     {
-        return new File( getFilePath( resource ) );
+        return null;
     }
 
     @Override
@@ -206,36 +207,34 @@ public class PathMappedCacheProvider
         }
     }
 
+    /**
+     * Logic file path, e.g., maven/remote-foo/bar/package.json
+     */
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return getStoragePath( resource );
+        return handleResource( resource, ( f, p ) -> PathUtils.normalize( f, p ) );
     }
 
+    /**
+     * Logic storage path, e.g., for NPM, the bar/package.json is the storage path while the raw path is bar/
+     */
     @Override
     public String getStoragePath( final ConcreteResource resource )
     {
-        return handleResource( resource, (f, p)-> fileManager.getFileStoragePath( f, p ) );
+        return handleResource( resource, ( f, p ) -> p );
     }
 
     @Override
     public Transfer getTransfer( final ConcreteResource resource )
     {
         Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );
-        String filePath = getFilePath( resource );
-        if ( filePath == null )
-        {
-            logger.debug( "No storage filePath for {}", resource );
-            return null;
-        }
 
-        File f = new File( filePath );
         final int timeoutSeconds = resource.getLocation()
                                            .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
                                                           config.getDefaultTimeoutSeconds() );
 
-        if ( !resource.isRoot() && f.exists() && !f.isDirectory() && config.isTimeoutProcessingEnabled()
-                        && timeoutSeconds > 0 )
+        if ( !resource.isRoot() && isFile( resource ) && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
         {
             if ( isTimedOut( txfr, timeoutSeconds ) )
             {
@@ -386,6 +385,7 @@ public class PathMappedCacheProvider
         Location loc = resource.getLocation();
         String fileSystem = loc.getName();
         String realPath = pathGenerator.getPath( resource );
+        logger.debug( "handleResource, fileSystem:{}, realPath:{}", fileSystem, realPath );
         return handler.handlePath( fileSystem, realPath );
     }
 

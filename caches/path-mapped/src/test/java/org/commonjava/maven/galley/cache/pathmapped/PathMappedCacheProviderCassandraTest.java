@@ -57,6 +57,7 @@ import static org.commonjava.storage.pathmapped.util.CassandraPathDBUtils.PROP_C
 import static org.commonjava.storage.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_KEYSPACE;
 import static org.commonjava.storage.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_PORT;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -181,7 +182,7 @@ public class PathMappedCacheProviderCassandraTest
         assertThat( src, equalTo( null ) );
 
         Transfer transfer = provider.getTransfer( resource );
-        assertThat( transfer, equalTo( null ) );
+        assertThat( transfer, notNullValue() );
 
         config.setGcGracePeriodInHours( 0 );
         List<Reclaim> l = pathDB.listOrphanedFiles();
