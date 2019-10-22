@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.cache.pathmapped;
 
-import org.commonjava.cdi.util.weft.SingleThreadedExecutorService;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
@@ -34,19 +33,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class PathMappedCacheProvider
                 implements CacheProvider, CacheProvider.AdminView
 {
-    private static final long SWEEP_TIMEOUT_SECONDS = 30;
-
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private PathMappedCacheProviderConfig config;
@@ -57,11 +52,11 @@ public class PathMappedCacheProvider
 
     private PathMappedFileManager fileManager;
 
-    private ScheduledExecutorService deleteExecutor;
+    private ExecutorService deleteExecutor;
 
     private PathGenerator pathGenerator;
 
-    private List<Transfer> toDelete = Collections.synchronizedList( new ArrayList<>() );
+    private static final int DEFAULT_DELETE_EXECUTOR_POOL_SIZE = 2;
 
     public PathMappedCacheProvider( final File cacheBasedir,
                                     final FileEventManager fileEventManager,
@@ -73,26 +68,11 @@ public class PathMappedCacheProvider
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.config = new PathMappedCacheProviderConfig( cacheBasedir );
-
-        int corePoolSize = 2;
-        this.deleteExecutor =
-                        deleteExecutor == null ? Executors.newScheduledThreadPool( corePoolSize ) : deleteExecutor;
+        this.deleteExecutor = deleteExecutor == null ?
+                        newFixedThreadPool( DEFAULT_DELETE_EXECUTOR_POOL_SIZE ) :
+                        deleteExecutor;
         this.fileManager = fileManager;
-
         this.pathGenerator = pathGenerator;
-        if ( deleteExecutor instanceof ThreadPoolExecutor )
-        {
-            corePoolSize = ( (ThreadPoolExecutor) deleteExecutor ).getPoolSize();
-        }
-        else if ( deleteExecutor instanceof SingleThreadedExecutorService )
-        {
-            corePoolSize = 1;
-        }
-
-        for ( int i = 0; i < corePoolSize; i++ )
-        {
-            deleteExecutor.schedule( newTransferDeleteSweeper(), SWEEP_TIMEOUT_SECONDS, TimeUnit.SECONDS );
-        }
 
         startReportingDaemon();
     }
@@ -229,47 +209,24 @@ public class PathMappedCacheProvider
     public Transfer getTransfer( final ConcreteResource resource )
     {
         Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );
-
-        final int timeoutSeconds = resource.getLocation()
-                                           .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
-                                                          config.getDefaultTimeoutSeconds() );
-
+        final int timeoutSeconds = getResourceTimeoutSeconds( resource );
         if ( !resource.isRoot() && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
         {
-            if ( isFileTimeout( txfr, timeoutSeconds ) )
-            {
-                toDelete.add( txfr );
-            }
+            deleteExecutor.submit( () -> {
+                if ( isFileTimeout( txfr, timeoutSeconds ) )
+                {
+                    handleResource( resource, ( f, p ) -> fileManager.delete( f, p ) );
+                }
+            } );
         }
-
         return txfr;
     }
 
-    private Runnable newTransferDeleteSweeper()
+    private int getResourceTimeoutSeconds( final ConcreteResource resource )
     {
-        return () -> {
-            if ( toDelete.isEmpty() )
-            {
-                return;
-            }
-
-            Transfer transfer = toDelete.remove( 0 );
-            final int timeoutSeconds = transfer.getResource()
-                                               .getLocation()
-                                               .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
-                                                              config.getDefaultTimeoutSeconds() );
-
-            if ( !transfer.getResource().isRoot() && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
-            {
-                if ( isFileTimeout( transfer, timeoutSeconds ) )
-                {
-                    ConcreteResource resource = transfer.getResource();
-                    Location loc = resource.getLocation();
-                    String fileSystem = loc.getName();
-                    fileManager.delete( fileSystem, resource.getPath() );
-                }
-            }
-        };
+        return resource.getLocation()
+                       .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
+                                      config.getDefaultTimeoutSeconds() );
     }
 
     /**
