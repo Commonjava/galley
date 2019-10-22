@@ -25,8 +25,6 @@ import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
@@ -34,8 +32,6 @@ import java.util.concurrent.ScheduledExecutorService;
 public class PathMappedCacheProviderFactory
                 implements CacheProviderFactory
 {
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
-
     private File cacheDir;
 
     private PathMappedStorageConfig config;
@@ -58,11 +54,19 @@ public class PathMappedCacheProviderFactory
     {
         if ( provider == null )
         {
-            provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, deleteExecutor,
-                                                    new PathMappedFileManager( config,
-                                                                               new CassandraPathDB( config ),
-                                                                               new FileBasedPhysicalStore(
-                                                                                               cacheDir ) ),pathGenerator );
+            try
+            {
+                provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, deleteExecutor,
+                                                        new PathMappedFileManager( config,
+                                                                                   new CassandraPathDB( config ),
+                                                                                   new FileBasedPhysicalStore(
+                                                                                                   cacheDir ) ),
+                                                        pathGenerator );
+            }
+            catch ( Exception ex )
+            {
+                throw new GalleyInitException( "Create cache provider failed", ex );
+            }
         }
         return provider;
     }

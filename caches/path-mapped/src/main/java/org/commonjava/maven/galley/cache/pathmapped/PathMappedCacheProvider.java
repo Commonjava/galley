@@ -234,9 +234,9 @@ public class PathMappedCacheProvider
                                            .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
                                                           config.getDefaultTimeoutSeconds() );
 
-        if ( !resource.isRoot() && isFile( resource ) && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
+        if ( !resource.isRoot() && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
         {
-            if ( isTimedOut( txfr, timeoutSeconds ) )
+            if ( isFileTimeout( txfr, timeoutSeconds ) )
             {
                 toDelete.add( txfr );
             }
@@ -259,10 +259,9 @@ public class PathMappedCacheProvider
                                                .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
                                                               config.getDefaultTimeoutSeconds() );
 
-            if ( !transfer.getResource().isRoot() && transfer.exists() && !transfer.isDirectory()
-                            && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
+            if ( !transfer.getResource().isRoot() && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
             {
-                if ( isTimedOut( transfer, timeoutSeconds ) )
+                if ( isFileTimeout( transfer, timeoutSeconds ) )
                 {
                     ConcreteResource resource = transfer.getResource();
                     Location loc = resource.getLocation();
@@ -273,14 +272,21 @@ public class PathMappedCacheProvider
         };
     }
 
-    private boolean isTimedOut( final Transfer txfr, int timeoutSeconds )
+    /**
+     * Return true if it is both a file and timeout. False if file not exists or directory. This is because
+     * getFileLastModified return -1 when file not exists or directory.
+     */
+    private boolean isFileTimeout( final Transfer txfr, int timeoutSeconds )
     {
         final long current = System.currentTimeMillis();
         final long lastModified = txfr.lastModified();
+        if ( lastModified <= 0 )
+        {
+            // not exist or not a file
+            return false;
+        }
         final int tos = Math.max( timeoutSeconds, Location.MIN_CACHE_TIMEOUT_SECONDS );
-
         final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
-
         return current - lastModified > timeout;
     }
 
