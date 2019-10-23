@@ -103,13 +103,13 @@ public class PathMappedCacheProvider
     @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
-        return handleResource( resource, (f, p)-> fileManager.isDirectory( f, p ) );
+        return handleResource( resource, (f, p)-> fileManager.isDirectory( f, p ), "isDirectory" );
     }
 
     @Override
     public boolean isFile( final ConcreteResource resource )
     {
-        return handleResource( resource, (f, p)-> fileManager.isFile( f, p ) );
+        return handleResource( resource, (f, p)-> fileManager.isFile( f, p ), "isFile" );
     }
 
     @Override
@@ -127,7 +127,7 @@ public class PathMappedCacheProvider
     @Override
     public boolean exists( final ConcreteResource resource )
     {
-        return handleResource( resource, ( f, p ) -> fileManager.exists( f, p ) );
+        return handleResource( resource, ( f, p ) -> fileManager.exists( f, p ), "exists" );
     }
 
     @Override
@@ -147,7 +147,7 @@ public class PathMappedCacheProvider
     @Override
     public boolean delete( final ConcreteResource resource ) throws IOException
     {
-        return handleResource( resource, (f, p)-> fileManager.delete( f, p ) );
+        return handleResource( resource, (f, p)-> fileManager.delete( f, p ), "delete" );
     }
 
     @Override
@@ -193,7 +193,7 @@ public class PathMappedCacheProvider
     @Override
     public String getFilePath( final ConcreteResource resource )
     {
-        return handleResource( resource, ( f, p ) -> PathUtils.normalize( f, p ) );
+        return handleResource( resource, ( f, p ) -> PathUtils.normalize( f, p ), "getFilePath" );
     }
 
     /**
@@ -202,7 +202,7 @@ public class PathMappedCacheProvider
     @Override
     public String getStoragePath( final ConcreteResource resource )
     {
-        return handleResource( resource, ( f, p ) -> p );
+        return handleResource( resource, ( f, p ) -> p, "getStoragePath" );
     }
 
     @Override
@@ -215,7 +215,7 @@ public class PathMappedCacheProvider
             deleteExecutor.submit( () -> {
                 if ( isFileTimeout( txfr, timeoutSeconds ) )
                 {
-                    handleResource( resource, ( f, p ) -> fileManager.delete( f, p ) );
+                    handleResource( resource, ( f, p ) -> fileManager.delete( f, p ), "transferDelete" );
                 }
             } );
         }
@@ -256,13 +256,13 @@ public class PathMappedCacheProvider
     @Override
     public long length( final ConcreteResource resource )
     {
-        return handleResource( resource, (f, p)-> (long)fileManager.getFileLength( f, p ) );
+        return handleResource( resource, (f, p)-> (long)fileManager.getFileLength( f, p ), "length" );
     }
 
     @Override
     public long lastModified( final ConcreteResource resource )
     {
-        return handleResource( resource, (f, p)-> fileManager.getFileLastModified( f, p ) );
+        return handleResource( resource, (f, p)-> fileManager.getFileLastModified( f, p ), "lastModified" );
     }
 
     @Override
@@ -343,12 +343,13 @@ public class PathMappedCacheProvider
         T handlePath( String fileSystem, String path );
     }
 
-    private <T> T handleResource( ConcreteResource resource, PathMappedPathHandler<T> handler )
+    // handlerName for debug and accounting
+    private <T> T handleResource( ConcreteResource resource, PathMappedPathHandler<T> handler, String handlerName )
     {
         Location loc = resource.getLocation();
         String fileSystem = loc.getName();
         String realPath = pathGenerator.getPath( resource );
-        logger.debug( "handleResource, fileSystem:{}, realPath:{}", fileSystem, realPath );
+        logger.debug( "handleResource, fileSystem:{}, realPath:{}, handler:{}", fileSystem, realPath, handlerName );
         return handler.handlePath( fileSystem, realPath );
     }
 
