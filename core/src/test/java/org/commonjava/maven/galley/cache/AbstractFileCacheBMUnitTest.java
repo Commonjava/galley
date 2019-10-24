@@ -16,7 +16,6 @@
 package org.commonjava.maven.galley.cache;
 
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -57,7 +56,7 @@ public abstract class AbstractFileCacheBMUnitTest
             throws Exception
     {
         temp.create();
-        provider = new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(),
+        provider = new FileCacheProvider( temp.newFolder( "cache" ), new MockPathGenerator(),
                                           new NoOpFileEventManager(), new TransferDecoratorManager( new NoOpTransferDecorator() ), true );
     }
 

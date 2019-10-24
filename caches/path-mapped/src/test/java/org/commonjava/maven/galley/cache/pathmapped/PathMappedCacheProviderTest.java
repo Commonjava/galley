@@ -16,13 +16,13 @@
 package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
+import org.commonjava.maven.galley.cache.MockPathGenerator;
 import org.commonjava.storage.pathmapped.config.DefaultPathMappedStorageConfig;
 import org.commonjava.storage.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.storage.pathmapped.jpa.JPAPathDB;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -59,7 +59,7 @@ public class PathMappedCacheProviderTest
     {
         final FileEventManager events = new TestFileEventManager();
         final TransferDecorator decorator = new TestTransferDecorator();
-        final PathGenerator pathgen = new HashedLocationPathGenerator();
+        final PathGenerator pathgen = new MockPathGenerator();
 
         File baseDir = temp.newFolder();
         provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),

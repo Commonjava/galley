@@ -16,7 +16,6 @@
 package org.commonjava.maven.galley.cache;
 
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -45,7 +44,7 @@ public class FileCacheProviderTest
     protected CacheProvider getCacheProvider()
         throws Exception
     {
-        return new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(), new NoOpFileEventManager(),
+        return new FileCacheProvider( temp.newFolder( "cache" ), new MockPathGenerator(), new NoOpFileEventManager(),
                                       new TransferDecoratorManager( new NoOpTransferDecorator() ), true );
     }
 
