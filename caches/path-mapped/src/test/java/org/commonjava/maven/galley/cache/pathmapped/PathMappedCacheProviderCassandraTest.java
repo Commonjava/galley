@@ -18,15 +18,14 @@ package org.commonjava.maven.galley.cache.pathmapped;
 import com.datastax.driver.core.Session;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
+import org.commonjava.maven.galley.cache.MockPathGenerator;
 import org.commonjava.storage.pathmapped.config.DefaultPathMappedStorageConfig;
-import org.commonjava.storage.pathmapped.config.PathMappedStorageConfig;
 import org.commonjava.storage.pathmapped.datastax.CassandraPathDB;
 import org.commonjava.storage.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.storage.pathmapped.model.Reclaim;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -52,16 +51,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-import static java.util.Objects.isNull;
 import static org.commonjava.storage.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_HOST;
 import static org.commonjava.storage.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_KEYSPACE;
 import static org.commonjava.storage.pathmapped.util.CassandraPathDBUtils.PROP_CASSANDRA_PORT;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class PathMappedCacheProviderCassandraTest
                 extends CacheProviderTCK
@@ -70,39 +68,38 @@ public class PathMappedCacheProviderCassandraTest
     @Rule
     public TemporaryFolder temp = new TemporaryFolder();
 
-    private PathMappedCacheProvider provider;
+    private static DefaultPathMappedStorageConfig config;
 
-    private DefaultPathMappedStorageConfig config;
+    private static CassandraPathDB pathDB;
 
-    private CassandraPathDB pathDB;
+    private final FileEventManager events = new TestFileEventManager();
+    private final TransferDecorator decorator = new TestTransferDecorator();
 
     private PathMappedFileManager fileManager;
+    private PathMappedCacheProvider provider;
 
     @BeforeClass
     public static void startEmbeddedCassandra() throws Exception
     {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-    }
-
-    private final String keyspace = "test";
-
-    @Before
-    public void setup() throws Exception
-    {
         Map<String, Object> props = new HashMap<>();
         props.put( PROP_CASSANDRA_HOST, "localhost" );
         props.put( PROP_CASSANDRA_PORT, 9142 );
         props.put( PROP_CASSANDRA_KEYSPACE, keyspace );
 
         config = new DefaultPathMappedStorageConfig( props );
-
-        final FileEventManager events = new TestFileEventManager();
-        final TransferDecorator decorator = new TestTransferDecorator();
-
-        final PathGenerator pathgen = new HashedLocationPathGenerator();
-
-        File baseDir = temp.newFolder();
         pathDB = new CassandraPathDB( config );
+
+    }
+
+    private static final String keyspace = "test";
+
+    final PathGenerator pathgen = new MockPathGenerator();
+
+    @Before
+    public void setup() throws Exception
+    {
+        File baseDir = temp.newFolder();
         fileManager = new PathMappedFileManager( new DefaultPathMappedStorageConfig(), pathDB,
                                                  new FileBasedPhysicalStore( baseDir ) );
         provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
@@ -137,7 +134,7 @@ public class PathMappedCacheProviderCassandraTest
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( UTF_8 ) );
         out.close();
 
         provider.move( new ConcreteResource( loc, fname ), new ConcreteResource( loc2, fname ) );
@@ -151,7 +148,7 @@ public class PathMappedCacheProviderCassandraTest
             baos.write( buf, 0, read );
         }
 
-        final String result = new String( baos.toByteArray(), "UTF-8" );
+        final String result = new String( baos.toByteArray(), UTF_8 );
 
         assertThat( result, equalTo( content ) );
 
@@ -173,7 +170,7 @@ public class PathMappedCacheProviderCassandraTest
         final CacheProvider provider = getCacheProvider();
 
         final OutputStream out = provider.openOutputStream( resource );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( UTF_8 ) );
         out.close();
 
         provider.delete( resource );
@@ -206,12 +203,12 @@ public class PathMappedCacheProviderCassandraTest
 
         // write once
         final OutputStream out = provider.openOutputStream( resource );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( UTF_8 ) );
         out.close();
 
         // write again
         final OutputStream out2 = provider.openOutputStream( resource );
-        out2.write( content2.getBytes( "UTF-8" ) );
+        out2.write( content2.getBytes( UTF_8 ) );
         out2.close();
 
         // read
@@ -223,7 +220,7 @@ public class PathMappedCacheProviderCassandraTest
         {
             baos.write( buf, 0, read );
         }
-        final String result = new String( baos.toByteArray(), "UTF-8" );
+        final String result = new String( baos.toByteArray(), UTF_8 );
         assertThat( result, equalTo( content2 ) );
 
         // check reclaim
