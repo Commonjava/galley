@@ -20,10 +20,10 @@ import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.cache.MockPathGenerator;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -86,7 +86,7 @@ public class DownloadHandlerConcurrencyTest
         executor = Executors.newCachedThreadPool();
 
         cacheProvider =
-                new FileCacheProvider( temp.newFolder(), new HashedLocationPathGenerator(), new NoOpFileEventManager(),
+                new FileCacheProvider( temp.newFolder(), new MockPathGenerator(), new NoOpFileEventManager(),
                                        new TransferDecoratorManager( new NoOpTransferDecorator() ), false );
 
         transport = new HttpClientTransport( new HttpImpl( new MemoryPasswordManager() ), new ObjectMapper(),

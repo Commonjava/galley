@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley;
 
 import org.commonjava.maven.galley.cache.FileCacheProvider;
+import org.commonjava.maven.galley.cache.MockPathGenerator;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.internal.TransferManagerImpl;
@@ -23,7 +24,6 @@ import org.commonjava.maven.galley.internal.xfer.DownloadHandler;
 import org.commonjava.maven.galley.internal.xfer.ExistenceHandler;
 import org.commonjava.maven.galley.internal.xfer.ListingHandler;
 import org.commonjava.maven.galley.internal.xfer.UploadHandler;
-import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
@@ -75,7 +75,7 @@ public class TransferManagerImplTest
         transport = new TestTransport();
         transportMgr = new TransportManagerImpl( transport );
         cacheProvider =
-            new FileCacheProvider( temp.newFolder( "cache" ), new HashedLocationPathGenerator(), new NoOpFileEventManager(),
+            new FileCacheProvider( temp.newFolder( "cache" ), new MockPathGenerator(), new NoOpFileEventManager(),
                                    new TransferDecoratorManager( new NoOpTransferDecorator() ), true );
         nfc = new MemoryNotFoundCache();
         fileEvents = new NoOpFileEventManager();
