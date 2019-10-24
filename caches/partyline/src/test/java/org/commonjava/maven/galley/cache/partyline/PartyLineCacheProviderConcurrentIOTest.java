@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.galley.cache.partyline;
 
+import org.commonjava.maven.galley.cache.MockPathGenerator;
 import org.commonjava.maven.galley.cache.iotasks.ReadTask;
 import org.commonjava.maven.galley.cache.iotasks.WriteTask;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
@@ -63,7 +64,7 @@ public class PartyLineCacheProviderConcurrentIOTest
 
     private PartyLineCacheProvider provider;
 
-    private final PathGenerator pathgen = new HashedLocationPathGenerator();
+    private final PathGenerator pathgen = new MockPathGenerator();
 
     private final FileEventManager events = new TestFileEventManager();
 

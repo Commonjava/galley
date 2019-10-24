@@ -319,7 +319,14 @@ public class TransferManagerImpl
                                     }
                                     else
                                     {
-                                        filenames.add( fname + "/" );
+                                        if ( fname.endsWith( "/" ) )
+                                        {
+                                            filenames.add( fname );
+                                        }
+                                        else
+                                        {
+                                            filenames.add( fname + "/" );
+                                        }
                                     }
                                 }
                             }

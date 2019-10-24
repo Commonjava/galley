@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.cache.partyline;
 
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
+import org.commonjava.maven.galley.cache.MockPathGenerator;
 import org.commonjava.maven.galley.cache.testutil.TestFileEventManager;
 import org.commonjava.maven.galley.cache.testutil.TestTransferDecorator;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
@@ -44,7 +45,7 @@ public class PartyLineCacheProviderTest
     public void setup()
         throws Exception
     {
-        final PathGenerator pathgen = new HashedLocationPathGenerator();
+        final PathGenerator pathgen = new MockPathGenerator();
         final FileEventManager events = new TestFileEventManager();
         final TransferDecorator decorator = new TestTransferDecorator();
 
