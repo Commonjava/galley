@@ -128,6 +128,11 @@ public interface CacheProvider
     {
         boolean isFileBased();
 
-        File getDetachedFile( ConcreteResource resource );
+        default File getDetachedFile( ConcreteResource resource ) { return null; }
+
+        /**
+         * Expose GC in case the caller wants to run it directly, especially in functional test
+         */
+        default void gc() {}
     }
 }
