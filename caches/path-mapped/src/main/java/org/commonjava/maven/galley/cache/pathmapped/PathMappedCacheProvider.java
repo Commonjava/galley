@@ -101,6 +101,12 @@ public class PathMappedCacheProvider
     }
 
     @Override
+    public void gc()
+    {
+        fileManager.gc();
+    }
+
+    @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
         return handleResource( resource, (f, p)-> fileManager.isDirectory( f, p ), "isDirectory" );
