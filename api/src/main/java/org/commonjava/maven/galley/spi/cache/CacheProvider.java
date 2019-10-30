@@ -134,5 +134,7 @@ public interface CacheProvider
          * Expose GC in case the caller wants to run it directly, especially in functional test
          */
         default void gc() {}
+
+        default void close() {}
     }
 }

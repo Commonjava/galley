@@ -107,6 +107,19 @@ public class PathMappedCacheProvider
     }
 
     @Override
+    public void close()
+    {
+        try
+        {
+            fileManager.close();
+        }
+        catch ( IOException e )
+        {
+            logger.warn( "Fail to close", e );
+        }
+    }
+
+    @Override
     public boolean isDirectory( final ConcreteResource resource )
     {
         return handleResource( resource, (f, p)-> fileManager.isDirectory( f, p ), "isDirectory" );
