@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -61,7 +60,7 @@ public class PathMappedCacheProvider
     public PathMappedCacheProvider( final File cacheBasedir,
                                     final FileEventManager fileEventManager,
                                     final TransferDecoratorManager transferDecorator,
-                                    final ScheduledExecutorService deleteExecutor,
+                                    final ExecutorService deleteExecutor,
                                     final PathMappedFileManager fileManager,
                                     final PathGenerator pathGenerator)
     {
@@ -73,7 +72,6 @@ public class PathMappedCacheProvider
                         deleteExecutor;
         this.fileManager = fileManager;
         this.pathGenerator = pathGenerator;
-
         startReportingDaemon();
     }
 
@@ -94,10 +92,15 @@ public class PathMappedCacheProvider
         return true;
     }
 
+    /**
+     * Only for test.
+     */
     @Override
     public File getDetachedFile( final ConcreteResource resource )
     {
-        return null;
+        return handleResource( resource,
+                               ( f, p ) -> new File( config.getCacheBasedir(), fileManager.getFileStoragePath( f, p ) ),
+                               "getDetachedFile" );
     }
 
     @Override
