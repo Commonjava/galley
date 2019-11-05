@@ -27,7 +27,7 @@ import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 
 import java.io.File;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ExecutorService;
 
 public class PathMappedCacheProviderFactory
                 implements CacheProviderFactory
@@ -36,11 +36,11 @@ public class PathMappedCacheProviderFactory
 
     private PathMappedStorageConfig config;
 
-    private ScheduledExecutorService deleteExecutor;
+    private ExecutorService deleteExecutor;
 
     private transient PathMappedCacheProvider provider;
 
-    public PathMappedCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor,
+    public PathMappedCacheProviderFactory( File cacheDir, ExecutorService deleteExecutor,
                                            PathMappedStorageConfig config )
     {
         this.cacheDir = cacheDir;

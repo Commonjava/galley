@@ -21,15 +21,9 @@ public class PathMappedCacheProviderConfig
 {
     public static final String DEFAULT_STORAGE_STRATEGY = "default";
 
-    private static final int DEFAULT_GC_INTERVAL_SECONDS = 3600;
-
     private final File cacheBasedir; // e.g., storage/
 
-    private final File cacheMappedDir; // e.g., storage/mapped, to separate from legacy sub-dir like maven/, npm/, etc
-
     private String storageStrategy = DEFAULT_STORAGE_STRATEGY;
-
-    private int gcIntervalSeconds = DEFAULT_GC_INTERVAL_SECONDS;
 
     private static final int DEFAULT_TIMEOUT_SECONDS = 86400;
 
@@ -40,23 +34,11 @@ public class PathMappedCacheProviderConfig
     public PathMappedCacheProviderConfig( final File cacheBasedir )
     {
         this.cacheBasedir = cacheBasedir;
-        this.cacheMappedDir = new File( cacheBasedir, "mapped" );
     }
 
     public File getCacheBasedir()
     {
         return cacheBasedir;
-    }
-
-    public PathMappedCacheProviderConfig withGCIntervalSeconds( final int gcIntervalSeconds )
-    {
-        this.gcIntervalSeconds = gcIntervalSeconds;
-        return this;
-    }
-
-    public int getGcIntervalSeconds()
-    {
-        return gcIntervalSeconds;
     }
 
     public PathMappedCacheProviderConfig withStorageStrategy( String storageStrategy )
@@ -68,11 +50,6 @@ public class PathMappedCacheProviderConfig
     public String getStorageStrategy()
     {
         return storageStrategy;
-    }
-
-    public File getCacheMappedDir()
-    {
-        return cacheMappedDir;
     }
 
     public PathMappedCacheProviderConfig withDefaultTimeoutSeconds( final int defaultTimeoutSeconds )
