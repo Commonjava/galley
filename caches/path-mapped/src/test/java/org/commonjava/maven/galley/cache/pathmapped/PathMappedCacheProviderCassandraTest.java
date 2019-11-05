@@ -114,6 +114,7 @@ public class PathMappedCacheProviderCassandraTest
         session.execute("TRUNCATE " + keyspace + ".pathmap");
         session.execute("TRUNCATE " + keyspace + ".reversemap");
         session.execute("TRUNCATE " + keyspace + ".reclaim");
+        session.execute("TRUNCATE " + keyspace + ".filechecksum");
     }
 
     @Override

@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class PathMappedCacheProviderTest
+public class PathMappedCacheProviderJPATest
                 extends CacheProviderTCK
 {
 
