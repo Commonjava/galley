@@ -25,6 +25,8 @@ import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.storage.pathmapped.spi.PathDB;
+import org.commonjava.storage.pathmapped.spi.PhysicalStore;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -40,12 +42,24 @@ public class PathMappedCacheProviderFactory
 
     private transient PathMappedCacheProvider provider;
 
+    private PathDB pathDB;
+
+    private PhysicalStore physicalStore;
+
     public PathMappedCacheProviderFactory( File cacheDir, ExecutorService deleteExecutor,
                                            PathMappedStorageConfig config )
+    {
+        this( cacheDir, deleteExecutor, config, null, null );
+    }
+
+    public PathMappedCacheProviderFactory( File cacheDir, ExecutorService deleteExecutor,
+                                           PathMappedStorageConfig config, PathDB pathDB, PhysicalStore physicalStore )
     {
         this.cacheDir = cacheDir;
         this.deleteExecutor = deleteExecutor;
         this.config = config;
+        this.pathDB = pathDB;
+        this.physicalStore = physicalStore;
     }
 
     @Override
@@ -56,11 +70,16 @@ public class PathMappedCacheProviderFactory
         {
             try
             {
+                if ( pathDB == null )
+                {
+                    pathDB = new CassandraPathDB( config );
+                }
+                if ( physicalStore == null )
+                {
+                    physicalStore = new FileBasedPhysicalStore( cacheDir );
+                }
                 provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, deleteExecutor,
-                                                        new PathMappedFileManager( config,
-                                                                                   new CassandraPathDB( config ),
-                                                                                   new FileBasedPhysicalStore(
-                                                                                                   cacheDir ) ),
+                                                        new PathMappedFileManager( config, pathDB, physicalStore ),
                                                         pathGenerator );
             }
             catch ( Exception ex )
