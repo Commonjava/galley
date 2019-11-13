@@ -24,6 +24,10 @@
             <artifactId>path-mapped-storage</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.commonjava.util</groupId>
+            <artifactId>path-mapped-pathdb-datastax</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
             <scope>test</scope>
@@ -36,6 +40,11 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.commonjava.util</groupId>
+            <artifactId>path-mapped-pathdb-jpa</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

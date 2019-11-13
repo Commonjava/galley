@@ -139,6 +139,16 @@
         <artifactId>path-mapped-storage</artifactId>
         <version>${pathmappedStorageVersion}</version>
       </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>path-mapped-pathdb-datastax</artifactId>
+        <version>${pathmappedStorageVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>path-mapped-pathdb-jpa</artifactId>
+        <version>${pathmappedStorageVersion}</version>
+      </dependency>
 
       <!--override indirect weft referring-->
       <dependency>
@@ -318,7 +328,7 @@
         <version>${metrics.version}</version>
       </dependency>
 
-      <!-- JPA support-->
+      <!-- JPA support -->
       <dependency>
         <groupId>javax.persistence</groupId>
         <artifactId>javax.persistence-api</artifactId>
