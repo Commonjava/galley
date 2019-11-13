@@ -29,6 +29,7 @@ import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
+import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
 import org.commonjava.test.http.expect.ExpectationHandler;
@@ -377,6 +378,8 @@ public class HttpDownloadTest
         assertThat( result, notNullValue() );
         assertThat( result.exists(), equalTo( false ) );
         assertThat( transfer.exists(), equalTo( false ) );
+        assertThat( transfer.getSiblingMeta( HttpExchangeMetadata.FILE_EXTENSION ).exists(), equalTo( false ) );
+        assertThat( result.getSiblingMeta( HttpExchangeMetadata.FILE_EXTENSION ).exists(), equalTo( false ) );
 
         final String path = fixture.getUrlPath( url );
 
