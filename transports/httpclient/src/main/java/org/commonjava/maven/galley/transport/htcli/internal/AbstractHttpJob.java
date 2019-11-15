@@ -147,20 +147,14 @@ public abstract class AbstractHttpJob
             * and with a condition that it only runs on HEAD or GET. This would allow us to capture metadata on failed requests too,
             * which is critical for responding consistently to the user after a failed request is cached in the NFC.
             */
-            final StatusLine line = response.getStatusLine();
-            final int sc = line.getStatusCode();
-            // Generate the file .http-metadata.json only if the target is not missing
-            if ( sc != 404 )
+            String method = request.getMethod();
+            if ( "GET".equalsIgnoreCase( method ) || "HEAD".equalsIgnoreCase( method ) )
             {
-                String method = request.getMethod();
-                if ( "GET".equalsIgnoreCase( method ) || "HEAD".equalsIgnoreCase( method ) )
+                Transfer target = getTransfer();
+                ObjectMapper mapper = getMetadataObjectMapper();
+                if ( target != null && mapper != null )
                 {
-                    Transfer target = getTransfer();
-                    ObjectMapper mapper = getMetadataObjectMapper();
-                    if ( target != null && mapper != null )
-                    {
-                        writeMetadata( target, mapper );
-                    }
+                    writeMetadata( target, mapper );
                 }
             }
         }
@@ -185,6 +179,13 @@ public abstract class AbstractHttpJob
         if ( target == null || request == null || response == null )
         {
             logger.trace( "Cannot write HTTP exchange metadata. Request: {}. Response: {}. Transfer: {}", request, response, target );
+            return;
+        }
+
+        // Generate the file .http-metadata.json only if the target is not missing
+        if ( response.getStatusLine().getStatusCode() == 404 )
+        {
+            logger.trace( "Skip to write HTTP exchange metadata if the target is missing." );
             return;
         }
 
