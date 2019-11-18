@@ -189,6 +189,12 @@ public abstract class AbstractHttpJob
             return;
         }
 
+        if ( target.getPath().endsWith( ".md5" ) || target.getPath().endsWith(".sha1") )
+        {
+            logger.trace( "Skip to write HTTP exchange metadata for the files with extensions of .md5 and .sha1." );
+            return;
+        }
+
         logger.trace( "Writing HTTP exchange metadata. Request: {}. Response: {}", request, response );
         Transfer metaTxfr = target.getSiblingMeta( HttpExchangeMetadata.FILE_EXTENSION );
         if ( metaTxfr == null )
