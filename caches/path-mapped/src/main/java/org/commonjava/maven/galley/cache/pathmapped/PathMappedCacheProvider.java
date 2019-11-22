@@ -359,6 +359,11 @@ public class PathMappedCacheProvider
         fileManager.stopReporting();
     }
 
+    public PathMappedFileManager getPathMappedFileManager()
+    {
+        return fileManager;
+    }
+
     @FunctionalInterface
     interface PathMappedPathHandler<T>
     {
