@@ -46,7 +46,7 @@ public final class Md5GeneratorFactory
                                 final Function<String, Timer.Context> timerProvider )
             throws IOException
         {
-            super( transfer, ".md5", ContentDigest.MD5, writeChecksumFile, timerProvider );
+            super( transfer, ChecksumAlgorithm.MD5.getExtension(), ContentDigest.MD5, writeChecksumFile, timerProvider );
         }
 
     }

@@ -48,7 +48,7 @@ public final class Sha512GeneratorFactory
                                    final Function<String, Timer.Context> timerProvider )
                 throws IOException
         {
-            super( transfer, ".sha512", SHA_512, writeChecksumFile, timerProvider );
+            super( transfer, ChecksumAlgorithm.SHA512.getExtension(), SHA_512, writeChecksumFile, timerProvider );
         }
 
     }

@@ -34,6 +34,7 @@ import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.TransferTimeoutException;
+import org.commonjava.maven.galley.io.checksum.ChecksumAlgorithm;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.transport.htcli.Http;
@@ -189,9 +190,12 @@ public abstract class AbstractHttpJob
             return;
         }
 
-        if ( target.getPath().endsWith( ".md5" ) || target.getPath().endsWith(".sha1") )
+        if ( target.getPath().endsWith( ChecksumAlgorithm.MD5.getExtension() ) || target.getPath()
+                                                                                        .endsWith( ChecksumAlgorithm.SHA1
+                                                                                                                   .getExtension() )
+                        || target.getPath().endsWith( ChecksumAlgorithm.SHA256.getExtension() ) )
         {
-            logger.trace( "Skip to write HTTP exchange metadata for the files with extensions of .md5 and .sha1." );
+            logger.trace( "Skip to write HTTP exchange metadata for the checksum files" );
             return;
         }
 

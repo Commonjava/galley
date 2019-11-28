@@ -46,7 +46,7 @@ public final class Sha1GeneratorFactory
                                  final Function<String, Timer.Context> timerProvider )
             throws IOException
         {
-            super( transfer, ".sha1", ContentDigest.SHA_1, writeChecksumFile, timerProvider );
+            super( transfer, ChecksumAlgorithm.SHA1.getExtension(), ContentDigest.SHA_1, writeChecksumFile, timerProvider );
         }
 
     }

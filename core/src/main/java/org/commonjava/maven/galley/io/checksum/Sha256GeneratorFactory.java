@@ -46,7 +46,7 @@ public final class Sha256GeneratorFactory
                                    final Function<String, Timer.Context> timerProvider )
             throws IOException
         {
-            super( transfer, ".sha256", ContentDigest.SHA_256, writeChecksumFile, timerProvider );
+            super( transfer, ChecksumAlgorithm.SHA256.getExtension(), ContentDigest.SHA_256, writeChecksumFile, timerProvider );
         }
 
     }
