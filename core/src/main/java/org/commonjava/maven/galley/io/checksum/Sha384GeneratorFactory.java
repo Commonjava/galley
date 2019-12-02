@@ -48,7 +48,7 @@ public final class Sha384GeneratorFactory
                                    final Function<String, Timer.Context> timerProvider )
             throws IOException
         {
-            super( transfer, ".sha384", SHA_384, writeChecksumFile, timerProvider );
+            super( transfer, ChecksumAlgorithm.SHA384.getExtension(), SHA_384, writeChecksumFile, timerProvider );
         }
 
     }
