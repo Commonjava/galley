@@ -88,10 +88,12 @@
       <groupId>org.jboss.byteman</groupId>
       <artifactId>byteman-bmunit</artifactId>
     </dependency>
+    <!--
     <dependency>
       <groupId>com.sun</groupId>
       <artifactId>tools</artifactId>
     </dependency>
+    -->
   </dependencies>
 
 </project>
