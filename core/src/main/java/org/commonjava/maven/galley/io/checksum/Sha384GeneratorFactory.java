@@ -15,9 +15,9 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.io.checksum.Sha384GeneratorFactory.Sha384Generator;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.metrics.TimingProvider;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -34,7 +34,7 @@ public final class Sha384GeneratorFactory
 
     @Override
     protected Sha384Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile,
-                                            final Function<String, Timer.Context> timerProvider )
+                                            final Function<String, TimingProvider> timerProvider )
         throws IOException
     {
         return new Sha384Generator( transfer, writeChecksumFile, timerProvider );
@@ -45,7 +45,7 @@ public final class Sha384GeneratorFactory
     {
 
         protected Sha384Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                   final Function<String, Timer.Context> timerProvider )
+                                   final Function<String, TimingProvider> timerProvider )
             throws IOException
         {
             super( transfer, ChecksumAlgorithm.SHA384.getExtension(), SHA_384, writeChecksumFile, timerProvider );

@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.io;
 
-import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGenerator;
 import org.commonjava.maven.galley.io.checksum.AbstractChecksumGeneratorFactory;
@@ -27,6 +26,7 @@ import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
+import org.commonjava.maven.galley.spi.metrics.TimingProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,29 +67,29 @@ public final class ChecksummingTransferDecorator
 
     private SpecialPathManager specialPathManager;
 
-    private Function<String, Timer.Context> timerProvider;
+    private Function<String, TimingProvider> timerProviderFunction;
 
     public ChecksummingTransferDecorator( final ChecksummingDecoratorAdvisor readerFilter,
                                           final ChecksummingDecoratorAdvisor writerFilter,
-                                          SpecialPathManager specialPathManager, Function<String, Timer.Context> timerProvider,
+                                          SpecialPathManager specialPathManager, Function<String, TimingProvider> timerProviderFunction,
                                           TransferMetadataConsumer consumer,
                                           Set<AbstractChecksumGeneratorFactory<?>> checksumFactories )
     {
         this.readerFilter = readerFilter;
         this.writerFilter = writerFilter;
         this.specialPathManager = specialPathManager;
-        this.timerProvider = timerProvider == null ? (s)->null : timerProvider;
+        this.timerProviderFunction = timerProviderFunction == null ? ( s)->null : timerProviderFunction;
         this.consumer = consumer;
         this.checksumFactories = checksumFactories;
     }
 
     public ChecksummingTransferDecorator( final ChecksummingDecoratorAdvisor readerFilter,
                                           final ChecksummingDecoratorAdvisor writerFilter,
-                                          SpecialPathManager specialPathManager, Function<String, Timer.Context> timerProvider,
+                                          SpecialPathManager specialPathManager, Function<String, TimingProvider> timerProviderFunction,
                                           TransferMetadataConsumer consumer,
                                           AbstractChecksumGeneratorFactory<?>... checksumFactories )
     {
-        this( readerFilter, writerFilter, specialPathManager, timerProvider, consumer,
+        this( readerFilter, writerFilter, specialPathManager, timerProviderFunction, consumer,
               new HashSet<>( Arrays.asList( checksumFactories ) ) );
     }
 
@@ -172,7 +172,7 @@ public final class ChecksummingTransferDecorator
             {
                 logger.trace( "Wrapping output stream to: {} for checksum generation.", transfer );
                 return new ChecksummingOutputStream( checksumFactories, stream, transfer, consumer,
-                                                     advice == CALCULATE_AND_WRITE, timerProvider );
+                                                     advice == CALCULATE_AND_WRITE, timerProviderFunction );
             }
         }
 
@@ -213,7 +213,7 @@ public final class ChecksummingTransferDecorator
             if ( advice != NO_DECORATE && ( consumer == null || consumer.needsMetadataFor( transfer ) ) )
             {
                 return new ChecksummingInputStream( checksumFactories, stream, transfer, consumer,
-                                                    advice == CALCULATE_AND_WRITE, timerProvider );
+                                                    advice == CALCULATE_AND_WRITE, timerProviderFunction );
             }
         }
 

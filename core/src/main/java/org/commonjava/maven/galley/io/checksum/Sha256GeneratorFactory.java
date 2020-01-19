@@ -15,9 +15,9 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.io.checksum.Sha256GeneratorFactory.Sha256Generator;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.metrics.TimingProvider;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -32,7 +32,7 @@ public final class Sha256GeneratorFactory
 
     @Override
     protected Sha256Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile,
-                                            final Function<String, Timer.Context> timerProvider )
+                                            final Function<String, TimingProvider> timerProvider )
         throws IOException
     {
         return new Sha256Generator( transfer, writeChecksumFile, timerProvider );
@@ -43,7 +43,7 @@ public final class Sha256GeneratorFactory
     {
 
         protected Sha256Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                   final Function<String, Timer.Context> timerProvider )
+                                   final Function<String, TimingProvider> timerProvider )
             throws IOException
         {
             super( transfer, ChecksumAlgorithm.SHA256.getExtension(), ContentDigest.SHA_256, writeChecksumFile, timerProvider );
