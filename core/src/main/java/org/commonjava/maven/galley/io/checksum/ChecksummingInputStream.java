@@ -15,8 +15,8 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.metrics.TimingProvider;
 import org.commonjava.maven.galley.util.IdempotentCloseInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,23 +48,23 @@ public final class ChecksummingInputStream
 
     private boolean writeChecksumFiles;
 
-    private Function<String, Timer.Context> timerProvider;
+    private Function<String, TimingProvider> timerProviderFunction;
 
     public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                     final InputStream stream, final Transfer transfer,
                                     final TransferMetadataConsumer metadataConsumer, final boolean writeChecksumFiles,
-                                    final Function<String, Timer.Context> timerProvider )
+                                    final Function<String, TimingProvider> timerProviderFunction )
             throws IOException
     {
         super( stream );
         this.transfer = transfer;
         this.metadataConsumer = metadataConsumer;
         this.writeChecksumFiles = writeChecksumFiles;
-        this.timerProvider = timerProvider == null ? (s)->null : timerProvider;
+        this.timerProviderFunction = timerProviderFunction == null ? ( s)->null : timerProviderFunction;
         checksums = new HashSet<>();
         for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
         {
-            checksums.add( factory.createGenerator( transfer, writeChecksumFiles, timerProvider ) );
+            checksums.add( factory.createGenerator( transfer, writeChecksumFiles, timerProviderFunction ) );
         }
     }
 
@@ -72,7 +72,7 @@ public final class ChecksummingInputStream
     public void close()
             throws IOException
     {
-        Timer.Context closeTimer = timerProvider.apply( CHECKSUM_CLOSE );
+        TimingProvider closeTimer = timerProviderFunction.apply( CHECKSUM_CLOSE );
         try
         {
             logger.trace( "START CLOSE: {}", transfer );

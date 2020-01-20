@@ -15,9 +15,9 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.metrics.TimingProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ public abstract class AbstractChecksumGenerator
 
     private final boolean writeChecksumFile;
 
-    private Function<String, Timer.Context> timerProvider;
+    private Function<String, TimingProvider> timerProviderFunction;
 
     private final Transfer checksumTransfer;
 
@@ -53,13 +53,13 @@ public abstract class AbstractChecksumGenerator
 
     protected AbstractChecksumGenerator( final Transfer transfer, final String checksumExtension,
                                          final ContentDigest type, final boolean writeChecksumFile,
-                                         final Function<String, Timer.Context> timerProvider )
+                                         final Function<String, TimingProvider> timerProviderFunction )
             throws IOException
     {
         this.checksumExtension = checksumExtension;
         digestType = type;
         this.writeChecksumFile = writeChecksumFile;
-        this.timerProvider = timerProvider == null ? (s)->null : timerProvider;
+        this.timerProviderFunction = timerProviderFunction == null ? ( s)->null : timerProviderFunction;
         try
         {
             digester = MessageDigest.getInstance( digestType.digestName() );
@@ -100,12 +100,12 @@ public abstract class AbstractChecksumGenerator
             return;
         }
 
-        Timer.Context writeTimer = timerProvider.apply( CHECKSUM_WRITE );
+        TimingProvider writeTimer = timerProviderFunction.apply( CHECKSUM_WRITE );
         try
         {
             logger.info( "Writing {} file: {}", checksumExtension, checksumTransfer );
 
-            Timer.Context openTimer = timerProvider.apply( CHECKSUM_WRITE_OPEN );
+            TimingProvider openTimer = timerProviderFunction.apply( CHECKSUM_WRITE_OPEN );
             try (PrintStream out = new PrintStream( checksumTransfer.openOutputStream( TransferOperation.GENERATE ) ))
             {
                 if ( openTimer != null )

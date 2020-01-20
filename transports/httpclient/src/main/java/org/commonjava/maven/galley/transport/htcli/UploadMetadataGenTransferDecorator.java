@@ -18,12 +18,14 @@ package org.commonjava.maven.galley.transport.htcli;
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jdk.nashorn.internal.runtime.Timing;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.AbstractTransferDecorator;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
+import org.commonjava.maven.galley.spi.metrics.TimingProvider;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadataFromRequestHeader;
 import org.commonjava.maven.galley.util.IdempotentCloseOutputStream;
@@ -59,12 +61,12 @@ public class UploadMetadataGenTransferDecorator
 
     private SpecialPathManager specialPathManager;
 
-    private Function<String, Timer.Context> timerProvider;
+    private Function<String, TimingProvider> timerProviderFunction;
 
-    public UploadMetadataGenTransferDecorator( SpecialPathManager specialPathManager, Function<String, Timer.Context> timerProvider )
+    public UploadMetadataGenTransferDecorator( SpecialPathManager specialPathManager, Function<String, TimingProvider> timerProviderFunction )
     {
         this.specialPathManager = specialPathManager;
-        this.timerProvider = timerProvider;
+        this.timerProviderFunction = timerProviderFunction;
     }
 
     @Override
@@ -99,7 +101,7 @@ public class UploadMetadataGenTransferDecorator
 
     private void writeMetadata( final Transfer target, final ObjectMapper mapper, final Map<String, List<String>> requestHeaders )
     {
-        Timer.Context writeTimer = timerProvider.apply( HTTP_METADATA_WRITE );
+        TimingProvider writeTimer = timerProviderFunction.apply( HTTP_METADATA_WRITE );
         logger.debug( "http-metadata write-timer is: {}", writeTimer );
         try
         {
@@ -121,7 +123,7 @@ public class UploadMetadataGenTransferDecorator
             final HttpExchangeMetadata metadata = new HttpExchangeMetadataFromRequestHeader( requestHeaders );
             final Transfer finalMeta = metaTxfr;
 
-            Timer.Context openTimer = timerProvider.apply( HTTP_METADATA_WRITE_OPEN );
+            TimingProvider openTimer = timerProviderFunction.apply( HTTP_METADATA_WRITE_OPEN );
             logger.debug( "http-metadata open-timer is: {}", openTimer );
             try( OutputStream out = metaTxfr.openOutputStream( TransferOperation.GENERATE, false ) )
             {

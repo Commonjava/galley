@@ -15,9 +15,9 @@
  */
 package org.commonjava.maven.galley.io.checksum;
 
-import com.codahale.metrics.Timer;
 import org.commonjava.maven.galley.io.checksum.Md5GeneratorFactory.Md5Generator;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.metrics.TimingProvider;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -32,7 +32,7 @@ public final class Md5GeneratorFactory
 
     @Override
     protected Md5Generator newGenerator( final Transfer transfer, final boolean writeChecksumFile,
-                                         final Function<String, Timer.Context> timerProvider )
+                                         final Function<String, TimingProvider> timerProvider )
         throws IOException
     {
         return new Md5Generator( transfer, writeChecksumFile, timerProvider );
@@ -43,7 +43,7 @@ public final class Md5GeneratorFactory
     {
 
         protected Md5Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                final Function<String, Timer.Context> timerProvider )
+                                final Function<String, TimingProvider> timerProvider )
             throws IOException
         {
             super( transfer, ChecksumAlgorithm.MD5.getExtension(), ContentDigest.MD5, writeChecksumFile, timerProvider );
