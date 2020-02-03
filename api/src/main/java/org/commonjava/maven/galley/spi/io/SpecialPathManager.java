@@ -53,4 +53,6 @@ public interface SpecialPathManager
     SpecialPathInfo getSpecialPathInfo( Location location, String path, String pkgType );
 
     SpecialPathInfo getSpecialPathInfo( String path );
+
+    SpecialPathInfo getSpecialPathInfo( String path, String pkgType );
 }

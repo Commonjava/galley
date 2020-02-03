@@ -246,9 +246,15 @@ public class SpecialPathManagerImpl
     @Override
     public SpecialPathInfo getSpecialPathInfo( String path )
     {
+        return getSpecialPathInfo( path, SpecialPathConstants.PKG_TYPE_MAVEN );
+    }
+
+    @Override
+    public SpecialPathInfo getSpecialPathInfo( String path, String pkgType )
+    {
         // TODO: seems that all SpecialPathMatcher impl classes does not use the Location, so we should consider to remove the Location arg next step.
         // TODO: When path is null, return SpecialPathConstants.DEFAULT_FILE or SpecialPathConstants.DEFAULT_DIR or something non-null?
-        return path == null ? null : getSpecialPathInfo( null, path, SpecialPathConstants.PKG_TYPE_MAVEN );
+        return path == null ? null : getSpecialPathInfo( null, path, pkgType );
     }
 
     private String getStoragePath( ConcreteResource resource )
