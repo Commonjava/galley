@@ -152,15 +152,6 @@ public class DownloadHandler
                     logger.debug( "Waiting for download job of path: {}: {}", resource, future );
                     final DownloadJob job = future.get( waitSeconds, TimeUnit.SECONDS );
 
-                    if ( created )
-                    {
-                        synchronized ( DOWNLOAD_MUTEX )
-                        {
-                            logger.debug( "Removing download job of path: {}: {}", resource, future );
-                            pending.remove( target );
-                        }
-                    }
-
                     final Transfer downloaded = job.getTransfer();
 
                     if ( job.getError() != null )
@@ -238,6 +229,14 @@ public class DownloadHandler
         finally
         {
             transferSizes.remove( target );
+            if ( created )
+            {
+                synchronized ( DOWNLOAD_MUTEX )
+                {
+                    logger.debug( "Removing download job of path: {}: {}", resource, future );
+                    pending.remove( target );
+                }
+            }
         }
 
         return null;
