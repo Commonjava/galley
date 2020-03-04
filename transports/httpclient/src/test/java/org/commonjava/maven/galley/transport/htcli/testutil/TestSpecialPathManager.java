@@ -188,4 +188,10 @@ public class TestSpecialPathManager implements SpecialPathManager
     {
         return path == null ? null : getSpecialPathInfo( null, path, SpecialPathConstants.PKG_TYPE_MAVEN );
     }
+
+    @Override
+    public SpecialPathInfo getSpecialPathInfo( String path, String pkgType )
+    {
+        return path == null ? null : getSpecialPathInfo( null, path, pkgType );
+    }
 }
