@@ -38,12 +38,15 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.Executors;
 
+import static org.commonjava.maven.galley.cache.testutil.AssertUtil.assertThrows;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class PathMappedCacheProviderJPATest
                 extends CacheProviderTCK
@@ -106,8 +109,7 @@ public class PathMappedCacheProviderJPATest
         assertThat( result, equalTo( content ) );
 
         // source file should have been removed
-        InputStream src = provider.openInputStream( new ConcreteResource( loc, fname ) );
-        assertThat( src, equalTo( null ) );
+        assertThrows( IOException.class, () -> provider.openInputStream( new ConcreteResource( loc, fname ) ) );
     }
 
 }
