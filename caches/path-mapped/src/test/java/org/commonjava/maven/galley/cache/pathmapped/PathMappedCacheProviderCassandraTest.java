@@ -44,6 +44,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static org.commonjava.maven.galley.cache.testutil.AssertUtil.assertThrows;
 import static org.commonjava.storage.pathmapped.pathdb.datastax.util.CassandraPathDBUtils.PROP_CASSANDRA_HOST;
 import static org.commonjava.storage.pathmapped.pathdb.datastax.util.CassandraPathDBUtils.PROP_CASSANDRA_KEYSPACE;
 import static org.commonjava.storage.pathmapped.pathdb.datastax.util.CassandraPathDBUtils.PROP_CASSANDRA_PORT;
@@ -154,8 +156,7 @@ public class PathMappedCacheProviderCassandraTest
         assertThat( result, equalTo( content ) );
 
         // source file should have been removed
-        InputStream src = provider.openInputStream( new ConcreteResource( loc, fname ) );
-        assertThat( src, equalTo( null ) );
+        assertThrows( IOException.class, () -> provider.openInputStream( new ConcreteResource( loc, fname ) ) );
     }
 
     @Test
@@ -176,8 +177,7 @@ public class PathMappedCacheProviderCassandraTest
 
         provider.delete( resource );
 
-        InputStream src = provider.openInputStream( resource );
-        assertThat( src, equalTo( null ) );
+        assertThrows( IOException.class, () -> provider.openInputStream( resource ) );
 
         Transfer transfer = provider.getTransfer( resource );
         assertThat( transfer, notNullValue() );
