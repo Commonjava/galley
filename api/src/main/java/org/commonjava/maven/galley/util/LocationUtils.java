@@ -31,7 +31,6 @@ public final class LocationUtils
 
     public static int getTimeoutSeconds( final ConcreteResource resource )
     {
-        logger.debug( "Retrieving timeout from resource: {}", resource );
         return getTimeoutSeconds( resource.getLocation() );
     }
 
@@ -39,7 +38,7 @@ public final class LocationUtils
     {
         if ( logger.isDebugEnabled() )
         {
-            logger.debug( "Retrieving timeout from location: {}", location );
+            logger.debug( "Get timeoutSeconds of location: {}", location );
         }
 
         return location.getAttribute( Location.CONNECTION_TIMEOUT_SECONDS, Integer.class,

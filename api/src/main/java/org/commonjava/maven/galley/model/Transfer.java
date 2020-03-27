@@ -69,14 +69,35 @@ public class Transfer
         this.provider = provider;
     }
 
+    /*
+     * Some properties are immutable and we cache them in case the provider operations are expensive
+     */
+    private Boolean isDirectory;
+
+    private Boolean isFile;
+
+    private String storagePath;
+
+    private String filePath;
+
+    private File detachedFile;
+
     public boolean isDirectory()
     {
-        return provider.isDirectory( resource );
+        if ( isDirectory == null )
+        {
+            isDirectory = provider.isDirectory( resource );
+        }
+        return isDirectory;
     }
 
     public boolean isFile()
     {
-        return provider.isFile( resource );
+        if ( isFile == null )
+        {
+            isFile = provider.isFile( resource );
+        }
+        return isFile;
     }
 
     public Location getLocation()
@@ -91,7 +112,11 @@ public class Transfer
 
     public String getStoragePath()
     {
-        return provider.getStoragePath( resource );
+        if ( storagePath == null )
+        {
+            storagePath = provider.getStoragePath( resource );
+        }
+        return storagePath;
     }
 
     public ConcreteResource getResource()
@@ -102,7 +127,7 @@ public class Transfer
     @Override
     public String toString()
     {
-        return String.format( "%s:%s (stored at: %s)", resource.getLocation(), resource.getPath(), provider.getFilePath( resource ) );
+        return String.format( "%s:%s (stored at: %s)", resource.getLocation(), resource.getPath(), filePath );
     }
 
     public Transfer getParent()
@@ -269,7 +294,6 @@ public class Transfer
 
     public boolean exists( final EventMetadata eventMetadata )
     {
-
         OverriddenBooleanValue overriden = null;
         if ( decorator != null )
         {
@@ -318,7 +342,11 @@ public class Transfer
 
     public String getFullPath()
     {
-        return provider.getFilePath( resource );
+        if ( filePath == null )
+        {
+            filePath = provider.getFilePath( resource );
+        }
+        return filePath;
     }
 
     public boolean delete()
@@ -406,16 +434,20 @@ public class Transfer
 
    public File getDetachedFile()
    {
-       provider.waitForWriteUnlock( resource );
-       provider.lockWrite( resource );
-       try
+       if ( detachedFile == null )
        {
-           return provider.asAdminView().getDetachedFile( resource );
+           provider.waitForWriteUnlock( resource );
+           provider.lockWrite( resource );
+           try
+           {
+               detachedFile = provider.asAdminView().getDetachedFile( resource );
+           }
+           finally
+           {
+               provider.unlockWrite( resource );
+           }
        }
-       finally
-       {
-           provider.unlockWrite( resource );
-       }
+       return detachedFile;
    }
 
     public void mkdirs()
