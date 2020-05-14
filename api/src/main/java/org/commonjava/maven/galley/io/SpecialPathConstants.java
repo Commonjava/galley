@@ -175,6 +175,12 @@ class NPMSpecialPathSet implements SpecialPathSet
                                             .setMergable( true )
                                             .setMetadata( true )
                                             .build() );
+
+        npmSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( ".*(\\.md5|\\.sha[\\d]+)$" ) )
+                                            .setDecoratable( false )
+                                            .setMergable( true )
+                                            .setMetadata( true )
+                                            .build() );
     }
 
     @Override
