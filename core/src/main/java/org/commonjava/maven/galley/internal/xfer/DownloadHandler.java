@@ -159,7 +159,7 @@ public class DownloadHandler
                         logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(),
                                       resource, job.getError().getMessage() );
                         
-                        if ( ! (job.getError() instanceof  TransferContentException ) )
+                        if ( ! (job.getError() instanceof  TransferContentException ) && ! (job.getError() instanceof TransferTimeoutException ) )
                         {
                             nfc.addMissing( resource );
                         }
