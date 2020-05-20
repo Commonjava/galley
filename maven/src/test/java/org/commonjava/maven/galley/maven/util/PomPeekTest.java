@@ -20,6 +20,7 @@ import org.commonjava.maven.galley.maven.parse.PomPeek;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Set;
 
@@ -36,7 +37,7 @@ public class PomPeekTest
     @Test
     public void findModules()
     {
-        final File pom = getResourceFile( BASE + "contains-modules.pom" );
+        final InputStream pom = getResourceFileAsStream( BASE + "contains-modules.pom" );
         final PomPeek peek = new PomPeek( pom );
         final Set<String> modules = peek.getModules();
         assertThat( modules, notNullValue() );
@@ -49,7 +50,7 @@ public class PomPeekTest
     @Test
     public void findGAVDirectlyInProjectAtTop()
     {
-        final File pom = getResourceFile( BASE + "direct-gav-at-top.pom" );
+        final InputStream pom = getResourceFileAsStream( BASE + "direct-gav-at-top.pom" );
         final PomPeek peek = new PomPeek( pom );
 
         assertThat( peek.getKey(), notNullValue() );
@@ -64,7 +65,7 @@ public class PomPeekTest
     @Test
     public void findGAVDirectlyInProjectBelowProperties()
     {
-        final File pom = getResourceFile( BASE + "direct-gav-below-props.pom" );
+        final InputStream pom = getResourceFileAsStream( BASE + "direct-gav-below-props.pom" );
         final PomPeek peek = new PomPeek( pom );
 
         assertThat( peek.getKey(), notNullValue() );
@@ -79,7 +80,7 @@ public class PomPeekTest
     @Test
     public void findGAVInheritedFromParentAtTop()
     {
-        final File pom = getResourceFile( BASE + "inherited-gav-at-top.pom" );
+        final InputStream pom = getResourceFileAsStream( BASE + "inherited-gav-at-top.pom" );
         final PomPeek peek = new PomPeek( pom );
 
         assertThat( peek.getKey(), notNullValue() );
@@ -94,7 +95,7 @@ public class PomPeekTest
     @Test
     public void findGAVInheritedFromParentWithVersionOverrideAtTop()
     {
-        final File pom = getResourceFile( BASE + "inherited-gav-with-override-at-top.pom" );
+        final InputStream pom = getResourceFileAsStream( BASE + "inherited-gav-with-override-at-top.pom" );
         final PomPeek peek = new PomPeek( pom );
 
         assertThat( peek.getKey(), notNullValue() );
@@ -109,7 +110,7 @@ public class PomPeekTest
     @Test
     public void findGAVInheritedFromParentWithGroupAndVersionOverrideAtTop() throws Exception
     {
-        final File pom = getResourceFile(BASE + "inherited-gav-with-group-override-at-top.pom");
+        final InputStream pom = getResourceFileAsStream(BASE + "inherited-gav-with-group-override-at-top.pom");
         final PomPeek peek = new PomPeek( pom );
 
         final ProjectVersionRef key = peek.getKey();
@@ -124,16 +125,16 @@ public class PomPeekTest
 
     // Utility functions
 
-    public static File getResourceFile( final String path )
+    public static InputStream getResourceFileAsStream( final String path )
     {
-        final URL resource = PomPeekTest.class.getClassLoader()
-                                   .getResource( path );
-        if ( resource == null )
+        InputStream ret = PomPeekTest.class.getClassLoader()
+                                   .getResourceAsStream( path );
+        if ( ret == null )
         {
             fail( "Resource not found: " + path );
         }
 
-        return new File( resource.getPath() );
+        return ret;
     }
 
 
