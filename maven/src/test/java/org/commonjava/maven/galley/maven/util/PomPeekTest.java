@@ -26,7 +26,7 @@ import java.util.Set;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-
+import static org.junit.Assert.fail;
 
 public class PomPeekTest
 {
@@ -126,12 +126,11 @@ public class PomPeekTest
 
     public static File getResourceFile( final String path )
     {
-        final URL resource = Thread.currentThread()
-                                   .getContextClassLoader()
+        final URL resource = PomPeekTest.class.getClassLoader()
                                    .getResource( path );
         if ( resource == null )
         {
-            // fail( "Resource not found: " + path );
+            fail( "Resource not found: " + path );
         }
 
         return new File( resource.getPath() );
