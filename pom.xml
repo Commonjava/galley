@@ -37,8 +37,8 @@
   <url>http://github.com/Commonjava/galley</url>
 
   <scm>
-    <connection>scm:git:https://github.com/Commonjava/galley.git</connection>
-    <developerConnection>scm:git:git@github.com:Commonjava/galley.git</developerConnection>
+    <connection>scm:git:https://github.com/Commonjava/galley</connection>
+    <developerConnection>scm:git:https://github.com/Commonjava/galley</developerConnection>
     <url>http://github.com/Commonjava/galley</url>
     <tag>HEAD</tag>
   </scm>
