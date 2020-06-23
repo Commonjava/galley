@@ -24,13 +24,15 @@ import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IdempotentCloseOutputStream
-        extends FilterOutputStream
+        extends OutputStream
 {
     private AtomicBoolean closed = new AtomicBoolean( false );
 
+    final private OutputStream out;
+
     protected IdempotentCloseOutputStream( final OutputStream out )
     {
-        super( out );
+        this.out = out;
     }
 
     @Override
@@ -41,11 +43,23 @@ public class IdempotentCloseOutputStream
         if ( !closed.getAndSet( true ) ) // if previous value was false, skip this and log it!
         {
             logger.trace( "Closing: {}", this );
-            super.close();
+            out.close();
         }
         else
         {
             logger.warn( "Preventing duplicate close() call to: {}", this );
         }
+    }
+
+    @Override
+    public void write( byte b[], int off, int len )
+            throws IOException {
+        out.write( b, off, len);
+    }
+
+    @Override
+    public void write( int b )
+            throws IOException {
+        out.write( b );
     }
 }

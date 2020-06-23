@@ -130,4 +130,18 @@ public final class ChecksummingOutputStream
         }
     }
 
+    @Override
+    public void write (byte[] b, int off, int len)
+    throws IOException
+    {
+        if ((off | len | (b.length - (len + off)) | (off + len)) < 0)
+            throw new IndexOutOfBoundsException();
+
+        super.write( b, off, len );
+        size += len;
+        for ( final AbstractChecksumGenerator checksum : checksums )
+        {
+            checksum.update( b );
+        }
+    }
 }
