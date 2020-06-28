@@ -92,6 +92,11 @@ public abstract class AbstractChecksumGenerator
         digester.update( data );
     }
 
+    public final void update( final byte[] data, final int offset, final int len )
+    {
+        digester.update( data, offset, len );
+    }
+
     public final void write()
             throws IOException
     {
