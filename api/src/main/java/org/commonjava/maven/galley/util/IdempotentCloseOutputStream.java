@@ -28,7 +28,7 @@ public class IdempotentCloseOutputStream
 {
     private AtomicBoolean closed = new AtomicBoolean( false );
 
-    final private OutputStream out;
+    final protected OutputStream out;
 
     protected IdempotentCloseOutputStream( final OutputStream out )
     {
@@ -62,4 +62,5 @@ public class IdempotentCloseOutputStream
             throws IOException {
         out.write( b );
     }
+
 }
