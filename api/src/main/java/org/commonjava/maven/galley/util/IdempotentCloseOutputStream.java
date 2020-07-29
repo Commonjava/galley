@@ -18,7 +18,6 @@ package org.commonjava.maven.galley.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,6 +38,10 @@ public class IdempotentCloseOutputStream
     public void close()
             throws IOException
     {
+        if ( out != null && !closed.get() )
+        {
+            this.flush();
+        }
         Logger logger = LoggerFactory.getLogger( getClass() );
         if ( !closed.getAndSet( true ) ) // if previous value was false, skip this and log it!
         {
@@ -53,14 +56,24 @@ public class IdempotentCloseOutputStream
 
     @Override
     public void write( byte b[], int off, int len )
-            throws IOException {
+            throws IOException
+    {
         out.write( b, off, len);
     }
 
     @Override
     public void write( int b )
-            throws IOException {
+            throws IOException
+    {
         out.write( b );
     }
 
+    @Override
+    public void flush()
+            throws IOException {
+        if ( out != null )
+        {
+            out.flush();
+        }
+    }
 }

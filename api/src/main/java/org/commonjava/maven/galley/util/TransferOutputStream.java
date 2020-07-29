@@ -15,15 +15,12 @@
  */
 package org.commonjava.maven.galley.util;
 
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 import org.commonjava.maven.galley.event.FileStorageEvent;
 import org.commonjava.maven.galley.model.Transfer.TransferUnlocker;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TransferOutputStream
     extends IdempotentCloseOutputStream
