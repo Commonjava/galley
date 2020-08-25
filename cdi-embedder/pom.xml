@@ -84,5 +84,12 @@
       <groupId>org.commonjava.util</groupId>
       <artifactId>http-testserver</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>o11yphant-metrics-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 </project>

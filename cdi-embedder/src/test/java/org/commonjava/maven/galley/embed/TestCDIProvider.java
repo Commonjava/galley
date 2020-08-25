@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.embed;
 
-import com.codahale.metrics.MetricRegistry;
 import org.commonjava.cdi.util.weft.config.DefaultWeftConfig;
 import org.commonjava.cdi.util.weft.config.WeftConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
@@ -31,6 +30,9 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
+import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
+import org.commonjava.o11yphant.metrics.system.StoragePathProvider;
 import org.commonjava.util.partyline.JoinableFileManager;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
@@ -64,7 +66,7 @@ public class TestCDIProvider
 
     private WeftConfig weftConfig;
 
-    private MetricRegistry metricRegistry;
+    //private MetricRegistry metricRegistry;
 
     private TransportMetricConfig transportMetricConfig = new TransportMetricConfig()
     {
@@ -117,8 +119,6 @@ public class TestCDIProvider
         locationExpander = new NoOpLocationExpander();
         locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
         globalHttpConfiguration = new GlobalHttpConfiguration();
-
-        metricRegistry = new MetricRegistry();
 
         weftConfig = new DefaultWeftConfig(  );
     }
@@ -173,15 +173,22 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public MetricRegistry getMetricRegistry()
+    public TransportMetricConfig getTransportMetricConfig()
     {
-        return metricRegistry;
+        return transportMetricConfig;
     }
 
     @Produces
     @Default
-    public TransportMetricConfig getTransportMetricConfig()
+    public MetricsConfig getMetricsConfig()
     {
-        return transportMetricConfig;
+        return new DefaultMetricsConfig();
+    }
+
+    @Produces
+    @Default
+    public StoragePathProvider getStoragePathProvider()
+    {
+        return () -> null;
     }
 }
