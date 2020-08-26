@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.embed;
 
-import org.commonjava.test.http.expect.ExpectationServer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

@@ -15,10 +15,8 @@
  */
 package org.commonjava.maven.galley.transport.htcli;
 
-import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jdk.nashorn.internal.runtime.Timing;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.io.AbstractTransferDecorator;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
@@ -34,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;

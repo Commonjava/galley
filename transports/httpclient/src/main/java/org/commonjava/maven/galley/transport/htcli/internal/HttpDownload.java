@@ -15,8 +15,6 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.http.HttpEntity;
@@ -33,15 +31,17 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
+import org.commonjava.o11yphant.metrics.api.MetricRegistry;
+import org.commonjava.o11yphant.metrics.api.Timer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-import static com.codahale.metrics.MetricRegistry.name;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
+import static org.commonjava.o11yphant.metrics.util.NameUtils.name;
 
 public final class HttpDownload
     extends AbstractHttpJob

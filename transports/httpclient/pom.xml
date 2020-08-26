@@ -89,8 +89,13 @@
       <artifactId>byteman-bmunit</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-core</artifactId>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>o11yphant-metrics-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>o11yphant-metrics-core</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   

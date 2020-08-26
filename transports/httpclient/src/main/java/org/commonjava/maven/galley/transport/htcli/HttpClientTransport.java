@@ -28,7 +28,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.codahale.metrics.MetricRegistry;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.event.EventMetadata;
@@ -48,6 +47,7 @@ import org.commonjava.maven.galley.transport.htcli.internal.HttpListing;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
 import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
