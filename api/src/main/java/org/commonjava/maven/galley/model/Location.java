@@ -30,9 +30,6 @@ public interface Location
 
     String MAX_CONNECTIONS = "max-connections";
 
-    // This is used to handling directory content listing
-    String AS_DIRECTORY = "as-directory";
-
     int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 30;
 
     int DEFAULT_CACHE_TIMEOUT_SECONDS = 86400;
