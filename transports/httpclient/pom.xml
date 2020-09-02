@@ -90,6 +90,10 @@
     </dependency>
     <dependency>
       <groupId>org.commonjava.util</groupId>
+      <artifactId>o11yphant-honeycomb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.util</groupId>
       <artifactId>o11yphant-metrics-api</artifactId>
     </dependency>
     <dependency>

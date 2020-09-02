@@ -134,7 +134,7 @@ public class HttpDownloadTest
 
         HttpDownload dl =
                 new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
-                                  fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
+                                  fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig, null );
 
         DownloadJob resultJob = dl.call();
 
@@ -153,7 +153,7 @@ public class HttpDownloadTest
         // second call should hit upstream again and succeed.
 
         dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
-                               fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
+                               fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig, null );
 
         resultJob = dl.call();
 
@@ -217,7 +217,7 @@ public class HttpDownloadTest
 
         HttpDownload dl =
                 new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
-                                  fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
+                                  fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig, null );
 
         DownloadJob resultJob = dl.call();
 
@@ -236,7 +236,7 @@ public class HttpDownloadTest
         // second call should hit upstream again and succeed.
 
         dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
-                               fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
+                               fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig, null );
 
         resultJob = dl.call();
 
@@ -276,7 +276,7 @@ public class HttpDownloadTest
 
         final HttpDownload dl =
             new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper(),
-                              metricRegistry, metricConfig );
+                              metricRegistry, metricConfig, null );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -326,7 +326,7 @@ public class HttpDownloadTest
 
         final HttpDownload dl =
                 new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper(),
-                                  metricRegistry, metricConfig );
+                                  metricRegistry, metricConfig, null );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -362,7 +362,7 @@ public class HttpDownloadTest
 
         final HttpDownload dl =
             new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper(),
-                              metricRegistry, metricConfig );
+                              metricRegistry, metricConfig, null );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -404,7 +404,7 @@ public class HttpDownloadTest
 
         final HttpDownload dl =
             new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper(),
-                              metricRegistry, metricConfig );
+                              metricRegistry, metricConfig, null );
         final DownloadJob resultJob = dl.call();
 
         final TransferException err = dl.getError();
