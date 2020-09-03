@@ -66,6 +66,13 @@ public final class HttpDownload
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
+                         final ObjectMapper mapper )
+    {
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null, null );
+    }
+
+    public HttpDownload( final String url, final HttpLocation location, final Transfer target,
+                         final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final MetricRegistry metricRegistry,
                          final TransportMetricConfig transportMetricConfig,
                          final HoneycombManager honeycombManager )
