@@ -15,19 +15,23 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
+import static org.commonjava.o11yphant.metrics.util.MetricUtils.newDefaultMetricRegistry;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
 import org.commonjava.maven.galley.transport.htcli.model.SimpleHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.testutil.HttpTestFixture;
+import org.commonjava.o11yphant.metrics.DefaultMetricRegistry;
 import org.commonjava.test.http.expect.ExpectationHandler;
 import org.jboss.byteman.contrib.bmunit.BMRule;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
@@ -50,6 +54,33 @@ import java.util.Map;
 @BMUnitConfig( debug = true )
 public class HttpDownloadTest
 {
+    private static DefaultMetricRegistry metricRegistry = newDefaultMetricRegistry();
+
+    private static TransportMetricConfig metricConfig = new TransportMetricConfig()
+    {
+        @Override
+        public boolean isEnabled()
+        {
+            return true;
+        }
+
+        @Override
+        public String getNodePrefix()
+        {
+            return null;
+        }
+
+        @Override
+        public String getMetricUniqueName( Location location )
+        {
+            if ( location.getName().equals( "test" ) )
+            {
+                return location.getName();
+            }
+            return null;
+        }
+    };
+
     @Rule
     public HttpTestFixture fixture = new HttpTestFixture( "download-basic" );
 
@@ -244,7 +275,7 @@ public class HttpDownloadTest
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl =
-            new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper() );
+            new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig, null );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();
@@ -392,6 +423,7 @@ public class HttpDownloadTest
     @Test
     public void simpleRetrieveOfAvailableUrl_MetricTest() throws Exception
     {
+        metricRegistry.startConsoleReporter( 1 );
         simpleRetrieveOfAvailableUrl();
         waitSeconds( 3 ); // wait for a while to see the metric
     }
