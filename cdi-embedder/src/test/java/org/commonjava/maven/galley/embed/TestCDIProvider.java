@@ -30,6 +30,8 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.o11yphant.honeycomb.config.HoneycombConfiguration;
+import org.commonjava.o11yphant.metrics.TrafficClassifier;
 import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
 import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
 import org.commonjava.o11yphant.metrics.system.StoragePathProvider;
@@ -44,6 +46,10 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 
 /**
@@ -190,5 +196,87 @@ public class TestCDIProvider
     public StoragePathProvider getStoragePathProvider()
     {
         return () -> null;
+    }
+
+    @Produces
+    @Default
+    public HoneycombConfiguration getHoneycombConfiguration()
+    {
+        return new HoneycombConfiguration()
+        {
+            @Override
+            public Map<String, Integer> getSpanRates()
+            {
+                return null;
+            }
+
+            @Override
+            public boolean isEnabled()
+            {
+                return false;
+            }
+
+            @Override
+            public String getServiceName()
+            {
+                return null;
+            }
+
+            @Override
+            public String getWriteKey()
+            {
+                return null;
+            }
+
+            @Override
+            public String getDataset()
+            {
+                return null;
+            }
+
+            @Override
+            public Integer getBaseSampleRate()
+            {
+                return null;
+            }
+
+            @Override
+            public Set<String> getFieldSet()
+            {
+                return null;
+            }
+
+            @Override
+            public String getEnvironmentMappings()
+            {
+                return null;
+            }
+
+            @Override
+            public String getCPNames()
+            {
+                return null;
+            }
+
+            @Override
+            public String getNodeId()
+            {
+                return null;
+            }
+        };
+    }
+
+    @Produces
+    @Default
+    public TrafficClassifier getTrafficClassifier()
+    {
+        return new TrafficClassifier()
+        {
+            @Override
+            protected List<String> calculateCachedFunctionClassifiers( String restPath, String method )
+            {
+                return Collections.emptyList();
+            }
+        };
     }
 }

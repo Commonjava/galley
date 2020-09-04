@@ -47,6 +47,7 @@ import org.commonjava.maven.galley.transport.htcli.internal.HttpListing;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
 import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.o11yphant.honeycomb.HoneycombManager;
 import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,9 @@ public class HttpClientTransport
 
     @Inject
     private TransportMetricConfig metricConfig;
+
+    @Inject
+    private HoneycombManager honeycombManager;
 
     protected HttpClientTransport()
     {
@@ -114,7 +118,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, transferSizes, eventMetadata,
-                                 http, mapper, metricRegistry, metricConfig );
+                                 http, mapper, metricRegistry, metricConfig, honeycombManager );
     }
 
     @Override

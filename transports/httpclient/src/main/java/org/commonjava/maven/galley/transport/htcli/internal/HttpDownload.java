@@ -16,7 +16,6 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
@@ -31,6 +30,7 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
+import org.commonjava.o11yphant.honeycomb.HoneycombManager;
 import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.commonjava.o11yphant.metrics.api.Timer;
 
@@ -60,21 +60,32 @@ public final class HttpDownload
 
     private final MetricRegistry metricRegistry;
 
-    private final TransportMetricConfig metricConfig;
+    private final HoneycombManager honeycombManager;
 
+    private final TransportMetricConfig transportMetricConfig;
+
+    public HttpDownload( final String url, final HttpLocation location, final Transfer target,
+                         final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
+                         final ObjectMapper mapper )
+    {
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null, null );
+    }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final MetricRegistry metricRegistry,
-                         final TransportMetricConfig metricConfig )
+                         final TransportMetricConfig transportMetricConfig,
+                         final HoneycombManager honeycombManager )
     {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry, metricConfig );
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
+              transportMetricConfig, honeycombManager );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final boolean deleteFilesOnPath,
-                         final MetricRegistry metricRegistry, final TransportMetricConfig metricConfig )
+                         final MetricRegistry metricRegistry, final TransportMetricConfig transportMetricConfig,
+                         final HoneycombManager honeycombManager )
     {
         super( url, location, http );
         this.target = target;
@@ -83,30 +94,31 @@ public final class HttpDownload
         this.mapper = mapper;
         this.deleteFilesOnPath = deleteFilesOnPath;
         this.metricRegistry = metricRegistry;
-        this.metricConfig = metricConfig;
+        this.transportMetricConfig = transportMetricConfig;
+        this.honeycombManager = honeycombManager;
     }
 
     @Override
     public DownloadJob call()
     {
-        if ( metricConfig == null || !metricConfig.isEnabled() || metricRegistry == null )
+        if ( transportMetricConfig == null || !transportMetricConfig.isEnabled() || metricRegistry == null )
         {
             return doCall();
         }
 
         logger.trace( "Download metric enabled, location: {}", location );
 
-        String cls = ClassUtils.getAbbreviatedName( getClass().getName(), 1 ); // e.g., foo.bar.ClassA -> f.b.ClassA
+        String cls = getClass().getSimpleName();
 
         Timer repoTimer = null;
-        String metricName = metricConfig.getMetricUniqueName( location );
+        String metricName = transportMetricConfig.getMetricUniqueName( location );
         if ( metricName != null )
         {
-            repoTimer = metricRegistry.timer( name( metricConfig.getNodePrefix(), cls, "call", metricName ) );
+            repoTimer = metricRegistry.timer( name( transportMetricConfig.getNodePrefix(), cls, "call", metricName ) );
             logger.trace( "Measure repo metric, metricName: {}", metricName );
         }
 
-        final Timer globalTimer = metricRegistry.timer( name( metricConfig.getNodePrefix(), cls, "call" ) );
+        final Timer globalTimer = metricRegistry.timer( name( transportMetricConfig.getNodePrefix(), cls, "call" ) );
         final Timer.Context globalTimerContext = globalTimer.time();
         Timer.Context repoTimerContext = null;
         if ( repoTimer != null )
@@ -116,7 +128,17 @@ public final class HttpDownload
 
         try
         {
-            return doCall();
+            if ( honeycombManager != null )
+            {
+                return honeycombManager.withStandardMetricWrapper( () -> doCall(),
+                                                                   () -> name( transportMetricConfig.getNodePrefix(),
+                                                                               mangledName() ),
+                                                                   () -> appendix() );
+            }
+            else
+            {
+                return doCall();
+            }
         }
         finally
         {
@@ -126,6 +148,18 @@ public final class HttpDownload
                 repoTimerContext.stop();
             }
         }
+    }
+
+    // Generate a mangled name for metric/honeycomb. e.g., https://maven.apache.org to https.maven_apache_org
+    private String mangledName()
+    {
+        return name( this.request.getProtocolVersion().getProtocol(),
+                     this.request.getURI().getHost().replaceAll( "\\.", "_" ) );
+    }
+
+    private String appendix()
+    {
+        return response != null ? String.valueOf( response.getStatusLine().getStatusCode() ) : null;
     }
 
     private DownloadJob doCall()
