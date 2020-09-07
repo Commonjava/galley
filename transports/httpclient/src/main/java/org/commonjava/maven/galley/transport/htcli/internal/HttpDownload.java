@@ -88,6 +88,7 @@ public final class HttpDownload
                          final HoneycombManager honeycombManager )
     {
         super( url, location, http );
+        this.request = new HttpGet( url );
         this.target = target;
         this.transferSizes = transferSizes;
         this.eventMetadata = eventMetadata;
@@ -164,7 +165,6 @@ public final class HttpDownload
 
     private DownloadJob doCall()
     {
-        request = new HttpGet( url );
         String oldName = Thread.currentThread().getName();
         try
         {
