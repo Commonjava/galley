@@ -34,6 +34,7 @@ import org.commonjava.o11yphant.honeycomb.config.HoneycombConfiguration;
 import org.commonjava.o11yphant.metrics.TrafficClassifier;
 import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
 import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
+import org.commonjava.o11yphant.metrics.sli.GoldenSignalsMetricSet;
 import org.commonjava.o11yphant.metrics.system.StoragePathProvider;
 import org.commonjava.util.partyline.JoinableFileManager;
 import org.junit.Assert;
@@ -278,5 +279,11 @@ public class TestCDIProvider
                 return Collections.emptyList();
             }
         };
+    }
+
+    @Produces
+    public GoldenSignalsMetricSet getGoldenSignalsMetricSet()
+    {
+        return null;
     }
 }
