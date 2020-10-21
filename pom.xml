@@ -62,9 +62,10 @@
     <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.4.Final</hibernateVersion>
     <h2Version>1.4.188</h2Version>
+    <annotationVersion>1.3.2</annotationVersion>
+    <activationVersion>1.2.0</activationVersion>
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
-
     <plugin.jacoco.skip>false</plugin.jacoco.skip>
   </properties>
 
@@ -344,6 +345,16 @@
         <version>${cassandraUnitVersion}</version>
       </dependency>
 
+      <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>${annotationVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.activation</groupId>
+        <artifactId>javax.activation-api</artifactId>
+        <version>${activationVersion}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -363,6 +374,14 @@
     <dependency>
       <groupId>javax.enterprise</groupId>
       <artifactId>cdi-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>javax.activation-api</artifactId>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
