@@ -122,11 +122,14 @@ public class HttpListTest
     private String getBody( final String fname )
         throws Exception
     {
-        final InputStream stream = Thread.currentThread()
+        String body = null;
+        try (InputStream stream = Thread.currentThread()
                                          .getContextClassLoader()
-                                         .getResourceAsStream( "list-basic/" + fname );
-
-        return IOUtils.toString( stream );
+                                         .getResourceAsStream( "list-basic/" + fname ))
+        {
+            body = IOUtils.toString( stream );
+        }
+        return body;
     }
 
     @Test

@@ -42,25 +42,25 @@ public final class WriteTask
         try
         {
             final String threadName = Thread.currentThread().getName();
-            final OutputStream out = provider.openOutputStream( resource );
-            final ByteArrayInputStream bais = new ByteArrayInputStream( content.getBytes() );
-            int read = -1;
-            final byte[] buf = new byte[512];
-            System.out.println(
-                    String.format( "[%s] <<<WriteTask>>> start to write to the resource with outputStream %s",
-                                   threadName, out.getClass().getName() ) );
-            while ( ( read = bais.read( buf ) ) > -1 )
+            try (final OutputStream out = provider.openOutputStream( resource ); final ByteArrayInputStream bais = new ByteArrayInputStream( content.getBytes() ))
             {
-                if ( waiting > 0 )
+                int read = -1;
+                final byte[] buf = new byte[512];
+                System.out.println(
+                        String.format( "[%s] <<<WriteTask>>> start to write to the resource with outputStream %s",
+                                       threadName, out.getClass().getName() ) );
+                while ( ( read = bais.read( buf ) ) > -1 )
                 {
-                    Thread.sleep( waiting );
+                    if ( waiting > 0 )
+                    {
+                        Thread.sleep( waiting );
+                    }
+                    out.write( buf, 0, read );
                 }
-                out.write( buf, 0, read );
+                System.out.println(
+                        String.format( "[%s] <<<WriteTask>>> writing to the resource done with outputStream %s", threadName,
+                                       out.getClass().getName() ) );
             }
-            out.close();
-            System.out.println(
-                    String.format( "[%s] <<<WriteTask>>> writing to the resource done with outputStream %s", threadName,
-                                   out.getClass().getName() ) );
             if ( controlLatch != null )
             {
                 controlLatch.countDown();

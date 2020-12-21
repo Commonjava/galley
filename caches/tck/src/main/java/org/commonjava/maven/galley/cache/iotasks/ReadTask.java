@@ -46,37 +46,40 @@ public final class ReadTask
         try
         {
             final String threadName = Thread.currentThread().getName();
-            final InputStream in = provider.openInputStream( resource );
-            if ( in == null )
+            try ( InputStream in = provider.openInputStream( resource ) )
             {
-                System.out.println( "Can not read content as the input stream is null." );
-                if ( controlLatch != null )
+                if ( in == null )
                 {
-                    controlLatch.countDown();
+                    System.out.println( "Can not read content as the input stream is null." );
+                    if ( controlLatch != null )
+                    {
+                        controlLatch.countDown();
+                    }
+                    return;
                 }
-                return;
-            }
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            int read = -1;
-            final byte[] buf = new byte[512];
-            System.out.println(
-                    String.format( "[%s] <<<ReadTask>>> will start to read from the resource with inputStream %s",
-                                   threadName, in.getClass().getName() ) );
-            while ( ( read = in.read( buf ) ) > -1 )
-            {
-                if ( waiting > 0 )
+                try (ByteArrayOutputStream baos = new ByteArrayOutputStream() )
                 {
-                    Thread.sleep( waiting );
+                    int read = -1;
+                    final byte[] buf = new byte[512];
+                    System.out.println(
+                            String.format( "[%s] <<<ReadTask>>> will start to read from the resource with inputStream %s",
+                                           threadName, in.getClass().getName() ) );
+                    while ( ( read = in.read( buf ) ) > -1 )
+                    {
+                        if ( waiting > 0 )
+                        {
+                            Thread.sleep( waiting );
+                        }
+                        System.out.println(">>> " + read );
+                        baos.write( buf, 0, read );
+                    }
+                    System.out.println(
+                            String.format( "[%s] <<<ReadTask>>> reading from the resource done with inputStream %s", threadName,
+                                           in.getClass().getName() ) );
+
+                    readingResult = new String( baos.toByteArray(), "UTF-8" );
                 }
-                System.out.println(">>> " + read );
-                baos.write( buf, 0, read );
             }
-            baos.close();
-            in.close();
-            System.out.println(
-                    String.format( "[%s] <<<ReadTask>>> reading from the resource done with inputStream %s", threadName,
-                                   in.getClass().getName() ) );
-            readingResult = new String( baos.toByteArray(), "UTF-8" );
             if ( controlLatch != null )
             {
                 controlLatch.countDown();
