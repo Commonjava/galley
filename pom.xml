@@ -57,7 +57,7 @@
     <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
-    <byteman.version>3.0.6</byteman.version>
+    <byteman.version>4.0.13</byteman.version>
     <o11yphantVersion>1.0</o11yphantVersion>
     <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.4.Final</hibernateVersion>
