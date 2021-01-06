@@ -101,6 +101,11 @@
       <artifactId>o11yphant-metrics-core</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-cache-tck</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   
   <properties>

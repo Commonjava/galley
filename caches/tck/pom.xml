@@ -39,6 +39,11 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.commonjava.atlas</groupId>
       <artifactId>atlas-identities</artifactId>
       <exclusions>

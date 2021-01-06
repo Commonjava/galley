@@ -16,7 +16,7 @@
 package org.commonjava.maven.galley.maven.model.view;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.HashSet;
 import java.util.List;

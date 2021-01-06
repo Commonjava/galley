@@ -31,9 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -42,7 +40,7 @@ import java.util.Map;
 import static org.commonjava.maven.galley.io.checksum.ContentDigest.MD5;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ChecksummingInputStreamTest
 {

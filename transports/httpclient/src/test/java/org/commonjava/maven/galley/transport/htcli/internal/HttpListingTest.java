@@ -16,7 +16,7 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.net.MalformedURLException;
 import java.net.URL;

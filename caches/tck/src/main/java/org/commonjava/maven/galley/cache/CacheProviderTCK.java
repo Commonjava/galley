@@ -35,8 +35,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.join;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public abstract class CacheProviderTCK
 {
@@ -57,7 +57,7 @@ public abstract class CacheProviderTCK
         cache.lockWrite( res );
         cache.waitForWriteUnlock( res );
 
-        assertThat( cache.isWriteLocked( res ), equalTo( false ) );
+        assertThat( cache.isWriteLocked( res ), is( false ) );
     }
 
     @Test
@@ -101,7 +101,7 @@ public abstract class CacheProviderTCK
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        assertThat( provider.isDirectory( new ConcreteResource( loc, dir ) ), equalTo( true ) );
+        assertThat( provider.isDirectory( new ConcreteResource( loc, dir ) ), is( true ) );
     }
 
     @Test
@@ -130,8 +130,8 @@ public abstract class CacheProviderTCK
 
         System.out.printf( "\n\nFile listing is:\n\n  %s\n\n\n", join( listing, "\n  " ) );
 
-        assertThat( listing.size() > 0, equalTo( true ) );
-        assertThat( listing.contains( "file.txt" ), equalTo( true ) );
+        assertThat( listing.size() > 0, is( true ) );
+        assertThat( listing.contains( "file.txt" ), is( true ) );
     }
 
     @Test
@@ -148,7 +148,7 @@ public abstract class CacheProviderTCK
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), equalTo( true ) );
+        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), is( true ) );
     }
 
     @Test
@@ -165,11 +165,11 @@ public abstract class CacheProviderTCK
         out.write( content.getBytes( "UTF-8" ) );
         out.close();
 
-        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), equalTo( true ) );
+        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), is( true ) );
 
         provider.delete( new ConcreteResource( loc, fname ) );
 
-        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), equalTo( false ) );
+        assertThat( provider.exists( new ConcreteResource( loc, fname ) ), is( false ) );
     }
 
     @Test
@@ -197,7 +197,7 @@ public abstract class CacheProviderTCK
 
         final String result = new String( baos.toByteArray(), "UTF-8" );
 
-        assertThat( result, equalTo( content ) );
+        assertThat( result, is( content ) );
     }
 
     @Test
@@ -229,7 +229,7 @@ public abstract class CacheProviderTCK
 
         final String result = new String( baos.toByteArray(), "UTF-8" );
 
-        assertThat( result, equalTo( content ) );
+        assertThat( result, is( content ) );
     }
 
 }

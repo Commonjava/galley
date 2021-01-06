@@ -15,7 +15,10 @@
  */
 package org.commonjava.maven.galley.cache.testutil;
 
+import org.junit.rules.TemporaryFolder;
+
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
@@ -57,6 +60,19 @@ public final class TestIOUtils
             System.out.println( "Threads await Exception." );
             return false;
         }
+    }
+
+    public static File newTempFolder( final TemporaryFolder temp, final String... folderName )
+    {
+        try
+        {
+            return temp.newFolder( folderName );
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
+
     }
 
 }
