@@ -27,6 +27,7 @@ import org.commonjava.maven.galley.testing.core.event.TestFileEventManager;
 import org.commonjava.maven.galley.testing.core.io.TestTransferDecorator;
 import org.commonjava.maven.galley.testing.core.transport.TestLocationExpander;
 import org.commonjava.maven.galley.testing.core.transport.TestTransport;
+import org.commonjava.maven.galley.cache.testutil.TestIOUtils;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
@@ -81,7 +82,7 @@ public class ApiFixture
 
         if ( cache == null )
         {
-            cache = new TestCacheProvider( temp.newFolder( "cache" ), events, decorator );
+            cache = new TestCacheProvider( TestIOUtils.newTempFolder( temp, "cache" ), events, decorator );
         }
 
         if ( transport == null )

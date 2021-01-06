@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 
 import static org.commonjava.maven.galley.cache.testutil.AssertUtil.assertThrows;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class PathMappedCacheProviderJPATest

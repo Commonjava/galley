@@ -16,6 +16,7 @@
 package org.commonjava.maven.galley.transport.htcli.testutil;
 
 import org.commonjava.maven.galley.auth.PasswordEntry;
+import org.commonjava.maven.galley.cache.testutil.TestIOUtils;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
@@ -84,7 +85,7 @@ public class HttpTestFixture
 
         this.decorator = decorator;
 
-        cache = new TestCacheProvider( folder.newFolder( "cache" ), events, new TransferDecoratorManager( decorator ) );
+        cache = new TestCacheProvider( newFolder( "cache" ), events, new TransferDecoratorManager( decorator ) );
 
         http = new HttpImpl( this );
     }
@@ -154,7 +155,7 @@ public class HttpTestFixture
 
     public File newFolder( final String... folderNames )
     {
-        return folder.newFolder( folderNames );
+        return TestIOUtils.newTempFolder( folder, folderNames );
     }
 
     public File newFolder()

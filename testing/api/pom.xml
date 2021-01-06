@@ -48,6 +48,7 @@
     <dependency>
       <groupId>org.commonjava.maven.galley</groupId>
       <artifactId>galley-cache-tck</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.weld.se</groupId>
