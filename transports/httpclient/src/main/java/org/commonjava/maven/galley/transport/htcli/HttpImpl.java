@@ -30,6 +30,7 @@ import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.transport.htcli.internal.util.HttpFactoryPasswordDelegate;
 import org.commonjava.maven.galley.transport.htcli.internal.util.LocationLookup;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.commonjava.maven.galley.transport.htcli.model.ManagedRepositoryLocationDecorator;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.LocationUtils;
 import org.commonjava.util.jhttpc.HttpFactory;
@@ -77,7 +78,8 @@ public class HttpImpl
                 locationLookup.register( location );
 
                 int maxConnections = LocationUtils.getMaxConnections( location );
-                SiteConfigBuilder configBuilder = new SiteConfigBuilder( location.getName(), location.getUri() );
+                HttpLocation repositoryLocation = new ManagedRepositoryLocationDecorator( location );
+                SiteConfigBuilder configBuilder = new SiteConfigBuilder( repositoryLocation.getName(), location.getUri() );
                 configBuilder.withAttributes( location.getAttributes() )
                              .withKeyCertPem( location.getKeyCertPem() )
                              .withServerCertPem( location.getServerCertPem() )
@@ -169,5 +171,23 @@ public class HttpImpl
     public void close()
             throws IOException
     {
+    }
+
+    /*
+     * To avoid a circular reference to commonjava/indy:indy-model-core-java copy the
+     * functionality of StoreKey.fromString to extract the packageType along with type fields is 
+     * replicated here.
+     */
+    private String getUniqueLocationPackageType ( HttpLocation location )
+    {
+        String[] parts = location.getName().split( ":" );
+        if ( parts.length > 1 )
+        {
+            return String.format( "%1$s:%2$s", parts[0], parts[1] );
+        } else if ( parts.length > 0 )
+        {
+            return String.format( "%1$s", parts[0] );
+        }
+        return location.getName();
     }
 }
