@@ -118,7 +118,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, transferSizes, eventMetadata,
-                                 http, mapper, metricRegistry, metricConfig, honeycombManager );
+                                 http, mapper, metricRegistry, metricConfig );
     }
 
     @Override
