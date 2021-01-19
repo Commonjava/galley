@@ -275,7 +275,7 @@ public class HttpDownloadTest
         assertThat( transfer.exists(), equalTo( false ) );
 
         final HttpDownload dl =
-            new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig, null );
+            new HttpDownload( url, location, transfer, transferSizes, new EventMetadata(), fixture.getHttp(), new ObjectMapper(), metricRegistry, metricConfig );
         final DownloadJob resultJob = dl.call();
 
         final TransferException error = dl.getError();

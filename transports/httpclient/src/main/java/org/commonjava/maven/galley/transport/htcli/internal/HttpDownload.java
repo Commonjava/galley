@@ -30,7 +30,7 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
-import org.commonjava.o11yphant.honeycomb.HoneycombManager;
+import org.commonjava.o11yphant.honeycomb.util.InterceptorUtils;
 import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.commonjava.o11yphant.metrics.api.Timer;
 
@@ -50,17 +50,15 @@ public final class HttpDownload
 
     private final Transfer target;
 
-    private Map<Transfer, Long> transferSizes;
+    private final Map<Transfer, Long> transferSizes;
 
     private final EventMetadata eventMetadata;
 
     private final ObjectMapper mapper;
 
-    private boolean deleteFilesOnPath;
+    private final boolean deleteFilesOnPath;
 
     private final MetricRegistry metricRegistry;
-
-    private final HoneycombManager honeycombManager;
 
     private final TransportMetricConfig transportMetricConfig;
 
@@ -68,24 +66,22 @@ public final class HttpDownload
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper )
     {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null, null );
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final MetricRegistry metricRegistry,
-                         final TransportMetricConfig transportMetricConfig,
-                         final HoneycombManager honeycombManager )
+                         final TransportMetricConfig transportMetricConfig )
     {
         this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
-              transportMetricConfig, honeycombManager );
+              transportMetricConfig );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final boolean deleteFilesOnPath,
-                         final MetricRegistry metricRegistry, final TransportMetricConfig transportMetricConfig,
-                         final HoneycombManager honeycombManager )
+                         final MetricRegistry metricRegistry, final TransportMetricConfig transportMetricConfig)
     {
         super( url, location, http );
         this.request = new HttpGet( url );
@@ -96,7 +92,6 @@ public final class HttpDownload
         this.deleteFilesOnPath = deleteFilesOnPath;
         this.metricRegistry = metricRegistry;
         this.transportMetricConfig = transportMetricConfig;
-        this.honeycombManager = honeycombManager;
     }
 
     @Override
@@ -129,17 +124,9 @@ public final class HttpDownload
 
         try
         {
-            if ( honeycombManager != null )
-            {
-                return honeycombManager.withStandardMetricWrapper( () -> doCall(),
-                                                                   () -> name( transportMetricConfig.getNodePrefix(),
-                                                                               mangledName() ),
-                                                                   () -> appendix() );
-            }
-            else
-            {
-                return doCall();
-            }
+            return new InterceptorUtils().withStandardMetricWrapper( this::doCall,
+                                                                     () -> name( transportMetricConfig.getNodePrefix(),
+                                                                                 mangledName() ), this::appendix );
         }
         finally
         {
