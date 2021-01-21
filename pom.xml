@@ -56,7 +56,7 @@
     <jhttpcVersion>1.12-SNAPSHOT</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
-    <javaVersion>1.8</javaVersion>
+    <javaVersion>11</javaVersion>
     <byteman.version>4.0.13</byteman.version>
     <o11yphantVersion>1.4-SNAPSHOT</o11yphantVersion>
     <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
@@ -423,6 +423,7 @@
   <build>
     <pluginManagement>
       <plugins>
+        <!-- The signature for sniffer is not supported after jdk9+, see https://github.com/mojohaus/animal-sniffer/issues/62
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>animal-sniffer-maven-plugin</artifactId>
@@ -444,6 +445,7 @@
             </execution>
           </executions>
         </plugin>
+        -->
         <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
           <configuration>
@@ -455,6 +457,7 @@
           <configuration>
             <source>${javaVersion}</source>
             <target>${javaVersion}</target>
+            <release>${javaVersion}</release>
           </configuration>
         </plugin>
         <plugin>
@@ -469,11 +472,13 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <!--
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
       </plugin>
     </plugins>
+    -->
   </build>
 </project>
