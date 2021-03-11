@@ -274,7 +274,7 @@ public class TestCDIProvider
         return new TrafficClassifier()
         {
             @Override
-            protected List<String> calculateCachedFunctionClassifiers( String restPath, String method )
+            protected List<String> calculateCachedFunctionClassifiers( String restPath, String method, Map<String, String> headers )
             {
                 return Collections.emptyList();
             }
