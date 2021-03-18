@@ -31,6 +31,7 @@ import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.o11yphant.honeycomb.config.HoneycombConfiguration;
+import org.commonjava.o11yphant.metrics.DefaultTrafficClassifier;
 import org.commonjava.o11yphant.metrics.TrafficClassifier;
 import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
 import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
@@ -269,9 +270,9 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public TrafficClassifier getTrafficClassifier()
+    public DefaultTrafficClassifier getTrafficClassifier()
     {
-        return new TrafficClassifier()
+        return new DefaultTrafficClassifier()
         {
             @Override
             protected List<String> calculateCachedFunctionClassifiers( String restPath, String method, Map<String, String> headers )
