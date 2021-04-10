@@ -90,7 +90,11 @@
     </dependency>
     <dependency>
       <groupId>org.commonjava.util</groupId>
-      <artifactId>o11yphant-honeycomb-core</artifactId>
+      <artifactId>o11yphant-trace-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.util</groupId>
+      <artifactId>o11yphant-trace-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.commonjava.util</groupId>

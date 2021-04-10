@@ -30,13 +30,16 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
-import org.commonjava.o11yphant.honeycomb.config.HoneycombConfiguration;
 import org.commonjava.o11yphant.metrics.DefaultTrafficClassifier;
-import org.commonjava.o11yphant.metrics.TrafficClassifier;
 import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
 import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
 import org.commonjava.o11yphant.metrics.sli.GoldenSignalsMetricSet;
 import org.commonjava.o11yphant.metrics.system.StoragePathProvider;
+import org.commonjava.o11yphant.otel.OtelConfiguration;
+import org.commonjava.o11yphant.otel.OtelTracePlugin;
+import org.commonjava.o11yphant.trace.RootSpanDecorator;
+import org.commonjava.o11yphant.trace.TraceManager;
+import org.commonjava.o11yphant.trace.TracerConfiguration;
 import org.commonjava.util.partyline.JoinableFileManager;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
@@ -48,6 +51,7 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -202,9 +206,20 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public HoneycombConfiguration getHoneycombConfiguration()
+    public TraceManager getTraceManager()
     {
-        return new HoneycombConfiguration()
+        OtelConfiguration otelConf = new OtelConfiguration()
+        {
+        };
+
+        return new TraceManager( new OtelTracePlugin( otelConf ), new RootSpanDecorator( new ArrayList<>() ) );
+    }
+
+    @Produces
+    @Default
+    public TracerConfiguration getTracerConfiguration()
+    {
+        return new TracerConfiguration()
         {
             @Override
             public Map<String, Integer> getSpanRates()
@@ -220,18 +235,6 @@ public class TestCDIProvider
 
             @Override
             public String getServiceName()
-            {
-                return null;
-            }
-
-            @Override
-            public String getWriteKey()
-            {
-                return null;
-            }
-
-            @Override
-            public String getDataset()
             {
                 return null;
             }

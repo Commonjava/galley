@@ -15,21 +15,10 @@
  */
 package org.commonjava.maven.galley.transport.htcli;
 
-import static org.commonjava.maven.galley.util.UrlUtils.buildUrl;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Map;
-
-import javax.annotation.PreDestroy;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
+import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -39,7 +28,6 @@ import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
-import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpDownload;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpExistence;
@@ -47,12 +35,21 @@ import org.commonjava.maven.galley.transport.htcli.internal.HttpListing;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
 import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.o11yphant.honeycomb.HoneycombManager;
 import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
+
+import static org.commonjava.maven.galley.util.UrlUtils.buildUrl;
 
 @ApplicationScoped
 @Named
@@ -75,9 +72,6 @@ public class HttpClientTransport
 
     @Inject
     private TransportMetricConfig metricConfig;
-
-    @Inject
-    private HoneycombManager honeycombManager;
 
     protected HttpClientTransport()
     {

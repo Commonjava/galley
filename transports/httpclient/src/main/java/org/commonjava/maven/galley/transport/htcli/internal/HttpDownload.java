@@ -30,9 +30,9 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
-import org.commonjava.o11yphant.honeycomb.util.InterceptorUtils;
 import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.commonjava.o11yphant.metrics.api.Timer;
+import org.commonjava.o11yphant.trace.util.InterceptorUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
