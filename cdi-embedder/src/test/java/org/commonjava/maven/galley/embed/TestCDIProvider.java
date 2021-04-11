@@ -15,6 +15,7 @@
  */
 package org.commonjava.maven.galley.embed;
 
+import io.opentelemetry.api.trace.Tracer;
 import org.commonjava.cdi.util.weft.config.DefaultWeftConfig;
 import org.commonjava.cdi.util.weft.config.WeftConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
@@ -37,7 +38,7 @@ import org.commonjava.o11yphant.metrics.sli.GoldenSignalsMetricSet;
 import org.commonjava.o11yphant.metrics.system.StoragePathProvider;
 import org.commonjava.o11yphant.otel.OtelConfiguration;
 import org.commonjava.o11yphant.otel.OtelTracePlugin;
-import org.commonjava.o11yphant.trace.RootSpanDecorator;
+import org.commonjava.o11yphant.trace.SpanFieldsDecorator;
 import org.commonjava.o11yphant.trace.TraceManager;
 import org.commonjava.o11yphant.trace.TracerConfiguration;
 import org.commonjava.util.partyline.JoinableFileManager;
@@ -212,7 +213,28 @@ public class TestCDIProvider
         {
         };
 
-        return new TraceManager( new OtelTracePlugin( otelConf ), new RootSpanDecorator( new ArrayList<>() ) );
+        TracerConfiguration traceConf = new TracerConfiguration()
+        {
+            @Override
+            public boolean isEnabled()
+            {
+                return false;
+            }
+
+            @Override
+            public String getServiceName()
+            {
+                return "galley";
+            }
+
+            @Override
+            public String getNodeId()
+            {
+                return "node";
+            }
+        };
+
+        return new TraceManager( new OtelTracePlugin( traceConf, otelConf ), new SpanFieldsDecorator( new ArrayList<>() ), getTracerConfiguration() );
     }
 
     @Produces
