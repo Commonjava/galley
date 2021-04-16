@@ -32,7 +32,10 @@ import org.commonjava.maven.galley.transport.htcli.internal.util.LocationLookup;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.LocationUtils;
+import org.commonjava.o11yphant.jhttpc.SpanningHttpFactory;
+import org.commonjava.o11yphant.trace.TraceManager;
 import org.commonjava.util.jhttpc.HttpFactory;
+import org.commonjava.util.jhttpc.HttpFactoryIfc;
 import org.commonjava.util.jhttpc.JHttpCException;
 import org.commonjava.util.jhttpc.model.SiteConfig;
 import org.commonjava.util.jhttpc.model.SiteConfigBuilder;
@@ -41,6 +44,7 @@ import org.commonjava.util.jhttpc.model.SiteTrustType;
 import javax.enterprise.context.ApplicationScoped;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Optional;
 
 @ApplicationScoped
 public class HttpImpl
@@ -48,9 +52,17 @@ public class HttpImpl
 {
     private final PasswordManager passwords;
 
-    private final HttpFactory httpFactory;
+    private final HttpFactoryIfc httpFactory;
 
     private final LocationLookup locationLookup;
+
+    public HttpImpl( final PasswordManager passwords, Optional<TraceManager> traceManager )
+    {
+        this.passwords = passwords;
+        this.locationLookup = new LocationLookup();
+        this.httpFactory = new SpanningHttpFactory(
+                        new HttpFactory( new HttpFactoryPasswordDelegate( passwords, locationLookup ) ), traceManager );
+    }
 
     public HttpImpl( final PasswordManager passwords )
     {

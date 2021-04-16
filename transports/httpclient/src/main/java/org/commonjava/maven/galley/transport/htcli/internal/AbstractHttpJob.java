@@ -48,6 +48,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
+
 public abstract class AbstractHttpJob
 {
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -107,7 +109,10 @@ public abstract class AbstractHttpJob
 
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
+
+            addFieldToActiveSpan( "target-http-status", sc );
             logger.trace( "{} {} : {}", request.getMethod(), line, url );
+
             if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
             {
                 throw new TransferLocationException( location,
@@ -124,20 +129,28 @@ public abstract class AbstractHttpJob
         }
         catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException e )
         {
+            addFieldToActiveSpan( "target-error-reason", "timeout" );
+            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
             throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
                                                 e, url, e.getMessage() );
         }
         catch ( final IOException e )
         {
+            addFieldToActiveSpan( "target-error-reason", "I/O" );
+            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
             throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e, url,
                                          e.getMessage() );
         }
         catch ( TransferLocationException e )
         {
+            addFieldToActiveSpan( "target-error-reason", "no transport" );
+            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
             throw e;
         }
         catch ( final GalleyException e )
         {
+            addFieldToActiveSpan( "target-error-reason", "unknown" );
+            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
             throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
                                          e.getMessage() );
         }
@@ -232,6 +245,8 @@ public abstract class AbstractHttpJob
                     }
                     catch ( final JsonProcessingException e )
                     {
+                        addFieldToActiveSpan( "httpmeta-error-reason", "JSON error" );
+                        addFieldToActiveSpan( "httpmeta-error", e.getClass().getSimpleName() );
                         logger.warn( String.format("Failed to write HTTP exchange metadata: %s. Reason: %s", finalMeta, e.getMessage()), e );
                     }
 
@@ -243,6 +258,8 @@ public abstract class AbstractHttpJob
         }
         catch ( final IOException e )
         {
+            addFieldToActiveSpan( "httpmeta-error-reason", "I/O" );
+            addFieldToActiveSpan( "httpmeta-error", e.getClass().getSimpleName() );
             if ( logger.isTraceEnabled() )
             {
                 logger.trace( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,

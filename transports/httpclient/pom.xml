@@ -98,6 +98,10 @@
     </dependency>
     <dependency>
       <groupId>org.commonjava.util</groupId>
+      <artifactId>o11yphant-trace-helper-jhttpc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.commonjava.util</groupId>
       <artifactId>o11yphant-metrics-api</artifactId>
     </dependency>
     <dependency>

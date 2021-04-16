@@ -27,6 +27,8 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.util.ContentTypeUtils;
 
+import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
+
 public final class HttpPublish
     extends AbstractHttpJob
     implements PublishJob
@@ -54,6 +56,10 @@ public final class HttpPublish
     {
         //            logger.info( "Trying: {}", url );
         final HttpPut put = new HttpPut( url );
+
+        addFieldToActiveSpan( "http-target", url );
+        addFieldToActiveSpan( "activity", "httpclient-publish" );
+
         put.setEntity( new InputStreamEntity( stream, length, ContentType.create( contentType ) ) );
 
         request = put;

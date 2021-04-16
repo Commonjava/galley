@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.embed;
 
-import io.opentelemetry.api.trace.Tracer;
 import org.commonjava.cdi.util.weft.config.DefaultWeftConfig;
 import org.commonjava.cdi.util.weft.config.WeftConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
@@ -31,7 +30,7 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
-import org.commonjava.o11yphant.metrics.DefaultTrafficClassifier;
+import org.commonjava.o11yphant.metrics.AbstractTrafficClassifier;
 import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
 import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
 import org.commonjava.o11yphant.metrics.sli.GoldenSignalsMetricSet;
@@ -222,6 +221,12 @@ public class TestCDIProvider
             }
 
             @Override
+            public boolean isConsoleTransport()
+            {
+                return false;
+            }
+
+            @Override
             public String getServiceName()
             {
                 return "galley";
@@ -251,6 +256,12 @@ public class TestCDIProvider
 
             @Override
             public boolean isEnabled()
+            {
+                return false;
+            }
+
+            @Override
+            public boolean isConsoleTransport()
             {
                 return false;
             }
@@ -295,9 +306,9 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public DefaultTrafficClassifier getTrafficClassifier()
+    public AbstractTrafficClassifier getTrafficClassifier()
     {
-        return new DefaultTrafficClassifier()
+        return new AbstractTrafficClassifier()
         {
             @Override
             protected List<String> calculateCachedFunctionClassifiers( String restPath, String method, Map<String, String> headers )
