@@ -110,7 +110,6 @@ public abstract class AbstractHttpJob
             final StatusLine line = response.getStatusLine();
             final int sc = line.getStatusCode();
 
-            addFieldToActiveSpan( "target-http-status", sc );
             logger.trace( "{} {} : {}", request.getMethod(), line, url );
 
             if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
