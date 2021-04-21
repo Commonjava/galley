@@ -53,7 +53,7 @@
     <partylineVersion>1.16</partylineVersion>
     <pathmappedStorageVersion>1.4</pathmappedStorageVersion>
     <weftVersion>1.17</weftVersion>
-    <jhttpcVersion>1.9</jhttpcVersion>
+    <jhttpcVersion>1.12-SNAPSHOT</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
@@ -319,7 +319,22 @@
       </dependency>
       <dependency>
         <groupId>org.commonjava.util</groupId>
-        <artifactId>o11yphant-honeycomb-core</artifactId>
+        <artifactId>o11yphant-trace-core</artifactId>
+        <version>${o11yphantVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>o11yphant-trace-otel</artifactId>
+        <version>${o11yphantVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>o11yphant-trace-api</artifactId>
+        <version>${o11yphantVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.commonjava.util</groupId>
+        <artifactId>o11yphant-trace-helper-jhttpc</artifactId>
         <version>${o11yphantVersion}</version>
       </dependency>
 

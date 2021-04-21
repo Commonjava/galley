@@ -16,6 +16,8 @@
 package org.commonjava.maven.galley.transport.htcli.internal;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -64,6 +66,9 @@ public class HttpListing
     public ListingResult call()
     {
         request = new HttpGet( url );
+
+        addFieldToActiveSpan( "http-target", url );
+        addFieldToActiveSpan( "activity", "httpclient-listing" );
 
         // return null if something goes wrong, after setting the error.
         // What we should be doing here is trying to retrieve the html directory

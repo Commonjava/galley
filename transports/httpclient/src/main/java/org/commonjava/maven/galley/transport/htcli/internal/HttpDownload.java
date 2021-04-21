@@ -30,9 +30,9 @@ import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
-import org.commonjava.o11yphant.honeycomb.util.InterceptorUtils;
 import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.commonjava.o11yphant.metrics.api.Timer;
+import org.commonjava.o11yphant.trace.util.InterceptorUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +42,7 @@ import java.util.Map;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.commonjava.o11yphant.metrics.util.NameUtils.name;
+import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -103,6 +104,9 @@ public final class HttpDownload
         }
 
         logger.trace( "Download metric enabled, location: {}", location );
+
+        addFieldToActiveSpan( "http-target", request.getURI().toASCIIString() );
+        addFieldToActiveSpan( "activity", "httpclient-download" );
 
         String cls = getClass().getSimpleName();
 
