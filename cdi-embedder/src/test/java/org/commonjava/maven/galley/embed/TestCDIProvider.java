@@ -31,6 +31,7 @@ import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.o11yphant.metrics.AbstractTrafficClassifier;
+import org.commonjava.o11yphant.metrics.TrafficClassifier;
 import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
 import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
 import org.commonjava.o11yphant.metrics.sli.GoldenSignalsMetricSet;
@@ -306,7 +307,7 @@ public class TestCDIProvider
 
     @Produces
     @Default
-    public AbstractTrafficClassifier getTrafficClassifier()
+    public TrafficClassifier getTrafficClassifier()
     {
         return new AbstractTrafficClassifier()
         {
