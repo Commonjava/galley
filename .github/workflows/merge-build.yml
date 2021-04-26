@@ -9,6 +9,7 @@ jobs:
   publish-snapshot:
 
     runs-on: ubuntu-latest
+
     permissions: 
       contents: read
       packages: write
@@ -16,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up JDK 8
+    - name: Set up JDK
       uses: actions/setup-java@v2
       with:
         java-version: '8'
@@ -27,9 +28,17 @@ jobs:
 
     - name: maven-settings-xml-action
       uses: whelk-io/maven-settings-xml-action@v14
+      if: ${{ github.event.repository.fork == false }}
       with:
         repositories: '[{ "id": "sonatype", "url": "https://oss.sonatype.org/content/repositories/snapshots/", "releases": {"enabled": "false"}, "snapshots": {"enabled": "true" }}]'
         servers: '[{ "id": "sonatype", "username": "${{ secrets.SONATYPE_BOT_USERNAME}}", "password": "${{ secrets.SONATYPE_BOT_TOKEN}}" }]'
 
-    - name: Build with Maven
-      run: mvn -B -e deploy -DaltSnapshotDeploymentRepository=sonatype::default::https://oss.sonatype.org/content/repositories/snapshots/
+    - name: "Maven Build & Deploy Snapshot to Sonatype OSSRH"
+      if: ${{ github.event.repository.fork == false }}
+
+      run: mvn -B -e deploy -DaltDeploymentRepository=sonatype::default::https://oss.sonatype.org/content/repositories/snapshots/
+
+    - name: "Maven Build"
+      if: ${{ github.event.repository.fork == true }}
+
+      run: mvn -B -e -Prun-its verify
