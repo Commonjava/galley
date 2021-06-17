@@ -314,8 +314,9 @@ public class TransferManagerImpl
                                 {
                                     if ( isEmptyFolder( childRef ) )
                                     {
+                                        // if the directory is there but it's empty, we should delete it
                                         logger.info( "Delete empty folder, {}", childRef.getFullPath() );
-                                        childRef.delete(); // if the directory is there but it's empty, we should just delete it
+                                        forceDelete( childRef );
                                     }
                                     else
                                     {
@@ -409,6 +410,20 @@ public class TransferManagerImpl
         logger.debug( "Final listing result:\n\n{}\n\n", resultingNames );
 
         return new ListingResult( resource, resultingNames.toArray( new String[0] ) );
+    }
+
+    private void forceDelete( Transfer childRef ) throws IOException
+    {
+        final ConcreteResource resource = new ConcreteResource( childRef.getLocation(), childRef.getPath() )
+        {
+            @Override
+            public boolean allowsDeletion()
+            {
+                return true;
+            }
+        };
+        final Transfer forced = getCacheReference( resource );
+        forced.delete();
     }
 
     private void writeListingTxt( Transfer cachedListing, String[] remoteListing, ConcreteResource resource )
