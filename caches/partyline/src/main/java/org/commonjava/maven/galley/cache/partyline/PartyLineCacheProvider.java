@@ -198,7 +198,7 @@ public class PartyLineCacheProvider
     public boolean exists( final ConcreteResource resource )
     {
         final File f = getDetachedFile( resource );
-        //        logger.info( "Checking for existence of cache file: {}", f );
+        logger.debug( "Checking for existence of cache file: {}", f );
         return f.exists();
     }
 
