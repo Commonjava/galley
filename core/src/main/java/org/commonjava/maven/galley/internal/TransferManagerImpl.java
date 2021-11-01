@@ -316,7 +316,7 @@ public class TransferManagerImpl
                                     {
                                         // if the directory is there but it's empty, we should delete it
                                         logger.info( "Delete empty folder, {}", childRef.getFullPath() );
-                                        forceDelete( childRef );
+                                        deleteQuietly( childRef );
                                     }
                                     else
                                     {
@@ -410,6 +410,18 @@ public class TransferManagerImpl
         logger.debug( "Final listing result:\n\n{}\n\n", resultingNames );
 
         return new ListingResult( resource, resultingNames.toArray( new String[0] ) );
+    }
+
+    private void deleteQuietly( Transfer childRef )
+    {
+        try
+        {
+            forceDelete(childRef);
+        }
+        catch ( IOException e )
+        {
+            logger.warn( "Delete failed, childRef: " + childRef, e );
+        }
     }
 
     private void forceDelete( Transfer childRef ) throws IOException
