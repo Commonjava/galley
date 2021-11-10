@@ -66,7 +66,8 @@ public class PathMappedCacheProvider
     {
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
-        this.config = new PathMappedCacheProviderConfig( cacheBasedir );
+        this.config = new PathMappedCacheProviderConfig( cacheBasedir )
+                .withTimeoutProcessingEnabled( Boolean.TRUE );
         this.deleteExecutor = deleteExecutor == null ?
                         newFixedThreadPool( DEFAULT_DELETE_EXECUTOR_POOL_SIZE ) :
                         deleteExecutor;
