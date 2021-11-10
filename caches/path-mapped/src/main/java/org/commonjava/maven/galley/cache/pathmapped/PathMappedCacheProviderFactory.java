@@ -17,6 +17,8 @@ package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
+import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
+import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.storage.pathmapped.config.PathMappedStorageConfig;
 import org.commonjava.storage.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
@@ -45,6 +47,8 @@ public class PathMappedCacheProviderFactory
     private PathDB pathDB;
 
     private PhysicalStore physicalStore;
+
+    private SpecialPathManager specialPathManager;
 
     public PathMappedCacheProviderFactory( File cacheDir, ExecutorService deleteExecutor,
                                            PathMappedStorageConfig config )
@@ -78,9 +82,13 @@ public class PathMappedCacheProviderFactory
                 {
                     physicalStore = new FileBasedPhysicalStore( cacheDir );
                 }
+                if ( specialPathManager == null )
+                {
+                    specialPathManager = new SpecialPathManagerImpl();
+                }
                 provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, deleteExecutor,
                                                         new PathMappedFileManager( config, pathDB, physicalStore ),
-                                                        pathGenerator );
+                                                        pathGenerator, specialPathManager );
             }
             catch ( Exception ex )
             {
