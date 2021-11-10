@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.cache.pathmapped;
 
 import org.commonjava.maven.galley.cache.CacheProviderTCK;
 import org.commonjava.maven.galley.cache.MockPathGenerator;
+import org.commonjava.maven.galley.io.SpecialPathManagerImpl;
 import org.commonjava.storage.pathmapped.config.DefaultPathMappedStorageConfig;
 import org.commonjava.storage.pathmapped.core.FileBasedPhysicalStore;
 import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
@@ -69,7 +70,7 @@ public class PathMappedCacheProviderJPATest
                                                 Executors.newScheduledThreadPool( 2 ),
                                                 new PathMappedFileManager( new DefaultPathMappedStorageConfig(),
                                                                            new JPAPathDB( "test" ),
-                                                                           new FileBasedPhysicalStore( baseDir ) ), pathgen );
+                                                                           new FileBasedPhysicalStore( baseDir ) ), pathgen, new SpecialPathManagerImpl());
     }
 
     @Override

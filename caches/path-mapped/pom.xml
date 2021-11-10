@@ -67,6 +67,10 @@
             <artifactId>cassandra-unit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.commonjava.maven.galley</groupId>
+            <artifactId>galley-core</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

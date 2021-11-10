@@ -15,6 +15,9 @@
  */
 package org.commonjava.maven.galley.cache.pathmapped;
 
+import org.commonjava.maven.galley.io.SpecialPathConstants;
+import org.commonjava.maven.galley.model.SpecialPathInfo;
+import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.util.PathUtils;
 import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
@@ -33,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +59,8 @@ public class PathMappedCacheProvider
 
     private PathGenerator pathGenerator;
 
+    private SpecialPathManager specialPathManager;
+
     private static final int DEFAULT_DELETE_EXECUTOR_POOL_SIZE = 2;
 
     public PathMappedCacheProvider( final File cacheBasedir,
@@ -62,16 +68,19 @@ public class PathMappedCacheProvider
                                     final TransferDecoratorManager transferDecorator,
                                     final ExecutorService deleteExecutor,
                                     final PathMappedFileManager fileManager,
-                                    final PathGenerator pathGenerator)
+                                    final PathGenerator pathGenerator,
+                                    final SpecialPathManager specialPathManager)
     {
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
-        this.config = new PathMappedCacheProviderConfig( cacheBasedir );
+        this.config = new PathMappedCacheProviderConfig( cacheBasedir )
+                .withTimeoutProcessingEnabled( Boolean.TRUE );
         this.deleteExecutor = deleteExecutor == null ?
                         newFixedThreadPool( DEFAULT_DELETE_EXECUTOR_POOL_SIZE ) :
                         deleteExecutor;
         this.fileManager = fileManager;
         this.pathGenerator = pathGenerator;
+        this.specialPathManager = specialPathManager;
         startReportingDaemon();
     }
 
@@ -231,15 +240,12 @@ public class PathMappedCacheProvider
     public Transfer getTransfer( final ConcreteResource resource )
     {
         Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );
-        final int timeoutSeconds = getResourceTimeoutSeconds( resource );
-        if ( !resource.isRoot() && config.isTimeoutProcessingEnabled() && timeoutSeconds > 0 )
+        if ( !resource.isRoot() && config.isTimeoutProcessingEnabled() )
         {
-            deleteExecutor.submit( () -> {
-                if ( isFileTimeout( txfr, timeoutSeconds ) )
-                {
-                    handleResource( resource, ( f, p ) -> fileManager.delete( f, p ), "transferDelete" );
-                }
-            } );
+            if ( isFileTimeout( txfr ) )
+            {
+                handleResource( resource, ( f, p ) -> fileManager.delete( f, p ), "transferDelete" );
+            }
         }
         return txfr;
     }
@@ -251,12 +257,39 @@ public class PathMappedCacheProvider
                                       config.getDefaultTimeoutSeconds() );
     }
 
+    private int getResourceMetadataTimeoutSeconds( final ConcreteResource resource )
+    {
+        return resource.getLocation()
+                .getAttribute( Location.METADATA_TIMEOUT_SECONDS, Integer.class,
+                        config.getDefaultTimeoutSeconds() );
+    }
+
     /**
      * Return true if it is both a file and timeout. False if file not exists or directory. This is because
      * getFileLastModified return -1 when file not exists or directory.
      */
-    private boolean isFileTimeout( final Transfer txfr, int timeoutSeconds )
+    private boolean isFileTimeout( final Transfer txfr )
     {
+        int timeoutSeconds = 0;
+        SpecialPathInfo pathInfo = null;
+
+        for ( String pkgType : Arrays.asList(SpecialPathConstants.PKG_TYPE_MAVEN, SpecialPathConstants.PKG_TYPE_NPM) ) {
+            pathInfo = specialPathManager.getSpecialPathInfo(txfr, pkgType);
+            if ( pathInfo != null && pathInfo.isMetadata() ) {
+                timeoutSeconds = getResourceMetadataTimeoutSeconds(txfr.getResource());
+                break;
+            }
+        }
+        if ( pathInfo == null || !pathInfo.isMetadata() )
+        {
+            timeoutSeconds = getResourceTimeoutSeconds(txfr.getResource());
+        }
+
+        if ( timeoutSeconds <= 0 )
+        {
+            return false;
+        }
+
         final long current = System.currentTimeMillis();
         final long lastModified = txfr.lastModified();
         if ( lastModified <= 0 )
