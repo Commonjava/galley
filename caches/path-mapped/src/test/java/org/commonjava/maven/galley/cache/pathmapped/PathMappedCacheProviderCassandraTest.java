@@ -52,7 +52,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
 import static org.commonjava.maven.galley.cache.testutil.AssertUtil.assertThrows;
 import static org.commonjava.storage.pathmapped.pathdb.datastax.util.CassandraPathDBUtils.PROP_CASSANDRA_HOST;
 import static org.commonjava.storage.pathmapped.pathdb.datastax.util.CassandraPathDBUtils.PROP_CASSANDRA_KEYSPACE;
@@ -80,6 +82,7 @@ public class PathMappedCacheProviderCassandraTest
 
     private PathMappedFileManager fileManager;
     private PathMappedCacheProvider provider;
+    private File baseDir;
 
     @BeforeClass
     public static void startEmbeddedCassandra() throws Exception
@@ -102,12 +105,38 @@ public class PathMappedCacheProviderCassandraTest
     @Before
     public void setup() throws Exception
     {
-        File baseDir = temp.newFolder();
+        baseDir = temp.newFolder();
         fileManager = new PathMappedFileManager( new DefaultPathMappedStorageConfig(), pathDB,
                                                  new FileBasedPhysicalStore( baseDir ) );
-        provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
-                                                Executors.newScheduledThreadPool( 2 ),
-                                                fileManager, pathgen, new SpecialPathManagerImpl());
+
+        provider = getPathMappedCacheProvider( new PathMappedCacheProviderConfig( baseDir ) );
+    }
+
+    private PathMappedCacheProvider getPathMappedCacheProvider(PathMappedCacheProviderConfig cacheProviderConfig)
+    {
+        return new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
+                                            cacheProviderConfig, Executors.newScheduledThreadPool( 2 ), fileManager,
+                                            pathgen, new SpecialPathManagerImpl() )
+        {
+            // Override it for expireFile test
+            protected boolean isTransferTimeout( final Transfer txfr )
+            {
+                int timeoutSeconds = getResourceTimeoutSeconds( txfr.getResource() );
+                if ( timeoutSeconds <= 0 )
+                {
+                    return false;
+                }
+                final long current = System.currentTimeMillis();
+                final long lastModified = txfr.lastModified();
+                if ( lastModified <= 0 )
+                {
+                    // not exist or not a file
+                    return false;
+                }
+                final long timeout = TimeUnit.MILLISECONDS.convert( timeoutSeconds, TimeUnit.SECONDS );
+                return current - lastModified > timeout;
+            }
+        };
     }
 
     @After
@@ -124,6 +153,32 @@ public class PathMappedCacheProviderCassandraTest
     protected CacheProvider getCacheProvider() throws Exception
     {
         return provider;
+    }
+
+    @Test
+    public void expireFile() throws Exception
+    {
+        PathMappedCacheProviderConfig myCacheProviderConfig =
+                        new PathMappedCacheProviderConfig( baseDir ).withTimeoutProcessingEnabled( Boolean.TRUE )
+                                                                    .withDefaultTimeoutSeconds( 1 );
+        PathMappedCacheProvider myCacheProvider = getPathMappedCacheProvider( myCacheProviderConfig );
+
+        final String content = "This is a test";
+
+        final Location loc = new SimpleLocation( "http://foo.com" );
+        final String fname = "/path/to/my/file.txt";
+
+        final OutputStream out = myCacheProvider.openOutputStream( new ConcreteResource( loc, fname ) );
+        out.write( content.getBytes( UTF_8 ) );
+        out.close();
+
+        sleep( 3000 );
+
+        // source file should have been removed
+        ConcreteResource res = new ConcreteResource( loc, fname );
+        Transfer tx = myCacheProvider.getTransfer( res );
+        assertFalse( tx.exists() );
+        assertThrows( IOException.class, () -> myCacheProvider.openInputStream( res ) );
     }
 
     @Test

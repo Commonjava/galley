@@ -25,7 +25,7 @@ public class PathMappedCacheProviderConfig
 
     private String storageStrategy = DEFAULT_STORAGE_STRATEGY;
 
-    private static final int DEFAULT_TIMEOUT_SECONDS = 86400;
+    private static final int DEFAULT_TIMEOUT_SECONDS = -1; // never timeout
 
     private boolean timeoutProcessingEnabled;
 

@@ -66,7 +66,7 @@ public class PathMappedCacheProviderJPATest
         final PathGenerator pathgen = new MockPathGenerator();
 
         File baseDir = temp.newFolder();
-        provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
+        provider = new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ), null,
                                                 Executors.newScheduledThreadPool( 2 ),
                                                 new PathMappedFileManager( new DefaultPathMappedStorageConfig(),
                                                                            new JPAPathDB( "test" ),

@@ -66,6 +66,7 @@ public class PathMappedCacheProvider
     public PathMappedCacheProvider( final File cacheBasedir,
                                     final FileEventManager fileEventManager,
                                     final TransferDecoratorManager transferDecorator,
+                                    final PathMappedCacheProviderConfig pathMappedCacheProviderConfig,
                                     final ExecutorService deleteExecutor,
                                     final PathMappedFileManager fileManager,
                                     final PathGenerator pathGenerator,
@@ -73,8 +74,9 @@ public class PathMappedCacheProvider
     {
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
-        this.config = new PathMappedCacheProviderConfig( cacheBasedir )
-                .withTimeoutProcessingEnabled( Boolean.TRUE );
+        this.config = pathMappedCacheProviderConfig == null ?
+                        new PathMappedCacheProviderConfig( cacheBasedir ) :
+                        pathMappedCacheProviderConfig;
         this.deleteExecutor = deleteExecutor == null ?
                         newFixedThreadPool( DEFAULT_DELETE_EXECUTOR_POOL_SIZE ) :
                         deleteExecutor;
@@ -242,7 +244,7 @@ public class PathMappedCacheProvider
         Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );
         if ( !resource.isRoot() && config.isTimeoutProcessingEnabled() )
         {
-            if ( isFileTimeout( txfr ) )
+            if ( isTransferTimeout( txfr ) )
             {
                 handleResource( resource, ( f, p ) -> fileManager.delete( f, p ), "transferDelete" );
             }
@@ -250,14 +252,14 @@ public class PathMappedCacheProvider
         return txfr;
     }
 
-    private int getResourceTimeoutSeconds( final ConcreteResource resource )
+    protected int getResourceTimeoutSeconds( final ConcreteResource resource )
     {
         return resource.getLocation()
                        .getAttribute( Location.CACHE_TIMEOUT_SECONDS, Integer.class,
                                       config.getDefaultTimeoutSeconds() );
     }
 
-    private int getResourceMetadataTimeoutSeconds( final ConcreteResource resource )
+    protected int getResourceMetadataTimeoutSeconds( final ConcreteResource resource )
     {
         return resource.getLocation()
                 .getAttribute( Location.METADATA_TIMEOUT_SECONDS, Integer.class,
@@ -268,21 +270,23 @@ public class PathMappedCacheProvider
      * Return true if it is both a file and timeout. False if file not exists or directory. This is because
      * getFileLastModified return -1 when file not exists or directory.
      */
-    private boolean isFileTimeout( final Transfer txfr )
+    protected boolean isTransferTimeout( final Transfer txfr )
     {
         int timeoutSeconds = 0;
         SpecialPathInfo pathInfo = null;
 
-        for ( String pkgType : Arrays.asList(SpecialPathConstants.PKG_TYPE_MAVEN, SpecialPathConstants.PKG_TYPE_NPM) ) {
-            pathInfo = specialPathManager.getSpecialPathInfo(txfr, pkgType);
-            if ( pathInfo != null && pathInfo.isMetadata() ) {
-                timeoutSeconds = getResourceMetadataTimeoutSeconds(txfr.getResource());
+        for ( String pkgType : Arrays.asList( SpecialPathConstants.PKG_TYPE_MAVEN, SpecialPathConstants.PKG_TYPE_NPM ) )
+        {
+            pathInfo = specialPathManager.getSpecialPathInfo( txfr, pkgType );
+            if ( pathInfo != null && pathInfo.isMetadata() )
+            {
+                timeoutSeconds = getResourceMetadataTimeoutSeconds( txfr.getResource() );
                 break;
             }
         }
         if ( pathInfo == null || !pathInfo.isMetadata() )
         {
-            timeoutSeconds = getResourceTimeoutSeconds(txfr.getResource());
+            timeoutSeconds = getResourceTimeoutSeconds( txfr.getResource() );
         }
 
         if ( timeoutSeconds <= 0 )
