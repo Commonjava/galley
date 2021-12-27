@@ -50,14 +50,17 @@ public class PathMappedCacheProviderFactory
 
     private SpecialPathManager specialPathManager;
 
+    private PathMappedCacheProviderConfig cacheProviderConfig;
+
     public PathMappedCacheProviderFactory( File cacheDir, ExecutorService deleteExecutor,
                                            PathMappedStorageConfig config )
     {
-        this( cacheDir, deleteExecutor, config, null, null );
+        this( cacheDir, deleteExecutor, config, null, null, null );
     }
 
     public PathMappedCacheProviderFactory( File cacheDir, ExecutorService deleteExecutor,
-                                           PathMappedStorageConfig config, PathDB pathDB, PhysicalStore physicalStore )
+                                           PathMappedStorageConfig config, PathDB pathDB, PhysicalStore physicalStore,
+                                           PathMappedCacheProviderConfig cacheProviderConfig )
     {
         this.cacheDir = cacheDir;
         this.deleteExecutor = deleteExecutor;
@@ -86,7 +89,11 @@ public class PathMappedCacheProviderFactory
                 {
                     specialPathManager = new SpecialPathManagerImpl();
                 }
-                provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, deleteExecutor,
+                if ( cacheProviderConfig == null )
+                {
+                    cacheProviderConfig = new PathMappedCacheProviderConfig( cacheDir );
+                }
+                provider = new PathMappedCacheProvider( cacheDir, fileEventManager, transferDecorator, cacheProviderConfig, deleteExecutor,
                                                         new PathMappedFileManager( config, pathDB, physicalStore ),
                                                         pathGenerator, specialPathManager );
             }
