@@ -122,6 +122,7 @@ public class DownloadHandler
                 return target;
             }
 
+            logger.debug( "List the pending jobs: {}", pending );
             future = pending.get( target );
             if ( future == null )
             {
