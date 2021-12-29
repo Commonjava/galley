@@ -123,12 +123,6 @@ public class DownloadHandler
             }
 
             logger.debug( "List the pending jobs: {}", pending );
-            pending.keySet().stream().forEach(item->
-            {
-                logger.trace("Transfer uri: {}", item.getResource().getLocation().getUri());
-                logger.trace("Transfer path: {}", item.getResource().getPath());
-                logger.trace("Transfer hashCode: {}", item.hashCode());
-            });
             future = pending.get( target );
             if ( future == null )
             {
