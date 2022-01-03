@@ -67,6 +67,7 @@
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
     <jacksonVersion>2.12.1</jacksonVersion>
+    <logbackVersion>1.2.9</logbackVersion>
 
     <plugin.jacoco.skip>false</plugin.jacoco.skip>
   </properties>
@@ -419,6 +420,12 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
+      <version>${logbackVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logbackVersion}</version>
     </dependency>
     <dependency>
       <groupId>org.commonjava.cdi.util</groupId>
