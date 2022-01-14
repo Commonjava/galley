@@ -157,11 +157,13 @@ public final class HttpDownload
     private DownloadJob doCall()
     {
         String oldName = Thread.currentThread().getName();
+        boolean ret = false;
         try
         {
             String newName = oldName + ": GET " + url;
             Thread.currentThread().setName( newName );
-            if ( executeHttp() )
+            ret = executeHttp();
+            if ( ret )
             {
                 transferSizes.put( target, HttpUtil.getContentLength( response ) );
                 writeTarget();
@@ -180,7 +182,15 @@ public final class HttpDownload
             }
         }
 
-        logger.info( "Download attempt done: {} Result:\n  target: {}\n  error: {}", url, target, error );
+        if ( ret && ( error == null ) )
+        {
+            logger.info( "Download attempt done: {} Result:\n  target: {}", url, target );
+        }
+        else
+        {
+            logger.info( "Download attempt failed: {} Result:\n  target: {}\n  error: {}\n  success: {}", url, target,
+                         error, ret );
+        }
         return this;
     }
 
