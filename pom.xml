@@ -54,7 +54,7 @@
     <pathmappedStorageVersion>2.0</pathmappedStorageVersion>
     <weftVersion>1.17</weftVersion>
     <jhttpcVersion>1.12</jhttpcVersion>
-    <infinispanVersion>9.4.7.Final</infinispanVersion>
+    <infinispanVersion>11.0.6.Final</infinispanVersion>
     <weldVersion>2.4.6.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>4.0.13</byteman.version>
