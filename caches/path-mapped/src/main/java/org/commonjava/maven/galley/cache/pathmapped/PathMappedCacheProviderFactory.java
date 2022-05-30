@@ -67,6 +67,7 @@ public class PathMappedCacheProviderFactory
         this.config = config;
         this.pathDB = pathDB;
         this.physicalStore = physicalStore;
+        this.cacheProviderConfig = cacheProviderConfig;
     }
 
     @Override

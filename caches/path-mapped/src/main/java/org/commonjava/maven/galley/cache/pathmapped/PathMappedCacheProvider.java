@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.cache.pathmapped;
 
-import org.commonjava.maven.galley.io.SpecialPathConstants;
 import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.spi.io.SpecialPathManager;
 import org.commonjava.maven.galley.util.PathUtils;
@@ -41,6 +40,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN;
+import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_NPM;
 
 public class PathMappedCacheProvider
                 implements CacheProvider, CacheProvider.AdminView
@@ -275,18 +276,25 @@ public class PathMappedCacheProvider
         int timeoutSeconds = 0;
         SpecialPathInfo pathInfo = null;
 
-        for ( String pkgType : Arrays.asList( SpecialPathConstants.PKG_TYPE_MAVEN, SpecialPathConstants.PKG_TYPE_NPM ) )
+        for ( String pkgType : Arrays.asList( PKG_TYPE_MAVEN, PKG_TYPE_NPM ) )
         {
-            pathInfo = specialPathManager.getSpecialPathInfo( txfr, pkgType );
+            /*
+             * this returns the 'real' path, eg., appending the 'package.json' for npm metadata.
+             */
+            String realPath = pathGenerator.getPath( txfr.getResource() );
+            pathInfo = specialPathManager.getSpecialPathInfo( txfr.getLocation(), realPath, pkgType );
             if ( pathInfo != null && pathInfo.isMetadata() )
             {
                 timeoutSeconds = getResourceMetadataTimeoutSeconds( txfr.getResource() );
+                logger.debug("isTransferTimeout, pkgType: {}, metadata timeoutSeconds: {}, realPath: {}",
+                        pkgType, timeoutSeconds, realPath);
                 break;
             }
         }
         if ( pathInfo == null || !pathInfo.isMetadata() )
         {
             timeoutSeconds = getResourceTimeoutSeconds( txfr.getResource() );
+            logger.debug("isTransferTimeout, resource timeoutSeconds: {}", timeoutSeconds);
         }
 
         if ( timeoutSeconds <= 0 )
@@ -299,10 +307,18 @@ public class PathMappedCacheProvider
         if ( lastModified <= 0 )
         {
             // not exist or not a file
+            logger.debug("isTransferTimeout, lastModified: {}", lastModified);
             return false;
         }
-        final int tos = Math.max( timeoutSeconds, Location.MIN_CACHE_TIMEOUT_SECONDS );
+
+        // final int tos = Math.max( timeoutSeconds, Location.MIN_CACHE_TIMEOUT_SECONDS );
+        /*
+         * I disrespect the MIN_CACHE_TIMEOUT_SECONDS because it blocks the testing and confuses users
+         * when setting timeout smaller than 1h. ruhan May 30, 2022
+         */
+        final int tos = timeoutSeconds;
         final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
+        logger.debug("isTransferTimeout, tos: {}, timeout: {}, current: {}, lastModified: {}", tos, timeout, current, lastModified);
         return current - lastModified > timeout;
     }
 
