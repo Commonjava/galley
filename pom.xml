@@ -51,7 +51,7 @@
     <projectEmail>nos-devel@redhat.com</projectEmail>
     <atlasVersion>1.1.0</atlasVersion>
     <partylineVersion>1.16</partylineVersion>
-    <pathmappedStorageVersion>2.0</pathmappedStorageVersion>
+    <pathmappedStorageVersion>2.1</pathmappedStorageVersion>
     <weftVersion>1.17</weftVersion>
     <jhttpcVersion>1.12</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>
