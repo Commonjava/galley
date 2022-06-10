@@ -397,19 +397,16 @@ public class PathMappedCacheProvider
     @Override
     public void cleanupCurrentThread()
     {
-        fileManager.cleanupCurrentThread();
     }
 
     @Override
     public void startReporting()
     {
-        fileManager.startReporting();
     }
 
     @Override
     public void stopReporting()
     {
-        fileManager.stopReporting();
     }
 
     public PathMappedFileManager getPathMappedFileManager()

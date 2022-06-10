@@ -29,7 +29,9 @@ import org.commonjava.maven.galley.model.VirtualResource;
 public interface TransferManager
 {
 
-    static final String ALLOW_REMOTE_LISTING_DOWNLOAD = "Allow-remote-listing-download";
+    String ALLOW_REMOTE_LISTING_DOWNLOAD = "allow-remote-listing-download";
+
+    String ALLOW_REMOVE_EMPTY_DIRECTORY = "allow-remove-empty-directory";
 
     <T extends TransferBatch> T batchRetrieve( T batch )
     throws TransferException;

@@ -69,6 +69,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import static java.lang.Boolean.TRUE;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.join;
@@ -312,7 +313,16 @@ public class TransferManagerImpl
                                 }
                                 else
                                 {
-                                    if ( isEmptyFolder( childRef ) )
+                                    /*
+                                    As a way of clean-up, this try to list all sub-folders to see if they are empty.
+                                    e.g., if a dir has 1000 sub folders, it actually will do 1000 more listing operations.
+                                    On some storage system, this can cause serious performance problem.
+                                    The clean-up is useful to some extent. e.g, if there is a maven version folder
+                                    and for some reason it is empty, the metadata generation will skip it.
+                                    To fix the performance and still keep the ability of empty check, I use a flag in event metadata
+                                    to indicate whether the listing need to filter out empty folders.
+                                    */
+                                    if ( TRUE.equals( metadata.get( ALLOW_REMOVE_EMPTY_DIRECTORY ) ) && isEmptyFolder( childRef ) )
                                     {
                                         // if the directory is there but it's empty, we should delete it
                                         logger.info( "Delete empty folder, {}", childRef.getFullPath() );
