@@ -247,6 +247,9 @@ public class PathMappedCacheProvider
         {
             if ( isTransferTimeout( txfr ) )
             {
+
+                logger.info("Removing resource {} as timeout.", resource);
+
                 handleResource( resource, ( f, p ) -> fileManager.delete( f, p ), "transferDelete" );
             }
         }
