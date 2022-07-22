@@ -48,7 +48,7 @@ public class PartyLineCacheProviderTest
         final FileEventManager events = new TestFileEventManager();
         final TransferDecorator decorator = new TestTransferDecorator();
 
-        provider = new PartyLineCacheProvider( temp.newFolder(), pathgen, events, new TransferDecoratorManager( decorator ),
+        provider = new PartyLineCacheProvider( temp.newFolder(), false, pathgen, events, new TransferDecoratorManager( decorator ),
                                                Executors.newScheduledThreadPool( 2 ), new JoinableFileManager() );
     }
 
