@@ -43,15 +43,5 @@
       <artifactId>hamcrest-core</artifactId>
       <scope>compile</scope>
     </dependency>
-    <dependency>
-      <groupId>org.commonjava.atlas</groupId>
-      <artifactId>atlas-identities</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>logging</artifactId>
-          <groupId>org.commonjava.util</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
   </dependencies>
 </project>
