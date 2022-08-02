@@ -31,10 +31,9 @@ public class PartyLineCacheProviderConfig
 
     private Integer defaultTimeoutSeconds;
 
-    public PartyLineCacheProviderConfig( final File cacheBasedir, final Boolean timeoutProcessing )
+    public PartyLineCacheProviderConfig( final File cacheBasedir )
     {
         this.cacheBasedir = cacheBasedir;
-        this.timeoutProcessing = timeoutProcessing;
     }
 
     public PartyLineCacheProviderConfig withAliasLinkingEnabled( final boolean aliasLinking )

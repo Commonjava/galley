@@ -64,8 +64,9 @@ public class PartyLineCacheProviderFactory
         if ( provider == null )
         {
             JoinableFileManager fileManager = new JoinableFileManager();
-            provider = new PartyLineCacheProvider( cacheDir, timeoutProcessing, pathGenerator, fileEventManager, transferDecorator,
+            provider = new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
                                                    deleteExecutor, fileManager );
+            provider.getConfig().withTimeoutProcessingEnabled( timeoutProcessing );
         }
 
         return provider;

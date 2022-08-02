@@ -120,7 +120,7 @@ public class TestCDIProvider
         {
             temp.create();
             cacheProvider =
-                    new PartyLineCacheProvider( temp.newFolder(), false, pathGenerator, eventManager, transferDecorator,
+                    new PartyLineCacheProvider( temp.newFolder(), pathGenerator, eventManager, transferDecorator,
                                                 Executors.newScheduledThreadPool( 2 ), new JoinableFileManager() );
             fileTransportConfig = new FileTransportConfig( temp.newFolder(), pathGenerator );
         }

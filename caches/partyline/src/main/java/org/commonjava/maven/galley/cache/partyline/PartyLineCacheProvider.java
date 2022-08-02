@@ -68,7 +68,7 @@ public class PartyLineCacheProvider
 
     private List<Transfer> toDelete = Collections.synchronizedList( new ArrayList<>() );
 
-    public PartyLineCacheProvider( final File cacheBasedir, final Boolean timeoutProcessing, final PathGenerator pathGenerator,
+    public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator,
                                    final FileEventManager fileEventManager, final TransferDecoratorManager transferDecorator,
                                    final ScheduledExecutorService deleteExecutor,
                                    final JoinableFileManager fileManager)
@@ -76,7 +76,7 @@ public class PartyLineCacheProvider
         this.pathGenerator = pathGenerator;
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
-        this.config = new PartyLineCacheProviderConfig( cacheBasedir, timeoutProcessing );
+        this.config = new PartyLineCacheProviderConfig( cacheBasedir );
         this.deleteExecutor = deleteExecutor == null ? Executors.newScheduledThreadPool( 2 ) : deleteExecutor;
         this.fileManager = fileManager;
 
@@ -511,5 +511,10 @@ public class PartyLineCacheProvider
     public void stopReporting()
     {
         fileManager.stopReporting();
+    }
+
+    public PartyLineCacheProviderConfig getConfig()
+    {
+        return config;
     }
 }
