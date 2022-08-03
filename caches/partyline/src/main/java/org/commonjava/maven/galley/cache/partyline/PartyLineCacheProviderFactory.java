@@ -36,6 +36,8 @@ public class PartyLineCacheProviderFactory
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
+    private boolean timeoutProcessing;
+
     private File cacheDir;
 
     private ScheduledExecutorService deleteExecutor;
@@ -44,7 +46,13 @@ public class PartyLineCacheProviderFactory
 
     public PartyLineCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor )
     {
+        new PartyLineCacheProviderFactory( cacheDir, false, deleteExecutor );
+    }
+
+    public PartyLineCacheProviderFactory( File cacheDir, Boolean timeoutProcessing, ScheduledExecutorService deleteExecutor )
+    {
         this.cacheDir = cacheDir;
+        this.timeoutProcessing = timeoutProcessing;
         this.deleteExecutor = deleteExecutor;
     }
 
@@ -58,6 +66,7 @@ public class PartyLineCacheProviderFactory
             JoinableFileManager fileManager = new JoinableFileManager();
             provider = new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
                                                    deleteExecutor, fileManager );
+            provider.getConfig().withTimeoutProcessingEnabled( timeoutProcessing );
         }
 
         return provider;

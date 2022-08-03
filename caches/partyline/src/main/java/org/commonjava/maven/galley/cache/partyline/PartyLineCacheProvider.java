@@ -512,4 +512,9 @@ public class PartyLineCacheProvider
     {
         fileManager.stopReporting();
     }
+
+    public PartyLineCacheProviderConfig getConfig()
+    {
+        return config;
+    }
 }
