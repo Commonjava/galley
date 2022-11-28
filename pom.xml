@@ -52,10 +52,10 @@
     <atlasVersion>1.1.0</atlasVersion>
     <partylineVersion>1.16</partylineVersion>
     <pathmappedStorageVersion>2.1</pathmappedStorageVersion>
-    <weftVersion>1.17</weftVersion>
+    <weftVersion>1.21-SNAPSHOT</weftVersion>
     <jhttpcVersion>1.12</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>
-    <weldVersion>2.4.6.Final</weldVersion>
+    <weldVersion>3.1.9.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>4.0.13</byteman.version>
     <o11yphantVersion>1.4</o11yphantVersion>
@@ -179,7 +179,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>27</version>
+        <version>28-SNAPSHOT</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -235,13 +235,7 @@
 
       <dependency>
         <groupId>org.jboss.weld.se</groupId>
-        <artifactId>weld-se-core</artifactId>
-        <version>${weldVersion}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.weld.se</groupId>
-        <artifactId>weld-se</artifactId>
+        <artifactId>weld-se-shaded</artifactId>
         <version>${weldVersion}</version>
         <scope>test</scope>
       </dependency>

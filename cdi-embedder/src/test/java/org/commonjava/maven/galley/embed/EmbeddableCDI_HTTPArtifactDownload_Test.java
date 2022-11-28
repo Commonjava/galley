@@ -32,6 +32,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -45,10 +46,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class EmbeddableCDI_HTTPArtifactDownload_Test
         extends AbstractEmbeddableCDIProducerTest
 {
-    private ExpectationServer server = new ExpectationServer();
+    private final ExpectationServer server = new ExpectationServer();
 
     @Inject
-    private ArtifactManager transfers;
+    ArtifactManager transfers;
 
     @Before
     public void before()
@@ -60,10 +61,7 @@ public class EmbeddableCDI_HTTPArtifactDownload_Test
     @After
     public void after()
     {
-        if ( server != null )
-        {
-            server.stop();
-        }
+        server.stop();
     }
 
     @Test
@@ -84,11 +82,11 @@ public class EmbeddableCDI_HTTPArtifactDownload_Test
         try
         {
             stream = transfer.openInputStream();
-            assertThat( IOUtils.toString( stream ), equalTo( content ) );
+            assertThat( IOUtils.toString( stream, Charset.defaultCharset() ), equalTo( content ) );
         }
         finally
         {
-            IOUtils.closeQuietly( stream );
+            IOUtils.closeQuietly( stream, null );
         }
     }
 
