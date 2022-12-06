@@ -32,7 +32,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
 
     protected final Element element;
 
-    protected Element collapsed;
+    protected final Element collapsed;
 
     protected final JXPathContext elementContext;
 
@@ -217,7 +217,7 @@ public abstract class AbstractMavenElementView<T extends MavenXmlView<?>>
      *
      * @param other The one which will be appended as current's overlapping elements.
     */
-    protected void addOverlappingElements( AbstractMavenElementView other)
+    protected void addOverlappingElements( AbstractMavenElementView<?> other)
     {
         if ( isElementStackEmpty( elements ) )
         {

@@ -58,7 +58,7 @@
     <weldVersion>3.1.9.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>4.0.13</byteman.version>
-    <o11yphantVersion>1.4</o11yphantVersion>
+    <o11yphantVersion>1.8-SNAPSHOT</o11yphantVersion>
     <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.24.Final</hibernateVersion>
     <h2Version>2.1.210</h2Version>

@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Stubbed out {@link Transport} implementation that allows pre-registering
  * {@link DownloadJob} and {@link PublishJob} instances before attempting to
- * access them from a higher component (such as {@link TransferManagerImpl}).
+ * access them from a higher component (such as {@link org.commonjava.maven.galley.TransferManager}).
  *
  * @author jdcasey
  */
@@ -57,13 +57,13 @@ public class TestTransport
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private final Map<ConcreteResource, TestDownload> downloads = new HashMap<ConcreteResource, TestDownload>();
+    private final Map<ConcreteResource, TestDownload> downloads = new HashMap<>();
 
-    private final Map<ConcreteResource, TestPublish> publishes = new HashMap<ConcreteResource, TestPublish>();
+    private final Map<ConcreteResource, TestPublish> publishes = new HashMap<>();
 
-    private final Map<ConcreteResource, TestListing> listings = new HashMap<ConcreteResource, TestListing>();
+    private final Map<ConcreteResource, TestListing> listings = new HashMap<>();
 
-    private final Map<ConcreteResource, TestExistence> exists = new HashMap<ConcreteResource, TestExistence>();
+    private final Map<ConcreteResource, TestExistence> exists = new HashMap<>();
 
     /**
      * Use this to pre-register data for a {@link DownloadJob} you plan on accessing during

@@ -56,31 +56,23 @@ public class TransferManagerImplTest
     private TransferManager mgr;
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
-
-    private TransportManager transportMgr;
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     private CacheProvider cacheProvider;
 
-    private FileEventManager fileEvents;
-
-    private ExecutorService executor;
-
     private TestTransport transport;
-
-    private MemoryNotFoundCache nfc;
 
     @Before
     public void setup()
     {
         transport = new TestTransport();
-        transportMgr = new TransportManagerImpl( transport );
+        TransportManager transportMgr = new TransportManagerImpl( transport );
         cacheProvider =
             new FileCacheProvider( TestIOUtils.newTempFolder( temp, "cache" ), new MockPathGenerator(), new NoOpFileEventManager(),
                                    new TransferDecoratorManager( new NoOpTransferDecorator() ), true );
-        nfc = new MemoryNotFoundCache();
-        fileEvents = new NoOpFileEventManager();
-        executor = Executors.newSingleThreadExecutor();
+        MemoryNotFoundCache nfc = new MemoryNotFoundCache();
+        FileEventManager fileEvents = new NoOpFileEventManager();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
         TransportManagerConfig transportManagerConfig = new TransportManagerConfig();
 
@@ -94,21 +86,18 @@ public class TransferManagerImplTest
 
     @Override
     protected TransferManager getTransferManagerImpl()
-        throws Exception
     {
         return mgr;
     }
 
     @Override
     protected TestTransport getTransport()
-        throws Exception
     {
         return transport;
     }
 
     @Override
     protected CacheProvider getCacheProvider()
-        throws Exception
     {
         return cacheProvider;
     }

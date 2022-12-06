@@ -19,9 +19,7 @@ import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.commonjava.maven.galley.maven.parse.PomPeek;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -108,7 +106,7 @@ public class PomPeekTest
     }
 
     @Test
-    public void findGAVInheritedFromParentWithGroupAndVersionOverrideAtTop() throws Exception
+    public void findGAVInheritedFromParentWithGroupAndVersionOverrideAtTop()
     {
         final InputStream pom = getResourceFileAsStream(BASE + "inherited-gav-with-group-override-at-top.pom");
         final PomPeek peek = new PomPeek( pom );

@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -117,7 +118,7 @@ public class TestCacheProvider
     public InputStream openInputStream( final ConcreteResource resource )
         throws IOException
     {
-        return new FileInputStream( getDetachedFile( resource ) );
+        return Files.newInputStream( getDetachedFile( resource ).toPath() );
     }
 
     @Override
@@ -131,7 +132,7 @@ public class TestCacheProvider
             d.mkdirs();
         }
 
-        return new FileOutputStream( f );
+        return Files.newOutputStream( f.toPath() );
     }
 
     @Override
@@ -183,7 +184,6 @@ public class TestCacheProvider
 
     @Override
     public void mkdirs( final ConcreteResource resource )
-        throws IOException
     {
         getDetachedFile( resource ).mkdirs();
     }

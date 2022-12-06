@@ -59,18 +59,13 @@ public class StandardMetadataMapper
     {
         if ( fileName == null )
         {
-            switch (location.getUri().substring( 0, 4 ) )
+            if ( "file".equals( location.getUri().substring( 0, 4 ) ) )
             {
-                case "file":
-                {
-                    fileName = MetadataMapper.LOCAL_FILENAME;
-                    break;
-                }
-                default:
-                {
-                    fileName = MetadataMapper.DEFAULT_FILENAME;
-                    break;
-                }
+                fileName = MetadataMapper.LOCAL_FILENAME;
+            }
+            else
+            {
+                fileName = MetadataMapper.DEFAULT_FILENAME;
             }
         }
         return fileName;

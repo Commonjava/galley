@@ -90,7 +90,9 @@ public class GalleyCoreBuilder
 
     private CacheProviderFactory cacheProviderFactory;
 
-    public GalleyCoreBuilder(){}
+    public GalleyCoreBuilder()
+    {
+    }
 
     public GalleyCoreBuilder( CacheProviderFactory cacheProviderFactory )
     {
@@ -120,8 +122,11 @@ public class GalleyCoreBuilder
             transportManager = new TransportManagerImpl( transports );
         }
 
-        handlerExecutor = Executors.newFixedThreadPool( 2, new NamedThreadFactory( "transfer-handlers", true, 4 ) );
-        batchExecutor = Executors.newFixedThreadPool( 2, new NamedThreadFactory( "transfer-batches", true, 4 ) );
+        handlerExecutor = Executors.newFixedThreadPool( 2, new NamedThreadFactory( "transfer-handlers", new ThreadGroup(
+                "transfer-handlers" ), true, 4 ) );
+        batchExecutor = Executors.newFixedThreadPool( 2, new NamedThreadFactory( "transfer-batches",
+                                                                                 new ThreadGroup( "transfer-batches" ),
+                                                                                 true, 4 ) );
 
         if ( decorator == null )
         {

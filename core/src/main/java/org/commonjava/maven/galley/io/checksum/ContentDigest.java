@@ -28,7 +28,7 @@ public enum ContentDigest
     SHA_256( "SHA-256" ),
     SHA_1 ( "SHA-1" );
 
-    private String digestName;
+    private final String digestName;
 
     ContentDigest()
     {

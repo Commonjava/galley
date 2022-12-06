@@ -24,7 +24,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathFunction;
-import javax.xml.xpath.XPathFunctionException;
 import javax.xml.xpath.XPathFunctionResolver;
 
 import org.w3c.dom.NodeList;
@@ -110,7 +109,7 @@ public class XPathManager
         implements XPathFunctionResolver
     {
 
-        private static InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<>();
+        private static final InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<>();
 
         public static void setPomView( final MavenPomView pom )
         {
@@ -149,7 +148,6 @@ public class XPathManager
 
         @Override
         public Object evaluate( @SuppressWarnings( "rawtypes" ) final List args )
-            throws XPathFunctionException
         {
             if ( args.isEmpty() )
             {

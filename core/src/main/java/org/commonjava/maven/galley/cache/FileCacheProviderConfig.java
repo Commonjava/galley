@@ -36,7 +36,7 @@ public class FileCacheProviderConfig
 
     public boolean isAliasLinking()
     {
-        return aliasLinking == null ? true : aliasLinking;
+        return aliasLinking == null || aliasLinking;
     }
 
     public File getCacheBasedir()

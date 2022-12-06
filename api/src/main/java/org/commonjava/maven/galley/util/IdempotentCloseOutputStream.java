@@ -20,12 +20,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IdempotentCloseOutputStream
         extends OutputStream
 {
-    private AtomicBoolean closed = new AtomicBoolean( false );
+    private final AtomicBoolean closed = new AtomicBoolean( false );
 
     final protected OutputStream out;
 
@@ -46,7 +47,7 @@ public class IdempotentCloseOutputStream
         if ( !closed.getAndSet( true ) ) // if previous value was false, skip this and log it!
         {
             logger.trace( "Closing: {}", this );
-            out.close();
+            Objects.requireNonNull( out ).close();
         }
         else
         {
@@ -55,7 +56,7 @@ public class IdempotentCloseOutputStream
     }
 
     @Override
-    public void write( byte b[], int off, int len )
+    public void write( byte[] b, int off, int len )
             throws IOException
     {
         out.write( b, off, len);

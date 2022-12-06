@@ -65,7 +65,7 @@ import java.util.concurrent.Executors;
 @ApplicationScoped
 public class TestCDIProvider
 {
-    private TemporaryFolder temp = new TemporaryFolder();
+    private final TemporaryFolder temp = new TemporaryFolder();
 
     private LocationExpander locationExpander;
 
@@ -81,7 +81,7 @@ public class TestCDIProvider
 
     //private MetricRegistry metricRegistry;
 
-    private TransportMetricConfig transportMetricConfig = new TransportMetricConfig()
+    private final TransportMetricConfig transportMetricConfig = new TransportMetricConfig()
     {
         public boolean isEnabled() {
             return false;
@@ -240,7 +240,7 @@ public class TestCDIProvider
             }
         };
 
-        return new TraceManager( new OtelTracePlugin( traceConf, otelConf ), new SpanFieldsDecorator( new ArrayList<>() ), getTracerConfiguration() );
+        return new TraceManager<>( new OtelTracePlugin( traceConf, otelConf ), new SpanFieldsDecorator( new ArrayList<>() ), getTracerConfiguration() );
     }
 
     @Produces

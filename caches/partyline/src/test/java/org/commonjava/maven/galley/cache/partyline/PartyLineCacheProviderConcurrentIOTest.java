@@ -38,6 +38,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.FileInputStream;
+import java.nio.file.Files;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -55,7 +56,7 @@ public class PartyLineCacheProviderConcurrentIOTest
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     private final String content = "Testing";
 
@@ -100,7 +101,7 @@ public class PartyLineCacheProviderConcurrentIOTest
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( content ) );
         assertThat( provider.exists( resource ), equalTo( true ) );
-        assertThat( TestIOUtils.readFromStream( new FileInputStream( provider.getDetachedFile( resource ) ) ),
+        assertThat( TestIOUtils.readFromStream( Files.newInputStream( provider.getDetachedFile( resource ).toPath() ) ),
                     equalTo( content ) );
     }
 
@@ -116,7 +117,7 @@ public class PartyLineCacheProviderConcurrentIOTest
             builder.append( content );
         }
         final String bigContent = builder.toString();
-        System.out.println( String.format( "the content size is: %dm", bigContent.length() / 1024 / 1024 ) );
+        System.out.printf( "the content size is: %dm%n", bigContent.length() / 1024 / 1024 );
 
         final ConcreteResource resource = createTestResource( "file_read_write_bigfile.txt" );
         testPool.execute( new WriteTask( provider, bigContent, resource, latch ) );
@@ -131,7 +132,7 @@ public class PartyLineCacheProviderConcurrentIOTest
         final String readingResult = readingFuture.get();
         assertThat( readingResult, equalTo( bigContent ) );
         assertThat( provider.exists( resource ), equalTo( true ) );
-        assertThat( TestIOUtils.readFromStream( new FileInputStream( provider.getDetachedFile( resource ) ) ),
+        assertThat( TestIOUtils.readFromStream( Files.newInputStream( provider.getDetachedFile( resource ).toPath() ) ),
                     equalTo( bigContent ) );
     }
 
@@ -146,13 +147,13 @@ public class PartyLineCacheProviderConcurrentIOTest
             builder.append( content );
         }
         final String bigContent = builder.toString();
-        System.out.println( String.format( "the content size is: %dm", bigContent.length() / 1024 / 1024 ) );
+        System.out.printf( "the content size is: %dm%n", bigContent.length() / 1024 / 1024 );
 
         final ConcreteResource resource = createTestResource( "file_read_write_bigfile.txt" );
         new WriteTask( provider, bigContent, resource, null ).run();
 
         assertThat( provider.exists( resource ), equalTo( true ) );
-        assertThat( TestIOUtils.readFromStream( new FileInputStream( provider.getDetachedFile( resource ) ) ),
+        assertThat( TestIOUtils.readFromStream( Files.newInputStream( provider.getDetachedFile( resource ).toPath() ) ),
                     equalTo( bigContent ) );
     }
 

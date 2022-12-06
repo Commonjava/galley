@@ -53,6 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,10 +67,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DownloadHandlerConcurrencyTest
 {
     @Rule
-    public ExpectationServer server = new ExpectationServer();
+    public final ExpectationServer server = new ExpectationServer();
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     private HttpClientTransport transport;
 
@@ -152,44 +153,39 @@ public class DownloadHandlerConcurrencyTest
         // start threads, then wait for each to complete, and
         for( int i=0; i<threads; i++ )
         {
-            executor.execute( new Runnable()
-            {
-                @Override
-                public void run()
+            executor.execute( () -> {
+                String oldName = Thread.currentThread().getName();
+                try
                 {
-                    String oldName = Thread.currentThread().getName();
-                    try
-                    {
-                        Thread.currentThread().setName( "Download - " + oldName );
-                        Transfer result = handler.download( resource, target, timeoutSeconds, transport, false,
-                                                              new EventMetadata() );
+                    Thread.currentThread().setName( "Download - " + oldName );
+                    Transfer result = handler.download( resource, target, timeoutSeconds, transport, false,
+                                                          new EventMetadata() );
 
-                        try(InputStream in = result.openInputStream())
+                    try(InputStream in = result.openInputStream())
+                    {
+                        String resultContent = IOUtils.toString( in, Charset.defaultCharset() );
+                        if ( resultContent.equals( content ) )
                         {
-                            String resultContent = IOUtils.toString( in );
-                            if ( resultContent.equals( content ) )
-                            {
-                                successes.incrementAndGet();
-                            }
-                            else
-                            {
-                                logger.error( "Expected content: '{}'\nActual content: '{}'", content, resultContent );
-                            }
+                            successes.incrementAndGet();
                         }
-                        catch ( IOException e )
+                        else
                         {
-                            logger.error( "Failed to read transfer: " + e.getMessage(), e );
+                            logger.error( "Expected content: '{}'\nActual content: '{}'", content, resultContent );
                         }
                     }
-                    catch ( TransferException e )
+                    catch ( IOException e )
                     {
-                        logger.error( "Failed to retrieve: " + e.getMessage(), e );
+                        logger.error( "Failed to read transfer: " + e.getMessage(), e );
                     }
-                    finally
-                    {
-                        latch.countDown();
-                        Thread.currentThread().setName( oldName );
-                    }
+                }
+                catch ( TransferException e )
+                {
+                    logger.error( "Failed to retrieve: " + e.getMessage(), e );
+                }
+                finally
+                {
+                    latch.countDown();
+                    Thread.currentThread().setName( oldName );
                 }
             } );
         }

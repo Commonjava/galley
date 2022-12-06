@@ -95,7 +95,8 @@ public class MavenPomReader
         }
         catch ( final TransferException e )
         {
-            throw new GalleyMavenException( "Failed to retrieve POM for: {}, {} levels deep in ancestry stack of: {}. Reason: {}", e, ref,
+            //noinspection ConstantConditions
+            throw new GalleyMavenException( "Failed to retrieve POM for: {}, {} levels deep in ancestry stack of: {}. Reason: {}", ref,
                                             stack.size(), ref, e.getMessage() );
         }
 

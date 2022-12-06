@@ -25,7 +25,7 @@ public class TransferLocationException
     extends TransferException
 {
 
-    private Location location;
+    private final Location location;
 
     private static final long serialVersionUID = 1L;
 

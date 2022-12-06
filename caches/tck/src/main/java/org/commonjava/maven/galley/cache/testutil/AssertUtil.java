@@ -27,7 +27,7 @@ public class AssertUtil
         void apply() throws IOException;
     }
 
-    public static void assertThrows( Class exceptionClass, CheckedFunction o )
+    public static void assertThrows( Class<?> exceptionClass, CheckedFunction o )
     {
         try
         {

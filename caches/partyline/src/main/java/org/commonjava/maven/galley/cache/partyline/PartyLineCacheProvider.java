@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -56,17 +57,15 @@ public class PartyLineCacheProvider
 
     private final JoinableFileManager fileManager;
 
-    private PartyLineCacheProviderConfig config;
+    private final PartyLineCacheProviderConfig config;
 
-    private PathGenerator pathGenerator;
+    private final PathGenerator pathGenerator;
 
-    private FileEventManager fileEventManager;
+    private final FileEventManager fileEventManager;
 
-    private TransferDecoratorManager transferDecorator;
+    private final TransferDecoratorManager transferDecorator;
 
-    private ScheduledExecutorService deleteExecutor;
-
-    private List<Transfer> toDelete = Collections.synchronizedList( new ArrayList<>() );
+    private final List<Transfer> toDelete = Collections.synchronizedList( new ArrayList<>() );
 
     public PartyLineCacheProvider( final File cacheBasedir, final PathGenerator pathGenerator,
                                    final FileEventManager fileEventManager, final TransferDecoratorManager transferDecorator,
@@ -77,10 +76,11 @@ public class PartyLineCacheProvider
         this.fileEventManager = fileEventManager;
         this.transferDecorator = transferDecorator;
         this.config = new PartyLineCacheProviderConfig( cacheBasedir );
-        this.deleteExecutor = deleteExecutor == null ? Executors.newScheduledThreadPool( 2 ) : deleteExecutor;
+        ScheduledExecutorService deleteExecutor1 =
+                deleteExecutor == null ? Executors.newScheduledThreadPool( 2 ) : deleteExecutor;
         this.fileManager = fileManager;
 
-        Integer threads = 2;
+        int threads = 2;
         if ( deleteExecutor instanceof ThreadPoolExecutor )
         {
             threads = ( (ThreadPoolExecutor) deleteExecutor ).getPoolSize();
@@ -92,7 +92,8 @@ public class PartyLineCacheProvider
 
         for(int i=0; i<threads; i++)
         {
-            deleteExecutor.schedule( newTransferDeleteSweeper(), SWEEP_TIMEOUT_SECONDS, TimeUnit.SECONDS );
+            Objects.requireNonNull( deleteExecutor )
+                   .schedule( newTransferDeleteSweeper(), SWEEP_TIMEOUT_SECONDS, TimeUnit.SECONDS );
         }
 
         startReportingDaemon();
@@ -222,7 +223,7 @@ public class PartyLineCacheProvider
         }
         catch ( InterruptedException e )
         {
-            logger.warn( "Interrupted: ", e.getMessage() );
+            logger.warn( "Interrupted: {}", e.getMessage() );
         }
         finally
         {
@@ -257,7 +258,7 @@ public class PartyLineCacheProvider
             return null;
         }
 
-        final List<String> list = new ArrayList<String>( Arrays.asList( listing ) );
+        final List<String> list = new ArrayList<>( Arrays.asList( listing ) );
         for ( final Iterator<String> it = list.iterator(); it.hasNext(); )
         {
             final String fname = it.next();
@@ -276,12 +277,11 @@ public class PartyLineCacheProvider
             }
         }
 
-        return list.toArray( new String[list.size()] );
+        return list.toArray( new String[0] );
     }
 
     @Override
     public void mkdirs( final ConcreteResource resource )
-        throws IOException
     {
         File f = getDetachedFile( resource );
         makeDirs( f );
@@ -383,7 +383,7 @@ public class PartyLineCacheProvider
                             //                                    FileUtils.forceDelete( mved );
                             if ( !deleted )
                             {
-                                logger.warn( "Deletion failed for: {}. Retrying." );
+                                logger.warn( "Deletion failed for: {}. Retrying.", f );
                                 toDelete.add( transfer );
                             }
                         }
@@ -401,9 +401,7 @@ public class PartyLineCacheProvider
     {
         final long current = System.currentTimeMillis();
         final long lastModified = txfr.lastModified();
-        final int tos =
-                timeoutSeconds < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
-                        : timeoutSeconds;
+        final int tos = Math.max( timeoutSeconds, Location.MIN_CACHE_TIMEOUT_SECONDS );
 
         final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
 

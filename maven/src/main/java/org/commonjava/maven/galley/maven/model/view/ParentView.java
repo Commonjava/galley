@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.maven.model.view;
 
-import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.w3c.dom.Element;
 
 public class ParentView
@@ -28,7 +27,6 @@ public class ParentView
     }
 
     public String getRelativePath()
-        throws GalleyMavenException
     {
         String val = getValue( "relativePath" );
         if ( val == null )

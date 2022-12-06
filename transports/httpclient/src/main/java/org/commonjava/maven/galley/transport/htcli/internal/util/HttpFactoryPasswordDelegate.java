@@ -28,9 +28,9 @@ import org.commonjava.util.jhttpc.model.SiteConfig;
 public class HttpFactoryPasswordDelegate
         implements org.commonjava.util.jhttpc.auth.PasswordManager
 {
-    private PasswordManager delegate;
+    private final PasswordManager delegate;
 
-    private LocationLookup locationLookup;
+    private final LocationLookup locationLookup;
 
     public HttpFactoryPasswordDelegate( PasswordManager delegate, LocationLookup locationLookup )
     {

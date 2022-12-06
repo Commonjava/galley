@@ -23,15 +23,15 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 public abstract class CacheProviderWorkingTask
         implements Runnable
 {
-    protected CacheProvider provider;
+    protected final CacheProvider provider;
 
-    protected String content;
+    protected final String content;
 
-    protected ConcreteResource resource;
+    protected final ConcreteResource resource;
 
-    protected CountDownLatch controlLatch;
+    protected final CountDownLatch controlLatch;
 
-    protected long waiting;
+    protected final long waiting;
 
     protected CacheProviderWorkingTask( CacheProvider provider, String content, ConcreteResource resource,
                                         CountDownLatch controlLatch, long waiting )

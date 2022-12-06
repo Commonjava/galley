@@ -62,7 +62,7 @@ public class ExistenceHandler
 
         if ( TransferUtils.filterTransfer( transfer ) )
         {
-            logger.info( "Transfer has been filtered by transfer's metadata settings", resource );
+            logger.info( "Transfer has been filtered by transfer's metadata settings" );
             return false;
         }
 
@@ -105,7 +105,7 @@ public class ExistenceHandler
                 nfc.addMissing( resource );
             }
 
-            return result == null ? false : result;
+            return result != null && result;
         }
         catch ( final TimeoutException e )
         {

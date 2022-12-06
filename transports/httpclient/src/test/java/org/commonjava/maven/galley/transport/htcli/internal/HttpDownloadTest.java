@@ -42,7 +42,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.runner.RunWith;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -54,9 +53,9 @@ import java.util.Map;
 @BMUnitConfig( debug = true )
 public class HttpDownloadTest
 {
-    private static DefaultMetricRegistry metricRegistry = newDefaultMetricRegistry();
+    private static final DefaultMetricRegistry metricRegistry = newDefaultMetricRegistry();
 
-    private static TransportMetricConfig metricConfig = new TransportMetricConfig()
+    private static final TransportMetricConfig metricConfig = new TransportMetricConfig()
     {
         @Override
         public boolean isEnabled()
@@ -82,7 +81,7 @@ public class HttpDownloadTest
     };
 
     @Rule
-    public HttpTestFixture fixture = new HttpTestFixture( "download-basic" );
+    public final HttpTestFixture fixture = new HttpTestFixture( "download-basic" );
 
     @Test
     @BMRule( name="throw IOException during writeTarget copy operation",
@@ -104,7 +103,7 @@ public class HttpDownloadTest
             @Override
             public void handle( final HttpServletRequest httpServletRequest,
                                 final HttpServletResponse httpServletResponse )
-                    throws ServletException, IOException
+                    throws IOException
             {
                 httpServletResponse.setStatus( 200 );
                 httpServletResponse.setHeader( "Content-Length", Integer.toString( content.length() ) );
@@ -133,7 +132,7 @@ public class HttpDownloadTest
         // first call, server should quit transferring halfway through the transfer
 
         HttpDownload dl =
-                new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+                new HttpDownload( url, location, transfer, new HashMap<>(), new EventMetadata(),
                                   fixture.getHttp(), new ObjectMapper() );
 
         DownloadJob resultJob = dl.call();
@@ -152,7 +151,7 @@ public class HttpDownloadTest
 
         // second call should hit upstream again and succeed.
 
-        dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+        dl = new HttpDownload( url, location, transfer, new HashMap<>(), new EventMetadata(),
                                fixture.getHttp(), new ObjectMapper() );
 
         resultJob = dl.call();
@@ -187,7 +186,7 @@ public class HttpDownloadTest
             @Override
             public void handle( final HttpServletRequest httpServletRequest,
                                 final HttpServletResponse httpServletResponse )
-                    throws ServletException, IOException
+                    throws IOException
             {
                 httpServletResponse.setStatus( 200 );
                 httpServletResponse.setHeader( "Content-Length", Integer.toString( content.length() ) );
@@ -216,7 +215,7 @@ public class HttpDownloadTest
         // first call, server should quit transferring halfway through the transfer
 
         HttpDownload dl =
-                new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+                new HttpDownload( url, location, transfer, new HashMap<>(), new EventMetadata(),
                                   fixture.getHttp(), new ObjectMapper() );
 
         DownloadJob resultJob = dl.call();
@@ -235,7 +234,7 @@ public class HttpDownloadTest
 
         // second call should hit upstream again and succeed.
 
-        dl = new HttpDownload( url, location, transfer, new HashMap<Transfer, Long>(), new EventMetadata(),
+        dl = new HttpDownload( url, location, transfer, new HashMap<>(), new EventMetadata(),
                                fixture.getHttp(), new ObjectMapper() );
 
         resultJob = dl.call();
@@ -270,7 +269,7 @@ public class HttpDownloadTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
-        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+        Map<Transfer, Long> transferSizes = new HashMap<>();
 
         assertThat( transfer.exists(), equalTo( false ) );
 
@@ -300,16 +299,9 @@ public class HttpDownloadTest
         final String redirectPath = "/path/to/file";
         final String path = "/redirect/to/file";
 
-        fixture.getServer().expect( "GET", fixture.formatUrl( path ), new ExpectationHandler()
-        {
-            @Override
-            public void handle( final HttpServletRequest httpServletRequest,
-                                final HttpServletResponse httpServletResponse )
-                    throws ServletException, IOException
-            {
-                httpServletResponse.setStatus( 302 );
-                httpServletResponse.setHeader( "Location", fixture.formatUrl( redirectPath ) );
-            }
+        fixture.getServer().expect( "GET", fixture.formatUrl( path ), ( httpServletRequest, httpServletResponse ) -> {
+            httpServletResponse.setStatus( 302 );
+            httpServletResponse.setHeader( "Location", fixture.formatUrl( redirectPath ) );
         } );
 
         fixture.getServer().expect( "GET", fixture.formatUrl( redirectPath ), 200, content );
@@ -319,7 +311,7 @@ public class HttpDownloadTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, path ) );
         final String url = fixture.formatUrl( path );
 
-        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+        Map<Transfer, Long> transferSizes = new HashMap<>();
 
         assertThat( transfer.exists(), equalTo( false ) );
 
@@ -354,7 +346,7 @@ public class HttpDownloadTest
         final Transfer transfer = fixture.getTransfer( new ConcreteResource( location, fname ) );
         final String url = fixture.formatUrl( fname );
 
-        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+        Map<Transfer, Long> transferSizes = new HashMap<>();
 
         assertThat( transfer.exists(), equalTo( false ) );
 
@@ -395,7 +387,7 @@ public class HttpDownloadTest
         final String path = fixture.getUrlPath( url );
         fixture.registerException( path, error );
 
-        Map<Transfer, Long> transferSizes = new HashMap<Transfer, Long>();
+        Map<Transfer, Long> transferSizes = new HashMap<>();
 
         assertThat( transfer.exists(), equalTo( false ) );
 
@@ -432,9 +424,9 @@ public class HttpDownloadTest
     {
         try
         {
-            Thread.sleep( seconds * 1000 );
+            Thread.sleep( seconds * 1000L );
         }
-        catch ( InterruptedException e )
+        catch ( InterruptedException ignored )
         {
         }
     }

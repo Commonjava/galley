@@ -15,8 +15,6 @@
  */
 package org.commonjava.maven.galley.maven.parse;
 
-import javax.xml.xpath.XPathFunctionException;
-
 import org.commonjava.maven.galley.maven.model.view.MavenPomView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,7 @@ import org.slf4j.LoggerFactory;
 public class ResolveFunctions
 {
 
-    private static InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<MavenPomView>();
+    private static final InheritableThreadLocal<MavenPomView> pomView = new InheritableThreadLocal<>();
 
     public static void setPomView( final MavenPomView pom )
     {
@@ -37,7 +35,6 @@ public class ResolveFunctions
     }
 
     public static String resolve( final String expr )
-        throws XPathFunctionException
     {
         if ( expr == null || expr.trim()
                                  .length() < 1 )

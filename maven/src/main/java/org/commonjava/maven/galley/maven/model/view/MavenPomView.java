@@ -123,14 +123,12 @@ public class MavenPomView
     }
 
     public String resolveMavenExpression( final String expression, final String... activeProfileIds )
-            throws GalleyMavenException
     {
         return resolveMavenExpression( expression, null, activeProfileIds );
     }
 
     public String resolveMavenExpression( final String expression, final RecursionInterceptor ri,
                                           final String... activeProfileIds )
-        throws GalleyMavenException
     {
         String expr = expression.replace( '.', '/' );
         if ( expr.startsWith( "pom" ) )
@@ -187,7 +185,6 @@ public class MavenPomView
      * Return the groupId of this POM. If not declared directly, try to infer from the parent element.
      */
     public String getGroupId()
-        throws GalleyMavenException
     {
         return asProjectVersionRef().getGroupId();
     }
@@ -197,7 +194,6 @@ public class MavenPomView
      * to be declared locally in order for the POM to be valid.
      */
     public String getArtifactId()
-        throws GalleyMavenException
     {
         return asProjectVersionRef().getArtifactId();
     }
@@ -206,7 +202,6 @@ public class MavenPomView
      * Return the version of this POM. If not declared directly, try to infer from the parent element.
      */
     public String getVersion()
-        throws GalleyMavenException
     {
         return asProjectVersionRef().getVersionString();
     }
@@ -237,7 +232,6 @@ public class MavenPomView
      * either in the main POM body or in an active profile.
      */
     public List<DependencyView> getAllDirectDependencies()
-        throws GalleyMavenException
     {
         final String xp =
             "//dependency[not(ancestor::dependencyManagement) and not(ancestor::build) and not(ancestor::reporting)]";
@@ -290,7 +284,6 @@ public class MavenPomView
      * @return list of read dependencies
      */
     public List<DependencyView> getAllManagedDependencies()
-        throws GalleyMavenException
     {
         final List<DependencyView> raw = getAllManagedDependenciesUnfiltered();
         final List<DependencyView> depViews = new ArrayList<>( raw.size() );
@@ -337,7 +330,6 @@ public class MavenPomView
      * list of {@link DependencyView} instances referencing each BOM encountered.
      */
     public List<DependencyView> getAllBOMs()
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> depNodes =
             resolveXPathToAggregatedElementViewList( "//dependencyManagement/dependencies/dependency[type/text()=\"pom\" and scope/text()=\"import\"]",
@@ -364,7 +356,6 @@ public class MavenPomView
      */
     @SuppressWarnings( "ConfusingArgumentToVarargsMethod" )
     public String resolveXPathExpression( final String path, final boolean localOnly )
-        throws GalleyMavenException
     {
         return resolveXPathExpression( path, true, localOnly ? 0 : -1, null );
     }
@@ -379,7 +370,6 @@ public class MavenPomView
      * @param localOnly If true, don't consider values present in ancestry.
      */
     public Element resolveXPathToElement( final String path, final boolean localOnly )
-        throws GalleyMavenException
     {
         final Node node = resolveXPathToNode( path, true, localOnly ? 0 : -1 );
         if ( node != null && node.getNodeType() == Node.ELEMENT_NODE )
@@ -400,7 +390,6 @@ public class MavenPomView
      * @param localOnly If true, don't consider values present in ancestry.
      */
     public List<MavenPomElementView> resolveXPathToElements( final String path, final boolean localOnly )
-        throws GalleyMavenException
     {
         return resolveXPathToAggregatedElementViewList( path, true, localOnly ? 0 : -1 );
     }
@@ -415,7 +404,6 @@ public class MavenPomView
      * @param localOnly If true, don't consider values present in ancestry.
      */
     public synchronized Node resolveXPathToNode( final String path, final boolean localOnly )
-        throws GalleyMavenException
     {
         return resolveXPathToNode( path, true, localOnly ? 0 : -1 );
     }
@@ -538,7 +526,6 @@ public class MavenPomView
      * otherwise.
      */
     public ParentView getParent()
-        throws GalleyMavenException
     {
         final Element parentEl = (Element) resolveXPathToNode( "/project/parent", true );
 
@@ -555,7 +542,6 @@ public class MavenPomView
      * declared in this POM (also considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<ExtensionView> getBuildExtensions()
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//build/extensions/extension", true, -1 );
@@ -578,7 +564,6 @@ public class MavenPomView
      * XPath expression (also considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<PluginView> getAllPluginsMatching( final String path )
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
         final List<PluginView> result = new ArrayList<>( list.size() );
@@ -600,7 +585,6 @@ public class MavenPomView
      * XPath expression (also considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<DependencyView> getAllDependenciesMatching( final String path )
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
         final List<DependencyView> result = new ArrayList<>( list.size() );
@@ -622,7 +606,6 @@ public class MavenPomView
      * considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<PluginView> getAllBuildPlugins()
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//build/plugins/plugin", true, -1 );
@@ -645,7 +628,6 @@ public class MavenPomView
      * considering inheritance and applied mix-in documents, such as applied BOMs).
      */
     public List<PluginView> getAllManagedBuildPlugins()
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> list =
             resolveXPathToAggregatedElementViewList( "/project//pluginManagement/plugins/plugin", true, -1 );
@@ -776,7 +758,6 @@ public class MavenPomView
      * applied BOMs).
      */
     public List<ProjectVersionRefView> getProjectVersionRefs( final String path )
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
         final List<ProjectVersionRefView> result = new ArrayList<>( list.size() );
@@ -799,7 +780,6 @@ public class MavenPomView
      * applied BOMs).
      */
     public List<ProjectRefView> getProjectRefs( final String path )
-        throws GalleyMavenException
     {
         final List<MavenPomElementView> list = resolveXPathToAggregatedElementViewList( path, true, -1 );
         final List<ProjectRefView> result = new ArrayList<>( list.size() );
@@ -956,7 +936,6 @@ public class MavenPomView
     }
 
     protected List<String> resolveXPathExpressionToListFrom( final JXPathContext context, final String path )
-        throws GalleyMavenException
     {
         final String p = trimTextSuffix( path );
 
@@ -1134,17 +1113,7 @@ public class MavenPomView
         @Override
         public Object getValue( final String expr )
         {
-            try
-            {
-                return view.resolveMavenExpression( expr, ri, activeProfileIds );
-            }
-            catch ( final GalleyMavenException e )
-            {
-                feedback.add( String.format( "Error resolving maven expression: '%s'", expr ) );
-                feedback.add( e );
-            }
-
-            return null;
+            return view.resolveMavenExpression( expr, ri, activeProfileIds );
         }
 
     }

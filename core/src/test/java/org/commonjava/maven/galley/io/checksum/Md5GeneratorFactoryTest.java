@@ -16,7 +16,6 @@
 package org.commonjava.maven.galley.io.checksum;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.io.checksum.Md5GeneratorFactory.Md5Generator;
 import org.commonjava.maven.galley.model.ConcreteResource;
@@ -29,9 +28,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
-import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,10 +38,10 @@ public class Md5GeneratorFactoryTest
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     @Rule
-    public ApiFixture fixture = new ApiFixture( temp );
+    public final ApiFixture fixture = new ApiFixture( temp );
 
     @Before
     public void before()
@@ -80,7 +78,7 @@ public class Md5GeneratorFactoryTest
         {
             in = md5Txfr.openInputStream();
 
-            resultHex = IOUtils.toString( in );
+            resultHex = IOUtils.toString( in, Charset.defaultCharset() );
         }
         finally
         {

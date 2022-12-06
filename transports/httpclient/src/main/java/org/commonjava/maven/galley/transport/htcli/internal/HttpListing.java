@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -92,7 +93,7 @@ public class HttpListing
             if ( executeHttp() )
             {
                 in = response.getEntity().getContent();
-                String listing = IOUtils.toString( in );
+                String listing = IOUtils.toString( in, Charset.defaultCharset() );
                 Logger logger = LoggerFactory.getLogger( getClass() );
                 logger.debug( "Got raw listing content:\n\n{}\n\n", listing );
 
@@ -100,37 +101,26 @@ public class HttpListing
 
                 // TODO: Charset!!
                 Document doc = Jsoup.parse( listing, url );
-//                try
-//                {
-//                }
-//                catch ( final IOException e )
-//                {
-//                    this.error =
-//                            new TransferLocationException( resource.getLocation(), "Invalid HTML in: {}. Reason: {}", e, url, e.getMessage() );
-//                }
 
-                if ( doc != null )
+                for ( final Element link : doc.select( "a" ) )
                 {
-                    for ( final Element link : doc.select( "a" ) )
+                    String linkText = link.text();
+                    String linkHref = link.attr( "href" );
+
+                    URL url = new URL( this.url );
+
+                    boolean sameServer = isSameServer( url, linkHref );
+                    boolean subpath = isSubpath( url, linkHref );
+
+                    if ( ( sameServer && subpath )
+                            && ( linkHref.endsWith( linkText ) || linkHref.endsWith( linkText + '/' ) )
+                            && !EXCLUDES.contains( linkText ) )
                     {
-                        String linkText = link.text();
-                        String linkHref = link.attr( "href" );
-
-                        URL url = new URL( this.url );
-
-                        boolean sameServer = isSameServer( url, linkHref );
-                        boolean subpath = isSubpath( url, linkHref );
-
-                        if ( ( sameServer && subpath )
-                                && ( linkHref.endsWith( linkText ) || linkHref.endsWith( linkText + '/' ) )
-                                && !EXCLUDES.contains( linkText ) )
-                        {
-                            al.add( linkText );
-                        }
+                        al.add( linkText );
                     }
-
-                    result = new ListingResult( resource, al.toArray( new String[al.size()] ) );
                 }
+
+                result = new ListingResult( resource, al.toArray( new String[0] ) );
             }
         }
         catch ( final TransferException e )

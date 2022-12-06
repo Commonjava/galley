@@ -30,6 +30,8 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -78,7 +80,7 @@ public abstract class CacheProviderTCK
         try
         {
             out = txfr.openOutputStream( TransferOperation.UPLOAD );
-            IOUtils.write( "this is a test", out );
+            IOUtils.write( "this is a test", out, Charset.defaultCharset() );
         }
         finally
         {
@@ -98,7 +100,7 @@ public abstract class CacheProviderTCK
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.close();
 
         assertThat( provider.isDirectory( new ConcreteResource( loc, dir ) ), is( true ) );
@@ -116,7 +118,7 @@ public abstract class CacheProviderTCK
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.flush();
         out.close();
 
@@ -126,7 +128,7 @@ public abstract class CacheProviderTCK
         // live testing has these spurious foo.txt.#0 files cropping up.
         //
         // I have no idea what they are, but I'm sick of fighting JBoss bugs for now.
-        final Set<String> listing = new HashSet<String>( Arrays.asList( provider.list( new ConcreteResource( loc, dir ) ) ) );
+        final Set<String> listing = new HashSet<>( Arrays.asList( provider.list( new ConcreteResource( loc, dir ) ) ) );
 
         System.out.printf( "\n\nFile listing is:\n\n  %s\n\n\n", join( listing, "\n  " ) );
 
@@ -145,7 +147,7 @@ public abstract class CacheProviderTCK
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.close();
 
         assertThat( provider.exists( new ConcreteResource( loc, fname ) ), is( true ) );
@@ -162,7 +164,7 @@ public abstract class CacheProviderTCK
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.close();
 
         assertThat( provider.exists( new ConcreteResource( loc, fname ) ), is( true ) );
@@ -183,7 +185,7 @@ public abstract class CacheProviderTCK
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.close();
 
         final InputStream in = provider.openInputStream( new ConcreteResource( loc, fname ) );
@@ -195,7 +197,7 @@ public abstract class CacheProviderTCK
             baos.write( buf, 0, read );
         }
 
-        final String result = new String( baos.toByteArray(), "UTF-8" );
+        final String result = new String( baos.toByteArray(), StandardCharsets.UTF_8 );
 
         assertThat( result, is( content ) );
     }
@@ -213,7 +215,7 @@ public abstract class CacheProviderTCK
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.close();
 
         provider.copy( new ConcreteResource( loc, fname ), new ConcreteResource( loc2, fname ) );
@@ -227,7 +229,7 @@ public abstract class CacheProviderTCK
             baos.write( buf, 0, read );
         }
 
-        final String result = new String( baos.toByteArray(), "UTF-8" );
+        final String result = new String( baos.toByteArray(), StandardCharsets.UTF_8 );
 
         assertThat( result, is( content ) );
     }

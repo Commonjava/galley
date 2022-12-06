@@ -28,7 +28,7 @@ public class HttpListingTest
 
     /**
      * Tests processing of href value "http:/", which was found in listing of
-     * {@link http://repo.spring.io/libs-snapshot/}.
+     * <a href="http://repo.spring.io/libs-snapshot/">http://repo.spring.io/libs-snapshot/</a>
      */
     @Test
     public void testIsSameServerHttpSlash() throws MalformedURLException
@@ -39,7 +39,7 @@ public class HttpListingTest
 
     /**
      * Tests processing of href value "http:/", which was found in listing of
-     * {@link http://repo.spring.io/libs-snapshot/}.
+     * <a href="http://repo.spring.io/libs-snapshot/">http://repo.spring.io/libs-snapshot/</a>
      */
     @Test
     public void testIsSubpathHttpSlash() throws MalformedURLException

@@ -18,7 +18,6 @@ package org.commonjava.maven.galley.maven.model.view.meta;
 import java.util.List;
 
 import org.commonjava.atlas.maven.ident.ref.ProjectRef;
-import org.commonjava.maven.galley.maven.GalleyMavenException;
 import org.commonjava.maven.galley.maven.model.view.DocRef;
 import org.commonjava.maven.galley.maven.model.view.MavenXmlView;
 import org.commonjava.maven.galley.maven.model.view.XPathManager;
@@ -48,13 +47,11 @@ public class MavenMetadataView
     }
 
     public String resolveSingleValue( final String path )
-        throws GalleyMavenException
     {
         return resolveXPathToRawString( path, true, -1 );
     }
 
     public List<String> resolveValues( final String path )
-        throws GalleyMavenException
     {
         return resolveXPathToAggregatedStringList( path, true, -1 );
     }

@@ -19,12 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.atlas.maven.ident.jackson.ProjectVersionRefSerializerModule;
 import org.commonjava.maven.galley.auth.MemoryPasswordManager;
 import org.commonjava.maven.galley.config.TransportManagerConfig;
-import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.event.NoOpFileEventManager;
 import org.commonjava.maven.galley.io.HashedLocationPathGenerator;
 import org.commonjava.maven.galley.io.NoOpTransferDecorator;
 import org.commonjava.maven.galley.maven.ArtifactManager;
-import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
@@ -61,10 +59,6 @@ public class EmbeddableCDIProducer
 
     private NotFoundCache nfc;
 
-//    private LocationExpander locationExpander;
-//
-//    private LocationResolver locationResolver;
-
     private ObjectMapper objectMapper;
 
     private Http http;
@@ -92,8 +86,6 @@ public class EmbeddableCDIProducer
         transferDecorator = new NoOpTransferDecorator();
         pathGenerator = new HashedLocationPathGenerator();
         nfc = new MemoryNotFoundCache();
-//        locationExpander = new NoOpLocationExpander();
-//        locationResolver = new SimpleUrlLocationResolver( locationExpander, transportManager );
         transportManagerConfig = new TransportManagerConfig();
 
         passwordManager = new MemoryPasswordManager();
@@ -162,20 +154,6 @@ public class EmbeddableCDIProducer
         return objectMapper;
     }
 
-//    @Default
-//    @Produces
-//    public LocationResolver getLocationResolver()
-//    {
-//        return locationResolver;
-//    }
-
-//    @Default
-//    @Produces
-//    public LocationExpander getLocationExpander()
-//    {
-//        return locationExpander;
-//    }
-//
     @Default
     @Produces
     public NotFoundCache getNotFoundCache()
@@ -189,6 +167,5 @@ public class EmbeddableCDIProducer
     {
         return http;
     }
-
 
 }

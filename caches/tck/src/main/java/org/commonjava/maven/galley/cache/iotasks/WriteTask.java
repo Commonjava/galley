@@ -46,21 +46,20 @@ public final class WriteTask
             final ByteArrayInputStream bais = new ByteArrayInputStream( content.getBytes() );
             int read = -1;
             final byte[] buf = new byte[512];
-            System.out.println(
-                    String.format( "[%s] <<<WriteTask>>> start to write to the resource with outputStream %s",
-                                   threadName, out.getClass().getName() ) );
+            System.out.printf( "[%s] <<<WriteTask>>> start to write to the resource with outputStream %s%n",
+                               threadName, out.getClass().getName() );
             while ( ( read = bais.read( buf ) ) > -1 )
             {
                 if ( waiting > 0 )
                 {
+                    //noinspection BusyWait
                     Thread.sleep( waiting );
                 }
                 out.write( buf, 0, read );
             }
             out.close();
-            System.out.println(
-                    String.format( "[%s] <<<WriteTask>>> writing to the resource done with outputStream %s", threadName,
-                                   out.getClass().getName() ) );
+            System.out.printf( "[%s] <<<WriteTask>>> writing to the resource done with outputStream %s%n", threadName,
+                               out.getClass().getName() );
             if ( controlLatch != null )
             {
                 controlLatch.countDown();

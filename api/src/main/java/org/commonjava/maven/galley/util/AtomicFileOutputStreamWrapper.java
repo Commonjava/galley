@@ -16,8 +16,6 @@
 package org.commonjava.maven.galley.util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -48,7 +46,6 @@ public class AtomicFileOutputStreamWrapper
     private final AtomicStreamCallbacks callbacks;
 
     public AtomicFileOutputStreamWrapper( final File targetFile, final File downloadFile, final OutputStream stream )
-        throws FileNotFoundException
     {
         super( stream );
         this.targetFile = targetFile;
@@ -58,7 +55,6 @@ public class AtomicFileOutputStreamWrapper
 
     public AtomicFileOutputStreamWrapper( final File targetFile, final File downloadFile, final OutputStream stream,
                                           final AtomicStreamCallbacks callbacks )
-        throws FileNotFoundException
     {
         super( stream );
         this.targetFile = targetFile;

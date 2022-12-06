@@ -18,11 +18,15 @@ package org.commonjava.maven.galley.transport.htcli.internal;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -89,7 +93,7 @@ public class HttpListTest
     /* @formatter:on */
 
     @Rule
-    public HttpTestFixture fixture = new HttpTestFixture( "list-basic" );
+    public final HttpTestFixture fixture = new HttpTestFixture( "list-basic" );
 
     @Test
     public void simpleCentralListing()
@@ -116,17 +120,18 @@ public class HttpListTest
         assertThat( result.getListing(), notNullValue() );
 
         System.out.println( "Got listing\n\n  " + StringUtils.join( result.getListing(), "\n  " ) + "\n\n" );
-        assertTrue( Arrays.equals( centralbtm, result.getListing() ) );
+        assertArrayEquals( centralbtm, result.getListing() );
     }
 
     private String getBody( final String fname )
         throws Exception
     {
-        final InputStream stream = Thread.currentThread()
-                                         .getContextClassLoader()
-                                         .getResourceAsStream( "list-basic/" + fname );
-
-        return IOUtils.toString( stream );
+        try (final InputStream stream = Thread.currentThread()
+                                              .getContextClassLoader()
+                                              .getResourceAsStream( "list-basic/" + fname ))
+        {
+            return IOUtils.toString( Objects.requireNonNull( stream ), Charset.defaultCharset() );
+        }
     }
 
     @Test
@@ -152,10 +157,10 @@ public class HttpListTest
         assertThat( listing.getError(), nullValue() );
         assertThat( result, notNullValue() );
         assertThat( result.getListing(), notNullValue() );
-        assertTrue( Arrays.equals( centralbtm, result.getListing() ) );
+        assertArrayEquals( centralbtm, result.getListing() );
 
         final List<String> lines = IOUtils.readLines( transfer.openInputStream() );
-        assertTrue( "Listing file written incorrectly!", lines.equals( Arrays.asList( centralbtm ) ) );
+        assertEquals( "Listing file written incorrectly!", lines, Arrays.asList( centralbtm ) );
     }
 
     @Test
@@ -227,7 +232,7 @@ public class HttpListTest
         assertThat( listing.getError(), nullValue() );
         assertThat( result, notNullValue() );
         assertThat( result.getListing(), notNullValue() );
-        assertTrue( Arrays.equals( nexusswitchyard, result.getListing() ) );
+        assertArrayEquals( nexusswitchyard, result.getListing() );
     }
 
     @Test

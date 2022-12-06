@@ -63,8 +63,6 @@ public class MavenGAVView
         {
             versionLookupFinished = true;
 
-            //            final Logger logger = LoggerFactory.getLogger( getClass() );
-            //            logger.info( "Resolving version for: {}[{}:{}]\nIn: {}", getClass().getSimpleName(), getGroupId(), getArtifactId(), pomView.getRef() );
             rawVersion = getValue( V );
             if ( getManagementXpathFragment() != null )
             {
@@ -150,7 +148,7 @@ public class MavenGAVView
         }
         catch ( final GalleyMavenException e )
         {
-            logger.warn( "Failed to lookupVersion management element. Reason: {}", e, e.getMessage() );
+            logger.warn( "Failed to lookupVersion management element. Reason: {}", e.getMessage() );
         }
 
         return false;

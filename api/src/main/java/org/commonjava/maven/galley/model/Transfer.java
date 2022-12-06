@@ -354,7 +354,7 @@ public class Transfer
 
             if ( contentLogger.isTraceEnabled() )
             {
-                contentLogger.trace( "Starting delete of: {} ({}) from:\n    ", resource, eventMetadata,
+                contentLogger.trace( "Starting delete of: {} ({}) from: {}\n    ", resource, eventMetadata,
                                      join( Thread.currentThread().getStackTrace(), "\n    " ) );
             }
             else

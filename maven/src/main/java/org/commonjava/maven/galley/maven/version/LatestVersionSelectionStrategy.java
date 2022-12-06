@@ -24,7 +24,7 @@ public final class LatestVersionSelectionStrategy
     implements VersionSelectionStrategy
 {
 
-    public static LatestVersionSelectionStrategy INSTANCE = new LatestVersionSelectionStrategy();
+    public static final LatestVersionSelectionStrategy INSTANCE = new LatestVersionSelectionStrategy();
 
     private LatestVersionSelectionStrategy()
     {

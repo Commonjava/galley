@@ -36,7 +36,7 @@ public class PartyLineCacheProviderTest
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     private PartyLineCacheProvider provider;
 
@@ -54,7 +54,6 @@ public class PartyLineCacheProviderTest
 
     @Override
     protected CacheProvider getCacheProvider()
-        throws Exception
     {
         return provider;
     }

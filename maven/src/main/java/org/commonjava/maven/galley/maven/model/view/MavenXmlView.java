@@ -49,7 +49,7 @@ public class MavenXmlView<T>
 
     //    protected final XPathManager xpath;
 
-    protected final List<MavenXmlMixin<T>> mixins = new ArrayList<MavenXmlMixin<T>>();
+    protected final List<MavenXmlMixin<T>> mixins = new ArrayList<>();
 
     protected final Set<String> localOnlyPaths;
 
@@ -61,7 +61,7 @@ public class MavenXmlView<T>
         this.stack = stack;
         //        this.xpath = xpath;
         this.xml = xml;
-        this.localOnlyPaths = new HashSet<String>( Arrays.asList( localOnlyPaths ) );
+        this.localOnlyPaths = new HashSet<>( Arrays.asList( localOnlyPaths ) );
     }
 
     /**
@@ -132,19 +132,17 @@ public class MavenXmlView<T>
             }
             catch ( final JXPathInvalidSyntaxException e )
             {
-                logger.debug( "[ABORT XPath] Error resolving '{}' from '{}': {}", e, path, dr.getSource(),
+                logger.debug( "[ABORT XPath] Error resolving '{}' from '{}': {}", path, dr.getSource(),
                               e.getMessage() );
                 return null;
             }
             catch ( final JXPathException e )
             {
-                logger.debug( "[SKIP XPath-Doc] Error resolving '{}' from '{}': {}", e, path, dr.getSource(),
+                logger.debug( "[SKIP XPath-Doc] Error resolving '{}' from '{}': {}",  path, dr.getSource(),
                               e.getMessage() );
                 continue;
             }
 
-            //                result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
-            //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
             if ( result != null )
             {
@@ -171,11 +169,6 @@ public class MavenXmlView<T>
                 }
             }
         }
-        //        }
-        //        catch ( final XPathExpressionException e )
-        //        {
-        //            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
-        //        }
 
         return result;
     }
@@ -223,8 +216,6 @@ public class MavenXmlView<T>
 
             result = (Node) dr.getDocContext()
                               .selectSingleNode( path );
-            //                result = (Node) expression.evaluate( dr.getDoc(), XPathConstants.NODE );
-            //                logger.info( "Value of '{}' at depth: {} is: {}", path, ancestryDepth, result );
 
             if ( result != null )
             {
@@ -251,11 +242,6 @@ public class MavenXmlView<T>
                 }
             }
         }
-        //        }
-        //        catch ( final XPathExpressionException e )
-        //        {
-        //            throw new GalleyMavenRuntimeException( "Failed to retrieve content for xpath expression: {}. Reason: {}", e, path, e.getMessage() );
-        //        }
 
         return result;
     }
@@ -288,7 +274,7 @@ public class MavenXmlView<T>
         }
 
         int ancestryDepth = 0;
-        final List<Node> result = new ArrayList<Node>();
+        final List<Node> result = new ArrayList<>();
         for ( final DocRef<T> dr : stack )
         {
             if ( maxAncestry > -1 && ancestryDepth > maxAncestry )
@@ -299,10 +285,7 @@ public class MavenXmlView<T>
             final List<Node> nodes = getLocalNodeList( dr.getDocContext(), path );
             if ( nodes != null )
             {
-                for ( final Node node : nodes )
-                {
-                    result.add( node );
-                }
+                result.addAll( nodes );
             }
 
             ancestryDepth++;
@@ -319,10 +302,7 @@ public class MavenXmlView<T>
                                           .resolveXPathToAggregatedNodeList( path, cachePath, maxAncestry );
             if ( nodes != null )
             {
-                for ( final Node node : nodes )
-                {
-                    result.add( node );
-                }
+                result.addAll( nodes );
             }
         }
 
@@ -400,7 +380,7 @@ public class MavenXmlView<T>
     protected List<Node> getLocalNodeList( final JXPathContext context, final String path )
         throws GalleyMavenRuntimeException
     {
-        final List<Node> result = new ArrayList<Node>();
+        final List<Node> result = new ArrayList<>();
         final List<?> iter = context.selectNodes( path );
         if ( iter != null )
         {
@@ -424,7 +404,7 @@ public class MavenXmlView<T>
                                                             final int maxAncestry )
     {
         final List<Node> nodes = resolveXPathToAggregatedNodeList( path, cachePath, maxAncestry );
-        final List<String> result = new ArrayList<String>( nodes.size() );
+        final List<String> result = new ArrayList<>( nodes.size() );
         for ( final Node node : nodes )
         {
             if ( node != null )
@@ -451,7 +431,7 @@ public class MavenXmlView<T>
                                                                 final boolean cachePath )
     {
         final List<Node> nodes = resolveXPathToNodeListFrom( context, path, cachePath );
-        final List<String> result = new ArrayList<String>( nodes.size() );
+        final List<String> result = new ArrayList<>( nodes.size() );
         for ( final Node node : nodes )
         {
             if ( node != null )

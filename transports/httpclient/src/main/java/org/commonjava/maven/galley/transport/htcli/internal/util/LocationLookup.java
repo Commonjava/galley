@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public class LocationLookup
 {
-    private Map<String, WeakReference<Location>> locations = new HashMap<>();
+    private final Map<String, WeakReference<Location>> locations = new HashMap<>();
 
     public void register( Location location )
     {

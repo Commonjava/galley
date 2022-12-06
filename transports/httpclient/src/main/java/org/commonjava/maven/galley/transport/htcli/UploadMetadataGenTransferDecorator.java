@@ -56,9 +56,9 @@ public class UploadMetadataGenTransferDecorator
 
     private static final Logger logger = LoggerFactory.getLogger( UploadMetadataGenTransferDecorator.class );
 
-    private SpecialPathManager specialPathManager;
+    private final SpecialPathManager specialPathManager;
 
-    private Function<String, TimingProvider> timerProviderFunction;
+    private final Function<String, TimingProvider> timerProviderFunction;
 
     public UploadMetadataGenTransferDecorator( SpecialPathManager specialPathManager, Function<String, TimingProvider> timerProviderFunction )
     {
@@ -79,8 +79,8 @@ public class UploadMetadataGenTransferDecorator
 
         final SpecialPathInfo specialPathInfo = specialPathManager.getSpecialPathInfo( transfer, metadata.getPackageType() );
 
-        final Boolean isMetadata = specialPathInfo != null && specialPathInfo.isMetadata();
-        final Boolean isUpload = op == TransferOperation.UPLOAD;
+        final boolean isMetadata = specialPathInfo != null && specialPathInfo.isMetadata();
+        final boolean isUpload = op == TransferOperation.UPLOAD;
         final Boolean hasRequestHeaders =
                 metadata.get( STORE_HTTP_HEADERS ) != null && metadata.get( STORE_HTTP_HEADERS ) instanceof Map;
 

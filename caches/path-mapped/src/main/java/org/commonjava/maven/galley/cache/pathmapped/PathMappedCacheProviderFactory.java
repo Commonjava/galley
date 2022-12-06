@@ -36,11 +36,11 @@ import java.util.concurrent.ExecutorService;
 public class PathMappedCacheProviderFactory
                 implements CacheProviderFactory
 {
-    private File cacheDir;
+    private final File cacheDir;
 
-    private PathMappedStorageConfig config;
+    private final PathMappedStorageConfig config;
 
-    private ExecutorService deleteExecutor;
+    private final ExecutorService deleteExecutor;
 
     private transient PathMappedCacheProvider provider;
 

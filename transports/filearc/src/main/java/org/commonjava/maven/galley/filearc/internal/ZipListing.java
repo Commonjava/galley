@@ -59,7 +59,7 @@ public class ZipListing
 
         final boolean isJar = isJarOperation();
 
-        final TreeSet<String> filenames = new TreeSet<String>();
+        final TreeSet<String> filenames = new TreeSet<>();
 
         ZipFile zf = null;
         try
@@ -86,7 +86,7 @@ public class ZipListing
                     {
                         name = name.substring( 1 );
 
-                        if ( name.indexOf( "/" ) < 0 )
+                        if ( !name.contains( "/" ) )
                         {
                             filenames.add( name );
                         }
@@ -116,7 +116,7 @@ public class ZipListing
 
         if ( !filenames.isEmpty() )
         {
-            return new ListingResult( resource, filenames.toArray( new String[filenames.size()] ) );
+            return new ListingResult( resource, filenames.toArray( new String[0] ) );
         }
 
         return null;

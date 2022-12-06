@@ -38,7 +38,7 @@ public class HashedLocationPathGenerator
 
     private String formatLocationDir( final Location loc )
     {
-        return DigestUtils.shaHex( loc.getUri() );
+        return DigestUtils.sha1Hex( loc.getUri() );
     }
 
 }

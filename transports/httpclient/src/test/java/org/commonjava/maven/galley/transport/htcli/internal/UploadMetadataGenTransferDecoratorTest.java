@@ -35,11 +35,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -141,7 +142,7 @@ public class UploadMetadataGenTransferDecoratorTest
         assertThat( Files.isRegularFile( metadataPath, LinkOption.NOFOLLOW_LINKS ), equalTo( metaExists ) );
         if ( metaExists )
         {
-            String metaContent = FileUtils.readFileToString( metadataPath.toFile() );
+            String metaContent = FileUtils.readFileToString( metadataPath.toFile(), Charset.defaultCharset() );
             assertThat( metaContent.contains( FILE_SIZE.toString() ), equalTo( true ) );
             assertThat( metaContent.contains( MOCK_TIME ), equalTo( true ) );
         }

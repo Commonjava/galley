@@ -156,8 +156,8 @@ public class DownloadHandler
 
                     if ( job.getError() != null )
                     {
-                        logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", job.getError(),
-                                      resource, job.getError().getMessage() );
+                        logger.debug( "NFC: Download error. Marking as missing: {}\nError was: {}", resource,
+                                      job.getError().getMessage() );
                         
                         if ( ! (job.getError() instanceof  TransferContentException ) && ! (job.getError() instanceof TransferTimeoutException ) )
                         {
@@ -196,13 +196,11 @@ public class DownloadHandler
                     Long size = transferSizes.get( target );
                     if ( tries > 0 )
                     {
-                        continue;
                     }
                     else if ( size != null && size > config.getThresholdWaitRetrySize() )
                     {
                         logger.debug( "Downloading a large file: {}. Retrying Future.get() up to {} times.", size, tries );
                         tries = (int) ( size / config.getWaitRetryScalingIncrement() );
-                        continue;
                     }
                     else if ( !suppressFailures )
                     {

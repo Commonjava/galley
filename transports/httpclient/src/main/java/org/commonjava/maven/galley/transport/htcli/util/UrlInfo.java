@@ -28,7 +28,7 @@ public final class UrlInfo
 
     private final String host;
 
-    private int port;
+    private final int port;
 
     private final String rawUrl;
 
@@ -47,7 +47,7 @@ public final class UrlInfo
         final URL url = new URL( u );
 
         final String userInfo = url.getUserInfo();
-        if ( userInfo != null && user == null && password == null )
+        if ( userInfo != null )
         {
             user = userInfo;
             password = null;
@@ -60,7 +60,7 @@ public final class UrlInfo
 
                 final StringBuilder sb = new StringBuilder();
                 idx = this.rawUrl.indexOf( "://" );
-                sb.append( this.rawUrl.substring( 0, idx + 3 ) );
+                sb.append( this.rawUrl, 0, idx + 3 );
 
                 idx = this.rawUrl.indexOf( "@" );
                 if ( idx > 0 )

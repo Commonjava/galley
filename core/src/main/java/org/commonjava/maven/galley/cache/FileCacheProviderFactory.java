@@ -29,7 +29,7 @@ import java.io.File;
 public class FileCacheProviderFactory
         implements CacheProviderFactory
 {
-    private File cacheDir;
+    private final File cacheDir;
 
     private transient FileCacheProvider provider;
 

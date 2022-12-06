@@ -20,10 +20,10 @@ import org.commonjava.atlas.maven.ident.ref.ProjectRef;
 public interface MavenPluginDefaults
 {
 
-    public String getDefaultGroupId( String artifactId );
+    String getDefaultGroupId( String artifactId );
 
-    public String getDefaultVersion( String groupId, String artifactId );
+    String getDefaultVersion( String groupId, String artifactId );
 
-    public String getDefaultVersion( ProjectRef ref );
+    String getDefaultVersion( ProjectRef ref );
 
 }

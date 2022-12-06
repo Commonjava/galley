@@ -46,9 +46,9 @@ public final class ChecksummingInputStream
 
     private final TransferMetadataConsumer metadataConsumer;
 
-    private boolean writeChecksumFiles;
+    private final boolean writeChecksumFiles;
 
-    private Function<String, TimingProvider> timerProviderFunction;
+    private final Function<String, TimingProvider> timerProviderFunction;
 
     public ChecksummingInputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                     final InputStream stream, final Transfer transfer,
@@ -136,10 +136,6 @@ public final class ChecksummingInputStream
                 checksum.update( (byte) data );
             }
         }
-        //        else
-        //        {
-        //            logger.trace( "READ: <EOF>" );
-        //        }
 
         return data;
     }

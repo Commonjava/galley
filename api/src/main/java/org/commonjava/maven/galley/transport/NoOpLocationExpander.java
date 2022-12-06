@@ -23,7 +23,6 @@ import java.util.List;
 import javax.enterprise.inject.Alternative;
 import javax.inject.Named;
 
-import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Resource;
@@ -43,15 +42,13 @@ public class NoOpLocationExpander
     @SuppressWarnings( "unchecked" )
     @Override
     public <T extends Location> List<Location> expand( final Collection<T> locations )
-        throws TransferException
     {
         logger.debug( "NOOP: No expansion available for: {}", locations );
-        return locations instanceof List ? (List<Location>) locations : new ArrayList<Location>( locations );
+        return locations instanceof List ? (List<Location>) locations : new ArrayList<>( locations );
     }
 
     @Override
     public List<Location> expand( final Location... locations )
-        throws TransferException
     {
         logger.debug( "NOOP: No expansion available for: {}", Arrays.toString( locations ) );
         return Arrays.asList( locations );

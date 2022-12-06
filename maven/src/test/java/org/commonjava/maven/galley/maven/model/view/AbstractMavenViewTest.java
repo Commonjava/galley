@@ -33,7 +33,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.commonjava.atlas.maven.ident.ref.ProjectRef;
 import org.commonjava.atlas.maven.ident.ref.ProjectVersionRef;
 import org.commonjava.atlas.maven.ident.ref.SimpleProjectRef;
-import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven304PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMaven350PluginDefaults;
 import org.commonjava.maven.galley.maven.internal.defaults.StandardMavenPluginImplications;
 import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
@@ -126,7 +125,7 @@ public abstract class AbstractMavenViewTest
     protected MavenPomView loadPoms( final String[] activeProfileIds, final String... pomNames )
         throws Exception
     {
-        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<DocRef<ProjectVersionRef>>();
+        final List<DocRef<ProjectVersionRef>> stack = new ArrayList<>();
 
         ProjectVersionRef pvr = null;
         for ( final String pomName : pomNames )
@@ -146,7 +145,7 @@ public abstract class AbstractMavenViewTest
             }
 
             final DocRef<ProjectVersionRef> dr =
-                new DocRef<ProjectVersionRef>( ref, new SimpleLocation( "http://localhost:8080/" ), document );
+                    new DocRef<>( ref, new SimpleLocation( "http://localhost:8080/" ), document );
 
             stack.add( dr );
         }
@@ -158,7 +157,7 @@ public abstract class AbstractMavenViewTest
     protected MavenXmlView<ProjectRef> loadDocs( final Set<String> localOnlyPaths, final String... docNames )
         throws Exception
     {
-        final List<DocRef<ProjectRef>> stack = new ArrayList<DocRef<ProjectRef>>();
+        final List<DocRef<ProjectRef>> stack = new ArrayList<>();
         final ProjectRef pr = new SimpleProjectRef( "not.used", "project-ref" );
         for ( final String pomName : docNames )
         {
@@ -170,14 +169,12 @@ public abstract class AbstractMavenViewTest
                                                             .newDocumentBuilder()
                                                             .parse( is );
 
-            final DocRef<ProjectRef> dr =
-                new DocRef<ProjectRef>( pr, new SimpleLocation( "http://localhost:8080/" ), document );
+            final DocRef<ProjectRef> dr = new DocRef<>( pr, new SimpleLocation( "http://localhost:8080/" ), document );
 
             stack.add( dr );
         }
 
-        return new MavenXmlView<ProjectRef>( stack, xpath, xml,
-                                             localOnlyPaths.toArray( new String[localOnlyPaths.size()] ) );
+        return new MavenXmlView<>( stack, xpath, xml, localOnlyPaths.toArray( new String[0] ) );
     }
 
     protected void dump( final Node node )

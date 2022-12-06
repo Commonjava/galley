@@ -44,8 +44,8 @@ public final class Sha384GeneratorFactory
         extends AbstractChecksumGenerator
     {
 
-        protected Sha384Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                   final Function<String, TimingProvider> timerProvider )
+        private Sha384Generator( final Transfer transfer, final boolean writeChecksumFile,
+                                 final Function<String, TimingProvider> timerProvider )
             throws IOException
         {
             super( transfer, ChecksumAlgorithm.SHA384.getExtension(), SHA_384, writeChecksumFile, timerProvider );

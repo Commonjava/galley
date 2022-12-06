@@ -142,10 +142,7 @@ public class TestSpecialPathManager implements SpecialPathManager
         if ( pkgtypes.containsKey( pkgType ) )
         {
             info = getPathInfo( location, path, pkgtypes.get( pkgType ).getSpecialPathInfos() );
-            if ( info != null )
-            {
-                return info;
-            }
+            return info;
         }
         return null;
     }

@@ -66,26 +66,31 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@SuppressWarnings( "EmptyTryBlock" )
 public class PathMappedCacheProviderCassandraTest
-                extends CacheProviderTCK
+        extends CacheProviderTCK
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     private static DefaultPathMappedStorageConfig config;
 
     private static CassandraPathDB pathDB;
 
     private final FileEventManager events = new TestFileEventManager();
+
     private final TransferDecorator decorator = new TestTransferDecorator();
 
     private PathMappedFileManager fileManager;
+
     private PathMappedCacheProvider provider;
+
     private File baseDir;
 
     @BeforeClass
-    public static void startEmbeddedCassandra() throws Exception
+    public static void startEmbeddedCassandra()
+            throws Exception
     {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra();
         Map<String, Object> props = new HashMap<>();
@@ -103,7 +108,8 @@ public class PathMappedCacheProviderCassandraTest
     final PathGenerator pathgen = new MockPathGenerator();
 
     @Before
-    public void setup() throws Exception
+    public void setup()
+            throws Exception
     {
         baseDir = temp.newFolder();
         fileManager = new PathMappedFileManager( new DefaultPathMappedStorageConfig(), pathDB,
@@ -112,7 +118,7 @@ public class PathMappedCacheProviderCassandraTest
         provider = getPathMappedCacheProvider( new PathMappedCacheProviderConfig( baseDir ) );
     }
 
-    private PathMappedCacheProvider getPathMappedCacheProvider(PathMappedCacheProviderConfig cacheProviderConfig)
+    private PathMappedCacheProvider getPathMappedCacheProvider( PathMappedCacheProviderConfig cacheProviderConfig )
     {
         return new PathMappedCacheProvider( baseDir, events, new TransferDecoratorManager( decorator ),
                                             cacheProviderConfig, Executors.newScheduledThreadPool( 2 ), fileManager,
@@ -140,27 +146,28 @@ public class PathMappedCacheProviderCassandraTest
     }
 
     @After
-    public void tearDown() throws Exception
+    public void tearDown()
     {
         Session session = pathDB.getSession();
-        session.execute("TRUNCATE " + keyspace + ".pathmap");
-        session.execute("TRUNCATE " + keyspace + ".reversemap");
-        session.execute("TRUNCATE " + keyspace + ".reclaim");
-        session.execute("TRUNCATE " + keyspace + ".filechecksum");
+        session.execute( "TRUNCATE " + keyspace + ".pathmap" );
+        session.execute( "TRUNCATE " + keyspace + ".reversemap" );
+        session.execute( "TRUNCATE " + keyspace + ".reclaim" );
+        session.execute( "TRUNCATE " + keyspace + ".filechecksum" );
     }
 
     @Override
-    protected CacheProvider getCacheProvider() throws Exception
+    protected CacheProvider getCacheProvider()
     {
         return provider;
     }
 
     @Test
-    public void expireFile() throws Exception
+    public void expireFile()
+            throws Exception
     {
         PathMappedCacheProviderConfig myCacheProviderConfig =
-                        new PathMappedCacheProviderConfig( baseDir ).withTimeoutProcessingEnabled( Boolean.TRUE )
-                                                                    .withDefaultTimeoutSeconds( 1 );
+                new PathMappedCacheProviderConfig( baseDir ).withTimeoutProcessingEnabled( Boolean.TRUE )
+                                                            .withDefaultTimeoutSeconds( 1 );
         PathMappedCacheProvider myCacheProvider = getPathMappedCacheProvider( myCacheProviderConfig );
 
         final String content = "This is a test";
@@ -178,11 +185,16 @@ public class PathMappedCacheProviderCassandraTest
         ConcreteResource res = new ConcreteResource( loc, fname );
         Transfer tx = myCacheProvider.getTransfer( res );
         assertFalse( tx.exists() );
-        assertThrows( IOException.class, () -> myCacheProvider.openInputStream( res ) );
+        assertThrows( IOException.class, () -> {
+            try (InputStream ignored = myCacheProvider.openInputStream( res ))
+            {
+            }
+        } );
     }
 
     @Test
-    public void moveAndReadNewFile() throws Exception
+    public void moveAndReadNewFile()
+            throws Exception
     {
         final String content = "This is a test";
 
@@ -212,11 +224,17 @@ public class PathMappedCacheProviderCassandraTest
         assertThat( result, equalTo( content ) );
 
         // source file should have been removed
-        assertThrows( IOException.class, () -> provider.openInputStream( new ConcreteResource( loc, fname ) ) );
+        assertThrows( IOException.class, () -> {
+            try (InputStream is = provider.openInputStream( new ConcreteResource( loc, fname ) ))
+            {
+
+            }
+        } );
     }
 
     @Test
-    public void deleteAndReclaim() throws Exception
+    public void deleteAndReclaim()
+            throws Exception
     {
         final String content = "This is a test";
 
@@ -233,7 +251,11 @@ public class PathMappedCacheProviderCassandraTest
 
         provider.delete( resource );
 
-        assertThrows( IOException.class, () -> provider.openInputStream( resource ) );
+        assertThrows( IOException.class, () -> {
+            try (InputStream is = provider.openInputStream( resource ))
+            {
+            }
+        } );
 
         Transfer transfer = provider.getTransfer( resource );
         assertThat( transfer, notNullValue() );
@@ -246,7 +268,8 @@ public class PathMappedCacheProviderCassandraTest
     }
 
     @Test
-    public void replaceAndReclaim() throws Exception
+    public void replaceAndReclaim()
+            throws Exception
     {
         final String content = "This is a test";
         final String content2 = "This is another test";

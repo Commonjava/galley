@@ -23,7 +23,7 @@ public class BadGatewayException
 
     private static final long serialVersionUID = 1L;
 
-    private String url;
+    private final String url;
 
     private final int statusCode;
 

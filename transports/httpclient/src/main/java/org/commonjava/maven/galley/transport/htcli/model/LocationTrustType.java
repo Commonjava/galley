@@ -41,7 +41,7 @@ public enum LocationTrustType
                 }
             };
 
-    private String[] aliases;
+    private final String[] aliases;
 
     LocationTrustType( String... aliases )
     {

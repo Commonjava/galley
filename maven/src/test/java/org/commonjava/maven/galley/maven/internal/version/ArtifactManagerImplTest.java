@@ -33,6 +33,7 @@ import org.w3c.dom.Document;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ArtifactManagerImplTest
@@ -45,7 +46,7 @@ public class ArtifactManagerImplTest
     private static final String ROOT = "artifact-manager/";
 
     @Rule
-    public TestFixture fixture = new TestFixture();
+    public final TestFixture fixture = new TestFixture();
 
     @Test
     public void verifyConcreteResourceCreationFile()
@@ -55,7 +56,7 @@ public class ArtifactManagerImplTest
 
         MetadataMapper m = new StandardMetadataMapper();
         ConcreteResource cr = m.createResource( location, null, null, "org.groupId" );
-        assertTrue ( cr.getPath().equals( "org/groupId/maven-metadata-local.xml" ) );
+        assertEquals( "org/groupId/maven-metadata-local.xml", cr.getPath() );
     }
 
     @Test
@@ -66,7 +67,7 @@ public class ArtifactManagerImplTest
 
         MetadataMapper m = new StandardMetadataMapper();
         ConcreteResource cr = m.createResource( location, null, null, "org.groupId" );
-        assertTrue ( cr.getPath().equals( "org/groupId/maven-metadata.xml" ) );
+        assertEquals( "org/groupId/maven-metadata.xml", cr.getPath() );
     }
 
     @Test
@@ -77,7 +78,7 @@ public class ArtifactManagerImplTest
 
         MetadataMapper m = new StandardMetadataMapper();
         ConcreteResource cr = m.createResource( location, null, null, "org.groupId" );
-        assertTrue ( cr.getPath().equals( "org/groupId/maven-metadata.xml" ) );
+        assertEquals( "org/groupId/maven-metadata.xml", cr.getPath() );
     }
 
 

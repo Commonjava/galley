@@ -140,7 +140,6 @@ public class VersionResolverImpl
                                                                            final ProjectVersionRef ref,
                                                                            final VersionSelectionStrategy selectionStrategy,
                                                                            final EventMetadata eventMetadata )
-        throws TransferException
     {
         if ( !ref.getVersionSpec()
                  .isSingle() )
@@ -169,7 +168,6 @@ public class VersionResolverImpl
                                                                                final ProjectVersionRef ref,
                                                                                final VersionSelectionStrategy selectionStrategy,
                                                                                final EventMetadata eventMetadata )
-        throws TransferException
     {
         if ( !ref.getVersionSpec()
                  .isSingle() )
@@ -198,7 +196,6 @@ public class VersionResolverImpl
                                                                                final ArtifactRef ref,
                                                                                final VersionSelectionStrategy selectionStrategy,
                                                                                final EventMetadata eventMetadata )
-        throws TransferException
     {
         if ( !ref.getVersionSpec()
                  .isSingle() )
@@ -217,7 +214,6 @@ public class VersionResolverImpl
                                                         final ProjectVersionRef ref,
                                                         final VersionSelectionStrategy selectionStrategy,
                                                         final EventMetadata eventMetadata )
-        throws TransferException
     {
         final ProjectVersionRefLocation result =
             resolveLatestSnapshotRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
@@ -229,7 +225,6 @@ public class VersionResolverImpl
                                                                             final ProjectVersionRef ref,
                                                                             final VersionSelectionStrategy selectionStrategy,
                                                                             final EventMetadata eventMetadata )
-        throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )
@@ -271,7 +266,6 @@ public class VersionResolverImpl
                                                        final ProjectVersionRef ref,
                                                        final VersionSelectionStrategy selectionStrategy,
                                                        final EventMetadata eventMetadata )
-        throws TransferException
     {
         final ProjectVersionRefLocation result =
             resolveFirstSnapshotRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
@@ -283,7 +277,6 @@ public class VersionResolverImpl
                                                                            final ProjectVersionRef ref,
                                                                            final VersionSelectionStrategy selectionStrategy,
                                                                            final EventMetadata eventMetadata )
-        throws TransferException
     {
         for ( final Location location : locations )
         {
@@ -323,7 +316,6 @@ public class VersionResolverImpl
 
     private void addSnapshotFrom( final MavenMetadataView metadata, final Location location,
                                   final ProjectVersionRef ref, final Map<SingleVersion, Location> available )
-        throws GalleyMavenException
     {
         final String version = metadata.resolveSingleValue( SNAP_VERSION_XPATH );
         logger.debug( "Latest snapshot version in metadata is: {}", version );
@@ -350,7 +342,6 @@ public class VersionResolverImpl
                                                      final ProjectVersionRef ref,
                                                      final VersionSelectionStrategy selectionStrategy,
                                                      final EventMetadata eventMetadata )
-        throws TransferException
     {
         final ProjectVersionRefLocation result =
             resolveLatestMultiRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
@@ -361,7 +352,6 @@ public class VersionResolverImpl
                                                                          final ProjectVersionRef ref,
                                                                          final VersionSelectionStrategy selectionStrategy,
                                                                          final EventMetadata eventMetadata )
-        throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )
@@ -432,7 +422,6 @@ public class VersionResolverImpl
                                                     final ProjectVersionRef ref,
                                                     final VersionSelectionStrategy selectionStrategy,
                                                     final EventMetadata eventMetadata )
-        throws TransferException
     {
         final ProjectVersionRefLocation result =
             resolveFirstMultiRefWithLocation( locations, ref, selectionStrategy, eventMetadata );
@@ -443,7 +432,6 @@ public class VersionResolverImpl
                                                                         final ProjectVersionRef ref,
                                                                         final VersionSelectionStrategy selectionStrategy,
                                                                         final EventMetadata eventMetadata )
-        throws TransferException
     {
         nextLoc: for ( final Location location : locations )
         {
@@ -533,7 +521,6 @@ public class VersionResolverImpl
                                                                               final ProjectVersionRef ref,
                                                                               final VersionSelectionStrategy selectionStrategy,
                                                                               final EventMetadata eventMetadata )
-        throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )
@@ -607,7 +594,6 @@ public class VersionResolverImpl
                                                                                  final ProjectVersionRef ref,
                                                                                  final VersionSelectionStrategy selectionStrategy,
                                                                                  final EventMetadata eventMetadata )
-        throws TransferException
     {
         final Map<SingleVersion, Location> available = new TreeMap<>();
         for ( final Location location : locations )

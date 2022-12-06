@@ -17,9 +17,7 @@ package org.commonjava.maven.galley.embed;
 
 import org.apache.commons.io.IOUtils;
 import org.commonjava.atlas.maven.ident.ref.SimpleProjectVersionRef;
-import org.commonjava.maven.galley.TransferManager;
 import org.commonjava.maven.galley.maven.ArtifactManager;
-import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.test.http.expect.ExpectationServer;

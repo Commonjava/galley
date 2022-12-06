@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -124,9 +126,7 @@ public class XMLInfrastructure
     {
         transformerFactory = TransformerFactory.newInstance();
 
-        if ( !transformerFactory.getClass()
-                                .getName()
-                                .contains( "redirected" ) )
+        if ( !transformerFactory.getClass().getName().contains( "redirected" ) )
         {
             safeInputFactory = XMLInputFactory.newInstance();
             safeInputFactory.setProperty( XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false );
@@ -180,7 +180,7 @@ public class XMLInfrastructure
             for ( int i = 0; i < intermediates.length - 1; i++ )
             {
                 final NodeList nl = insertionPoint.getElementsByTagNameNS( below.getNamespaceURI(), intermediates[i] );
-                if ( nl != null && nl.getLength() > 0 )
+                if ( nl.getLength() > 0 )
                 {
                     insertionPoint = (Element) nl.item( 0 );
                 }
@@ -211,7 +211,7 @@ public class XMLInfrastructure
     }
 
     public DocumentBuilder newDocumentBuilder()
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
         try
         {
@@ -224,7 +224,7 @@ public class XMLInfrastructure
     }
 
     public Transformer newTransformer()
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
         try
         {
@@ -266,8 +266,7 @@ public class XMLInfrastructure
             }
             else
             {
-                doc = docBuilder.newDocument()
-                                .importNode( node, true );
+                doc = docBuilder.newDocument().importNode( node, true );
             }
 
             transformer.transform( new DOMSource( doc ), new StreamResult( sw ) );
@@ -283,7 +282,7 @@ public class XMLInfrastructure
     }
 
     public Document parseDocument( final Object docSource, final InputStream stream )
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
         if ( stream == null )
         {
@@ -293,7 +292,7 @@ public class XMLInfrastructure
         String xml;
         try
         {
-            xml = IOUtils.toString( stream );
+            xml = IOUtils.toString( stream, Charset.defaultCharset() );
         }
         catch ( final IOException e )
         {
@@ -317,10 +316,11 @@ public class XMLInfrastructure
     }
 
     private Document fallbackParseDocument( String xml, final Object docSource, final Exception e )
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
-        logger.debug( "Failed to parse: {}. DOM error: {}. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...",
-                      e, docSource, e.getMessage() );
+        logger.debug(
+                "Failed to parse: {}. DOM error: {}. Trying STaX parse with IS_REPLACING_ENTITY_REFERENCES == false...",
+                docSource, e.getMessage() );
         try
         {
             Source source;
@@ -336,7 +336,6 @@ public class XMLInfrastructure
             {
                 // Deal with &oslash; and other undeclared entities...
                 xml = escapeNonXMLEntityRefs( xml );
-
                 final XMLReader reader = XMLReaderFactory.createXMLReader();
                 reader.setFeature( "http://xml.org/sax/features/validation", false );
 
@@ -379,8 +378,7 @@ public class XMLInfrastructure
 
     private String escapeNonXMLEntityRefs( final String xml )
     {
-        final Matcher m = Pattern.compile( "&([^\\s;]+;)" )
-                                 .matcher( xml );
+        final Matcher m = Pattern.compile( "&([^\\s;]+;)" ).matcher( xml );
 
         final StringBuffer sb = new StringBuffer();
         while ( m.find() )
@@ -400,7 +398,7 @@ public class XMLInfrastructure
     }
 
     public Document parse( final File file )
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
         InputStream stream = null;
         Document doc = null;
@@ -408,7 +406,7 @@ public class XMLInfrastructure
         {
             try
             {
-                stream = new FileInputStream( file );
+                stream = Files.newInputStream( file.toPath() );
                 doc = parseDocument( file, stream );
             }
             catch ( final GalleyMavenXMLException ignored )
@@ -428,13 +426,13 @@ public class XMLInfrastructure
     }
 
     public Document parse( final Transfer transfer )
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
         return parse( transfer, new EventMetadata() );
     }
 
-    public Document parse( final Transfer transfer , final EventMetadata eventMetadata  )
-        throws GalleyMavenXMLException
+    public Document parse( final Transfer transfer, final EventMetadata eventMetadata )
+            throws GalleyMavenXMLException
     {
         InputStream stream = null;
         Document doc;
@@ -456,7 +454,7 @@ public class XMLInfrastructure
     }
 
     public ProjectVersionRef getProjectVersionRef( final Document doc )
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
         final Element project = doc.getDocumentElement();
 
@@ -467,7 +465,7 @@ public class XMLInfrastructure
         if ( isEmpty( gid ) || isEmpty( ver ) )
         {
             final NodeList nl = project.getElementsByTagName( "parent" );
-            if ( nl == null || nl.getLength() < 1 )
+            if ( nl.getLength() < 1 )
             {
                 logger.debug( "No parent declaration." );
                 return null;
@@ -487,11 +485,11 @@ public class XMLInfrastructure
     }
 
     public ProjectVersionRef getParentRef( final Document doc )
-        throws GalleyMavenXMLException
+            throws GalleyMavenXMLException
     {
         final Element project = doc.getDocumentElement();
         final NodeList nl = project.getElementsByTagName( "parent" );
-        if ( nl == null || nl.getLength() < 1 )
+        if ( nl.getLength() < 1 )
         {
             logger.debug( "No parent declaration." );
             return null;
@@ -514,7 +512,7 @@ public class XMLInfrastructure
     private String getChildText( final String name, final Element parent )
     {
         final NodeList nl = parent.getElementsByTagName( name );
-        if ( nl == null || nl.getLength() < 1 )
+        if ( nl.getLength() < 1 )
         {
             logger.debug( "No element: {} in: {}", name, parent.getNodeName() );
             return null;
@@ -531,8 +529,7 @@ public class XMLInfrastructure
             }
         }
 
-        return elem == null ? null : elem.getTextContent()
-                                         .trim();
+        return elem == null ? null : elem.getTextContent().trim();
     }
 
 }

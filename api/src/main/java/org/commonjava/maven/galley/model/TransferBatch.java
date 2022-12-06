@@ -64,7 +64,7 @@ public class TransferBatch
 
     public Map<ConcreteResource, Transfer> getTransfers()
     {
-        return transfers == null ? Collections.<ConcreteResource, Transfer> emptyMap() : transfers;
+        return transfers == null ? Collections.emptyMap() : transfers;
     }
 
     public Transfer getTransfer( final ConcreteResource resource )
@@ -74,37 +74,12 @@ public class TransferBatch
 
     public Map<ConcreteResource, TransferException> getErrors()
     {
-        return errors == null ? Collections.<ConcreteResource, TransferException> emptyMap() : errors;
+        return errors == null ? Collections.emptyMap() : errors;
     }
 
     public TransferException getError( final ConcreteResource resource )
     {
         return errors == null ? null : errors.get( resource );
     }
-
-    //    public Set<TransferBatch> splitByLocation()
-    //    {
-    //        final Map<Location, Set<ConcreteResource>> splits = new HashMap<>();
-    //        for ( final ConcreteResource r : resources )
-    //        {
-    //            Set<ConcreteResource> set = splits.get( r.getLocation() );
-    //            if ( set == null )
-    //            {
-    //                set = new HashSet<>();
-    //                splits.put( r.getLocation(), set );
-    //            }
-    //
-    //            set.add( r );
-    //        }
-    //
-    //        final Set<TransferBatch> result = new HashSet<>( splits.size() );
-    //
-    //        for ( final Set<ConcreteResource> resources : splits.values() )
-    //        {
-    //            result.add( new TransferBatch( resources ) );
-    //        }
-    //
-    //        return result;
-    //    }
 
 }

@@ -56,7 +56,6 @@ public abstract class AbstractTransferDecorator
 
     @Override
     public void decorateCopyFrom( final Transfer from, final Transfer transfer, EventMetadata metadata )
-            throws IOException
     {
     }
 
@@ -68,20 +67,17 @@ public abstract class AbstractTransferDecorator
 
     @Override
     public String[] decorateListing( final Transfer transfer, final String[] listing, EventMetadata metadata )
-            throws IOException
     {
         return listing;
     }
 
     @Override
     public void decorateMkdirs( final Transfer transfer, EventMetadata metadata )
-            throws IOException
     {
     }
 
     @Override
     public void decorateCreateFile( final Transfer transfer, EventMetadata metadata )
-            throws IOException
     {
     }
 

@@ -58,7 +58,7 @@ public final class UrlUtils
 
         if ( lastIdx > protoIdx )
         {
-            sb.append( dbUrl.substring( 0, lastIdx + 1 ) )
+            sb.append( dbUrl, 0, lastIdx + 1 )
               .append( siblingName );
 
             return sb.toString();

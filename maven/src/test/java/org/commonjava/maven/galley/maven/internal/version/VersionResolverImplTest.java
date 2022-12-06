@@ -49,7 +49,7 @@ public class VersionResolverImplTest
     private static final String ROOT = "version-resolver/";
 
     @Rule
-    public TestFixture fixture = new TestFixture();
+    public final TestFixture fixture = new TestFixture();
 
     @Test
     public void resolveSnapshot_FirstMatch_SingletonLocationList_SingletonSnapshotList_LatestVersionStrategy()

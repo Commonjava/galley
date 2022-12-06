@@ -31,6 +31,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -45,10 +46,10 @@ public class ChecksummingOutputStreamTest
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     @Rule
-    public ApiFixture fixture = new ApiFixture( temp );
+    public final ApiFixture fixture = new ApiFixture( temp );
 
     @Before
     public void before()
@@ -73,7 +74,7 @@ public class ChecksummingOutputStreamTest
         final TestMetadataConsumer testConsumer = new TestMetadataConsumer();
         try
         {
-            stream = new ChecksummingOutputStream( new HashSet<AbstractChecksumGeneratorFactory<?>>(
+            stream = new ChecksummingOutputStream( new HashSet<>(
                     Arrays.asList( new Md5GeneratorFactory(), new Sha1GeneratorFactory(),
                                    new Sha256GeneratorFactory() ) ), os, txfr, testConsumer, true, null );
 
@@ -96,7 +97,7 @@ public class ChecksummingOutputStreamTest
         {
             in = md5Txfr.openInputStream();
 
-            resultHex = IOUtils.toString( in );
+            resultHex = IOUtils.toString( in, Charset.defaultCharset() );
         }
         finally
         {
@@ -109,7 +110,7 @@ public class ChecksummingOutputStreamTest
         assertThat( metadata, notNullValue() );
 
         Map<ContentDigest, String> digests = metadata.getDigests();
-        assertThat( digests, CoreMatchers.<Map<ContentDigest, String>>notNullValue() );
+        assertThat( digests, CoreMatchers.notNullValue() );
         assertThat( digests.get( MD5 ), equalTo( digestHex ) );
     }
 

@@ -150,13 +150,11 @@ public class UploadHandler
                     Long size = transferSizes.get( resource );
                     if ( tries > 0 )
                     {
-                        continue;
                     }
                     else if ( size != null && size > config.getThresholdWaitRetrySize() )
                     {
                         logger.debug( "Publishing a large file: {}. Retrying Future.get() up to {} times.", size, tries );
                         tries = (int) ( size / config.getWaitRetryScalingIncrement() );
-                        continue;
                     }
                     else
                     {

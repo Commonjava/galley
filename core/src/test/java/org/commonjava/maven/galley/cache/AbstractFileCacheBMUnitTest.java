@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 
 public abstract class AbstractFileCacheBMUnitTest
@@ -43,9 +44,9 @@ public abstract class AbstractFileCacheBMUnitTest
     protected final ConcreteResource resource = new ConcreteResource( loc, fname );
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
-    protected CountDownLatch latch = new CountDownLatch( 2 );
+    protected final CountDownLatch latch = new CountDownLatch( 2 );
 
     protected CacheProvider provider;
 
@@ -79,6 +80,7 @@ public abstract class AbstractFileCacheBMUnitTest
                 final byte[] buf = new byte[512];
                 while ( ( read = bais.read( buf ) ) > -1 )
                 {
+                    //noinspection BusyWait
                     Thread.sleep( 1000 );
                     out.write( buf, 0, read );
                 }
@@ -105,9 +107,8 @@ public abstract class AbstractFileCacheBMUnitTest
         @Override
         public void run()
         {
-            try
+            try(final InputStream in = provider.openInputStream( resource ))
             {
-                final InputStream in = provider.openInputStream( resource );
                 if ( in == null )
                 {
                     latch.countDown();
@@ -120,7 +121,7 @@ public abstract class AbstractFileCacheBMUnitTest
                 {
                     baos.write( buf, 0, read );
                 }
-                result = new String( baos.toByteArray(), "UTF-8" );
+                result = new String( baos.toByteArray(), StandardCharsets.UTF_8 );
                 latch.countDown();
             }
             catch ( Exception e )
