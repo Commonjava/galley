@@ -42,8 +42,8 @@ public final class Sha256GeneratorFactory
         extends AbstractChecksumGenerator
     {
 
-        protected Sha256Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                   final Function<String, TimingProvider> timerProvider )
+        private Sha256Generator( final Transfer transfer, final boolean writeChecksumFile,
+                                 final Function<String, TimingProvider> timerProvider )
             throws IOException
         {
             super( transfer, ChecksumAlgorithm.SHA256.getExtension(), ContentDigest.SHA_256, writeChecksumFile, timerProvider );

@@ -25,16 +25,16 @@ import javax.inject.Named;
 @Named
 public class TransportManagerConfig
 {
-    long DEFAULT_THRESHOLD_WAIT_RETRY_SIZE = 10 * 1024 * 1024; // 10 MB files get retried.
+    final long DEFAULT_THRESHOLD_WAIT_RETRY_SIZE = 10 * 1024 * 1024; // 10 MB files get retried.
 
-    long DEFAULT_WAIT_RETRY_SCALING_INCREMENT = DEFAULT_THRESHOLD_WAIT_RETRY_SIZE;
+    final long DEFAULT_WAIT_RETRY_SCALING_INCREMENT = DEFAULT_THRESHOLD_WAIT_RETRY_SIZE;
             // how many times we retry depends on this.
 
-    float DEFAULT_TIMEOUT_OVEREXTENSION_FACTOR = 1.25f;
+    final float DEFAULT_TIMEOUT_OVEREXTENSION_FACTOR = 1.25f;
 
-    private long thresholdWaitRetrySize;
+    private final long thresholdWaitRetrySize;
 
-    private long waitRetryScalingIncrement;
+    private final long waitRetryScalingIncrement;
 
     private float timeoutOverextensionFactor;
 

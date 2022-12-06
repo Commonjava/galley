@@ -28,7 +28,6 @@ public abstract class AbstractChecksumGeneratorFactory<T extends AbstractChecksu
     {
     }
 
-    @SuppressWarnings( "DeprecatedIsStillUsed" )
     @Deprecated
     public final T createGenerator( final Transfer transfer )
         throws IOException

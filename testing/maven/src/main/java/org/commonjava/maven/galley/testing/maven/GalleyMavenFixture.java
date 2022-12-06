@@ -207,7 +207,7 @@ public class GalleyMavenFixture
 
     public NotFoundCache getNfc()
     {
-        return maven == null ? mavenBuilder.getNfc() : mavenBuilder.getNfc();
+        return mavenBuilder.getNfc();
     }
 
     public TemporaryFolder getTemp()
@@ -251,13 +251,13 @@ public class GalleyMavenFixture
     @Deprecated
     public ArtifactManager getArtifacts()
     {
-        return maven == null ? mavenBuilder.getArtifactManager() : mavenBuilder.getArtifactManager();
+        return mavenBuilder.getArtifactManager();
     }
 
     @Deprecated
     public ArtifactMetadataManager getMetadata()
     {
-        return maven == null ? mavenBuilder.getArtifactMetadataManager() : mavenBuilder.getArtifactMetadataManager();
+        return mavenBuilder.getArtifactMetadataManager();
     }
 
     @Deprecated
@@ -309,19 +309,19 @@ public class GalleyMavenFixture
     @Deprecated
     public LocationExpander getLocations()
     {
-        return maven == null ? mavenBuilder.getLocationExpander() : mavenBuilder.getLocationExpander();
+        return mavenBuilder.getLocationExpander();
     }
 
     @Deprecated
     public TransferDecoratorManager getDecorator()
     {
-        return maven == null ? mavenBuilder.getTransferDecorator() : mavenBuilder.getTransferDecorator();
+        return mavenBuilder.getTransferDecorator();
     }
 
     @Deprecated
     public FileEventManager getEvents()
     {
-        return maven == null ? mavenBuilder.getFileEvents() : mavenBuilder.getFileEvents();
+        return mavenBuilder.getFileEvents();
     }
 
     @Deprecated
@@ -374,13 +374,13 @@ public class GalleyMavenFixture
     @Deprecated
     public TransportManager getTransports()
     {
-        return maven == null ? mavenBuilder.getTransportManager() : mavenBuilder.getTransportManager();
+        return mavenBuilder.getTransportManager();
     }
 
     @Deprecated
     public TransferManager getTransfers()
     {
-        return maven == null ? mavenBuilder.getTransferManager() : mavenBuilder.getTransferManager();
+        return mavenBuilder.getTransferManager();
     }
 
     @Deprecated
@@ -402,7 +402,7 @@ public class GalleyMavenFixture
     @Deprecated
     public XMLInfrastructure getXmlInfra()
     {
-        return maven == null ? mavenBuilder.getXmlInfrastructure() : mavenBuilder.getXmlInfrastructure();
+        return mavenBuilder.getXmlInfrastructure();
     }
 
     @Deprecated
@@ -440,13 +440,13 @@ public class GalleyMavenFixture
     @Deprecated
     public MavenMetadataReader getMetaReader()
     {
-        return maven == null ? mavenBuilder.getMavenMetadataReader() : mavenBuilder.getMavenMetadataReader();
+        return mavenBuilder.getMavenMetadataReader();
     }
 
     @Deprecated
     public VersionResolver getVersions()
     {
-        return maven == null ? mavenBuilder.getVersionResolver() : mavenBuilder.getVersionResolver();
+        return mavenBuilder.getVersionResolver();
     }
 
     @Deprecated

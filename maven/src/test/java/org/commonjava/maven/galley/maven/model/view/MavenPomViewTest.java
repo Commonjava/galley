@@ -65,7 +65,7 @@ public class MavenPomViewTest
         assertThat( extensions, notNullValue() );
         assertThat( extensions.size(), equalTo( 1 ) );
         assertThat( extensions.get( 0 ).asProjectVersionRef(),
-                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group", "ext-artifact", "1.0" ) ) );
+                    equalTo( new SimpleProjectVersionRef( "ext.group", "ext-artifact", "1.0" ) ) );
 
     }
 
@@ -90,7 +90,7 @@ public class MavenPomViewTest
         assertThat( extensions, notNullValue() );
         assertThat( extensions.size(), equalTo( 1 ) );
         assertThat( extensions.get( 0 ).asProjectVersionRef(),
-                    equalTo( (ProjectVersionRef) new SimpleProjectVersionRef( "ext.group", "ext-artifact", "1.0" ) ) );
+                    equalTo( new SimpleProjectVersionRef( "ext.group", "ext-artifact", "1.0" ) ) );
 
     }
 
@@ -134,7 +134,7 @@ public class MavenPomViewTest
         final MavenPomView pomView = loadPoms( "pom-with-bom.xml" );
         final MavenPomView bomView = loadPoms( "simple-bom.xml" );
 
-        pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+        pomView.addMixin( new MavenXmlMixin<>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
 
         final DependencyView dv = pomView.getAllDirectDependencies().get( 0 );
 
@@ -148,7 +148,7 @@ public class MavenPomViewTest
         final MavenPomView pomView = loadPoms( "pom-with-bom-expr.xml" );
         final MavenPomView bomView = loadPoms( "simple-bom-expr.xml" );
 
-        pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+        pomView.addMixin( new MavenXmlMixin<>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
 
         final DependencyView dv = pomView.getAllDirectDependencies().get( 0 );
 
@@ -199,7 +199,7 @@ public class MavenPomViewTest
         final MavenPomView pomView = loadPoms( "pom-with-bom-of-boms.xml" );
         final MavenPomView bomView = loadPoms( "bom-with-boms.xml" );
 
-        pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+        pomView.addMixin( new MavenXmlMixin<>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
 
         final List<DependencyView> boms = pomView.getAllBOMs();
 
@@ -216,7 +216,7 @@ public class MavenPomViewTest
         final MavenPomView pomView = loadPoms( "pom-with-bom-expr.xml" );
         final MavenPomView bomView = loadPoms( "simple-bom-expr.xml" );
 
-        pomView.addMixin( new MavenXmlMixin<ProjectVersionRef>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
+        pomView.addMixin( new MavenXmlMixin<>( bomView, MavenXmlMixin.DEPENDENCY_MIXIN ) );
 
         DependencyView dv = pomView.getAllManagedDependencies().get( 0 );
 
@@ -363,7 +363,7 @@ public class MavenPomViewTest
         {
             System.out.println( "pv " + pv.getGroupId() + " for version " + pv.getVersion() );
 
-            assertTrue( !pv.getVersion().contains( "${" ) );
+            assertFalse( pv.getVersion().contains( "${" ) );
         }
     }
 
@@ -375,7 +375,7 @@ public class MavenPomViewTest
 
         List<RepositoryView> rvs = pomView.getNonProfileRepositories();
 
-        List<String> repoId = new ArrayList<String>();
+        List<String> repoId = new ArrayList<>();
 
         for ( RepositoryView rv : rvs )
         {

@@ -47,7 +47,7 @@ public final class ChecksummingOutputStream
 
     private final boolean writeChecksumFiles;
 
-    private Function<String, TimingProvider> timerProviderFunction;
+    private final Function<String, TimingProvider> timerProviderFunction;
 
     public ChecksummingOutputStream( final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories,
                                      final OutputStream stream, final Transfer transfer,

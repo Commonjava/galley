@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,7 +39,7 @@ public class FileCacheProviderTest
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     @Override
     protected CacheProvider getCacheProvider()
@@ -61,7 +62,7 @@ public class FileCacheProviderTest
         final CacheProvider provider = getCacheProvider();
 
         final OutputStream out = provider.openOutputStream( resource );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.close();
 
         File file = provider.asAdminView().getDetachedFile( resource );

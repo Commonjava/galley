@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.cache.partyline;
 
-import org.commonjava.maven.galley.GalleyInitException;
 import org.commonjava.maven.galley.cache.CacheProviderFactory;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
@@ -59,7 +58,6 @@ public class PartyLineCacheProviderFactory
     @Override
     public synchronized CacheProvider create( PathGenerator pathGenerator, TransferDecoratorManager transferDecorator,
                                  FileEventManager fileEventManager )
-            throws GalleyInitException
     {
         if ( provider == null )
         {

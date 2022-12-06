@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -225,7 +226,7 @@ public class PomPeek
         {
             if ( pom != null )
             {
-                in = new FileInputStream( pom );
+                in = Files.newInputStream( pom.toPath() );
             }
             else if ( transfer != null )
             {

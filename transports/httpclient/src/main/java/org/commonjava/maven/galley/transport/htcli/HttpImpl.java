@@ -43,7 +43,6 @@ import org.commonjava.util.jhttpc.model.SiteTrustType;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -56,6 +55,7 @@ public class HttpImpl
 
     private final LocationLookup locationLookup;
 
+    @SuppressWarnings( "OptionalUsedAsFieldOrParameterType" )
     public HttpImpl( final PasswordManager passwords, Optional<TraceManager> traceManager )
     {
         this.passwords = passwords;
@@ -179,7 +179,6 @@ public class HttpImpl
 
     @Override
     public void close()
-            throws IOException
     {
     }
 }

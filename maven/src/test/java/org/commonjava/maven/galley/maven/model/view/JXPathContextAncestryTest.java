@@ -18,6 +18,7 @@ package org.commonjava.maven.galley.maven.model.view;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -64,7 +65,7 @@ public class JXPathContextAncestryTest
             final Node node = (Node) object;
             dump( node );
 
-            final Stack<Node> revPath = new Stack<Node>();
+            final Stack<Node> revPath = new Stack<>();
 
             Node parent = node;
             while ( parent != null )
@@ -87,7 +88,7 @@ public class JXPathContextAncestryTest
                 }
             }
 
-            System.out.println( "Path derived from context: '" + nodeCtx.getNamespaceContextPointer()
+            System.out.println( "Path derived from context: '" + Objects.requireNonNull( nodeCtx ).getNamespaceContextPointer()
                                                                         .asPath() + "'" );
 
             // brute-force approach...try to force population of the parent pointers by painstakingly constructing contexts for all intermediate nodes.

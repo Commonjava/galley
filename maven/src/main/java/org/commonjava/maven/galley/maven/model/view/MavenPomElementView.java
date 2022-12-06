@@ -88,7 +88,6 @@ public class MavenPomElementView
     }
 
     protected String getManagedValue( String named )
-            throws GalleyMavenException
     {
         final MavenPomElementView mgmt = getManagementElement();
         if ( mgmt != null )
@@ -113,7 +112,6 @@ public class MavenPomElementView
     }
 
     private synchronized MavenPomElementView getManagementElement()
-            throws GalleyMavenException
     {
         if ( managementElement == null )
         {
@@ -136,7 +134,6 @@ public class MavenPomElementView
     }
 
     protected List<XmlNodeInfo> getFirstNodesWithManagement( final String path )
-            throws GalleyMavenException
     {
         //        logger.info( "Resolving '{}' from node: {}", path, this.element );
         final List<Node> nodes = xmlView.resolveXPathToNodeListFrom( elementContext, path, true );
@@ -226,7 +223,7 @@ public class MavenPomElementView
         xpaths.add( xp );
         //        logger.info( "Created management XPath template: '{}'", xp );
 
-        managementXpaths = xpaths.toArray( new String[xpaths.size()] );
+        managementXpaths = xpaths.toArray( new String[0] );
     }
 
     @Override

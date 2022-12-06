@@ -44,8 +44,8 @@ public final class Sha512GeneratorFactory
             extends AbstractChecksumGenerator
     {
 
-        protected Sha512Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                   final Function<String, TimingProvider> timerProvider )
+        private Sha512Generator( final Transfer transfer, final boolean writeChecksumFile,
+                                 final Function<String, TimingProvider> timerProvider )
                 throws IOException
         {
             super( transfer, ChecksumAlgorithm.SHA512.getExtension(), SHA_512, writeChecksumFile, timerProvider );

@@ -77,7 +77,6 @@ public class TestDownload
 
     @Override
     public DownloadJob call()
-        throws Exception
     {
         if ( data == null )
         {

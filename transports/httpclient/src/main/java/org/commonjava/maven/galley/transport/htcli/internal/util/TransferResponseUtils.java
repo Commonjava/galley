@@ -87,19 +87,19 @@ public final class TransferResponseUtils
                 if ( NON_SERVER_GATEWAY_ERRORS.contains( sc ) || ( sc > 499 && sc < 599 ) )
                 {
                     throw new BadGatewayException( location, url, sc, "HTTP request failed: %s%s", line,
-                                                   ( out == null ? "" : "\n\n" + new String( out.toByteArray() ) ) );
+                                                   ( out == null ? "" : "\n\n" + out ) );
                 }
                 else if ( contentMissing )
                 {
                     throw new TransferException( "HTTP request failed: %s\nURL: %s%s", line, url, ( out == null ?
                             "" :
-                            "\n\n" + new String( out.toByteArray() ) ) );
+                            "\n\n" + out ) );
                 }
                 else
                 {
                     throw new TransferLocationException( location, "HTTP request failed: %s%s", line, ( out == null ?
                             "" :
-                            "\n\n" + new String( out.toByteArray() ) ) );
+                            "\n\n" + out ) );
                 }
             }
         }

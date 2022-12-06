@@ -66,7 +66,6 @@ public class FileTransport
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
                                           final Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
-        throws TransferException
     {
         final File src = getFile( resource );
         transferSizes.put( target, src.length() );
@@ -111,7 +110,6 @@ public class FileTransport
 
     @Override
     public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
-        throws TransferException
     {
         final File src = getFile( resource );
         return new FileListing( resource, src );
@@ -120,7 +118,6 @@ public class FileTransport
     @Override
     public ExistenceJob createExistenceJob( final ConcreteResource resource, final Transfer target,
                                             final int timeoutSeconds )
-        throws TransferException
     {
         final File src = getFile( resource );
         return new FileExistence( src );

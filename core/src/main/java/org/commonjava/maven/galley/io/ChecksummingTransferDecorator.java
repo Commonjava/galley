@@ -65,9 +65,9 @@ public final class ChecksummingTransferDecorator
 
     private final Set<AbstractChecksumGeneratorFactory<?>> checksumFactories;
 
-    private SpecialPathManager specialPathManager;
+    private final SpecialPathManager specialPathManager;
 
-    private Function<String, TimingProvider> timerProviderFunction;
+    private final Function<String, TimingProvider> timerProviderFunction;
 
     public ChecksummingTransferDecorator( final ChecksummingDecoratorAdvisor readerFilter,
                                           final ChecksummingDecoratorAdvisor writerFilter,
@@ -234,7 +234,7 @@ public final class ChecksummingTransferDecorator
         {
             for ( final AbstractChecksumGeneratorFactory<?> factory : checksumFactories )
             {
-                final AbstractChecksumGenerator generator = factory.createGenerator( transfer );
+                final AbstractChecksumGenerator generator = factory.createGenerator( transfer, true, null );
                 generator.delete();
             }
         }

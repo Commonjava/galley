@@ -41,12 +41,7 @@ public class MemoryNotFoundCache
     public void addMissing( final ConcreteResource resource )
     {
         //        logger.info( "Adding to NFC: {}", resource );
-        Set<String> missing = this.missing.get( resource.getLocation() );
-        if ( missing == null )
-        {
-            missing = new HashSet<>();
-            this.missing.put( resource.getLocation(), missing );
-        }
+        Set<String> missing = this.missing.computeIfAbsent( resource.getLocation(), k -> new HashSet<>() );
 
         missing.add( resource.getPath() );
     }

@@ -17,8 +17,6 @@ package org.commonjava.maven.galley.cache.partyline;
 
 import java.io.File;
 
-import javax.inject.Named;
-
 public class PartyLineCacheProviderConfig
 {
     private static final int DEFAULT_TIMEOUT_SECONDS = 86400;
@@ -44,7 +42,7 @@ public class PartyLineCacheProviderConfig
 
     public boolean isAliasLinkingEnabled()
     {
-        return aliasLinking == null ? true : aliasLinking;
+        return aliasLinking == null || aliasLinking;
     }
 
     public PartyLineCacheProviderConfig withTimeoutProcessingEnabled( final boolean timeoutProcessing )
@@ -55,7 +53,7 @@ public class PartyLineCacheProviderConfig
 
     public boolean isTimeoutProcessingEnabled()
     {
-        return timeoutProcessing == null ? false : timeoutProcessing;
+        return timeoutProcessing != null && timeoutProcessing;
     }
 
     public File getCacheBasedir()

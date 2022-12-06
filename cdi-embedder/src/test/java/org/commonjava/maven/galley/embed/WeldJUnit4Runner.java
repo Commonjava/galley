@@ -37,7 +37,6 @@ public class WeldJUnit4Runner
 
     @Override
     protected Object createTest()
-        throws Exception
     {
         this.weld = new Weld();
         this.container = weld.initialize();

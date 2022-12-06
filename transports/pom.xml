@@ -34,10 +34,4 @@
     <module>httpclient</module>
     <module>filearc</module>
   </modules>
-  <dependencies>
-    <dependency>
-      <groupId>org.commonjava.maven.galley</groupId>
-      <artifactId>galley-api</artifactId>
-    </dependency>
-  </dependencies>
 </project>

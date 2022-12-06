@@ -22,9 +22,9 @@ public enum OverriddenBooleanValue
     OVERRIDE_FALSE( true, false ),
     DEFER( false, null );
 
-    private boolean overrides;
+    private final boolean overrides;
 
-    private Boolean result;
+    private final Boolean result;
 
 
     OverriddenBooleanValue( final boolean overrides, final Boolean result )

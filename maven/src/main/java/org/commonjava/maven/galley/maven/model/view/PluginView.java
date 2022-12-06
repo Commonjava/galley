@@ -56,7 +56,6 @@ public class PluginView
     }
 
     public boolean isManaged()
-        throws GalleyMavenException
     {
         return xmlView.resolveXPathToNodeFrom( elementContext, "ancestor::pluginManagement", true ) != null;
     }

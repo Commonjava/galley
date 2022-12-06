@@ -58,7 +58,7 @@ public class ListingResult
 
     public ListingResult mergeWith( final ListingResult remoteResult )
     {
-        final TreeSet<String> merged = new TreeSet<String>();
+        final TreeSet<String> merged = new TreeSet<>();
         if ( !isEmpty() )
         {
             merged.addAll( Arrays.asList( listing ) );
@@ -69,7 +69,7 @@ public class ListingResult
             merged.addAll( Arrays.asList( remoteResult.getListing() ) );
         }
 
-        return new ListingResult( resource, merged.toArray( new String[merged.size()] ) );
+        return new ListingResult( resource, merged.toArray( new String[0] ) );
     }
 
 }

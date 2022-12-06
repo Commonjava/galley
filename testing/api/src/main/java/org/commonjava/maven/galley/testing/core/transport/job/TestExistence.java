@@ -46,7 +46,6 @@ public class TestExistence
 
     @Override
     public Boolean call()
-        throws Exception
     {
         return result;
     }

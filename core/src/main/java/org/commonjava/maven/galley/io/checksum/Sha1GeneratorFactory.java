@@ -42,8 +42,8 @@ public final class Sha1GeneratorFactory
         extends AbstractChecksumGenerator
     {
 
-        protected Sha1Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                 final Function<String, TimingProvider> timerProvider )
+        private Sha1Generator( final Transfer transfer, final boolean writeChecksumFile,
+                               final Function<String, TimingProvider> timerProvider )
             throws IOException
         {
             super( transfer, ChecksumAlgorithm.SHA1.getExtension(), ContentDigest.SHA_1, writeChecksumFile, timerProvider );

@@ -42,8 +42,8 @@ public final class Md5GeneratorFactory
         extends AbstractChecksumGenerator
     {
 
-        protected Md5Generator( final Transfer transfer, final boolean writeChecksumFile,
-                                final Function<String, TimingProvider> timerProvider )
+        private Md5Generator( final Transfer transfer, final boolean writeChecksumFile,
+                              final Function<String, TimingProvider> timerProvider )
             throws IOException
         {
             super( transfer, ChecksumAlgorithm.MD5.getExtension(), ContentDigest.MD5, writeChecksumFile, timerProvider );

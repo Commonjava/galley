@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -52,13 +51,13 @@ public class FileCacheProvider
 
     private final Map<ConcreteResource, Transfer> transferCache = new ConcurrentHashMap<>( 10000 );
 
-    private FileCacheProviderConfig config;
+    private final FileCacheProviderConfig config;
 
-    private PathGenerator pathGenerator;
+    private final PathGenerator pathGenerator;
 
-    private FileEventManager fileEventManager;
+    private final  FileEventManager fileEventManager;
 
-    private TransferDecoratorManager transferDecorator;
+    private final  TransferDecoratorManager transferDecorator;
 
     private final SimpleLockingSupport lockingSupport = new SimpleLockingSupport();
 
@@ -114,9 +113,7 @@ public class FileCacheProvider
             {
                 final long current = System.currentTimeMillis();
                 final long lastModified = f.lastModified();
-                final int tos =
-                    timeoutSeconds < Location.MIN_CACHE_TIMEOUT_SECONDS ? Location.MIN_CACHE_TIMEOUT_SECONDS
-                                    : timeoutSeconds;
+                final int tos = Math.max( timeoutSeconds, Location.MIN_CACHE_TIMEOUT_SECONDS );
 
                 final long timeout = TimeUnit.MILLISECONDS.convert( tos, TimeUnit.SECONDS );
 
@@ -253,7 +250,7 @@ public class FileCacheProvider
             }
         }
 
-        return list.toArray( new String[list.size()] );
+        return list.toArray( new String[0] );
     }
 
     @SuppressWarnings( "RedundantThrows" )
@@ -416,7 +413,7 @@ public class FileCacheProvider
         lockingSupport.stopReporting();
     }
 
-    private class UnlockInputStream
+    private static class UnlockInputStream
             extends IdempotentCloseInputStream
     {
         private final ConcreteResource resource;

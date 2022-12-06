@@ -42,24 +42,25 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 
 import static org.commonjava.maven.galley.cache.testutil.AssertUtil.assertThrows;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 public class PathMappedCacheProviderJPATest
-                extends CacheProviderTCK
+        extends CacheProviderTCK
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     private PathMappedCacheProvider provider;
 
     @Before
-    public void setup() throws Exception
+    public void setup()
+            throws Exception
     {
         final FileEventManager events = new TestFileEventManager();
         final TransferDecorator decorator = new TestTransferDecorator();
@@ -70,17 +71,19 @@ public class PathMappedCacheProviderJPATest
                                                 Executors.newScheduledThreadPool( 2 ),
                                                 new PathMappedFileManager( new DefaultPathMappedStorageConfig(),
                                                                            new JPAPathDB( "test" ),
-                                                                           new FileBasedPhysicalStore( baseDir ) ), pathgen, new SpecialPathManagerImpl());
+                                                                           new FileBasedPhysicalStore( baseDir ) ),
+                                                pathgen, new SpecialPathManagerImpl() );
     }
 
     @Override
-    protected CacheProvider getCacheProvider() throws Exception
+    protected CacheProvider getCacheProvider()
     {
         return provider;
     }
 
     @Test
-    public void moveAndReadNewFile() throws Exception
+    public void moveAndReadNewFile()
+            throws Exception
     {
         final String content = "This is a test";
 
@@ -91,7 +94,7 @@ public class PathMappedCacheProviderJPATest
 
         final CacheProvider provider = getCacheProvider();
         final OutputStream out = provider.openOutputStream( new ConcreteResource( loc, fname ) );
-        out.write( content.getBytes( "UTF-8" ) );
+        out.write( content.getBytes( StandardCharsets.UTF_8 ) );
         out.close();
 
         provider.move( new ConcreteResource( loc, fname ), new ConcreteResource( loc2, fname ) );
@@ -105,12 +108,18 @@ public class PathMappedCacheProviderJPATest
             baos.write( buf, 0, read );
         }
 
-        final String result = new String( baos.toByteArray(), "UTF-8" );
+        final String result = new String( baos.toByteArray(), StandardCharsets.UTF_8 );
 
         assertThat( result, equalTo( content ) );
 
         // source file should have been removed
-        assertThrows( IOException.class, () -> provider.openInputStream( new ConcreteResource( loc, fname ) ) );
+        assertThrows( IOException.class, () -> {
+            //noinspection EmptyTryBlock
+            try (InputStream ignored = provider.openInputStream( new ConcreteResource( loc, fname ) ))
+            {
+
+            }
+        } );
     }
 
 }

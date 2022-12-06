@@ -45,14 +45,12 @@ public class ZipJarTransport
     @Override
     public DownloadJob createDownloadJob( final ConcreteResource resource, final Transfer target,
                                           final Map<Transfer, Long> transferSizes, final int timeoutSeconds, final EventMetadata eventMetadata )
-        throws TransferException
     {
         return new ZipDownload( target, eventMetadata );
     }
 
     @Override
     public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final int timeoutSeconds )
-        throws TransferException
     {
         return createPublishJob( resource, stream, length, null, timeoutSeconds );
     }
@@ -60,7 +58,6 @@ public class ZipJarTransport
     @Override
     public PublishJob createPublishJob( final ConcreteResource resource, final InputStream stream, final long length, final String contentType,
                                         final int timeoutSeconds )
-        throws TransferException
     {
         return new ZipPublish( resource, stream );
     }
@@ -74,7 +71,6 @@ public class ZipJarTransport
 
     @Override
     public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
-        throws TransferException
     {
         return new ZipListing( resource, target );
     }
@@ -82,7 +78,6 @@ public class ZipJarTransport
     @Override
     public ExistenceJob createExistenceJob( final ConcreteResource resource, final Transfer target,
                                             final int timeoutSeconds )
-        throws TransferException
     {
         return new ZipExistence( resource );
     }

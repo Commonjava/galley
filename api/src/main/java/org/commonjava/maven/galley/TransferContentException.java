@@ -21,7 +21,7 @@ public class TransferContentException
                 extends TransferException
 {
 
-    private ConcreteResource resource;
+    private final ConcreteResource resource;
 
     private static final long serialVersionUID = 1L;
 

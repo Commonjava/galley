@@ -47,7 +47,6 @@ public class TestListing
 
     @Override
     public ListingResult call()
-        throws Exception
     {
         return result;
     }

@@ -58,7 +58,7 @@ public class DeprecatedChecksummingFilter
                                          final Set<TransferOperation> writeOperations )
     {
         this.enabled = enabled;
-        this.writeOperations = writeOperations == null ? Collections.<TransferOperation> emptySet() : writeOperations;
+        this.writeOperations = writeOperations == null ? Collections.emptySet() : writeOperations;
     }
 
     /**
@@ -89,8 +89,7 @@ public class DeprecatedChecksummingFilter
     public static Set<TransferOperation> calculateWriteOperations( final Set<TransferOperation> enabledForDecorator,
                                                  final TransferOperation... enabledForFilter)
     {
-        Set<TransferOperation> writeOperations = enabledForDecorator == null ?
-                new HashSet<TransferOperation>() :
+        Set<TransferOperation> writeOperations = enabledForDecorator == null ? new HashSet<>() :
                 new HashSet<>( enabledForDecorator );
 
         writeOperations.retainAll( Arrays.asList( enabledForFilter ) );

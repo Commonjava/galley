@@ -71,7 +71,7 @@ public final class ArtifactRules
             return null;
         }
 
-        return selectStorageLocation( locations.toArray( new Location[locations.size()] ) );
+        return selectStorageLocation( locations.toArray( new Location[0] ) );
     }
 
     public static Location selectStorageLocation( final Location... locations )

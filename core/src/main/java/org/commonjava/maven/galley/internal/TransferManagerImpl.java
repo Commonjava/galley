@@ -351,9 +351,9 @@ public class TransferManagerImpl
             }
 
 
-            final Boolean allowRemoteListDownload = metadata.get( ALLOW_REMOTE_LISTING_DOWNLOAD ) == null ?
-                    true :
-                    (Boolean)metadata.get( ALLOW_REMOTE_LISTING_DOWNLOAD );
+            final boolean allowRemoteListDownload =
+                    metadata.get( ALLOW_REMOTE_LISTING_DOWNLOAD ) == null || (Boolean) metadata.get(
+                            ALLOW_REMOTE_LISTING_DOWNLOAD );
 
             logger.debug( "Try remote listing, allowRemoteListDownload: {}", allowRemoteListDownload );
 

@@ -20,6 +20,7 @@ import org.commonjava.maven.galley.spi.cache.CacheProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
@@ -59,13 +60,13 @@ public final class ReadTask
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             int read = -1;
             final byte[] buf = new byte[512];
-            System.out.println(
-                    String.format( "[%s] <<<ReadTask>>> will start to read from the resource with inputStream %s",
-                                   threadName, in.getClass().getName() ) );
+            System.out.printf( "[%s] <<<ReadTask>>> will start to read from the resource with inputStream %s%n",
+                               threadName, in.getClass().getName() );
             while ( ( read = in.read( buf ) ) > -1 )
             {
                 if ( waiting > 0 )
                 {
+                    //noinspection BusyWait
                     Thread.sleep( waiting );
                 }
                 System.out.println(">>> " + read );
@@ -73,10 +74,9 @@ public final class ReadTask
             }
             baos.close();
             in.close();
-            System.out.println(
-                    String.format( "[%s] <<<ReadTask>>> reading from the resource done with inputStream %s", threadName,
-                                   in.getClass().getName() ) );
-            readingResult = new String( baos.toByteArray(), "UTF-8" );
+            System.out.printf( "[%s] <<<ReadTask>>> reading from the resource done with inputStream %s%n", threadName,
+                               in.getClass().getName() );
+            readingResult = new String( baos.toByteArray(), StandardCharsets.UTF_8 );
             if ( controlLatch != null )
             {
                 controlLatch.countDown();

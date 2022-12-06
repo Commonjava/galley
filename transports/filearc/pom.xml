@@ -30,6 +30,10 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.commonjava.maven.galley</groupId>
+      <artifactId>galley-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>

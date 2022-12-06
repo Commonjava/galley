@@ -69,21 +69,18 @@ public class ZipDownload
             return this;
         }
 
-        ZipFile zf = null;
         InputStream in = null;
         OutputStream out = null;
-        try
+        try (ZipFile zf = isJarOperation() ? new JarFile( src ) : new ZipFile( src ))
         {
-            zf = isJarOperation() ? new JarFile( src ) : new ZipFile( src );
 
             final ZipEntry entry = zf.getEntry( getFullPath() );
             if ( entry != null )
             {
                 if ( entry.isDirectory() )
                 {
-                    error =
-                        new TransferException( "Cannot read stream. Source is a directory: %s!%s",
-                                               getLocation().getUri(), getFullPath() );
+                    error = new TransferException( "Cannot read stream. Source is a directory: %s!%s",
+                                                   getLocation().getUri(), getFullPath() );
                 }
                 else
                 {
@@ -97,30 +94,18 @@ public class ZipDownload
             }
             else
             {
-                error = new TransferException( "Cannot find entry: %s in: %s", getFullPath(), getLocation()
-                                                                                                     .getUri() );
+                error = new TransferException( "Cannot find entry: %s in: %s", getFullPath(), getLocation().getUri() );
             }
         }
         catch ( final IOException e )
         {
-            error =
-                new TransferException( "Failed to copy from: %s to: %s. Reason: %s", e, src, getTransfer(),
-                                       e.getMessage() );
+            error = new TransferException( "Failed to copy from: %s to: %s. Reason: %s", e, src, getTransfer(),
+                                           e.getMessage() );
         }
         finally
         {
             closeQuietly( in );
-            if ( zf != null )
-            {
-                //noinspection EmptyCatchBlock
-                try
-                {
-                    zf.close();
-                }
-                catch ( final IOException e )
-                {
-                }
-            }
+            //noinspection EmptyCatchBlock
 
             closeQuietly( out );
         }

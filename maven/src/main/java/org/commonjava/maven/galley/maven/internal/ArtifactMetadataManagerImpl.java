@@ -50,7 +50,7 @@ public class ArtifactMetadataManagerImpl
     private LocationExpander expander;
 
     // TODO: Consider injecting.
-    private MetadataMapper mapper = new StandardMetadataMapper();
+    private final MetadataMapper mapper = new StandardMetadataMapper();
 
     protected ArtifactMetadataManagerImpl()
     {

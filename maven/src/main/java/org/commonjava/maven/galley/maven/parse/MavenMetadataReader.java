@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -143,14 +144,7 @@ public class MavenMetadataReader
             }
         }
 
-        for ( final Iterator<DocRef<ProjectRef>> iterator = docs.iterator(); iterator.hasNext(); )
-        {
-            final DocRef<ProjectRef> docRef = iterator.next();
-            if ( docRef == null )
-            {
-                iterator.remove();
-            }
-        }
+        docs.removeIf( Objects::isNull );
 
         logger.debug( "Got {} metadata documents for: {}", docs.size(), ref );
         return new MavenMetadataView( docs, xpath, xml );

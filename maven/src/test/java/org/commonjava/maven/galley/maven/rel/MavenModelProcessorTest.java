@@ -62,7 +62,7 @@ public class MavenModelProcessorTest
     public TemporaryFolder temp = new TemporaryFolder();
 
     @Rule
-    public TestFixture fixture = new TestFixture();
+    public final TestFixture fixture = new TestFixture();
 
     @Test
     public void resolvePluginVersionFromManagementExpression()
@@ -72,7 +72,7 @@ public class MavenModelProcessorTest
 
         final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-child", "1.0" );
 
-        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<>();
         lineage.put( childRef, "child.pom.xml" );
         lineage.put( new SimpleProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 
@@ -148,7 +148,7 @@ public class MavenModelProcessorTest
 
         final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-child", "1.0" );
 
-        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<>();
         lineage.put( childRef, "child.pom.xml" );
         lineage.put( new SimpleProjectVersionRef( "org.test", "test-parent", "1.0" ), "parent.pom.xml" );
 
@@ -233,7 +233,7 @@ public class MavenModelProcessorTest
         final ProjectVersionRef childRef =
             new SimpleProjectVersionRef( "org.test", "test-pom", "1.0" );
 
-        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<>();
         lineage.put( childRef, "test-pom-1.0.pom.xml" );
 
         final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );
@@ -308,7 +308,7 @@ public class MavenModelProcessorTest
 
         final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-pom", "1.0" );
 
-        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<>();
         lineage.put( childRef, "test-pom-1.0.pom.xml" );
 
         final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );
@@ -351,7 +351,7 @@ public class MavenModelProcessorTest
 
         final ProjectVersionRef childRef = new SimpleProjectVersionRef( "org.test", "test-pom", "1.0" );
 
-        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<ProjectVersionRef, String>();
+        final LinkedHashMap<ProjectVersionRef, String> lineage = new LinkedHashMap<>();
         lineage.put( childRef, "test-pom-1.0.pom.xml" );
 
         final Location location = new SimpleLocation( "test", src.toString(), false, true, true, false, true, false );

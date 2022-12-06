@@ -39,7 +39,7 @@ public class NoCacheTransferDecorator
 {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private SpecialPathManager specialPathManager;
+    private final SpecialPathManager specialPathManager;
 
     public NoCacheTransferDecorator( SpecialPathManager specialPathManager )
     {

@@ -27,7 +27,6 @@ import org.commonjava.maven.galley.io.checksum.testutil.TestMetadataConsumer;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.SimpleLocation;
 import org.commonjava.maven.galley.model.Transfer;
-import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.testing.core.ApiFixture;
 import org.hamcrest.CoreMatchers;
 import org.junit.Rule;
@@ -61,13 +60,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ChecksummingTransferDecoratorTest
 {
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
-    public ApiFixture fixture = new ApiFixture( temp );
+    public final ApiFixture fixture = new ApiFixture( temp );
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
-    private TestMetadataConsumer metadataConsumer = new TestMetadataConsumer();
+    private final TestMetadataConsumer metadataConsumer = new TestMetadataConsumer();
 
     @Test
     public void forceChecksumOnReadWhenChecksumsAreDisabledForReads()
@@ -114,7 +113,7 @@ public class ChecksummingTransferDecoratorTest
         assertThat( metadata, notNullValue() );
 
         Map<ContentDigest, String> digests = metadata.getDigests();
-        assertThat( digests, CoreMatchers.<Map<ContentDigest, String>>notNullValue() );
+        assertThat( digests, CoreMatchers.notNullValue() );
         assertThat( digests.get( MD5 ), equalTo( digestHex ) );
     }
 
@@ -123,7 +122,7 @@ public class ChecksummingTransferDecoratorTest
             throws Exception
     {
         fixture.setDecorator( new TransferDecoratorManager(
-                        new ChecksummingTransferDecorator( Collections.<TransferOperation>emptySet(),
+                        new ChecksummingTransferDecorator( Collections.emptySet(),
                                                            new SpecialPathManagerImpl(), false, false, metadataConsumer,
                                                            new Md5GeneratorFactory() ) ) );
         fixture.initMissingComponents();

@@ -41,11 +41,11 @@ public abstract class AbstractChecksumGenerator
 
     private final String checksumExtension;
 
-    private ContentDigest digestType;
+    private final ContentDigest digestType;
 
     private final boolean writeChecksumFile;
 
-    private Function<String, TimingProvider> timerProviderFunction;
+    private final Function<String, TimingProvider> timerProviderFunction;
 
     private final Transfer checksumTransfer;
 

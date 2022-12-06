@@ -30,7 +30,7 @@ import java.util.Map;
 public class TestMetadataConsumer
         implements TransferMetadataConsumer
 {
-    private Map<Transfer, TransferMetadata> metadata = new HashMap<>();
+    private final Map<Transfer, TransferMetadata> metadata = new HashMap<>();
 
     public TransferMetadata getMetadata( Transfer transfer )
     {

@@ -82,7 +82,7 @@ public class RepositoryView
     public boolean isSnapshotsEnabled()
     {
         final String value = getValue( "snapshots/enabled/text()" );
-        return value != null && Boolean.parseBoolean( value );
+        return Boolean.parseBoolean( value );
     }
 
     @Override

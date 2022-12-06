@@ -68,7 +68,6 @@ public class DependencyView
     }
 
     public boolean isManaged()
-        throws GalleyMavenException
     {
         return xmlView.resolveXPathToNodeFrom( elementContext, "ancestor::dependencyManagement", true ) != null;
     }
@@ -116,7 +115,7 @@ public class DependencyView
         if ( optional == null )
         {
             final String val = getValue( OPTIONAL );
-            optional = val != null && Boolean.parseBoolean( val );
+            optional = Boolean.parseBoolean( val );
         }
 
         return optional;

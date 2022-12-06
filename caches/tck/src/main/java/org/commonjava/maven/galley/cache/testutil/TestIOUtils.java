@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -42,7 +43,7 @@ public final class TestIOUtils
             baos.write( buf, 0, read );
         }
 
-        String readingResult = new String( baos.toByteArray(), "UTF-8" );
+        String readingResult = new String( baos.toByteArray(), StandardCharsets.UTF_8 );
         baos.close();
         in.close();
 

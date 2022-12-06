@@ -51,7 +51,6 @@ public class TestPublish
 
     @Override
     public TestPublish call()
-        throws Exception
     {
         return this;
     }

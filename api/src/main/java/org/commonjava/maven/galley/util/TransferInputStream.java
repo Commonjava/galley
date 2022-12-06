@@ -15,7 +15,6 @@
  */
 package org.commonjava.maven.galley.util;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 

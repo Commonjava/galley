@@ -95,6 +95,7 @@ public final class HttpDownload
         this.transportMetricConfig = transportMetricConfig;
     }
 
+    @SuppressWarnings( "resource" )
     @Override
     public DownloadJob call()
     {
@@ -269,8 +270,8 @@ public final class HttpDownload
     /**
      * Break out {@link org.apache.commons.io.IOUtils#copy(InputStream, OutputStream)} so we can decorate it with Byteman
      * rules to test network errors.
-     * @param in
-     * @param out
+     * @param in -
+     * @param out -
      */
     private void doCopy( final InputStream in, final OutputStream out )
             throws IOException

@@ -95,17 +95,11 @@ public class MavenModelProcessor
 
     private void addExtensionUsages( final URI source, final Builder builder, final MavenPomView pomView,
                                      final ProjectVersionRef projectRef )
-        throws GalleyMavenException
     {
         List<ExtensionView> extensions = null;
         try
         {
             extensions = pomView.getBuildExtensions();
-        }
-        catch ( final GalleyMavenException e )
-        {
-            logger.error( String.format( "%s: Cannot retrieve build extensions: %s", pomView.getRef(), e.getMessage() ),
-                          e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
@@ -148,7 +142,6 @@ public class MavenModelProcessor
 
     private void addPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
                                   final ProjectVersionRef projectRef, final boolean includeManagedPlugins )
-        throws GalleyMavenException
     {
         addBuildPluginUsages( source, builder, pomView, projectRef, includeManagedPlugins );
         addReportPluginUsages( source, builder, pomView, projectRef );
@@ -157,7 +150,6 @@ public class MavenModelProcessor
 
     private void addSiteReportPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
                                             final ProjectVersionRef projectRef )
-        throws GalleyMavenException
     {
         //        final List<ProjectVersionRefView> refs = pomView.getProjectVersionRefs( "//plugin[artifactId/text()=\"maven-site-plugin\"]//reportPlugin" );
 
@@ -176,28 +168,17 @@ public class MavenModelProcessor
             logger.error( String.format( "%s: Cannot retrieve site-plugin nested reporting plugins: %s",
                                          pomView.getRef(), e.getMessage() ), e );
         }
-        catch ( final GalleyMavenException e )
-        {
-            logger.error( String.format( "%s: Cannot retrieve site-plugin nested reporting plugins: %s",
-                                         pomView.getRef(), e.getMessage() ), e );
-        }
 
         addPlugins( plugins, projectRef, builder, source, false );
     }
 
     public void addReportPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
                                        final ProjectVersionRef projectRef )
-        throws GalleyMavenException
     {
         List<PluginView> plugins = null;
         try
         {
             plugins = pomView.getAllPluginsMatching( "//reporting/plugins/plugin" );
-        }
-        catch ( final GalleyMavenException e )
-        {
-            logger.error( String.format( "%s: Cannot retrieve reporting plugins: %s", pomView.getRef(), e.getMessage() ),
-                          e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
@@ -215,7 +196,6 @@ public class MavenModelProcessor
 
     public void addBuildPluginUsages( final URI source, final Builder builder, final MavenPomView pomView,
                                       final ProjectVersionRef projectRef, final boolean includeManagedPlugins )
-        throws GalleyMavenException
     {
         if ( includeManagedPlugins )
         {
@@ -223,11 +203,6 @@ public class MavenModelProcessor
             try
             {
                 plugins = pomView.getAllManagedBuildPlugins();
-            }
-            catch ( final GalleyMavenException e )
-            {
-                logger.error( String.format( "%s: Cannot retrieve managed plugins: %s", pomView.getRef(),
-                                             e.getMessage() ), e );
             }
             catch ( final InvalidVersionSpecificationException e )
             {
@@ -247,10 +222,6 @@ public class MavenModelProcessor
         try
         {
             plugins = pomView.getAllBuildPlugins();
-        }
-        catch ( final GalleyMavenException e )
-        {
-            logger.error( String.format( "%s: Cannot retrieve build plugins: %s", pomView.getRef(), e.getMessage() ), e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {
@@ -276,7 +247,7 @@ public class MavenModelProcessor
                 {
                     if ( plugin.getVersion() == null )
                     {
-                        logger.error( "%s: Cannot find a version for plugin: {}. Skipping.", projectRef, plugin.toXML() );
+                        logger.error( "{}: Cannot find a version for plugin: {}. Skipping.", projectRef, plugin.toXML() );
                         continue;
                     }
 
@@ -415,11 +386,6 @@ public class MavenModelProcessor
         {
             boms = pomView.getAllBOMs();
         }
-        catch ( final GalleyMavenException e )
-        {
-            logger.error( String.format( "%s: Failed to retrieve BOM declarations: %s. Skipping", pomView.getRef(),
-                                         e.getMessage() ), e );
-        }
         catch ( final InvalidVersionSpecificationException e )
         {
             logger.error( String.format( "%s: Failed to retrieve BOM declarations: %s. Skipping", pomView.getRef(),
@@ -464,11 +430,6 @@ public class MavenModelProcessor
             {
                 deps = pomView.getAllManagedDependencies();
             }
-            catch ( final GalleyMavenException e )
-            {
-                logger.error( String.format( "%s: Failed to retrieve managed dependencies: %s. Skipping",
-                                             pomView.getRef(), e.getMessage() ), e );
-            }
             catch ( final InvalidVersionSpecificationException e )
             {
                 logger.error( String.format( "%s: Failed to retrieve managed dependencies: %s. Skipping",
@@ -487,11 +448,6 @@ public class MavenModelProcessor
         try
         {
             deps = pomView.getAllDirectDependencies();
-        }
-        catch ( final GalleyMavenException e )
-        {
-            logger.error( String.format( "%s: Failed to retrieve direct dependencies: %s. Skipping", pomView.getRef(),
-                                         e.getMessage() ), e );
         }
         catch ( final InvalidVersionSpecificationException e )
         {

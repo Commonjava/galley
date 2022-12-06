@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,10 +48,10 @@ public class ChecksummingInputStreamTest
 {
 
     @Rule
-    public TemporaryFolder temp = new TemporaryFolder();
+    public final TemporaryFolder temp = new TemporaryFolder();
 
     @Rule
-    public ApiFixture fixture = new ApiFixture( temp );
+    public final ApiFixture fixture = new ApiFixture( temp );
 
     private final Logger logger = LoggerFactory.getLogger( getClass() );
 
@@ -69,7 +71,8 @@ public class ChecksummingInputStreamTest
                                              new ConcreteResource( new SimpleLocation( "test:uri" ), "my-path.txt" ) );
 
         final byte[] data =
-                "This is a test with a bunch of data and some other stuff, in a big box sealed with chewing gum".getBytes("UTF-8");
+                "This is a test with a bunch of data and some other stuff, in a big box sealed with chewing gum".getBytes(
+                        StandardCharsets.UTF_8 );
 
         final InputStream is = new ByteArrayInputStream( data );
 
@@ -77,7 +80,7 @@ public class ChecksummingInputStreamTest
         final TestMetadataConsumer testConsumer = new TestMetadataConsumer();
         try
         {
-            stream = new ChecksummingInputStream( new HashSet<AbstractChecksumGeneratorFactory<?>>(
+            stream = new ChecksummingInputStream( new HashSet<>(
                     Arrays.asList( new Md5GeneratorFactory(), new Sha1GeneratorFactory(),
                                    new Sha256GeneratorFactory() ) ), is, txfr, testConsumer, true, null );
 
@@ -106,7 +109,7 @@ public class ChecksummingInputStreamTest
         {
             in = md5Txfr.openInputStream();
 
-            resultHex = IOUtils.toString( in );
+            resultHex = IOUtils.toString( in, Charset.defaultCharset() );
         }
         finally
         {
@@ -120,7 +123,7 @@ public class ChecksummingInputStreamTest
         assertThat( metadata, notNullValue() );
 
         Map<ContentDigest, String> digests = metadata.getDigests();
-        assertThat( digests, CoreMatchers.<Map<ContentDigest, String>>notNullValue() );
+        assertThat( digests, CoreMatchers.notNullValue() );
         assertThat( digests.get( MD5 ), equalTo( digestHex ) );
     }
 

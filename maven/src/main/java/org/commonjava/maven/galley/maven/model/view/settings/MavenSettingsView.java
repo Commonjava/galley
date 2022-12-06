@@ -38,7 +38,6 @@ public class MavenSettingsView
     }
 
     public List<String> getActiveProfiles()
-        throws GalleyMavenException
     {
         return resolveValues( "/settings/activeProfiles/activeProfile/text()" );
     }
@@ -67,13 +66,11 @@ public class MavenSettingsView
     }
 
     public String resolveSingleValue( final String path )
-        throws GalleyMavenException
     {
         return resolveXPathToRawString( path, true, -1 );
     }
 
     public List<String> resolveValues( final String path )
-        throws GalleyMavenException
     {
         return resolveXPathToAggregatedStringList( path, true, -1 );
     }

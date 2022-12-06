@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Collections;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
@@ -59,7 +60,7 @@ public abstract class AbstractTransferManagerTest
     public void batchRetrieve_returnEmptyResultIfVirtualResourceIsEmpty()
         throws Exception
     {
-        final VirtualResource vr = new VirtualResource( Collections.<Location> emptyList(), "/path/to/nowhere" );
+        final VirtualResource vr = new VirtualResource( Collections.emptyList(), "/path/to/nowhere" );
         final TransferBatch batch =
             getTransferManagerImpl().batchRetrieve( new TransferBatch( Collections.<Resource> singleton( vr ) ), new EventMetadata() );
         assertThat( batch, notNullValue() );
@@ -167,7 +168,7 @@ public abstract class AbstractTransferManagerTest
         try
         {
             is = transfer.openInputStream();
-            final String result = IOUtils.toString( is );
+            final String result = IOUtils.toString( is, Charset.defaultCharset() );
 
             assertThat( result, equalTo( testContent ) );
         }
