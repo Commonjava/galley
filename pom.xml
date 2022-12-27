@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (C) 2013 Red Hat, Inc. (nos-devel@redhat.com)
+    Copyright (C) 2013 Red Hat, Inc. (https://github.com/Commonjava/galley)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -48,17 +48,17 @@
     <pmd.failOnViolation>false</pmd.failOnViolation>
 
     <projectOwner>Red Hat, Inc.</projectOwner>
-    <projectEmail>nos-devel@redhat.com</projectEmail>
+    <projectEmail>https://github.com/Commonjava/galley</projectEmail>
     <atlasVersion>1.1.0</atlasVersion>
     <partylineVersion>1.16</partylineVersion>
     <pathmappedStorageVersion>2.1</pathmappedStorageVersion>
-    <weftVersion>1.21-SNAPSHOT</weftVersion>
+    <weftVersion>1.21</weftVersion>
     <jhttpcVersion>1.12</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <javaVersion>1.8</javaVersion>
     <byteman.version>4.0.13</byteman.version>
-    <o11yphantVersion>1.8-SNAPSHOT</o11yphantVersion>
+    <o11yphantVersion>1.8</o11yphantVersion>
     <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.24.Final</hibernateVersion>
     <h2Version>2.1.210</h2Version>
