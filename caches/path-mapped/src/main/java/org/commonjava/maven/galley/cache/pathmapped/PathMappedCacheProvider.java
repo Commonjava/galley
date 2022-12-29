@@ -264,7 +264,7 @@ public class PathMappedCacheProvider
     {
         return resource.getLocation()
                 .getAttribute( Location.METADATA_TIMEOUT_SECONDS, Integer.class,
-                        config.getDefaultTimeoutSeconds() );
+                        Location.DEFAULT_CACHE_TIMEOUT_SECONDS );
     }
 
     /**
