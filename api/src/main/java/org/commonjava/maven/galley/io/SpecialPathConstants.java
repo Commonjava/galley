@@ -178,8 +178,6 @@ class NPMSpecialPathSet implements SpecialPathSet
 
         npmSpecialPaths.add( SpecialPathInfo.from( new FilePatternMatcher( ".*(\\.md5|\\.sha[\\d]+)$" ) )
                                             .setDecoratable( false )
-                                            .setMergable( true )
-                                            .setMetadata( true )
                                             .build() );
     }
 
