@@ -240,7 +240,7 @@ public class PathMappedCacheProvider
     public Transfer getTransfer( final ConcreteResource resource )
     {
         Transfer txfr = new Transfer( resource, this, fileEventManager, transferDecorator );
-        if ( !resource.isRoot() && config.isTimeoutProcessingEnabled() )
+        if ( resource.allowsDeletion() && !resource.isRoot() && config.isTimeoutProcessingEnabled() )
         {
             if ( isTransferTimeout( txfr ) )
             {
