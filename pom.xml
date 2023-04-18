@@ -44,7 +44,7 @@
   </scm>
 
   <properties>
-    <javaVersion>1.8</javaVersion>
+    <javaVersion>11</javaVersion>
     <!-- Just for now, until we can settle on a PMD execution plan that makes sense. -->
     <pmd.failOnViolation>false</pmd.failOnViolation>
 
@@ -414,27 +414,6 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>animal-sniffer-maven-plugin</artifactId>
-          <version>1.16</version>
-          <executions>
-            <execution>
-              <id>check-jdk-compat</id>
-              <goals>
-                <goal>check</goal>
-              </goals>
-              <phase>test</phase>
-              <configuration>
-                <signature>
-                  <groupId>org.codehaus.mojo.signature</groupId>
-                  <artifactId>java18</artifactId>
-                  <version>1.0</version>
-                </signature>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
           <configuration>
             <doclint>none</doclint>
@@ -445,6 +424,7 @@
           <configuration>
             <source>${javaVersion}</source>
             <target>${javaVersion}</target>
+            <release>${javaVersion}</release>
           </configuration>
         </plugin>
         <plugin>
@@ -459,11 +439,5 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>animal-sniffer-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
   </build>
 </project>
