@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.commonjava</groupId>
     <artifactId>commonjava</artifactId>
-    <version>17</version>
+    <version>18</version>
   </parent>
 
   <groupId>org.commonjava.maven.galley</groupId>
@@ -58,7 +58,7 @@
     <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.20</byteman.version>
-    <o11yphantVersion>1.8</o11yphantVersion>
+    <o11yphantVersion>1.9-SNAPSHOT</o11yphantVersion>
     <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.24.Final</hibernateVersion>
     <h2Version>2.2.220</h2Version>

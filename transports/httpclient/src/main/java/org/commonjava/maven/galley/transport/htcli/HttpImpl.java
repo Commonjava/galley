@@ -34,6 +34,7 @@ import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.maven.galley.util.LocationUtils;
 import org.commonjava.o11yphant.jhttpc.SpanningHttpFactory;
 import org.commonjava.o11yphant.trace.TraceManager;
+import org.commonjava.o11yphant.trace.spi.adapter.TracerType;
 import org.commonjava.util.jhttpc.HttpFactory;
 import org.commonjava.util.jhttpc.HttpFactoryIfc;
 import org.commonjava.util.jhttpc.JHttpCException;
@@ -56,7 +57,7 @@ public class HttpImpl
     private final LocationLookup locationLookup;
 
     @SuppressWarnings( "OptionalUsedAsFieldOrParameterType" )
-    public HttpImpl( final PasswordManager passwords, Optional<TraceManager> traceManager )
+    public <T extends TracerType> HttpImpl( final PasswordManager passwords, Optional<TraceManager> traceManager )
     {
         this.passwords = passwords;
         this.locationLookup = new LocationLookup();
