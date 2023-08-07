@@ -240,7 +240,7 @@ public class TestCDIProvider
             }
         };
 
-        return new TraceManager<>( new OtelTracePlugin( traceConf, otelConf ), new SpanFieldsDecorator( new ArrayList<>() ), getTracerConfiguration() );
+        return new TraceManager( new OtelTracePlugin( traceConf, otelConf ), new SpanFieldsDecorator( new ArrayList<>() ), getTracerConfiguration() );
     }
 
     @Produces
