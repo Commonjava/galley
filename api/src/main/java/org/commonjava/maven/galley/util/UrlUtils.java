@@ -16,15 +16,21 @@
 package org.commonjava.maven.galley.util;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.commonjava.maven.galley.util.LocationUtils.ATTR_PATH_ENCODE;
+import static org.commonjava.maven.galley.util.LocationUtils.PATH_ENCODE_BASE64;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.commonjava.maven.galley.model.ConcreteResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class UrlUtils
 {
+    final static Logger logger = LoggerFactory.getLogger( UrlUtils.class );
 
     private UrlUtils()
     {
@@ -81,8 +87,16 @@ public final class UrlUtils
         {
             return null;
         }
-
-        return buildUrl( remoteBase, resource.getPath() );
+        String path = resource.getPath();
+        // check if repo use base64 to encode 'path + query parameters'
+        if (PATH_ENCODE_BASE64.equals( resource.getLocation().getAttribute(ATTR_PATH_ENCODE, String.class) ))
+        {
+            String p = path.replaceAll("^/*", ""); // remove leading slash if any
+            // decode it (this seamlessly handles data encoded in URL-safe or normal mode)
+            path = new String(Base64.decodeBase64(p));
+            logger.debug("Build url, path: {}, base64 decoded: {}", p, path);
+        }
+        return buildUrl( remoteBase, path );
     }
 
     public static String buildUrl( final String baseUrl, final Map<String, String> params, final String... parts )

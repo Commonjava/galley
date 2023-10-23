@@ -25,6 +25,10 @@ public final class LocationUtils
 
     private static final Logger logger = LoggerFactory.getLogger( LocationUtils.class );
 
+    public static final String ATTR_PATH_ENCODE = "path-encode";
+
+    public static final String PATH_ENCODE_BASE64 = "base64";
+
     private LocationUtils()
     {
     }
