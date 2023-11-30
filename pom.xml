@@ -67,7 +67,7 @@
     <test-forkCount>1</test-forkCount>
     <test-redirectOutput>true</test-redirectOutput>
     <jacksonVersion>2.15.2</jacksonVersion>
-    <logbackVersion>1.2.12</logbackVersion>
+    <logbackVersion>1.4.13</logbackVersion>
 
     <plugin.jacoco.skip>false</plugin.jacoco.skip>
   </properties>
@@ -179,7 +179,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>28</version>
+        <version>29-SNAPSHOT</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
