@@ -53,12 +53,12 @@
     <atlasVersion>1.1.3</atlasVersion>
     <partylineVersion>1.16</partylineVersion>
     <pathmappedStorageVersion>2.5</pathmappedStorageVersion>
-    <weftVersion>1.22</weftVersion>
+    <weftVersion>1.23</weftVersion>
     <jhttpcVersion>1.12</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.20</byteman.version>
-    <o11yphantVersion>1.9.1</o11yphantVersion>
+    <o11yphantVersion>1.9.2-SNAPSHOT</o11yphantVersion>
     <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.33.Final</hibernateVersion>
     <h2Version>2.2.220</h2Version>
