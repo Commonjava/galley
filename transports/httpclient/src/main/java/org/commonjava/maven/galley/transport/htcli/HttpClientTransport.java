@@ -29,6 +29,7 @@ import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.maven.galley.transport.htcli.conf.HttpJobType;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpDownload;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpExistence;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpListing;
@@ -49,6 +50,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
+import static org.commonjava.maven.galley.transport.htcli.conf.HttpJobType.download;
+import static org.commonjava.maven.galley.transport.htcli.conf.HttpJobType.existence;
+import static org.commonjava.maven.galley.transport.htcli.conf.HttpJobType.listing;
+import static org.commonjava.maven.galley.transport.htcli.conf.HttpJobType.publish;
 import static org.commonjava.maven.galley.util.UrlUtils.buildUrl;
 
 @ApplicationScoped
@@ -111,8 +116,8 @@ public class HttpClientTransport
                                           final EventMetadata eventMetadata )
         throws TransferException
     {
-        return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, transferSizes, eventMetadata,
-                                 http, mapper, metricRegistry, metricConfig );
+        return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation(), download ), target,
+                                 transferSizes, eventMetadata, http, mapper, metricRegistry, metricConfig );
     }
 
     @Override
@@ -120,7 +125,8 @@ public class HttpClientTransport
                                         final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpPublish( getUrl( resource ), getHttpLocation( resource.getLocation() ), stream, length, contentType, http );
+        return new HttpPublish( getUrl( resource ), getHttpLocation( resource.getLocation(), publish ), stream, length,
+                                contentType, http );
     }
 
     @Override
@@ -148,24 +154,26 @@ public class HttpClientTransport
     }
 
     @Override
-    public ListingJob createListingJob( final ConcreteResource resource, final Transfer target, final int timeoutSeconds )
-        throws TransferException
+    public ListingJob createListingJob( final ConcreteResource resource, final Transfer target,
+                                        final int timeoutSeconds )
+            throws TransferException
     {
         return new HttpListing( getUrl( resource ),
-                                new ConcreteResource( getHttpLocation( resource.getLocation() ), resource.getPath() ),
-                                http );
+                                new ConcreteResource( getHttpLocation( resource.getLocation(), listing ),
+                                                      resource.getPath() ), http );
     }
 
-    private HttpLocation getHttpLocation( final Location repository )
-        throws TransferException
+    private HttpLocation getHttpLocation( final Location repository, HttpJobType httpJobType )
+            throws TransferException
     {
         try
         {
-            return ( repository instanceof HttpLocation ) ? (HttpLocation) repository : new WrapperHttpLocation( repository, globalConfig );
+            return new WrapperHttpLocation( repository, globalConfig, httpJobType );
         }
         catch ( final MalformedURLException e )
         {
-            throw new TransferLocationException( repository, "Failed to parse base-URL for: {}", e, repository.getUri() );
+            throw new TransferLocationException( repository, "Failed to parse base-URL for: {}", e,
+                                                 repository.getUri() );
         }
     }
 
@@ -174,7 +182,8 @@ public class HttpClientTransport
                                             final int timeoutSeconds )
         throws TransferException
     {
-        return new HttpExistence( getUrl( resource ), getHttpLocation( resource.getLocation() ), target, http, mapper );
+        return new HttpExistence( getUrl( resource ), getHttpLocation( resource.getLocation(), existence ), target,
+                                  http, mapper );
     }
 
     private String getUrl( final ConcreteResource resource )

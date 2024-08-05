@@ -17,6 +17,7 @@ package org.commonjava.maven.galley.transport.htcli.internal.model;
 
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.maven.galley.transport.htcli.conf.HttpJobType;
 import org.commonjava.maven.galley.transport.htcli.conf.ProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.LocationTrustType;
@@ -26,7 +27,7 @@ import java.net.URL;
 import java.util.Map;
 
 public class WrapperHttpLocation
-    implements HttpLocation
+        implements HttpLocation
 {
 
     private final Location delegate;
@@ -35,12 +36,16 @@ public class WrapperHttpLocation
 
     private final GlobalHttpConfiguration globalConfig;
 
-    public WrapperHttpLocation( final Location delegate, final GlobalHttpConfiguration globalConfig )
-        throws MalformedURLException
+    private final HttpJobType httpJobType;
+
+    public WrapperHttpLocation( final Location delegate, final GlobalHttpConfiguration globalConfig,
+                                final HttpJobType httpJobType )
+            throws MalformedURLException
     {
         this.delegate = delegate;
         this.globalConfig = globalConfig;
         this.url = new URL( delegate.getUri() );
+        this.httpJobType = httpJobType;
     }
 
     @Override
@@ -64,32 +69,33 @@ public class WrapperHttpLocation
     @Override
     public String getKeyCertPem()
     {
-        return null;
+        return delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getKeyCertPem() : null;
     }
 
     @Override
     public String getServerCertPem()
     {
-        return null;
+        return delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getServerCertPem() : null;
     }
 
     @Override
     public LocationTrustType getTrustType()
     {
         // FIXME: Is this something we should handle in the global config?
-        return null;
+        return delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getTrustType() : null;
     }
 
     @Override
     public String getHost()
     {
-        return url.getHost();
+        return delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getHost() : url.getHost();
     }
 
     @Override
     public int getPort()
     {
-        return url.getPort() < 0 ? url.getDefaultPort() : url.getPort();
+        int port = url.getPort() < 0 ? url.getDefaultPort() : url.getPort();
+        return delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getPort() : port;
     }
 
     @Override
@@ -105,34 +111,34 @@ public class WrapperHttpLocation
             }
         }
 
-        return userpass;
+        return delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getUser() : userpass;
     }
 
     @Override
     public String getProxyHost()
     {
-        final ProxyConfig proxy = globalConfig == null ? null : globalConfig.getProxyConfig( url );
-        return proxy == null ? null : proxy.getHost();
+        ProxyConfig proxy = getProxyConfig();
+        return isProxyAllowHttpJobType( proxy ) ? proxy.getHost() : null;
     }
 
     @Override
     public String getProxyUser()
     {
-        final ProxyConfig proxy = globalConfig == null ? null : globalConfig.getProxyConfig( url );
-        return proxy == null ? null : proxy.getUser();
+        ProxyConfig proxy = getProxyConfig();
+        return isProxyAllowHttpJobType( proxy ) ? proxy.getUser() : null;
     }
 
     @Override
     public int getProxyPort()
     {
-        final ProxyConfig proxy = globalConfig == null ? null : globalConfig.getProxyConfig( url );
-        return proxy == null ? 8080 : proxy.getPort();
+        ProxyConfig proxy = getProxyConfig();
+        return isProxyAllowHttpJobType( proxy ) ? proxy.getPort() : 8080;
     }
 
     @Override
     public boolean isIgnoreHostnameVerification()
     {
-        return false;
+        return delegate instanceof HttpLocation && ( (HttpLocation) delegate ).isIgnoreHostnameVerification();
     }
 
     @SuppressWarnings( "EqualsWhichDoesntCheckParameterClass" )
@@ -208,4 +214,13 @@ public class WrapperHttpLocation
         return delegate.getName();
     }
 
+    private ProxyConfig getProxyConfig()
+    {
+        return globalConfig == null ? null : globalConfig.getProxyConfig();
+    }
+
+    private boolean isProxyAllowHttpJobType( ProxyConfig proxy )
+    {
+        return proxy != null && proxy.getAllowHttpJobTypes().contains( httpJobType.name() );
+    }
 }
