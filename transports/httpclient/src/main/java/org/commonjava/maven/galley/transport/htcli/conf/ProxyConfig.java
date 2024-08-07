@@ -15,6 +15,8 @@
  */
 package org.commonjava.maven.galley.transport.htcli.conf;
 
+import java.util.List;
+
 public interface ProxyConfig
 {
 
@@ -24,4 +26,5 @@ public interface ProxyConfig
 
     String getUser();
 
+    List<String> getAllowHttpJobTypes();
 }

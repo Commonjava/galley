@@ -15,16 +15,22 @@
  */
 package org.commonjava.maven.galley.transport.htcli.conf;
 
-import java.net.URL;
-
-
 public class GlobalHttpConfiguration
 {
 
-    public ProxyConfig getProxyConfig( final URL url )
+    ProxyConfig proxyConfig;
+
+    public GlobalHttpConfiguration()
     {
-        // TODO Auto-generated method stub
-        return null;
     }
 
+    public GlobalHttpConfiguration( ProxyConfig proxyConfig )
+    {
+        this.proxyConfig = proxyConfig;
+    }
+
+    public ProxyConfig getProxyConfig()
+    {
+        return proxyConfig;
+    }
 }
