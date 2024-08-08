@@ -16,9 +16,8 @@
 package org.commonjava.maven.galley.transport.htcli.internal.model;
 
 import org.commonjava.maven.galley.model.Location;
-import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.maven.galley.transport.htcli.conf.GlobalProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.conf.HttpJobType;
-import org.commonjava.maven.galley.transport.htcli.conf.ProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.LocationTrustType;
 
@@ -34,16 +33,16 @@ public class WrapperHttpLocation
 
     private final URL url;
 
-    private final GlobalHttpConfiguration globalConfig;
+    private final GlobalProxyConfig globalProxyConfig;
 
     private final HttpJobType httpJobType;
 
-    public WrapperHttpLocation( final Location delegate, final GlobalHttpConfiguration globalConfig,
+    public WrapperHttpLocation( final Location delegate, final GlobalProxyConfig globalProxyConfig,
                                 final HttpJobType httpJobType )
             throws MalformedURLException
     {
         this.delegate = delegate;
-        this.globalConfig = globalConfig;
+        this.globalProxyConfig = globalProxyConfig;
         this.url = new URL( delegate.getUri() );
         this.httpJobType = httpJobType;
     }
@@ -117,21 +116,21 @@ public class WrapperHttpLocation
     @Override
     public String getProxyHost()
     {
-        ProxyConfig proxy = getProxyConfig();
+        GlobalProxyConfig proxy = getGlobalProxyConfig();
         return isProxyAllowHttpJobType( proxy ) ? proxy.getHost() : null;
     }
 
     @Override
     public String getProxyUser()
     {
-        ProxyConfig proxy = getProxyConfig();
+        GlobalProxyConfig proxy = getGlobalProxyConfig();
         return isProxyAllowHttpJobType( proxy ) ? proxy.getUser() : null;
     }
 
     @Override
     public int getProxyPort()
     {
-        ProxyConfig proxy = getProxyConfig();
+        GlobalProxyConfig proxy = getGlobalProxyConfig();
         return isProxyAllowHttpJobType( proxy ) ? proxy.getPort() : 8080;
     }
 
@@ -214,12 +213,12 @@ public class WrapperHttpLocation
         return delegate.getName();
     }
 
-    private ProxyConfig getProxyConfig()
+    private GlobalProxyConfig getGlobalProxyConfig()
     {
-        return globalConfig == null ? null : globalConfig.getProxyConfig();
+        return globalProxyConfig;
     }
 
-    private boolean isProxyAllowHttpJobType( ProxyConfig proxy )
+    private boolean isProxyAllowHttpJobType( GlobalProxyConfig proxy )
     {
         return proxy != null && proxy.getAllowHttpJobTypes().contains( httpJobType.name() );
     }

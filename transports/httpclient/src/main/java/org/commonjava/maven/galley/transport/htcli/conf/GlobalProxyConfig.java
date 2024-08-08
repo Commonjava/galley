@@ -17,7 +17,7 @@ package org.commonjava.maven.galley.transport.htcli.conf;
 
 import java.util.List;
 
-public interface ProxyConfig
+public interface GlobalProxyConfig
 {
 
     String getHost();

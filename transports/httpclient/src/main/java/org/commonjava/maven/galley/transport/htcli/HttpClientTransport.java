@@ -28,7 +28,7 @@ import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
 import org.commonjava.maven.galley.spi.transport.PublishJob;
 import org.commonjava.maven.galley.spi.transport.Transport;
-import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.maven.galley.transport.htcli.conf.GlobalProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.conf.HttpJobType;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpDownload;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpExistence;
@@ -67,7 +67,7 @@ public class HttpClientTransport
     private Http http;
 
     @Inject
-    private GlobalHttpConfiguration globalConfig;
+    private GlobalProxyConfig globalProxyConfig;
 
     @Inject
     private ObjectMapper mapper;
@@ -87,12 +87,12 @@ public class HttpClientTransport
         this( http, new ObjectMapper(), null, null, null );
     }
 
-    public HttpClientTransport( final Http http, final ObjectMapper mapper, final GlobalHttpConfiguration globalConfig,
+    public HttpClientTransport( final Http http, final ObjectMapper mapper, final GlobalProxyConfig globalProxyConfig,
                                 final MetricRegistry metricRegistry, final TransportMetricConfig metricConfig )
     {
         this.http = http;
         this.mapper = mapper;
-        this.globalConfig = globalConfig;
+        this.globalProxyConfig = globalProxyConfig;
         this.metricRegistry = metricRegistry;
         this.metricConfig = metricConfig;
     }
@@ -168,7 +168,8 @@ public class HttpClientTransport
     {
         try
         {
-            return new WrapperHttpLocation( repository, globalConfig, httpJobType );
+            logger.debug( "Wrap location with the global proxy config, host: {}", globalProxyConfig.getHost() );
+            return new WrapperHttpLocation( repository, globalProxyConfig, httpJobType );
         }
         catch ( final MalformedURLException e )
         {

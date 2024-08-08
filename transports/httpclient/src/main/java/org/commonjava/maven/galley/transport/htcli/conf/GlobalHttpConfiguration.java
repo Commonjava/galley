@@ -18,19 +18,19 @@ package org.commonjava.maven.galley.transport.htcli.conf;
 public class GlobalHttpConfiguration
 {
 
-    ProxyConfig proxyConfig;
+    GlobalProxyConfig globalProxyConfig;
 
     public GlobalHttpConfiguration()
     {
     }
 
-    public GlobalHttpConfiguration( ProxyConfig proxyConfig )
+    public GlobalHttpConfiguration( GlobalProxyConfig globalProxyConfig )
     {
-        this.proxyConfig = proxyConfig;
+        this.globalProxyConfig = globalProxyConfig;
     }
 
-    public ProxyConfig getProxyConfig()
+    public GlobalProxyConfig getGlobalProxyConfig()
     {
-        return proxyConfig;
+        return globalProxyConfig;
     }
 }
