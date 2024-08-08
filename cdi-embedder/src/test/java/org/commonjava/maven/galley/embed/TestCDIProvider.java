@@ -30,6 +30,7 @@ import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
+import org.commonjava.maven.galley.transport.htcli.conf.GlobalProxyConfig;
 import org.commonjava.o11yphant.metrics.AbstractTrafficClassifier;
 import org.commonjava.o11yphant.metrics.TrafficClassifier;
 import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
@@ -97,6 +98,33 @@ public class TestCDIProvider
         public String getMetricUniqueName( Location location )
         {
             return null;
+        }
+    };
+
+    private final GlobalProxyConfig globalProxyConfig = new GlobalProxyConfig()
+    {
+        @Override
+        public String getHost()
+        {
+            return "proxy.com";
+        }
+
+        @Override
+        public int getPort()
+        {
+            return 3128;
+        }
+
+        @Override
+        public String getUser()
+        {
+            return null;
+        }
+
+        @Override
+        public List<String> getAllowHttpJobTypes()
+        {
+            return new ArrayList<>();
         }
     };
 
@@ -189,6 +217,13 @@ public class TestCDIProvider
     public TransportMetricConfig getTransportMetricConfig()
     {
         return transportMetricConfig;
+    }
+
+    @Produces
+    @Default
+    public GlobalProxyConfig getGlobalProxyConfig()
+    {
+        return globalProxyConfig;
     }
 
     @Produces
