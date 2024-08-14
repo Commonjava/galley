@@ -54,7 +54,7 @@
     <partylineVersion>1.16</partylineVersion>
     <pathmappedStorageVersion>2.5</pathmappedStorageVersion>
     <weftVersion>1.24</weftVersion>
-    <jhttpcVersion>1.12</jhttpcVersion>
+    <jhttpcVersion>1.14-SNAPSHOT</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.20</byteman.version>
