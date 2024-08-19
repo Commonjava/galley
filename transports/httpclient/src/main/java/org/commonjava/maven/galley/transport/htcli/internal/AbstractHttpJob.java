@@ -15,13 +15,8 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.SocketTimeoutException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
@@ -38,7 +33,6 @@ import org.commonjava.maven.galley.io.checksum.ChecksumAlgorithm;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -46,8 +40,12 @@ import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.SocketTimeoutException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
@@ -105,8 +103,6 @@ public abstract class AbstractHttpJob
     {
         try
         {
-            logger.debug( "The location class: {}, is wrapper: {}", location.getClass().getName(),
-                          location instanceof WrapperHttpLocation );
             client = http.createClient( location );
             response = client.execute( request, http.createContext( location ) );
 

@@ -20,6 +20,8 @@ import org.commonjava.maven.galley.transport.htcli.conf.GlobalProxyConfig;
 import org.commonjava.maven.galley.transport.htcli.conf.HttpJobType;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.LocationTrustType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -28,6 +30,7 @@ import java.util.Map;
 public class WrapperHttpLocation
         implements HttpLocation
 {
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
 
     private final Location delegate;
 
@@ -117,21 +120,21 @@ public class WrapperHttpLocation
     public String getProxyHost()
     {
         GlobalProxyConfig proxy = getGlobalProxyConfig();
-        return isProxyAllowHttpJobType( proxy ) ? proxy.getHost() : null;
+        return isProxyAllowHttpJobType() ? proxy.getHost() : null;
     }
 
     @Override
     public String getProxyUser()
     {
         GlobalProxyConfig proxy = getGlobalProxyConfig();
-        return isProxyAllowHttpJobType( proxy ) ? proxy.getUser() : null;
+        return isProxyAllowHttpJobType() ? proxy.getUser() : null;
     }
 
     @Override
     public int getProxyPort()
     {
         GlobalProxyConfig proxy = getGlobalProxyConfig();
-        return isProxyAllowHttpJobType( proxy ) ? proxy.getPort() : 8080;
+        return isProxyAllowHttpJobType() ? proxy.getPort() : 8080;
     }
 
     @Override
@@ -213,13 +216,27 @@ public class WrapperHttpLocation
         return delegate.getName();
     }
 
-    private GlobalProxyConfig getGlobalProxyConfig()
+    public GlobalProxyConfig getGlobalProxyConfig()
     {
         return globalProxyConfig;
     }
 
-    private boolean isProxyAllowHttpJobType( GlobalProxyConfig proxy )
+    public boolean isProxyAllowHttpJobType()
     {
-        return proxy != null && proxy.getAllowHttpJobTypes().contains( httpJobType.name() );
+        if ( globalProxyConfig == null )
+        {
+            logger.debug( "GlobalProxyConfig is null" );
+            return false;
+        }
+        logger.debug( "GlobalProxyConfig: {}", globalProxyConfig );
+        return globalProxyConfig.getAllowHttpJobTypes() != null && globalProxyConfig.getAllowHttpJobTypes()
+                                                                                    .contains( httpJobType.name() );
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format( "WrapperHttpLocation [location=%s, proxyHost=%s, proxyPort=%s]", getName(),
+                              getProxyHost(), getProxyPort() );
     }
 }

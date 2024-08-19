@@ -27,6 +27,7 @@ import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.TransferLocationException;
 import org.commonjava.maven.galley.auth.PasswordEntry;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
+import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.internal.util.HttpFactoryPasswordDelegate;
 import org.commonjava.maven.galley.transport.htcli.internal.util.LocationLookup;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
@@ -41,6 +42,8 @@ import org.commonjava.util.jhttpc.JHttpCException;
 import org.commonjava.util.jhttpc.model.SiteConfig;
 import org.commonjava.util.jhttpc.model.SiteConfigBuilder;
 import org.commonjava.util.jhttpc.model.SiteTrustType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.io.Closeable;
@@ -50,6 +53,8 @@ import java.util.Optional;
 public class HttpImpl
         implements Http, Closeable
 {
+    private final Logger logger = LoggerFactory.getLogger( getClass() );
+
     private final PasswordManager passwords;
 
     private final HttpFactoryIfc httpFactory;
@@ -87,6 +92,13 @@ public class HttpImpl
         {
             if ( location != null )
             {
+                logger.debug( "The location class: {}", location.getClass().getSimpleName() );
+                if ( location instanceof WrapperHttpLocation )
+                {
+                    WrapperHttpLocation wrapper = (WrapperHttpLocation) location;
+                    logger.debug( "WrapperHttpLocation:{}, isProxyAllowHttpJobType:{}", wrapper,
+                                  wrapper.isProxyAllowHttpJobType() );
+                }
                 locationLookup.register( location );
 
                 int maxConnections = LocationUtils.getMaxConnections( location );
