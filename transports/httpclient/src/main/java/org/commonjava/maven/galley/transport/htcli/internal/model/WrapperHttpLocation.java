@@ -120,21 +120,24 @@ public class WrapperHttpLocation
     public String getProxyHost()
     {
         GlobalProxyConfig proxy = getGlobalProxyConfig();
-        return isProxyAllowHttpJobType() ? proxy.getHost() : null;
+        String proxyHost = delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getProxyHost() : null;
+        return isGlobalProxyAllowHttpJobType() ? proxy.getHost() : proxyHost;
     }
 
     @Override
     public String getProxyUser()
     {
         GlobalProxyConfig proxy = getGlobalProxyConfig();
-        return isProxyAllowHttpJobType() ? proxy.getUser() : null;
+        String proxyUser = delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getProxyUser() : null;
+        return isGlobalProxyAllowHttpJobType() ? proxy.getUser() : proxyUser;
     }
 
     @Override
     public int getProxyPort()
     {
         GlobalProxyConfig proxy = getGlobalProxyConfig();
-        return isProxyAllowHttpJobType() ? proxy.getPort() : 8080;
+        int proxyPort = delegate instanceof HttpLocation ? ( (HttpLocation) delegate ).getProxyPort() : 8080;
+        return isGlobalProxyAllowHttpJobType() ? proxy.getPort() : proxyPort;
     }
 
     @Override
@@ -221,7 +224,7 @@ public class WrapperHttpLocation
         return globalProxyConfig;
     }
 
-    public boolean isProxyAllowHttpJobType()
+    public boolean isGlobalProxyAllowHttpJobType()
     {
         if ( globalProxyConfig == null )
         {
