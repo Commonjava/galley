@@ -28,7 +28,7 @@ public interface Http
     extends Closeable
 {
 
-    CloseableHttpClient createClient( HttpLocation location, boolean isProxy )
+    CloseableHttpClient createClient( HttpLocation location, boolean doProxy )
             throws GalleyException;
 
     CloseableHttpClient createClient( HttpLocation location )

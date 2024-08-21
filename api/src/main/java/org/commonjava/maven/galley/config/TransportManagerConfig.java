@@ -30,7 +30,8 @@ public class TransportManagerConfig
     final long DEFAULT_WAIT_RETRY_SCALING_INCREMENT = DEFAULT_THRESHOLD_WAIT_RETRY_SIZE;
             // how many times we retry depends on this.
 
-    final float DEFAULT_TIMEOUT_OVEREXTENSION_FACTOR = 1.25f;
+    final float DEFAULT_TIMEOUT_OVEREXTENSION_FACTOR = 2.25f;
+            // Use proxy retry will probably exceed one default request timeout, at least twice as much time to the first request timeout.
 
     private final long thresholdWaitRetrySize;
 
