@@ -88,17 +88,18 @@ public class HttpImpl
     public CloseableHttpClient createClient( final HttpLocation location )
             throws GalleyException
     {
+        // Default to not use proxy
+        return createClient( location, false );
+    }
+
+    @Override
+    public CloseableHttpClient createClient( final HttpLocation location, final boolean isProxy )
+            throws GalleyException
+    {
         try
         {
             if ( location != null )
             {
-                logger.debug( "The location class: {}", location.getClass().getSimpleName() );
-                if ( location instanceof WrapperHttpLocation )
-                {
-                    WrapperHttpLocation wrapper = (WrapperHttpLocation) location;
-                    logger.debug( "WrapperHttpLocation:{}, isProxyAllowHttpJobType:{}", wrapper,
-                                  wrapper.isProxyAllowHttpJobType() );
-                }
                 locationLookup.register( location );
 
                 int maxConnections = LocationUtils.getMaxConnections( location );
@@ -106,19 +107,29 @@ public class HttpImpl
                 configBuilder.withAttributes( location.getAttributes() )
                              .withKeyCertPem( location.getKeyCertPem() )
                              .withServerCertPem( location.getServerCertPem() )
-                             .withProxyHost( location.getProxyHost() )
-                             .withProxyPort( location.getProxyPort() )
-                             .withProxyUser( location.getProxyUser() )
                              .withRequestTimeoutSeconds( LocationUtils.getTimeoutSeconds( location ) )
                              .withUser( location.getUser() )
                              .withIgnoreHostnameVerification( location.isIgnoreHostnameVerification() )
                              .withMaxConnections( maxConnections );
+                if ( isProxy )
+                {
+                    logger.trace( "The location class: {}", location.getClass().getSimpleName() );
+                    configBuilder.withProxyHost( location.getProxyHost() )
+                                 .withProxyPort( location.getProxyPort() )
+                                 .withProxyUser( location.getProxyUser() );
+                    if ( location instanceof WrapperHttpLocation )
+                    {
+                        WrapperHttpLocation wrapper = (WrapperHttpLocation) location;
+                        logger.debug(
+                                "Proxy with the WrapperHttpLocation config: {}, isGlobalProxyAllowHttpJobType: {}",
+                                wrapper, wrapper.isGlobalProxyAllowHttpJobType() );
+                    }
+                }
 
                 if ( location.getTrustType() != null )
                 {
                     configBuilder.withTrustType( SiteTrustType.getType( location.getTrustType().name() ) );
                 }
-
 
                 SiteConfig config = configBuilder.build();
 
