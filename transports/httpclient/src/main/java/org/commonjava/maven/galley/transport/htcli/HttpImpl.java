@@ -93,7 +93,7 @@ public class HttpImpl
     }
 
     @Override
-    public CloseableHttpClient createClient( final HttpLocation location, final boolean isProxy )
+    public CloseableHttpClient createClient( final HttpLocation location, final boolean doProxy )
             throws GalleyException
     {
         try
@@ -111,7 +111,7 @@ public class HttpImpl
                              .withUser( location.getUser() )
                              .withIgnoreHostnameVerification( location.isIgnoreHostnameVerification() )
                              .withMaxConnections( maxConnections );
-                if ( isProxy )
+                if ( doProxy )
                 {
                     logger.trace( "The location class: {}", location.getClass().getSimpleName() );
                     configBuilder.withProxyHost( location.getProxyHost() )

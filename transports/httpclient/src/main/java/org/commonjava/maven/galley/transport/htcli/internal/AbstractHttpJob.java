@@ -101,35 +101,80 @@ public abstract class AbstractHttpJob
     protected boolean executeHttp()
         throws TransferException
     {
-        boolean result = true;
+        int tries = 1;
+        boolean doProxy = false;
         try
         {
-            result = doExecuteHttp();
-        }
-        catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException e )
-        {
-            // For those are not in the iad2 tenant egress rules, will throw timeout so use the configured proxy to retry
-            result = executeProxyHttp();
-        }
-        catch ( final IOException e )
-        {
-            addFieldToActiveSpan( "target-error-reason", "I/O" );
-            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-            throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e, url,
-                                         e.getMessage() );
-        }
-        catch ( TransferLocationException e )
-        {
-            addFieldToActiveSpan( "target-error-reason", "no transport" );
-            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-            throw e;
-        }
-        catch ( final GalleyException e )
-        {
-            addFieldToActiveSpan( "target-error-reason", "unknown" );
-            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
-                                         e.getMessage() );
+            while ( tries > 0 )
+            {
+                tries--;
+                try
+                {
+                    client = http.createClient( location, doProxy );
+                    response = client.execute( request, http.createContext( location ) );
+
+                    final StatusLine line = response.getStatusLine();
+                    final int sc = line.getStatusCode();
+
+                    logger.trace( "{} {} : {}", request.getMethod(), line, url );
+
+                    if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
+                    {
+                        throw new TransferLocationException( location,
+                                                             "Server misconfigured or not responding normally for url %s: '%s'",
+                                                             url, line );
+                    }
+                    else if ( !successStatuses.contains( sc ) )
+                    {
+                        logger.trace( "Detected failure respon se: " + sc );
+                        success = TransferResponseUtils.handleUnsuccessfulResponse( request, response, location, url );
+                        logger.trace( "Returning non-error failure response for code: " + sc );
+                        return false;
+                    }
+                }
+                catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException e )
+                {
+                    // For those are not in the iad2 tenant egress rules, will throw timeout so use the configured proxy to retry
+                    if ( tries > 0 )
+                    {
+                    }
+                    else if ( !doProxy ) // never do with proxy, retry with proxy
+                    {
+                        tries = 1;
+                        doProxy = true;
+                        logger.debug( "Retry to execute with global proxy for {}", url );
+                    }
+                    else // already did proxy, still timeout
+                    {
+                        addFieldToActiveSpan( "target-error-reason", "timeout" );
+                        addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
+                        throw new TransferTimeoutException( location, url,
+                                                            "Repository remote request failed for: {}. Reason: {}", e,
+                                                            url, e.getMessage() );
+                    }
+                }
+                catch ( final IOException e )
+                {
+                    addFieldToActiveSpan( "target-error-reason", "I/O" );
+                    addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
+                    throw new TransferLocationException( location,
+                                                         "Repository remote request failed for: {}. Reason: {}", e, url,
+                                                         e.getMessage() );
+                }
+                catch ( TransferLocationException e )
+                {
+                    addFieldToActiveSpan( "target-error-reason", "no transport" );
+                    addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
+                    throw e;
+                }
+                catch ( final GalleyException e )
+                {
+                    addFieldToActiveSpan( "target-error-reason", "unknown" );
+                    addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
+                    throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                                                 e.getMessage() );
+                }
+            }
         }
         finally
         {
@@ -148,76 +193,6 @@ public abstract class AbstractHttpJob
                     writeMetadata( target, mapper );
                 }
             }
-        }
-
-        return result;
-    }
-
-    protected boolean executeProxyHttp()
-            throws TransferException
-    {
-        try
-        {
-            return doExecuteHttp( true );
-        }
-        catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException e )
-        {
-            addFieldToActiveSpan( "target-error-reason", "timeout" );
-            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-            throw new TransferTimeoutException( location, url, "Repository remote request failed for: {}. Reason: {}",
-                                                e, url, e.getMessage() );
-        }
-        catch ( final IOException e )
-        {
-            addFieldToActiveSpan( "target-error-reason", "I/O" );
-            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-            throw new TransferLocationException( location, "Repository remote request failed for: {}. Reason: {}", e,
-                                                 url, e.getMessage() );
-        }
-        catch ( TransferLocationException e )
-        {
-            addFieldToActiveSpan( "target-error-reason", "no transport" );
-            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-            throw e;
-        }
-        catch ( final GalleyException e )
-        {
-            addFieldToActiveSpan( "target-error-reason", "unknown" );
-            addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-            throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
-                                         e.getMessage() );
-        }
-    }
-
-    private boolean doExecuteHttp()
-            throws GalleyException, IOException
-    {
-        return doExecuteHttp( false );
-    }
-
-    private boolean doExecuteHttp( boolean isProxy )
-            throws GalleyException, IOException
-    {
-        client = http.createClient( location, isProxy );
-        response = client.execute( request, http.createContext( location ) );
-
-        final StatusLine line = response.getStatusLine();
-        final int sc = line.getStatusCode();
-
-        logger.trace( "{} {} : {}", request.getMethod(), line, url );
-
-        if ( sc > 399 && sc != 404 && sc != 408 && sc != 502 && sc != 503 && sc != 504 )
-        {
-            throw new TransferLocationException( location,
-                                                 "Server misconfigured or not responding normally for url %s: '%s'",
-                                                 url, line );
-        }
-        else if ( !successStatuses.contains( sc ) )
-        {
-            logger.trace( "Detected failure respon se: " + sc );
-            success = TransferResponseUtils.handleUnsuccessfulResponse( request, response, location, url );
-            logger.trace( "Returning non-error failure response for code: " + sc );
-            return false;
         }
         return true;
     }
