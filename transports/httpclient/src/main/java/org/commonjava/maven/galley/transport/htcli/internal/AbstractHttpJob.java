@@ -24,6 +24,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.commonjava.maven.galley.GalleyException;
 import org.commonjava.maven.galley.TransferException;
@@ -132,7 +133,8 @@ public abstract class AbstractHttpJob
                         return false;
                     }
                 }
-                catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException e )
+                catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException |
+                              HttpHostConnectException e )
                 {
                     // For those are not in the iad2 tenant egress rules, will throw timeout so use the configured proxy to retry
                     if ( tries > 0 )
