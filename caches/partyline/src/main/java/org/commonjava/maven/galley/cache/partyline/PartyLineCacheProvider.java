@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -514,5 +515,22 @@ public class PartyLineCacheProvider
     public PartyLineCacheProviderConfig getConfig()
     {
         return config;
+    }
+
+    @Override
+    public Set<String> getProxySitesCache()
+    {
+        return null;
+    }
+
+    @Override
+    public boolean isProxySite( String site )
+    {
+        return false;
+    }
+
+    @Override
+    public void saveProxySite( String site )
+    {
     }
 }

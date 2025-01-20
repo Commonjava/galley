@@ -15,17 +15,17 @@
  */
 package org.commonjava.maven.galley.cache.pathmapped;
 
-import org.commonjava.maven.galley.model.SpecialPathInfo;
-import org.commonjava.maven.galley.spi.io.SpecialPathManager;
-import org.commonjava.maven.galley.util.PathUtils;
-import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
+import org.commonjava.maven.galley.model.SpecialPathInfo;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
+import org.commonjava.maven.galley.spi.io.SpecialPathManager;
+import org.commonjava.maven.galley.util.PathUtils;
+import org.commonjava.storage.pathmapped.core.PathMappedFileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -407,6 +408,24 @@ public class PathMappedCacheProvider
     @Override
     public void stopReporting()
     {
+    }
+
+    @Override
+    public Set<String> getProxySitesCache()
+    {
+        return fileManager.getProxySitesCache();
+    }
+
+    @Override
+    public boolean isProxySite( final String site )
+    {
+        return fileManager.isProxySite( site );
+    }
+
+    @Override
+    public void saveProxySite( String site )
+    {
+        fileManager.saveProxySite( site );
     }
 
     public PathMappedFileManager getPathMappedFileManager()

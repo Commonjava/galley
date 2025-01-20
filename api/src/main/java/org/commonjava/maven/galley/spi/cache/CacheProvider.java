@@ -124,17 +124,31 @@ public interface CacheProvider
 
     AdminView asAdminView ();
 
+    Set<String> getProxySitesCache();
+
+    boolean isProxySite( String site );
+
+    void saveProxySite( String site );
+
     interface AdminView extends CacheProvider
     {
         boolean isFileBased();
 
-        default File getDetachedFile( ConcreteResource resource ) { return null; }
+        default File getDetachedFile( ConcreteResource resource )
+        {
+            return null;
+        }
 
         /**
          * Expose GC in case the caller wants to run it directly, especially in functional test
          */
-        default void gc() {}
+        default void gc()
+        {
+        }
 
-        default void close() {}
+        default void close()
+        {
+        }
     }
+
 }

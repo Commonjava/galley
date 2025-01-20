@@ -15,14 +15,6 @@
  */
 package org.commonjava.maven.galley.transport.htcli.testutil;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.commonjava.maven.galley.cache.SimpleLockingSupport;
@@ -32,6 +24,13 @@ import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.util.Set;
 
 public class TestCacheProvider
     implements CacheProvider
@@ -298,5 +297,22 @@ public class TestCacheProvider
     public void stopReporting()
     {
         lockingSupport.stopReporting();
+    }
+
+    @Override
+    public Set<String> getProxySitesCache()
+    {
+        return null;
+    }
+
+    @Override
+    public boolean isProxySite( String site )
+    {
+        return false;
+    }
+
+    @Override
+    public void saveProxySite( String site )
+    {
     }
 }

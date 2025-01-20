@@ -47,6 +47,7 @@ import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
@@ -104,6 +105,7 @@ public abstract class AbstractHttpJob
     {
         int tries = 1;
         boolean doProxy = false;
+        String site = location.getHost();
         try
         {
             while ( tries > 0 )
@@ -111,6 +113,17 @@ public abstract class AbstractHttpJob
                 tries--;
                 try
                 {
+                    // if the site is in memory, go with proxy directly, avoid to query db frequently through isProxySite
+                    if ( getProxySitesCache().contains( site ) )
+                    {
+                        doProxy = true;
+                    }
+                    // if the site is not in memory, query db through isProxySite
+                    else if ( isProxySite( site ) )
+                    {
+                        doProxy = true;
+                        getProxySitesCache().add( site ); // add the site into memory
+                    }
                     client = http.createClient( location, doProxy );
                     response = client.execute( request, http.createContext( location ) );
 
@@ -144,6 +157,8 @@ public abstract class AbstractHttpJob
                     {
                         tries = 1;
                         doProxy = true;
+                        getProxySitesCache().add( site ); // add the site into memory
+                        saveProxySite( site ); // add the site into db
                         logger.debug( "Retry to execute with global proxy for {}", url );
                     }
                     else // already did proxy, still timeout
@@ -151,8 +166,8 @@ public abstract class AbstractHttpJob
                         addFieldToActiveSpan( "target-error-reason", "timeout" );
                         addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                         throw new TransferTimeoutException( location, url,
-                                                            "Repository remote request failed for: {}. Reason: {}", e,
-                                                            url, e.getMessage() );
+                                                            "Retried with proxy, repository remote request timeout failed for: {}. Reason: {}",
+                                                            e, url, e.getMessage() );
                     }
                 }
                 catch ( final IOException e )
@@ -160,8 +175,8 @@ public abstract class AbstractHttpJob
                     addFieldToActiveSpan( "target-error-reason", "I/O" );
                     addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                     throw new TransferLocationException( location,
-                                                         "Repository remote request failed for: {}. Reason: {}", e, url,
-                                                         e.getMessage() );
+                                                         "Repository remote request IO failed for: {}. Reason: {}", e,
+                                                         url, e.getMessage() );
                 }
                 catch ( TransferLocationException e )
                 {
@@ -173,7 +188,7 @@ public abstract class AbstractHttpJob
                 {
                     addFieldToActiveSpan( "target-error-reason", "unknown" );
                     addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-                    throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                    throw new TransferException( "Repository remote request Galley failed for: {}. Reason: {}", e, url,
                                                  e.getMessage() );
                 }
             }
@@ -200,7 +215,6 @@ public abstract class AbstractHttpJob
     }
 
     /* for GET/HEAD request, need to override below two methods for writeMetadata() */
-
     protected Transfer getTransfer()
     {
         return null;
@@ -307,4 +321,18 @@ public abstract class AbstractHttpJob
         response = null;
     }
 
+    private boolean isProxySite( String site )
+    {
+        return getTransfer().isProxySite( site );
+    }
+
+    private void saveProxySite( String site )
+    {
+        getTransfer().saveProxySite( site );
+    }
+
+    private Set<String> getProxySitesCache()
+    {
+        return getTransfer().getProxySitesCache();
+    }
 }

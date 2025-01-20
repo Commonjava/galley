@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.join;
 
@@ -516,6 +517,21 @@ public class Transfer
     public void setResource( ConcreteResource resource )
     {
         this.resource = resource;
+    }
+
+    public Set<String> getProxySitesCache()
+    {
+        return provider.getProxySitesCache();
+    }
+
+    public boolean isProxySite( String site )
+    {
+        return provider.isProxySite( site );
+    }
+
+    public void saveProxySite( String site )
+    {
+        provider.saveProxySite( site );
     }
 
     @Override

@@ -52,7 +52,7 @@
     <projectEmail>https://github.com/Commonjava/galley</projectEmail>
     <atlasVersion>1.1.3</atlasVersion>
     <partylineVersion>1.16</partylineVersion>
-    <pathmappedStorageVersion>2.5</pathmappedStorageVersion>
+    <pathmappedStorageVersion>3.0-SNAPSHOT</pathmappedStorageVersion>
     <weftVersion>1.24</weftVersion>
     <jhttpcVersion>1.14</jhttpcVersion>
     <infinispanVersion>9.4.7.Final</infinispanVersion>

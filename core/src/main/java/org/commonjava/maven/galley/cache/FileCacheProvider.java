@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -441,5 +442,22 @@ public class FileCacheProvider
                 fileCacheProvider.unlockRead( resource );
             }
         }
+    }
+
+    @Override
+    public Set<String> getProxySitesCache()
+    {
+        return null;
+    }
+
+    @Override
+    public boolean isProxySite( String site )
+    {
+        return false;
+    }
+
+    @Override
+    public void saveProxySite( String site )
+    {
     }
 }
