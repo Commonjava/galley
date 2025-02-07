@@ -33,6 +33,7 @@ import org.commonjava.maven.galley.TransferTimeoutException;
 import org.commonjava.maven.galley.io.checksum.ChecksumAlgorithm;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.proxy.ProxySitesCache;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.internal.util.TransferResponseUtils;
 import org.commonjava.maven.galley.transport.htcli.model.HttpExchangeMetadata;
@@ -72,12 +73,15 @@ public abstract class AbstractHttpJob
 
     protected boolean success;
 
+    private final ProxySitesCache proxySitesCache;
+
     protected AbstractHttpJob( final String url, final HttpLocation location, final Http http,
-                               final Integer... successStatuses )
+                               ProxySitesCache proxySitesCache, final Integer... successStatuses )
     {
         this.url = url;
         this.location = location;
         this.http = http;
+        this.proxySitesCache = proxySitesCache;
 
         if ( successStatuses.length < 1 )
         {
@@ -104,6 +108,7 @@ public abstract class AbstractHttpJob
     {
         int tries = 1;
         boolean doProxy = false;
+        String site = location.getHost();
         try
         {
             while ( tries > 0 )
@@ -111,6 +116,11 @@ public abstract class AbstractHttpJob
                 tries--;
                 try
                 {
+                    if ( proxySitesCache.isProxySite( site ) )
+                    {
+                        doProxy = true;
+                        logger.debug( "Access with proxy in cache, site: {}", site );
+                    }
                     client = http.createClient( location, doProxy );
                     response = client.execute( request, http.createContext( location ) );
 
@@ -144,15 +154,17 @@ public abstract class AbstractHttpJob
                     {
                         tries = 1;
                         doProxy = true;
-                        logger.debug( "Retry to execute with global proxy for {}", url );
+                        proxySitesCache.saveProxySite( site );
+                        logger.debug( "Retry to execute with global proxy for {} and add into proxy cache, site: {}",
+                                      url, site );
                     }
                     else // already did proxy, still timeout
                     {
                         addFieldToActiveSpan( "target-error-reason", "timeout" );
                         addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                         throw new TransferTimeoutException( location, url,
-                                                            "Repository remote request failed for: {}. Reason: {}", e,
-                                                            url, e.getMessage() );
+                                                            "Retried with proxy, repository remote request timeout failed for: {}. Reason: {}",
+                                                            e, url, e.getMessage() );
                     }
                 }
                 catch ( final IOException e )
@@ -160,8 +172,8 @@ public abstract class AbstractHttpJob
                     addFieldToActiveSpan( "target-error-reason", "I/O" );
                     addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                     throw new TransferLocationException( location,
-                                                         "Repository remote request failed for: {}. Reason: {}", e, url,
-                                                         e.getMessage() );
+                                                         "Repository remote request IO failed for: {}. Reason: {}", e,
+                                                         url, e.getMessage() );
                 }
                 catch ( TransferLocationException e )
                 {
@@ -173,7 +185,7 @@ public abstract class AbstractHttpJob
                 {
                     addFieldToActiveSpan( "target-error-reason", "unknown" );
                     addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
-                    throw new TransferException( "Repository remote request failed for: {}. Reason: {}", e, url,
+                    throw new TransferException( "Repository remote request Galley failed for: {}. Reason: {}", e, url,
                                                  e.getMessage() );
                 }
             }
@@ -200,7 +212,6 @@ public abstract class AbstractHttpJob
     }
 
     /* for GET/HEAD request, need to override below two methods for writeMetadata() */
-
     protected Transfer getTransfer()
     {
         return null;
@@ -306,5 +317,4 @@ public abstract class AbstractHttpJob
         request = null;
         response = null;
     }
-
 }

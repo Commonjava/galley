@@ -23,6 +23,7 @@ import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.proxy.ProxySitesCache;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.spi.transport.ListingJob;
@@ -78,6 +79,9 @@ public class HttpClientTransport
     @Inject
     private TransportMetricConfig metricConfig;
 
+    @Inject
+    private ProxySitesCache proxySitesCache;
+
     protected HttpClientTransport()
     {
     }
@@ -117,7 +121,8 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation(), download ), target,
-                                 transferSizes, eventMetadata, http, mapper, metricRegistry, metricConfig );
+                                 transferSizes, eventMetadata, http, mapper, metricRegistry, metricConfig,
+                                 proxySitesCache );
     }
 
     @Override
@@ -126,7 +131,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpPublish( getUrl( resource ), getHttpLocation( resource.getLocation(), publish ), stream, length,
-                                contentType, http );
+                                contentType, http, proxySitesCache );
     }
 
     @Override
@@ -160,7 +165,7 @@ public class HttpClientTransport
     {
         return new HttpListing( getUrl( resource ),
                                 new ConcreteResource( getHttpLocation( resource.getLocation(), listing ),
-                                                      resource.getPath() ), http );
+                                                      resource.getPath() ), http, proxySitesCache );
     }
 
     private HttpLocation getHttpLocation( final Location repository, HttpJobType httpJobType )
@@ -184,7 +189,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpExistence( getUrl( resource ), getHttpLocation( resource.getLocation(), existence ), target,
-                                  http, mapper );
+                                  http, mapper, proxySitesCache );
     }
 
     private String getUrl( final ConcreteResource resource )

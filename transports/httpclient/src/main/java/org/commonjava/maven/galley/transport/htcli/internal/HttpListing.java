@@ -15,8 +15,20 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.model.ConcreteResource;
+import org.commonjava.maven.galley.model.ListingResult;
+import org.commonjava.maven.galley.spi.proxy.ProxySitesCache;
+import org.commonjava.maven.galley.spi.transport.ListingJob;
+import org.commonjava.maven.galley.transport.htcli.Http;
+import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,19 +39,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.methods.HttpGet;
-import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.model.ConcreteResource;
-import org.commonjava.maven.galley.model.ListingResult;
-import org.commonjava.maven.galley.spi.transport.ListingJob;
-import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
 public class HttpListing
     extends AbstractHttpJob
@@ -59,7 +60,13 @@ public class HttpListing
 
     public HttpListing( final String url, final ConcreteResource resource, final Http http )
     {
-        super( url, (HttpLocation) resource.getLocation(), http );
+        this( url, resource, http, null );
+    }
+
+    public HttpListing( final String url, final ConcreteResource resource, final Http http,
+                        ProxySitesCache proxySitesCache )
+    {
+        super( url, (HttpLocation) resource.getLocation(), http, proxySitesCache );
         this.resource = resource;
     }
 
