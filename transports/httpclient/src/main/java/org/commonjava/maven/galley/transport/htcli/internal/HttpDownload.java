@@ -21,13 +21,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.TransferContentException;
 import org.commonjava.maven.galley.TransferException;
+import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
 import org.commonjava.maven.galley.model.TransferOperation;
+import org.commonjava.maven.galley.spi.proxy.ProxySitesCache;
 import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
-import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
 import org.commonjava.o11yphant.metrics.api.MetricRegistry;
@@ -67,7 +68,7 @@ public final class HttpDownload
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper )
     {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null );
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null, null );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
@@ -76,15 +77,25 @@ public final class HttpDownload
                          final TransportMetricConfig transportMetricConfig )
     {
         this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
-              transportMetricConfig );
+              transportMetricConfig, null );
+    }
+
+    public HttpDownload( final String url, final HttpLocation location, final Transfer target,
+                         final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
+                         final ObjectMapper mapper, final MetricRegistry metricRegistry,
+                         final TransportMetricConfig transportMetricConfig, ProxySitesCache proxySitesCache )
+    {
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
+              transportMetricConfig, proxySitesCache );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final boolean deleteFilesOnPath,
-                         final MetricRegistry metricRegistry, final TransportMetricConfig transportMetricConfig)
+                         final MetricRegistry metricRegistry, final TransportMetricConfig transportMetricConfig,
+                         ProxySitesCache proxySitesCache )
     {
-        super( url, location, http );
+        super( url, location, http, proxySitesCache );
         this.request = new HttpGet( url );
         this.target = target;
         this.transferSizes = transferSizes;

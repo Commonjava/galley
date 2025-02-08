@@ -29,11 +29,13 @@ import org.commonjava.maven.galley.maven.parse.XMLInfrastructure;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginDefaults;
 import org.commonjava.maven.galley.maven.spi.defaults.MavenPluginImplications;
 import org.commonjava.maven.galley.nfc.MemoryNotFoundCache;
+import org.commonjava.maven.galley.proxy.NoOpProxySitesCache;
 import org.commonjava.maven.galley.spi.auth.PasswordManager;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.io.TransferDecorator;
 import org.commonjava.maven.galley.spi.nfc.NotFoundCache;
+import org.commonjava.maven.galley.spi.proxy.ProxySitesCache;
 import org.commonjava.maven.galley.spi.transport.TransportManager;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.HttpImpl;
@@ -58,6 +60,8 @@ public class EmbeddableCDIProducer
     private XMLInfrastructure xml;
 
     private NotFoundCache nfc;
+
+    private ProxySitesCache proxySitesCache;
 
     private ObjectMapper objectMapper;
 
@@ -86,6 +90,7 @@ public class EmbeddableCDIProducer
         transferDecorator = new NoOpTransferDecorator();
         pathGenerator = new HashedLocationPathGenerator();
         nfc = new MemoryNotFoundCache();
+        proxySitesCache = new NoOpProxySitesCache();
         transportManagerConfig = new TransportManagerConfig();
 
         passwordManager = new MemoryPasswordManager();
@@ -159,6 +164,13 @@ public class EmbeddableCDIProducer
     public NotFoundCache getNotFoundCache()
     {
         return nfc;
+    }
+
+    @Default
+    @Produces
+    public ProxySitesCache getProxySitesCache()
+    {
+        return proxySitesCache;
     }
 
     @Default

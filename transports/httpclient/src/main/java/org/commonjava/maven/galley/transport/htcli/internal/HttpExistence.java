@@ -15,20 +15,20 @@
  */
 package org.commonjava.maven.galley.transport.htcli.internal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.HttpHead;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.model.Transfer;
+import org.commonjava.maven.galley.spi.proxy.ProxySitesCache;
 import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
 public final class HttpExistence
-    extends AbstractHttpJob
-    implements ExistenceJob
+        extends AbstractHttpJob
+        implements ExistenceJob
 {
 
     private final ObjectMapper mapper;
@@ -38,7 +38,13 @@ public final class HttpExistence
     public HttpExistence( final String url, final HttpLocation location, final Transfer transfer, final Http http,
                           final ObjectMapper mapper )
     {
-        super( url, location, http );
+        this( url, location, transfer, http, mapper, null );
+    }
+
+    public HttpExistence( final String url, final HttpLocation location, final Transfer transfer, final Http http,
+                          final ObjectMapper mapper, ProxySitesCache proxySitesCache )
+    {
+        super( url, location, http, proxySitesCache );
         this.transfer = transfer;
         this.mapper = mapper;
     }
