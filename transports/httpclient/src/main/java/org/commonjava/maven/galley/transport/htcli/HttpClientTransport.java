@@ -131,7 +131,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpPublish( getUrl( resource ), getHttpLocation( resource.getLocation(), publish ), stream, length,
-                                contentType, http, proxySitesCache );
+                                contentType, http );
     }
 
     @Override

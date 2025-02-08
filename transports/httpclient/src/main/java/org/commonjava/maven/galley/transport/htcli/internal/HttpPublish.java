@@ -44,9 +44,9 @@ public final class HttpPublish
     private boolean success;
 
     public HttpPublish( final String url, final HttpLocation location, final InputStream stream, final long length,
-                        final String contentType, final Http http, ProxySitesCache proxySitesCache )
+                        final String contentType, final Http http )
     {
-        super( url, location, http, proxySitesCache, HttpStatus.SC_OK, HttpStatus.SC_CREATED );
+        super( url, location, http, null, HttpStatus.SC_OK, HttpStatus.SC_CREATED );
         this.stream = stream;
         this.length = length;
         this.contentType = contentType == null ? ContentTypeUtils.detectContent( url ) : contentType;

@@ -116,7 +116,7 @@ public abstract class AbstractHttpJob
                 tries--;
                 try
                 {
-                    if ( proxySitesCache.isProxySite( site ) )
+                    if ( proxySitesCache != null && proxySitesCache.isProxySite( site ) )
                     {
                         doProxy = true;
                         logger.debug( "Access with proxy in cache, site: {}", site );
@@ -154,7 +154,10 @@ public abstract class AbstractHttpJob
                     {
                         tries = 1;
                         doProxy = true;
-                        proxySitesCache.saveProxySite( site );
+                        if ( proxySitesCache != null )
+                        {
+                            proxySitesCache.saveProxySite( site );
+                        }
                         logger.debug( "Retry to execute with global proxy for {} and add into proxy cache, site: {}",
                                       url, site );
                     }
