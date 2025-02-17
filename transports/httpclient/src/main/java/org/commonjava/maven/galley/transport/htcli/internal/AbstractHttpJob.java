@@ -116,6 +116,7 @@ public abstract class AbstractHttpJob
                 tries--;
                 try
                 {
+                    logger.debug( "Site: {}, doProxy: {}", site, doProxy );
                     if ( proxySitesCache != null && proxySitesCache.isProxySite( site ) )
                     {
                         doProxy = true;
