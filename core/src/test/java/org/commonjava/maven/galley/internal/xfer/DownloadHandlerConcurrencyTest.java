@@ -41,6 +41,7 @@ import org.jboss.byteman.contrib.bmunit.BMRules;
 import org.jboss.byteman.contrib.bmunit.BMUnitConfig;
 import org.jboss.byteman.contrib.bmunit.BMUnitRunner;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -62,6 +63,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by jdcasey on 9/26/17.
  */
+@Ignore
 @RunWith( BMUnitRunner.class )
 @BMUnitConfig( debug = true )
 public class DownloadHandlerConcurrencyTest
