@@ -159,7 +159,7 @@ public abstract class AbstractHttpJob
                         {
                             proxySitesCache.saveProxySite( site );
                         }
-                        logger.debug( "Retry to execute with global proxy for {} and add into proxy cache, site: {}",
+                        logger.info( "Retry to execute with global proxy for {} and add into proxy cache, site: {}",
                                       url, site );
                     }
                     else // already did proxy, still timeout
