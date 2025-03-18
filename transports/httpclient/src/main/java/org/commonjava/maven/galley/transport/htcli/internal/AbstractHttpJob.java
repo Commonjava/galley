@@ -147,6 +147,9 @@ public abstract class AbstractHttpJob
                 catch ( final NoHttpResponseException | ConnectTimeoutException | SocketTimeoutException |
                               HttpHostConnectException e )
                 {
+                    logger.warn(
+                            "Timeout for url: {}, site: {}, could try to access with proxy, tries:{}, doProxy: {}, Reason: {}", url,
+                            site, tries, doProxy, e.getMessage() );
                     // For those are not in the iad2 tenant egress rules, will throw timeout so use the configured proxy to retry
                     if ( tries > 0 )
                     {
