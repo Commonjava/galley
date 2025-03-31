@@ -24,6 +24,8 @@ import org.commonjava.maven.galley.spi.transport.ExistenceJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
+import java.util.List;
+
 import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
 public final class HttpExistence
@@ -38,13 +40,13 @@ public final class HttpExistence
     public HttpExistence( final String url, final HttpLocation location, final Transfer transfer, final Http http,
                           final ObjectMapper mapper )
     {
-        this( url, location, transfer, http, mapper, null );
+        this( url, location, transfer, http, mapper, null, null );
     }
 
     public HttpExistence( final String url, final HttpLocation location, final Transfer transfer, final Http http,
-                          final ObjectMapper mapper, ProxySitesCache proxySitesCache )
+                          final ObjectMapper mapper, final List<String> egressSites, ProxySitesCache proxySitesCache )
     {
-        super( url, location, http, proxySitesCache );
+        super( url, location, http, egressSites, proxySitesCache );
         this.transfer = transfer;
         this.mapper = mapper;
     }

@@ -126,6 +126,12 @@ public class TestCDIProvider
         {
             return new ArrayList<>();
         }
+
+        @Override
+        public List<String> getEgressSites()
+        {
+            return new ArrayList<>();
+        }
     };
 
     @Inject

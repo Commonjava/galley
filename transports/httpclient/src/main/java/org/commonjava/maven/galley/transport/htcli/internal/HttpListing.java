@@ -37,6 +37,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
@@ -60,13 +61,13 @@ public class HttpListing
 
     public HttpListing( final String url, final ConcreteResource resource, final Http http )
     {
-        this( url, resource, http, null );
+        this( url, resource, http, null, null );
     }
 
     public HttpListing( final String url, final ConcreteResource resource, final Http http,
-                        ProxySitesCache proxySitesCache )
+                        final List<String> egressSites, ProxySitesCache proxySitesCache )
     {
-        super( url, (HttpLocation) resource.getLocation(), http, proxySitesCache );
+        super( url, (HttpLocation) resource.getLocation(), http, egressSites, proxySitesCache );
         this.resource = resource;
     }
 
