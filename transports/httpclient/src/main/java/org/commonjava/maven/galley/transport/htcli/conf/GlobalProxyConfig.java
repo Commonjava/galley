@@ -27,4 +27,6 @@ public interface GlobalProxyConfig
     String getUser();
 
     List<String> getAllowHttpJobTypes();
+
+    List<String> getEgressSites();
 }

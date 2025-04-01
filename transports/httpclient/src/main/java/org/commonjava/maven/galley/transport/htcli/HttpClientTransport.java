@@ -122,7 +122,7 @@ public class HttpClientTransport
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation(), download ), target,
                                  transferSizes, eventMetadata, http, mapper, metricRegistry, metricConfig,
-                                 proxySitesCache );
+                                 globalProxyConfig.getEgressSites(), proxySitesCache );
     }
 
     @Override
@@ -165,7 +165,8 @@ public class HttpClientTransport
     {
         return new HttpListing( getUrl( resource ),
                                 new ConcreteResource( getHttpLocation( resource.getLocation(), listing ),
-                                                      resource.getPath() ), http, proxySitesCache );
+                                                      resource.getPath() ), http, globalProxyConfig.getEgressSites(),
+                                proxySitesCache );
     }
 
     private HttpLocation getHttpLocation( final Location repository, HttpJobType httpJobType )
@@ -189,7 +190,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpExistence( getUrl( resource ), getHttpLocation( resource.getLocation(), existence ), target,
-                                  http, mapper, proxySitesCache );
+                                  http, mapper, globalProxyConfig.getEgressSites(), proxySitesCache );
     }
 
     private String getUrl( final ConcreteResource resource )

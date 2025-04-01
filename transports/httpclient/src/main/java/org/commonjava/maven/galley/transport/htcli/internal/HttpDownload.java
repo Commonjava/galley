@@ -38,6 +38,7 @@ import org.commonjava.o11yphant.trace.util.InterceptorUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
@@ -68,7 +69,7 @@ public final class HttpDownload
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper )
     {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null, null );
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null, null, null );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
@@ -77,25 +78,27 @@ public final class HttpDownload
                          final TransportMetricConfig transportMetricConfig )
     {
         this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
-              transportMetricConfig, null );
+              transportMetricConfig, null, null );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final MetricRegistry metricRegistry,
-                         final TransportMetricConfig transportMetricConfig, ProxySitesCache proxySitesCache )
+                         final TransportMetricConfig transportMetricConfig, final List<String> egressSites,
+                         ProxySitesCache proxySitesCache )
     {
         this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
-              transportMetricConfig, proxySitesCache );
+              transportMetricConfig, egressSites, proxySitesCache );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final boolean deleteFilesOnPath,
                          final MetricRegistry metricRegistry, final TransportMetricConfig transportMetricConfig,
-                         ProxySitesCache proxySitesCache )
+                         final List<String> egressSites, ProxySitesCache proxySitesCache )
     {
-        super( url, location, http, proxySitesCache );
+
+        super( url, location, http, egressSites, proxySitesCache );
         this.request = new HttpGet( url );
         this.target = target;
         this.transferSizes = transferSizes;

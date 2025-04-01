@@ -48,6 +48,7 @@ import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
@@ -73,14 +74,18 @@ public abstract class AbstractHttpJob
 
     protected boolean success;
 
+    private final List<String> egressSites;
+
     private final ProxySitesCache proxySitesCache;
 
     protected AbstractHttpJob( final String url, final HttpLocation location, final Http http,
-                               ProxySitesCache proxySitesCache, final Integer... successStatuses )
+                               final List<String> egressSites, ProxySitesCache proxySitesCache,
+                               final Integer... successStatuses )
     {
         this.url = url;
         this.location = location;
         this.http = http;
+        this.egressSites = egressSites;
         this.proxySitesCache = proxySitesCache;
 
         if ( successStatuses.length < 1 )
@@ -158,7 +163,7 @@ public abstract class AbstractHttpJob
                     {
                         tries = 1;
                         doProxy = true;
-                        if ( proxySitesCache != null )
+                        if ( proxySitesCache != null && ( egressSites == null || !egressSites.contains( site ) ) )
                         {
                             proxySitesCache.saveProxySite( site );
                         }
