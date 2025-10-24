@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -122,8 +122,8 @@ public abstract class CacheProviderTCK
         out.flush();
         out.close();
 
-        // NOTE: This is NOT as tightly specified as I would like. 
-        // We keep the listing assertions loose (greater-than instead of equals, 
+        // NOTE: This is NOT as tightly specified as I would like.
+        // We keep the listing assertions loose (greater-than instead of equals,
         // contains instead of exact positional assertion) because the Infinispan
         // live testing has these spurious foo.txt.#0 files cropping up.
         //

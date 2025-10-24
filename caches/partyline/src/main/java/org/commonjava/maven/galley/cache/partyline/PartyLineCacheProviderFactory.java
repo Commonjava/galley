@@ -20,7 +20,7 @@ import org.commonjava.maven.galley.io.TransferDecoratorManager;
 import org.commonjava.maven.galley.spi.cache.CacheProvider;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
-import org.commonjava.util.partyline.JoinableFileManager;
+import org.commonjava.util.partyline.Partyline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public class PartyLineCacheProviderFactory
     {
         if ( provider == null )
         {
-            JoinableFileManager fileManager = new JoinableFileManager();
+            Partyline fileManager = new Partyline();
             provider = new PartyLineCacheProvider( cacheDir, pathGenerator, fileEventManager, transferDecorator,
                                                    deleteExecutor, fileManager );
             provider.getConfig().withTimeoutProcessingEnabled( timeoutProcessing );
