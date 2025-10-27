@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.commonjava.maven.galley.io.SpecialPathConstants.MVN_SP_PATH_SET;
 import static org.commonjava.maven.galley.io.SpecialPathConstants.NPM_SP_PATH_SET;
 import static org.commonjava.maven.galley.io.SpecialPathConstants.PKG_TYPE_MAVEN;

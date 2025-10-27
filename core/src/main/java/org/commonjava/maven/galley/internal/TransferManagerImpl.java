@@ -72,7 +72,7 @@ import java.util.concurrent.Future;
 import static java.lang.Boolean.TRUE;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.commonjava.maven.galley.model.Transfer.DELETE_CONTENT_LOG;
 import static org.commonjava.maven.galley.util.LocationUtils.getTimeoutSeconds;
 

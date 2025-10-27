@@ -15,7 +15,7 @@
  */
 package org.commonjava.maven.galley.util;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.commonjava.maven.galley.util.LocationUtils.ATTR_PATH_ENCODE;
 import static org.commonjava.maven.galley.util.LocationUtils.PATH_ENCODE_BASE64;
 

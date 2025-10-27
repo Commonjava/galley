@@ -42,7 +42,7 @@ import org.commonjava.o11yphant.otel.OtelTracePlugin;
 import org.commonjava.o11yphant.trace.SpanFieldsDecorator;
 import org.commonjava.o11yphant.trace.TraceManager;
 import org.commonjava.o11yphant.trace.TracerConfiguration;
-import org.commonjava.util.partyline.JoinableFileManager;
+import org.commonjava.util.partyline.Partyline;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 
@@ -155,7 +155,7 @@ public class TestCDIProvider
             temp.create();
             cacheProvider =
                     new PartyLineCacheProvider( temp.newFolder(), pathGenerator, eventManager, transferDecorator,
-                                                Executors.newScheduledThreadPool( 2 ), new JoinableFileManager() );
+                                                Executors.newScheduledThreadPool( 2 ), new Partyline() );
             fileTransportConfig = new FileTransportConfig( temp.newFolder(), pathGenerator );
         }
         catch ( IOException e )
