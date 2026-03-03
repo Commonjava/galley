@@ -61,7 +61,7 @@
     <byteman.version>4.0.26</byteman.version>
     <o11yphantVersion>1.9.2</o11yphantVersion>
     <!-- Cannot upgrade to 4.3.1.0 as it causes NoClassDefFoundError com/datastax/oss/driver/api/core/config/DriverOption -->
-    <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
+    <cassandraUnitVersion>4.3.1.0</cassandraUnitVersion>
     <hibernateVersion>5.4.33.Final</hibernateVersion>
     <h2Version>2.2.220</h2Version>
     <activationVersion>1.2.0</activationVersion>
