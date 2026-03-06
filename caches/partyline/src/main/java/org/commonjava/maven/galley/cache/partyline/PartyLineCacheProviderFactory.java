@@ -45,7 +45,7 @@ public class PartyLineCacheProviderFactory
 
     public PartyLineCacheProviderFactory( File cacheDir, ScheduledExecutorService deleteExecutor )
     {
-        new PartyLineCacheProviderFactory( cacheDir, false, deleteExecutor );
+        this ( cacheDir, false, deleteExecutor );
     }
 
     public PartyLineCacheProviderFactory( File cacheDir, Boolean timeoutProcessing, ScheduledExecutorService deleteExecutor )
