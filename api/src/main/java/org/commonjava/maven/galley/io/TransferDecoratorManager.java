@@ -44,7 +44,7 @@ public class TransferDecoratorManager
     @Inject
     private Instance<TransferDecorator> transferDecorators;
 
-    private List<TransferDecorator> decorators;
+    private List<TransferDecorator> decorators = new ArrayList<>();
 
     public TransferDecoratorManager()
     {
@@ -53,7 +53,6 @@ public class TransferDecoratorManager
     @PostConstruct
     private void initDecorators()
     {
-        decorators = new ArrayList<>();
         if ( transferDecorators != null )
         {
             transferDecorators.forEach( decorator -> decorators.add( decorator ) );
