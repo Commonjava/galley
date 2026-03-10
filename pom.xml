@@ -400,7 +400,7 @@
         <groupId>org.eclipse.transformer</groupId>
         <artifactId>transformer-maven-plugin</artifactId>
         <!-- Ideally this should be 1.0.0 but that requires JDK17 to run which then breaks PathMappedCacheProviderCassandraTest -->
-        <version>0.5.0</version>
+        <version>1.0.0</version>
         <extensions>true</extensions>
         <configuration>
           <rules>
