@@ -26,8 +26,6 @@ import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 
 import java.util.List;
 
-import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
-
 public final class HttpExistence
         extends AbstractHttpJob
         implements ExistenceJob
@@ -57,9 +55,6 @@ public final class HttpExistence
         String oldName = Thread.currentThread().getName();
 
         request = new HttpHead( url );
-
-        addFieldToActiveSpan( "http-target", url );
-        addFieldToActiveSpan( "activity", "httpclient-existence" );
 
         try
         {

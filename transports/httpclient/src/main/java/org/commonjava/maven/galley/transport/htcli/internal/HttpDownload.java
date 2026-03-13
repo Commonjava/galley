@@ -21,7 +21,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.commonjava.maven.galley.TransferContentException;
 import org.commonjava.maven.galley.TransferException;
-import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Transfer;
@@ -31,9 +30,6 @@ import org.commonjava.maven.galley.spi.transport.DownloadJob;
 import org.commonjava.maven.galley.transport.htcli.Http;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
 import org.commonjava.maven.galley.transport.htcli.util.HttpUtil;
-import org.commonjava.o11yphant.metrics.api.MetricRegistry;
-import org.commonjava.o11yphant.metrics.api.Timer;
-import org.commonjava.o11yphant.trace.util.InterceptorUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,8 +39,6 @@ import java.util.Map;
 
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.commonjava.o11yphant.metrics.util.NameUtils.name;
-import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
 
 public final class HttpDownload
     extends AbstractHttpJob
@@ -61,40 +55,24 @@ public final class HttpDownload
 
     private final boolean deleteFilesOnPath;
 
-    private final MetricRegistry metricRegistry;
-
-    private final TransportMetricConfig transportMetricConfig;
-
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper )
     {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null, null, null );
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, null, null );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
-                         final ObjectMapper mapper, final MetricRegistry metricRegistry,
-                         final TransportMetricConfig transportMetricConfig )
-    {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
-              transportMetricConfig, null, null );
-    }
-
-    public HttpDownload( final String url, final HttpLocation location, final Transfer target,
-                         final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
-                         final ObjectMapper mapper, final MetricRegistry metricRegistry,
-                         final TransportMetricConfig transportMetricConfig, final List<String> egressSites,
+                         final ObjectMapper mapper, final List<String> egressSites,
                          ProxySitesCache proxySitesCache )
     {
-        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, metricRegistry,
-              transportMetricConfig, egressSites, proxySitesCache );
+        this( url, location, target, transferSizes, eventMetadata, http, mapper, true, egressSites, proxySitesCache );
     }
 
     public HttpDownload( final String url, final HttpLocation location, final Transfer target,
                          final Map<Transfer, Long> transferSizes, final EventMetadata eventMetadata, final Http http,
                          final ObjectMapper mapper, final boolean deleteFilesOnPath,
-                         final MetricRegistry metricRegistry, final TransportMetricConfig transportMetricConfig,
                          final List<String> egressSites, ProxySitesCache proxySitesCache )
     {
 
@@ -105,68 +83,12 @@ public final class HttpDownload
         this.eventMetadata = eventMetadata;
         this.mapper = mapper;
         this.deleteFilesOnPath = deleteFilesOnPath;
-        this.metricRegistry = metricRegistry;
-        this.transportMetricConfig = transportMetricConfig;
     }
 
-    @SuppressWarnings( "resource" )
     @Override
     public DownloadJob call()
     {
-        if ( transportMetricConfig == null || !transportMetricConfig.isEnabled() || metricRegistry == null )
-        {
-            return doCall();
-        }
-
-        logger.trace( "Download metric enabled, location: {}", location );
-
-        addFieldToActiveSpan( "http-target", request.getURI().toASCIIString() );
-        addFieldToActiveSpan( "activity", "httpclient-download" );
-
-        String cls = getClass().getSimpleName();
-
-        Timer repoTimer = null;
-        String metricName = transportMetricConfig.getMetricUniqueName( location );
-        if ( metricName != null )
-        {
-            repoTimer = metricRegistry.timer( name( transportMetricConfig.getNodePrefix(), cls, "call", metricName ) );
-            logger.trace( "Measure repo metric, metricName: {}", metricName );
-        }
-
-        final Timer globalTimer = metricRegistry.timer( name( transportMetricConfig.getNodePrefix(), cls, "call" ) );
-        final Timer.Context globalTimerContext = globalTimer.time();
-        Timer.Context repoTimerContext = null;
-        if ( repoTimer != null )
-        {
-            repoTimerContext = repoTimer.time();
-        }
-
-        try
-        {
-            return new InterceptorUtils().withStandardMetricWrapper( this::doCall,
-                                                                     () -> name( transportMetricConfig.getNodePrefix(),
-                                                                                 mangledName() ), this::appendix );
-        }
-        finally
-        {
-            globalTimerContext.stop();
-            if ( repoTimerContext != null )
-            {
-                repoTimerContext.stop();
-            }
-        }
-    }
-
-    // Generate a mangled name for metric/honeycomb. e.g., https://maven.apache.org to https.maven_apache_org
-    private String mangledName()
-    {
-        return name( this.request.getProtocolVersion().getProtocol(),
-                     this.request.getURI().getHost().replaceAll( "\\.", "_" ) );
-    }
-
-    private String appendix()
-    {
-        return response != null ? String.valueOf( response.getStatusLine().getStatusCode() ) : null;
+        return doCall();
     }
 
     private DownloadJob doCall()

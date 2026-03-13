@@ -50,8 +50,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.commonjava.o11yphant.trace.TraceManager.addFieldToActiveSpan;
-
 public abstract class AbstractHttpJob
 {
     protected final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -172,8 +170,6 @@ public abstract class AbstractHttpJob
                     }
                     else // already did proxy, still timeout
                     {
-                        addFieldToActiveSpan( "target-error-reason", "timeout" );
-                        addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                         throw new TransferTimeoutException( location, url,
                                                             "Retried with proxy, repository remote request timeout failed for: {}. Reason: {}",
                                                             e, url, e.getMessage() );
@@ -181,22 +177,16 @@ public abstract class AbstractHttpJob
                 }
                 catch ( final IOException e )
                 {
-                    addFieldToActiveSpan( "target-error-reason", "I/O" );
-                    addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                     throw new TransferLocationException( location,
                                                          "Repository remote request IO failed for: {}. Reason: {}", e,
                                                          url, e.getMessage() );
                 }
                 catch ( TransferLocationException e )
                 {
-                    addFieldToActiveSpan( "target-error-reason", "no transport" );
-                    addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                     throw e;
                 }
                 catch ( final GalleyException e )
                 {
-                    addFieldToActiveSpan( "target-error-reason", "unknown" );
-                    addFieldToActiveSpan( "target-error", e.getClass().getSimpleName() );
                     throw new TransferException( "Repository remote request Galley failed for: {}. Reason: {}", e, url,
                                                  e.getMessage() );
                 }
@@ -291,8 +281,6 @@ public abstract class AbstractHttpJob
                     }
                     catch ( final JsonProcessingException e )
                     {
-                        addFieldToActiveSpan( "httpmeta-error-reason", "JSON error" );
-                        addFieldToActiveSpan( "httpmeta-error", e.getClass().getSimpleName() );
                         logger.warn( String.format("Failed to write HTTP exchange metadata: %s. Reason: %s", finalMeta, e.getMessage()), e );
                     }
 
@@ -304,8 +292,6 @@ public abstract class AbstractHttpJob
         }
         catch ( final IOException e )
         {
-            addFieldToActiveSpan( "httpmeta-error-reason", "I/O" );
-            addFieldToActiveSpan( "httpmeta-error", e.getClass().getSimpleName() );
             if ( logger.isTraceEnabled() )
             {
                 logger.trace( String.format( "Failed to write metadata for HTTP exchange to: %s. Reason: %s", metaTxfr,

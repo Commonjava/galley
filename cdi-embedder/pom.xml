@@ -85,21 +85,5 @@
       <artifactId>http-testserver</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.commonjava.util</groupId>
-      <artifactId>o11yphant-metrics-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.util</groupId>
-      <artifactId>o11yphant-trace-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.commonjava.util</groupId>
-      <artifactId>o11yphant-trace-otel</artifactId>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
 </project>

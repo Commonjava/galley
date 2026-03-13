@@ -18,7 +18,6 @@ package org.commonjava.maven.galley.transport.htcli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.commonjava.maven.galley.TransferException;
 import org.commonjava.maven.galley.TransferLocationException;
-import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.event.EventMetadata;
 import org.commonjava.maven.galley.model.ConcreteResource;
 import org.commonjava.maven.galley.model.Location;
@@ -37,7 +36,6 @@ import org.commonjava.maven.galley.transport.htcli.internal.HttpListing;
 import org.commonjava.maven.galley.transport.htcli.internal.HttpPublish;
 import org.commonjava.maven.galley.transport.htcli.internal.model.WrapperHttpLocation;
 import org.commonjava.maven.galley.transport.htcli.model.HttpLocation;
-import org.commonjava.o11yphant.metrics.api.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,11 +71,6 @@ public class HttpClientTransport
     @Inject
     private ObjectMapper mapper;
 
-    @Inject
-    private MetricRegistry metricRegistry;
-
-    @Inject
-    private TransportMetricConfig metricConfig;
 
     @Inject
     private ProxySitesCache proxySitesCache;
@@ -88,17 +81,14 @@ public class HttpClientTransport
 
     public HttpClientTransport( final Http http )
     {
-        this( http, new ObjectMapper(), null, null, null );
+        this( http, new ObjectMapper(), null);
     }
 
-    public HttpClientTransport( final Http http, final ObjectMapper mapper, final GlobalProxyConfig globalProxyConfig,
-                                final MetricRegistry metricRegistry, final TransportMetricConfig metricConfig )
+    public HttpClientTransport( final Http http, final ObjectMapper mapper, final GlobalProxyConfig globalProxyConfig )
     {
         this.http = http;
         this.mapper = mapper;
         this.globalProxyConfig = globalProxyConfig;
-        this.metricRegistry = metricRegistry;
-        this.metricConfig = metricConfig;
     }
 
     @PreDestroy
@@ -121,7 +111,7 @@ public class HttpClientTransport
         throws TransferException
     {
         return new HttpDownload( getUrl( resource ), getHttpLocation( resource.getLocation(), download ), target,
-                                 transferSizes, eventMetadata, http, mapper, metricRegistry, metricConfig,
+                                 transferSizes, eventMetadata, http, mapper,
                 globalProxyConfig == null ? null : globalProxyConfig.getEgressSites(), proxySitesCache );
     }
 
