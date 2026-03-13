@@ -31,17 +31,6 @@ import org.commonjava.maven.galley.transport.NoOpLocationExpander;
 import org.commonjava.maven.galley.transport.SimpleUrlLocationResolver;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalHttpConfiguration;
 import org.commonjava.maven.galley.transport.htcli.conf.GlobalProxyConfig;
-import org.commonjava.o11yphant.metrics.AbstractTrafficClassifier;
-import org.commonjava.o11yphant.metrics.TrafficClassifier;
-import org.commonjava.o11yphant.metrics.conf.DefaultMetricsConfig;
-import org.commonjava.o11yphant.metrics.conf.MetricsConfig;
-import org.commonjava.o11yphant.metrics.sli.GoldenSignalsMetricSet;
-import org.commonjava.o11yphant.metrics.system.StoragePathProvider;
-import org.commonjava.o11yphant.otel.OtelConfiguration;
-import org.commonjava.o11yphant.otel.OtelTracePlugin;
-import org.commonjava.o11yphant.trace.SpanFieldsDecorator;
-import org.commonjava.o11yphant.trace.TraceManager;
-import org.commonjava.o11yphant.trace.TracerConfiguration;
 import org.commonjava.util.partyline.Partyline;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
@@ -54,10 +43,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 
 /**
@@ -232,137 +218,4 @@ public class TestCDIProvider
         return globalProxyConfig;
     }
 
-    @Produces
-    @Default
-    public MetricsConfig getMetricsConfig()
-    {
-        return new DefaultMetricsConfig();
-    }
-
-    @Produces
-    @Default
-    public StoragePathProvider getStoragePathProvider()
-    {
-        return () -> null;
-    }
-
-    @Produces
-    @Default
-    public TraceManager getTraceManager()
-    {
-        OtelConfiguration otelConf = new OtelConfiguration()
-        {
-        };
-
-        TracerConfiguration traceConf = new TracerConfiguration()
-        {
-            @Override
-            public boolean isEnabled()
-            {
-                return false;
-            }
-
-            @Override
-            public boolean isConsoleTransport()
-            {
-                return false;
-            }
-
-            @Override
-            public String getServiceName()
-            {
-                return "galley";
-            }
-
-            @Override
-            public String getNodeId()
-            {
-                return "node";
-            }
-        };
-
-        return new TraceManager( new OtelTracePlugin( traceConf, otelConf ), new SpanFieldsDecorator( new ArrayList<>() ), getTracerConfiguration() );
-    }
-
-    @Produces
-    @Default
-    public TracerConfiguration getTracerConfiguration()
-    {
-        return new TracerConfiguration()
-        {
-            @Override
-            public Map<String, Integer> getSpanRates()
-            {
-                return null;
-            }
-
-            @Override
-            public boolean isEnabled()
-            {
-                return false;
-            }
-
-            @Override
-            public boolean isConsoleTransport()
-            {
-                return false;
-            }
-
-            @Override
-            public String getServiceName()
-            {
-                return null;
-            }
-
-            @Override
-            public Integer getBaseSampleRate()
-            {
-                return null;
-            }
-
-            @Override
-            public Set<String> getFieldSet()
-            {
-                return null;
-            }
-
-            @Override
-            public String getEnvironmentMappings()
-            {
-                return null;
-            }
-
-            @Override
-            public String getCPNames()
-            {
-                return null;
-            }
-
-            @Override
-            public String getNodeId()
-            {
-                return null;
-            }
-        };
-    }
-
-    @Produces
-    @Default
-    public TrafficClassifier getTrafficClassifier()
-    {
-        return new AbstractTrafficClassifier()
-        {
-            @Override
-            protected List<String> calculateCachedFunctionClassifiers( String restPath, String method, Map<String, String> headers )
-            {
-                return Collections.emptyList();
-            }
-        };
-    }
-
-    @Produces
-    public GoldenSignalsMetricSet getGoldenSignalsMetricSet()
-    {
-        return null;
-    }
 }
