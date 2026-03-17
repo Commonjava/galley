@@ -56,7 +56,7 @@
     <weftVersion>1.25</weftVersion>
     <jhttpcVersion>1.16</jhttpcVersion>
     <!-- Match the version currently being used by other CommonJava components -->
-    <infinispanVersion>9.4.24.Final</infinispanVersion>
+    <infinispanVersion>16.1.2</infinispanVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.26</byteman.version>
     <o11yphantVersion>1.9.2</o11yphantVersion>
