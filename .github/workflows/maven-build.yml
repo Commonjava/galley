@@ -23,7 +23,6 @@ on:
     types: [opened, reopened, edited, synchronize, ready_for_review]
   push:
     branches:
-      - main
       - master
 
   workflow_dispatch:
@@ -37,7 +36,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
-    - name: Set up JDK 11 for x64
+    - name: Set up JDK
       uses: actions/setup-java@v5
       with:
         java-version: '11'
