@@ -57,7 +57,7 @@
     <jhttpcVersion>1.16</jhttpcVersion>
     <!-- Match the version currently being used by other CommonJava components -->
     <infinispanVersion>9.4.24.Final</infinispanVersion>
-    <weldVersion>3.1.9.Final</weldVersion>
+    <weldVersion>6.0.4.Final</weldVersion>
     <byteman.version>4.0.26</byteman.version>
     <o11yphantVersion>1.9.2</o11yphantVersion>
     <!-- Cannot upgrade to 4.3.1.0 as it causes NoClassDefFoundError com/datastax/oss/driver/api/core/config/DriverOption -->
