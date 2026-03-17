@@ -53,7 +53,7 @@
     <atlasVersion>1.2.1</atlasVersion>
     <partylineVersion>2.2</partylineVersion>
     <pathmappedStorageVersion>3.1</pathmappedStorageVersion>
-    <weftVersion>1.25</weftVersion>
+    <weftVersion>2.2</weftVersion>
     <jhttpcVersion>1.16</jhttpcVersion>
     <!-- Match the version currently being used by other CommonJava components -->
     <infinispanVersion>9.4.24.Final</infinispanVersion>
