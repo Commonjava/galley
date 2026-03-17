@@ -60,8 +60,8 @@
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.26</byteman.version>
     <o11yphantVersion>1.9.2</o11yphantVersion>
-    <!-- Cannot upgrade to 4.3.1.0 as it causes NoClassDefFoundError com/datastax/oss/driver/api/core/config/DriverOption -->
-    <cassandraUnitVersion>3.7.1.0</cassandraUnitVersion>
+    <cassandraUnitVersion>4.3.1.0</cassandraUnitVersion>
+    <dataStaxDriverVersion>4.3.1</dataStaxDriverVersion>
     <hibernateVersion>5.6.15.Final</hibernateVersion>
     <h2Version>2.4.240</h2Version>
     <activationVersion>1.2.0</activationVersion>
@@ -322,6 +322,12 @@
         <artifactId>cassandra-unit</artifactId>
         <version>${cassandraUnitVersion}</version>
       </dependency>
+      <dependency>
+        <groupId>com.datastax.oss</groupId>
+        <artifactId>java-driver-core</artifactId>
+        <version>${dataStaxDriverVersion}</version>
+      </dependency>
+
       <dependency>
         <groupId>javax.activation</groupId>
         <artifactId>javax.activation-api</artifactId>
