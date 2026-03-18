@@ -61,7 +61,7 @@
     <byteman.version>4.0.26</byteman.version>
     <o11yphantVersion>1.9.2</o11yphantVersion>
     <cassandraUnitVersion>4.3.1.0</cassandraUnitVersion>
-    <dataStaxDriverVersion>4.3.1</dataStaxDriverVersion>
+    <dataStaxDriverVersion>4.17.0</dataStaxDriverVersion>
     <hibernateVersion>5.6.15.Final</hibernateVersion>
     <h2Version>2.4.240</h2Version>
     <activationVersion>1.2.0</activationVersion>
