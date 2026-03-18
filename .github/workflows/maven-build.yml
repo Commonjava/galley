@@ -24,6 +24,17 @@ on:
   push:
     branches:
       - master
+    # We should only let the source code files to trigger the push action
+    # to avoid meaningless snapshot pushing to sonatype
+    paths:
+      - 'api/**'
+      - 'caches/**'
+      - 'cdi-embedder/**'
+      - 'core/**'
+      - 'maven/**'
+      - 'testing/**'
+      - 'transports/**'
+      - 'pom.xml'
 
   workflow_dispatch:
 
