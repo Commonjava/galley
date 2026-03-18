@@ -264,38 +264,6 @@
         <scope>test</scope>
       </dependency>
 
-      <!-- metrics support-->
-      <dependency>
-        <groupId>org.commonjava.util</groupId>
-        <artifactId>o11yphant-metrics-api</artifactId>
-        <version>${o11yphantVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.util</groupId>
-        <artifactId>o11yphant-metrics-core</artifactId>
-        <version>${o11yphantVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.util</groupId>
-        <artifactId>o11yphant-trace-core</artifactId>
-        <version>${o11yphantVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.util</groupId>
-        <artifactId>o11yphant-trace-otel</artifactId>
-        <version>${o11yphantVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.util</groupId>
-        <artifactId>o11yphant-trace-api</artifactId>
-        <version>${o11yphantVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.commonjava.util</groupId>
-        <artifactId>o11yphant-trace-helper-jhttpc</artifactId>
-        <version>${o11yphantVersion}</version>
-      </dependency>
-
       <!-- JPA support -->
       <dependency>
         <groupId>javax.persistence</groupId>
