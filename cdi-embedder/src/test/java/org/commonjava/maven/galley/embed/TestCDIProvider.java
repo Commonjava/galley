@@ -18,10 +18,8 @@ package org.commonjava.maven.galley.embed;
 import org.commonjava.cdi.util.weft.config.DefaultWeftConfig;
 import org.commonjava.cdi.util.weft.config.WeftConfig;
 import org.commonjava.maven.galley.cache.partyline.PartyLineCacheProvider;
-import org.commonjava.maven.galley.config.TransportMetricConfig;
 import org.commonjava.maven.galley.filearc.FileTransportConfig;
 import org.commonjava.maven.galley.io.TransferDecoratorManager;
-import org.commonjava.maven.galley.model.Location;
 import org.commonjava.maven.galley.spi.event.FileEventManager;
 import org.commonjava.maven.galley.spi.io.PathGenerator;
 import org.commonjava.maven.galley.spi.transport.LocationExpander;
@@ -65,27 +63,6 @@ public class TestCDIProvider
     private GlobalHttpConfiguration globalHttpConfiguration;
 
     private WeftConfig weftConfig;
-
-    //private MetricRegistry metricRegistry;
-
-    private final TransportMetricConfig transportMetricConfig = new TransportMetricConfig()
-    {
-        public boolean isEnabled() {
-            return false;
-        }
-
-        @Override
-        public String getNodePrefix()
-        {
-            return null;
-        }
-
-        @Override
-        public String getMetricUniqueName( Location location )
-        {
-            return null;
-        }
-    };
 
     private final GlobalProxyConfig globalProxyConfig = new GlobalProxyConfig()
     {
@@ -202,13 +179,6 @@ public class TestCDIProvider
     public WeftConfig getWeftConfig()
     {
         return weftConfig;
-    }
-
-    @Produces
-    @Default
-    public TransportMetricConfig getTransportMetricConfig()
-    {
-        return transportMetricConfig;
     }
 
     @Produces
