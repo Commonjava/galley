@@ -52,8 +52,8 @@
     <projectEmail>https://github.com/Commonjava/galley</projectEmail>
     <atlasVersion>1.2.1</atlasVersion>
     <partylineVersion>2.2</partylineVersion>
-    <pathmappedStorageVersion>3.1</pathmappedStorageVersion>
-    <weftVersion>1.25</weftVersion>
+    <pathmappedStorageVersion>3.2</pathmappedStorageVersion>
+    <weftVersion>1.26</weftVersion>
     <jhttpcVersion>1.16</jhttpcVersion>
     <!-- Match the version currently being used by other CommonJava components -->
     <infinispanVersion>9.4.24.Final</infinispanVersion>
@@ -178,7 +178,7 @@
       <dependency>
         <groupId>org.commonjava.boms</groupId>
         <artifactId>web-commons-bom</artifactId>
-        <version>33</version>
+        <version>34</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
