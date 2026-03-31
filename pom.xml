@@ -54,7 +54,7 @@
     <partylineVersion>2.2</partylineVersion>
     <pathmappedStorageVersion>3.1</pathmappedStorageVersion>
     <weftVersion>1.26</weftVersion>
-    <jhttpcVersion>1.16</jhttpcVersion>
+    <jhttpcVersion>1.17</jhttpcVersion>
     <!-- Match the version currently being used by other CommonJava components -->
     <infinispanVersion>9.4.24.Final</infinispanVersion>
     <weldVersion>3.1.9.Final</weldVersion>
