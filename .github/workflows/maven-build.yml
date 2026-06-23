@@ -45,7 +45,7 @@ jobs:
     env:
       MAVEN_OPTS: "-Xmx4096m -Xms2048m -XX:MaxMetaspaceSize=4096m -Xss8m"
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Set up JDK
       uses: actions/setup-java@v5
