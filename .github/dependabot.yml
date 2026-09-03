@@ -8,12 +8,22 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-
+    # wait after a new release till we create a PR, to reduce risk of pulling
+    # a compromised new version
+    cooldown:
+      default-days: 7
+      # Exclude our own repos from cooldown
+      # https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#cooldown-
+      exclude:
+        - "org.jboss.da:*"
+        - "org.jboss.pnc*:*" # match org.jboss.pnc:xyz and org.jboss.pnc.group:xyz
+        - "org.commonjava*:*" # match org.commonjava:xyz and org.commonjava.group:xyz
   - package-ecosystem: "github-actions" # Also update Github actions
     directory: "/"
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "weekly"
+    # wait after a new release till we create a PR, to reduce risk of pulling
+    # a compromised new version
+    cooldown:
+      default-days: 7
