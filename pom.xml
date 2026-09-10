@@ -55,8 +55,6 @@
     <pathmappedStorageVersion>3.2</pathmappedStorageVersion>
     <weftVersion>1.26</weftVersion>
     <jhttpcVersion>1.17</jhttpcVersion>
-    <!-- Match the version currently being used by other CommonJava components -->
-    <infinispanVersion>9.4.24.Final</infinispanVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.27</byteman.version>
     <cassandraUnitVersion>4.3.1.0</cassandraUnitVersion>
@@ -242,17 +240,6 @@
         <groupId>commons-jxpath</groupId>
         <artifactId>commons-jxpath</artifactId>
         <version>1.4.0</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-core</artifactId>
-        <version>${infinispanVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.infinispan</groupId>
-        <artifactId>infinispan-commons</artifactId>
-        <version>${infinispanVersion}</version>
       </dependency>
 
       <!-- Used to simulate remote repositories in transport/httpclient -->
