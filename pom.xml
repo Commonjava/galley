@@ -132,6 +132,17 @@
         <groupId>org.commonjava.util</groupId>
         <artifactId>partyline</artifactId>
         <version>${partylineVersion}</version>
+        <!-- Galley doesn't use infinispan related implementation -->
+        <exclusions>
+          <exclusion>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-commons</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
