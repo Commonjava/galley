@@ -57,7 +57,7 @@
     <jhttpcVersion>1.18</jhttpcVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.27</byteman.version>
-    <cassandraUnitVersion>4.3.1.0</cassandraUnitVersion>
+    <cassandraUnitVersion>5.4.0</cassandraUnitVersion>
     <dataStaxDriverVersion>4.17.0</dataStaxDriverVersion>
     <hibernateVersion>5.6.15.Final</hibernateVersion>
     <h2Version>2.5.250</h2Version>
