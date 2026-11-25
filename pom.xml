@@ -53,7 +53,7 @@
     <atlasVersion>1.2.4</atlasVersion>
     <partylineVersion>2.5</partylineVersion>
     <pathmappedStorageVersion>3.4</pathmappedStorageVersion>
-    <weftVersion>1.27</weftVersion>
+    <weftVersion>1.28</weftVersion>
     <jhttpcVersion>1.19</jhttpcVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.28.1</byteman.version>
