@@ -54,7 +54,7 @@
     <partylineVersion>2.5</partylineVersion>
     <pathmappedStorageVersion>3.3</pathmappedStorageVersion>
     <weftVersion>1.27</weftVersion>
-    <jhttpcVersion>1.18</jhttpcVersion>
+    <jhttpcVersion>1.19</jhttpcVersion>
     <weldVersion>3.1.9.Final</weldVersion>
     <byteman.version>4.0.28.1</byteman.version>
     <cassandraUnitVersion>4.3.1.0</cassandraUnitVersion>
