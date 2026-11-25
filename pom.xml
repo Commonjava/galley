@@ -51,7 +51,7 @@
     <projectOwner>Red Hat, Inc.</projectOwner>
     <projectEmail>https://github.com/Commonjava/galley</projectEmail>
     <atlasVersion>1.2.4</atlasVersion>
-    <partylineVersion>2.5</partylineVersion>
+    <partylineVersion>2.6</partylineVersion>
     <pathmappedStorageVersion>3.4</pathmappedStorageVersion>
     <weftVersion>1.28</weftVersion>
     <jhttpcVersion>1.19</jhttpcVersion>
